@@ -27,21 +27,26 @@ export const Header = () => {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-500 ${
-      scrolled 
-        ? 'bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50' 
-        : 'bg-transparent'
-    }`}>
+    <header className="sticky top-0 z-50">
       {/* Top Bar - Promotional */}
-      <div className={`bg-gradient-to-l from-primary via-cocoa to-primary text-primary-foreground text-center py-2 text-sm font-medium transition-all duration-500 ${
-        scrolled ? 'h-0 py-0 opacity-0 overflow-hidden' : 'h-auto opacity-100'
-      }`}>
+      <div 
+        className={`bg-gradient-to-l from-primary via-cocoa to-primary text-primary-foreground text-center text-sm font-medium transition-all duration-300 ease-out overflow-hidden ${
+          scrolled ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100 py-2'
+        }`}
+      >
         <div className="container-custom flex items-center justify-center gap-2">
           <Sparkles size={14} className="text-gold" />
           <span>ارسال رایگان برای سفارش‌های بالای ۵۰۰ هزار تومان</span>
           <Sparkles size={14} className="text-gold" />
         </div>
       </div>
+
+      {/* Main Header */}
+      <div className={`transition-all duration-300 ${
+        scrolled 
+          ? 'bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50' 
+          : 'bg-background'
+      }`}>
 
       <div className="container-custom">
         <div className="flex items-center justify-between h-16 md:h-20">
@@ -167,6 +172,7 @@ export const Header = () => {
               </div>
             </nav>
           </div>
+        </div>
         </div>
       </div>
     </header>
