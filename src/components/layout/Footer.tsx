@@ -232,7 +232,7 @@ export const Footer = () => {
       {/* Scroll to Top Button */}
       <button
         onClick={scrollToTop}
-        className="fixed bottom-24 left-6 z-40 w-12 h-12 bg-gold hover:bg-gold/90 text-primary rounded-xl shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
+        className="fixed bottom-24 right-6 z-40 w-12 h-12 bg-gold hover:bg-gold/90 text-primary rounded-xl shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
         aria-label="برگشت به بالا"
       >
         <ArrowUp size={22} />
