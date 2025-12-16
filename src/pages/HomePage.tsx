@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Star, Sparkles, Cookie, Heart, Truck } from "lucide-react";
+import { ArrowLeft, Check, Star, Sparkles, Cookie, Heart, Truck, Phone } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getFeaturedProducts } from "@/data/products";
@@ -265,64 +265,100 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* How to Order - Beautiful & Advanced */}
-      <section className="section-padding bg-gradient-to-b from-background via-secondary/40 to-background overflow-hidden relative">
+      {/* How to Order - Ultra Beautiful & Advanced */}
+      <section className="section-padding bg-gradient-to-b from-background via-secondary/30 to-background overflow-hidden relative">
         {/* Background Decorations */}
-        <div className="absolute top-0 left-0 w-72 h-72 bg-accent/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-[150px]" />
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-gold/15 to-transparent rounded-full blur-[180px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-rose/10 rounded-full blur-[100px]" />
+        </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 right-10 w-4 h-4 bg-gold rounded-full animate-bounce opacity-60" style={{ animationDuration: '3s' }} />
+        <div className="absolute bottom-32 left-16 w-3 h-3 bg-accent rounded-full animate-bounce opacity-50" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
+        <div className="absolute top-1/3 left-10 w-2 h-2 bg-primary rounded-full animate-pulse opacity-40" />
         
         <div className="container-custom relative z-10">
-          <div className="text-center mb-16 space-y-4">
-            <span className="inline-flex items-center gap-2 bg-accent/20 text-accent-foreground px-5 py-2 rounded-full text-sm font-semibold">
-              <Sparkles size={16} />
-              سفارش آسان
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">چطور سفارش بدهم؟</h2>
-            <p className="body-large text-muted-foreground max-w-lg mx-auto">
-              در سه قدم ساده کوکی تازه تحویل بگیرید
+          <div className="text-center mb-20 space-y-6">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-l from-accent/30 via-gold/20 to-accent/30 backdrop-blur-sm px-6 py-3 rounded-full border border-gold/30 shadow-lg">
+              <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
+              <span className="text-sm font-bold bg-gradient-to-l from-gold to-amber-600 bg-clip-text text-transparent">سفارش آسان</span>
+              <Sparkles size={16} className="text-gold" />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+              چطور <span className="bg-gradient-to-l from-primary via-cocoa to-primary bg-clip-text text-transparent">سفارش</span> بدهم؟
+            </h2>
+            <p className="body-large text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              تنها در سه قدم ساده، کوکی‌های تازه و خوشمزه را درب منزل تحویل بگیرید
             </p>
           </div>
 
-          <div className="relative max-w-5xl mx-auto">
-            {/* Connection Line - Animated */}
-            <div className="hidden md:block absolute top-20 left-[15%] right-[15%] h-1">
-              <div className="w-full h-full bg-gradient-to-l from-accent via-primary to-accent rounded-full opacity-30" />
-              <div className="absolute inset-0 bg-gradient-to-l from-accent via-primary to-accent rounded-full animate-pulse" style={{ animationDuration: '3s' }} />
+          <div className="relative max-w-6xl mx-auto">
+            {/* Connection Line - Animated Gradient */}
+            <div className="hidden md:block absolute top-28 left-[20%] right-[20%] h-1.5 rounded-full overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-l from-gold/20 via-primary/30 to-gold/20" />
+              <div className="absolute inset-0 bg-gradient-to-l from-gold via-primary to-gold animate-pulse" style={{ animationDuration: '2s' }} />
+              {/* Moving dot */}
+              <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-gold rounded-full shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-[slide-in-right_4s_ease-in-out_infinite]" />
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+            <div className="grid md:grid-cols-3 gap-10 md:gap-8">
               {steps.map((step, index) => (
                 <div
                   key={index}
-                  className="relative text-center space-y-6 animate-fade-in group"
+                  className="relative text-center space-y-8 animate-fade-in group"
                   style={{ animationDelay: `${index * 200}ms` }}
                 >
-                  {/* Step Number Circle */}
+                  {/* Step Number Circle - Enhanced */}
                   <div className="relative z-10 mx-auto">
-                    <div className="w-28 h-28 mx-auto bg-gradient-to-br from-primary via-cocoa to-primary rounded-full flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110">
-                      <span className="text-5xl font-bold text-primary-foreground">{step.num}</span>
+                    {/* Outer ring */}
+                    <div className="absolute inset-0 w-36 h-36 mx-auto border-2 border-dashed border-primary/30 rounded-full animate-spin" style={{ animationDuration: '20s' }} />
+                    
+                    {/* Main circle */}
+                    <div className="relative w-32 h-32 mx-auto">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary via-cocoa to-primary rounded-full shadow-2xl group-hover:shadow-[0_0_60px_rgba(139,90,43,0.4)] transition-all duration-700" />
+                      <div className="absolute inset-2 bg-gradient-to-br from-primary/90 to-cocoa/90 rounded-full" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-6xl font-black text-primary-foreground drop-shadow-lg">{step.num}</span>
+                      </div>
                     </div>
+                    
                     {/* Glow Effect */}
-                    <div className="absolute inset-0 w-28 h-28 mx-auto bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 w-32 h-32 mx-auto bg-gold/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
+                    
+                    {/* Small decorative circles */}
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-gold rounded-full shadow-lg group-hover:scale-125 transition-transform duration-500" />
+                    <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-accent rounded-full shadow-md group-hover:scale-125 transition-transform duration-500 delay-100" />
                   </div>
                   
-                  {/* Content Card */}
-                  <div className="bg-card/80 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-card group-hover:shadow-hover group-hover:border-accent/30 transition-all duration-500">
-                    <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{step.title}</h3>
-                    <p className="body-base text-muted-foreground">{step.desc}</p>
+                  {/* Content Card - Enhanced */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative bg-card/90 backdrop-blur-md p-8 rounded-3xl border border-border/50 shadow-xl group-hover:shadow-2xl group-hover:border-gold/30 transition-all duration-500 group-hover:-translate-y-2">
+                      {/* Icon */}
+                      <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-gold to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+                        {index === 0 && <Cookie size={20} className="text-primary" />}
+                        {index === 1 && <Phone size={20} className="text-primary" />}
+                        {index === 2 && <Truck size={20} className="text-primary" />}
+                      </div>
+                      
+                      <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors pt-4">{step.title}</h3>
+                      <p className="body-base text-muted-foreground leading-relaxed">{step.desc}</p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="text-center mt-14">
+          <div className="text-center mt-16">
             <Link
               to="/order"
-              className="inline-flex items-center gap-3 bg-primary/10 hover:bg-primary/20 text-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:gap-4 border border-primary/20"
+              className="group inline-flex items-center gap-3 bg-gradient-to-l from-primary/15 via-cocoa/10 to-primary/15 hover:from-primary/25 hover:via-cocoa/20 hover:to-primary/25 text-primary px-10 py-5 rounded-2xl font-bold transition-all duration-500 border border-primary/30 hover:border-gold/50 shadow-lg hover:shadow-xl hover:scale-105"
             >
-              اطلاعات بیشتر درباره سفارش
-              <ArrowLeft size={20} />
+              <span>اطلاعات بیشتر درباره سفارش</span>
+              <ArrowLeft size={22} className="group-hover:-translate-x-2 transition-transform duration-300" />
             </Link>
           </div>
         </div>
@@ -426,24 +462,82 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-r from-accent/10 via-secondary to-accent/10">
-        <div className="container-custom text-center">
-          <h2 className="heading-2 text-foreground mb-4">آماده سفارش هستید؟</h2>
-          <p className="body-large text-muted-foreground mb-8">
-            همین حالا سفارش دهید و طعم واقعی کوکی دست‌ساز را تجربه کنید
+      {/* Final CTA - Ultra Premium Design */}
+      <section className="relative py-24 md:py-32 overflow-hidden">
+        {/* Background with gradient and pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-cocoa to-primary" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }} />
+        
+        {/* Decorative Elements */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gold/20 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-[180px]" />
+        <div className="absolute top-1/2 left-1/4 w-40 h-40 border-2 border-primary-foreground/10 rounded-full" />
+        <div className="absolute bottom-1/3 right-1/4 w-60 h-60 border border-primary-foreground/10 rounded-full" />
+        
+        {/* Floating cookies decoration */}
+        <div className="absolute top-10 right-[15%] w-16 h-16 bg-gold/30 rounded-full blur-sm animate-bounce" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 left-[10%] w-12 h-12 bg-accent/30 rounded-full blur-sm animate-bounce" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+        
+        <div className="container-custom relative z-10 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-3 bg-primary-foreground/10 backdrop-blur-md px-6 py-3 rounded-full border border-primary-foreground/20 mb-8 shadow-lg">
+            <Cookie className="text-gold" size={20} />
+            <span className="text-primary-foreground font-semibold">سفارش فوری</span>
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          </div>
+          
+          {/* Main Heading */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-foreground mb-6 leading-tight">
+            آماده <span className="bg-gradient-to-l from-gold via-amber-300 to-gold bg-clip-text text-transparent">سفارش</span> هستید؟
+          </h2>
+          
+          <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-2xl mx-auto leading-relaxed">
+            همین حالا سفارش دهید و طعم واقعی کوکی <span className="text-gold font-semibold">دست‌ساز</span> را تجربه کنید
           </p>
-          <a
-            href={generateWhatsAppUrl("سلام، می‌خواهم سفارش بدهم.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 btn-whatsapp px-10 py-5 rounded-xl text-xl font-medium hover:scale-105 transition-transform"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            سفارش در واتساپ
-          </a>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+            <a
+              href={generateWhatsAppUrl("سلام، می‌خواهم سفارش بدهم.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative overflow-hidden bg-[#25D366] px-12 py-6 rounded-2xl text-xl font-black text-white shadow-2xl hover:shadow-[0_0_60px_rgba(37,211,102,0.5)] transition-all duration-500 hover:scale-105"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              <span className="relative flex items-center justify-center gap-3">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                سفارش در واتساپ
+              </span>
+            </a>
+            
+            <Link
+              to="/products"
+              className="group px-10 py-6 rounded-2xl text-xl font-bold text-primary-foreground bg-primary-foreground/10 backdrop-blur-md border-2 border-primary-foreground/30 hover:bg-primary-foreground/20 hover:border-gold/50 transition-all duration-500 flex items-center gap-3"
+            >
+              مشاهده محصولات
+              <ArrowLeft size={22} className="group-hover:-translate-x-2 transition-transform duration-300" />
+            </Link>
+          </div>
+          
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-8 mt-14 text-primary-foreground/70">
+            <div className="flex items-center gap-2">
+              <Check size={20} className="text-gold" />
+              <span>ضمانت کیفیت</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check size={20} className="text-gold" />
+              <span>ارسال سریع</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check size={20} className="text-gold" />
+              <span>پشتیبانی ۲۴/۷</span>
+            </div>
+          </div>
         </div>
       </section>
     </>
