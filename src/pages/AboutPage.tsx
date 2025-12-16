@@ -1,7 +1,10 @@
-import { Check, Heart, Leaf, Award } from "lucide-react";
+import { Heart, Leaf, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SEO } from "@/components/SEO";
 import { brandConfig, generateWhatsAppUrl } from "@/config/brand";
+import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
+import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
+import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 
 const values = [
   {
@@ -63,8 +66,12 @@ const AboutPage = () => {
               </div>
             </div>
 
-            <div className="aspect-square bg-gradient-to-br from-pistachio-light/30 to-secondary rounded-2xl flex items-center justify-center animate-fade-in delay-200">
-              <span className="text-9xl">👩‍🍳</span>
+            <div className="aspect-square rounded-2xl overflow-hidden animate-fade-in delay-200 shadow-lg">
+              <img
+                src={galleryBakery}
+                alt="فضای داخلی نانوایی کوکی"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -95,28 +102,67 @@ const AboutPage = () => {
       {/* Process */}
       <section className="section-padding">
         <div className="container-custom">
-          <h2 className="heading-2 text-foreground text-center mb-12">فرآیند پخت ما</h2>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {[
-              { title: "انتخاب مواد اولیه", desc: "هر ماده اولیه با دقت انتخاب و تست می‌شود" },
-              { title: "آماده‌سازی خمیر", desc: "خمیر هر روز صبح تازه آماده می‌شود" },
-              { title: "پخت با دقت", desc: "دما و زمان پخت برای هر نوع کوکی متفاوت است" },
-              { title: "بسته‌بندی با عشق", desc: "هر بسته با دقت و ظرافت آماده می‌شود" },
-            ].map((step, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-4 animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                  {index + 1}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.desc}</p>
-                </div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-lg animate-fade-in">
+              <img
+                src={galleryBaking}
+                alt="فرآیند پخت کوکی"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            <div className="order-1 lg:order-2">
+              <h2 className="heading-2 text-foreground mb-8">فرآیند پخت ما</h2>
+              <div className="space-y-6">
+                {[
+                  { title: "انتخاب مواد اولیه", desc: "هر ماده اولیه با دقت انتخاب و تست می‌شود" },
+                  { title: "آماده‌سازی خمیر", desc: "خمیر هر روز صبح تازه آماده می‌شود" },
+                  { title: "پخت با دقت", desc: "دما و زمان پخت برای هر نوع کوکی متفاوت است" },
+                  { title: "بسته‌بندی با عشق", desc: "هر بسته با دقت و ظرافت آماده می‌شود" },
+                ].map((step, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{step.title}</h3>
+                      <p className="text-muted-foreground">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Fresh Cookies */}
+      <section className="section-padding bg-secondary/30">
+        <div className="container-custom">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6 animate-fade-in">
+              <h2 className="heading-2 text-foreground">تازگی در هر گاز</h2>
+              <p className="body-base text-muted-foreground">
+                ما معتقدیم که کوکی باید تازه باشد. به همین دلیل، کوکی‌های ما هر روز صبح پخته می‌شوند
+                و همان روز به دست شما می‌رسند. وقتی کوکی را از بسته درمی‌آورید، گرمای تازه‌پخت
+                آن را احساس خواهید کرد.
+              </p>
+              <p className="body-base text-muted-foreground">
+                شکلات آب‌شده داخل کوکی‌هایمان، لحظه‌ای است که هر عاشق شیرینی منتظر آن است.
+              </p>
+            </div>
+
+            <div className="aspect-square rounded-2xl overflow-hidden animate-fade-in delay-200 shadow-lg">
+              <img
+                src={lifestyleBreaking}
+                alt="کوکی تازه با شکلات آب‌شده"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>

@@ -72,21 +72,19 @@ const ProductDetailPage = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Images */}
             <div className="space-y-4">
-              <div className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-xl flex items-center justify-center">
-                <span className="text-9xl">🍪</span>
+              <div className="aspect-square rounded-xl overflow-hidden bg-secondary">
+                {product.images[0]?.url ? (
+                  <img
+                    src={product.images[0].url}
+                    alt={product.images[0].alt || product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-9xl opacity-30">🍪</span>
+                  </div>
+                )}
               </div>
-              {product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-4">
-                  {product.images.slice(0, 4).map((img, i) => (
-                    <div
-                      key={i}
-                      className="aspect-square bg-secondary rounded-lg flex items-center justify-center cursor-pointer hover:ring-2 ring-primary transition-all"
-                    >
-                      <span className="text-3xl opacity-50">🍪</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Info */}

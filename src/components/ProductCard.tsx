@@ -14,9 +14,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <article className="group bg-card rounded-lg overflow-hidden shadow-card card-hover">
       {/* Image */}
       <Link to={`/products/${product.slug}`} className="block relative aspect-square overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-          <span className="text-6xl opacity-30">🍪</span>
-        </div>
+        {product.images[0]?.url ? (
+          <img
+            src={product.images[0].url}
+            alt={product.images[0].alt || product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
+            <span className="text-6xl opacity-30">🍪</span>
+          </div>
+        )}
         {/* Badges */}
         {product.badges.length > 0 && (
           <div className="absolute top-3 right-3 flex flex-wrap gap-2">
