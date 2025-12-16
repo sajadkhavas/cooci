@@ -84,21 +84,21 @@ const HomePage = () => {
             alt="کوکی‌های تازه"
             className="w-full h-full object-cover"
           />
-          {/* Dark gradient overlay for better text visibility */}
-          <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/60 to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+          {/* Dark gradient overlay - lighter on right to show image */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
         </div>
 
         {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-40 h-40 bg-accent/30 rounded-full blur-[100px]" />
-        <div className="absolute bottom-20 right-20 w-52 h-52 bg-gold/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-rose/20 rounded-full blur-[80px]" />
+        <div className="absolute top-20 right-10 w-40 h-40 bg-accent/30 rounded-full blur-[100px]" />
+        <div className="absolute bottom-20 left-20 w-52 h-52 bg-gold/20 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-rose/20 rounded-full blur-[80px]" />
 
         <div className="container-custom relative z-10">
-          <div className="max-w-3xl mr-auto space-y-8">
+          <div className="max-w-2xl ml-auto text-right space-y-8">
             {/* Badge */}
             <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20 animate-fade-in shadow-lg">
-              <Sparkles size={18} className="text-gold" />
+              <Sparkles size={18} className="text-amber-400" />
               <span className="text-sm font-semibold text-white/90 tracking-wide">تازه‌پخت هر روز</span>
             </div>
 
@@ -107,11 +107,11 @@ const HomePage = () => {
               <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.1] drop-shadow-2xl">
                 <span className="block">کوکی‌های</span>
                 <span className="block relative inline-block">
-                  <span className="bg-gradient-to-l from-gold via-amber-300 to-gold bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-l from-amber-400 via-yellow-300 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.6)]">
                     دست‌ساز
                   </span>
                   <svg
-                    className="absolute -bottom-2 right-0 w-full h-4 text-gold/60"
+                    className="absolute -bottom-2 right-0 w-full h-4 text-amber-400"
                     viewBox="0 0 100 12"
                     preserveAspectRatio="none"
                   >
@@ -265,43 +265,64 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* How to Order */}
-      <section className="section-padding bg-secondary/30">
-        <div className="container-custom">
-          <div className="text-center mb-12 space-y-4">
-            <span className="text-accent font-medium">سفارش آسان</span>
-            <h2 className="heading-2 text-foreground">چطور سفارش بدهم؟</h2>
-            <p className="body-base text-muted-foreground">
+      {/* How to Order - Beautiful & Advanced */}
+      <section className="section-padding bg-gradient-to-b from-background via-secondary/40 to-background overflow-hidden relative">
+        {/* Background Decorations */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-accent/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-[150px]" />
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16 space-y-4">
+            <span className="inline-flex items-center gap-2 bg-accent/20 text-accent-foreground px-5 py-2 rounded-full text-sm font-semibold">
+              <Sparkles size={16} />
+              سفارش آسان
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">چطور سفارش بدهم؟</h2>
+            <p className="body-large text-muted-foreground max-w-lg mx-auto">
               در سه قدم ساده کوکی تازه تحویل بگیرید
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connection Line */}
-            <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-gradient-to-l from-accent/30 via-primary/30 to-accent/30" />
+          <div className="relative max-w-5xl mx-auto">
+            {/* Connection Line - Animated */}
+            <div className="hidden md:block absolute top-20 left-[15%] right-[15%] h-1">
+              <div className="w-full h-full bg-gradient-to-l from-accent via-primary to-accent rounded-full opacity-30" />
+              <div className="absolute inset-0 bg-gradient-to-l from-accent via-primary to-accent rounded-full animate-pulse" style={{ animationDuration: '3s' }} />
+            </div>
             
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                className="relative text-center space-y-4 animate-fade-in"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="relative z-10 w-24 h-24 mx-auto bg-gradient-to-br from-primary to-cocoa rounded-full flex items-center justify-center text-4xl font-bold text-primary-foreground shadow-lg">
-                  {step.num}
+            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+              {steps.map((step, index) => (
+                <div
+                  key={index}
+                  className="relative text-center space-y-6 animate-fade-in group"
+                  style={{ animationDelay: `${index * 200}ms` }}
+                >
+                  {/* Step Number Circle */}
+                  <div className="relative z-10 mx-auto">
+                    <div className="w-28 h-28 mx-auto bg-gradient-to-br from-primary via-cocoa to-primary rounded-full flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110">
+                      <span className="text-5xl font-bold text-primary-foreground">{step.num}</span>
+                    </div>
+                    {/* Glow Effect */}
+                    <div className="absolute inset-0 w-28 h-28 mx-auto bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  </div>
+                  
+                  {/* Content Card */}
+                  <div className="bg-card/80 backdrop-blur-sm p-6 rounded-2xl border border-border/50 shadow-card group-hover:shadow-hover group-hover:border-accent/30 transition-all duration-500">
+                    <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{step.title}</h3>
+                    <p className="body-base text-muted-foreground">{step.desc}</p>
+                  </div>
                 </div>
-                <h3 className="heading-3">{step.title}</h3>
-                <p className="body-base text-muted-foreground">{step.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-14">
             <Link
               to="/order"
-              className="inline-flex items-center gap-2 text-primary font-medium link-underline"
+              className="inline-flex items-center gap-3 bg-primary/10 hover:bg-primary/20 text-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:gap-4 border border-primary/20"
             >
               اطلاعات بیشتر درباره سفارش
-              <ArrowLeft size={18} />
+              <ArrowLeft size={20} />
             </Link>
           </div>
         </div>
