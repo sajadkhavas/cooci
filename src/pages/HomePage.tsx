@@ -4,7 +4,13 @@ import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getFeaturedProducts } from "@/data/products";
 import { brandConfig, generateWhatsAppUrl } from "@/config/brand";
-import heroImage from "@/assets/hero-cookies.jpg";
+import heroImage from "@/assets/cookies/hero-main.jpg";
+import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
+import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
+import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
+import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
+import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";
+import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 
 const features = [
   {
@@ -43,6 +49,15 @@ const testimonials = [
     text: "کوکی پسته گلاب واقعاً خاصه. ترکیب عطر گلاب با پسته بی‌نظیره.",
     rating: 5,
   },
+];
+
+const instagramImages = [
+  lifestyleBreaking,
+  lifestyleMilk,
+  lifestyleTwine,
+  galleryBakery,
+  galleryGiftBoxes,
+  galleryBaking,
 ];
 
 const HomePage = () => {
@@ -308,12 +323,17 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
+            {instagramImages.map((image, index) => (
               <div
-                key={item}
-                className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-xl flex items-center justify-center card-hover overflow-hidden group"
+                key={index}
+                className="aspect-square rounded-xl overflow-hidden card-hover group"
               >
-                <span className="text-5xl opacity-30 group-hover:scale-125 transition-transform duration-500">🍪</span>
+                <img
+                  src={image}
+                  alt={`تصویر اینستاگرام ${index + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
               </div>
             ))}
           </div>
