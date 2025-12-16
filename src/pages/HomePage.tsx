@@ -94,8 +94,8 @@ const HomePage = () => {
         <div className="absolute bottom-20 left-20 w-52 h-52 bg-gold/20 rounded-full blur-[120px]" />
         <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-rose/20 rounded-full blur-[80px]" />
 
-        <div className="container-custom relative z-10">
-          <div className="max-w-2xl ml-auto text-right space-y-8">
+        <div className="w-full px-4 sm:px-8 lg:px-16 relative z-10">
+          <div className="max-w-xl lg:max-w-2xl space-y-8">
             {/* Badge */}
             <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20 animate-fade-in shadow-lg">
               <Sparkles size={18} className="text-amber-400" />
@@ -128,14 +128,14 @@ const HomePage = () => {
             </div>
 
             {/* Subtitle with better contrast */}
-            <p className="text-xl md:text-2xl text-white/85 max-w-xl animate-fade-in delay-200 leading-relaxed font-light drop-shadow-lg">
+            <p className="text-xl md:text-2xl text-white/85 animate-fade-in delay-200 leading-relaxed font-light drop-shadow-lg">
               {brandConfig.slogan}
               <br />
               <span className="text-gold/90 font-medium">با بهترین مواد اولیه، از شکلات بلژیکی تا پسته کرمان</span>
             </p>
 
             {/* Stats with glass morphism */}
-            <div className="flex gap-6 md:gap-10 py-6 animate-fade-in delay-300">
+            <div className="flex flex-wrap gap-6 md:gap-10 py-6 animate-fade-in delay-300">
               {[
                 { value: "+۱۰۰۰", label: "مشتری راضی" },
                 { value: "۱۰+", label: "طعم متنوع" },
@@ -149,7 +149,7 @@ const HomePage = () => {
             </div>
 
             {/* Beautiful CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in delay-400 pt-4">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 animate-fade-in delay-400 pt-4">
               <a
                 href={generateWhatsAppUrl("سلام، می‌خواهم سفارش بدهم.")}
                 target="_blank"
@@ -328,33 +328,64 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials - Advanced Design */}
       <section className="section-padding bg-gradient-to-br from-primary via-cocoa to-primary text-primary-foreground overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 w-40 h-40 border border-primary-foreground/30 rounded-full" />
-          <div className="absolute bottom-10 left-20 w-60 h-60 border border-primary-foreground/20 rounded-full" />
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 right-10 w-60 h-60 border-2 border-primary-foreground/10 rounded-full" />
+          <div className="absolute top-20 right-20 w-40 h-40 border border-primary-foreground/20 rounded-full" />
+          <div className="absolute bottom-10 left-20 w-80 h-80 border-2 border-primary-foreground/10 rounded-full" />
+          <div className="absolute bottom-20 left-40 w-48 h-48 border border-primary-foreground/15 rounded-full" />
+          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gold/10 rounded-full blur-[80px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-40 h-40 bg-accent/10 rounded-full blur-[100px]" />
         </div>
         
         <div className="container-custom relative z-10">
-          <div className="text-center mb-12 space-y-4">
-            <span className="text-accent font-medium">نظرات</span>
-            <h2 className="heading-2">مشتریان ما چه می‌گویند</h2>
+          <div className="text-center mb-16 space-y-4">
+            <span className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold border border-primary-foreground/20">
+              <Star size={16} className="text-gold" />
+              نظرات مشتریان
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold">مشتریان ما چه می‌گویند</h2>
+            <p className="text-primary-foreground/70 max-w-lg mx-auto">
+              بیش از ۱۰۰۰ مشتری راضی از طعم بی‌نظیر کوکی‌های ما
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-primary-foreground/10 backdrop-blur-sm p-8 rounded-2xl space-y-4 animate-fade-in border border-primary-foreground/10 hover:border-primary-foreground/20 transition-colors"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group relative bg-gradient-to-br from-primary-foreground/15 to-primary-foreground/5 backdrop-blur-md p-8 rounded-3xl space-y-5 animate-fade-in border border-primary-foreground/10 hover:border-primary-foreground/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
+                style={{ animationDelay: `${index * 150}ms` }}
               >
-                <div className="flex gap-1">
+                {/* Quote Icon */}
+                <div className="absolute -top-4 right-6 w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+                </div>
+                
+                {/* Stars */}
+                <div className="flex gap-1.5 pt-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={20} fill="currentColor" className="text-gold" />
+                    <Star key={i} size={22} fill="currentColor" className="text-gold drop-shadow-sm" />
                   ))}
                 </div>
-                <p className="body-base leading-relaxed">&ldquo;{testimonial.text}&rdquo;</p>
-                <p className="font-semibold">— {testimonial.name}</p>
+                
+                {/* Text */}
+                <p className="text-lg leading-relaxed text-primary-foreground/90">&ldquo;{testimonial.text}&rdquo;</p>
+                
+                {/* Author */}
+                <div className="flex items-center gap-4 pt-4 border-t border-primary-foreground/10">
+                  <div className="w-12 h-12 bg-gradient-to-br from-gold to-amber-600 rounded-full flex items-center justify-center text-primary font-bold text-lg shadow-lg">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-primary-foreground">{testimonial.name}</p>
+                    <p className="text-sm text-primary-foreground/60">مشتری وفادار</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
