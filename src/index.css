@@ -6,90 +6,91 @@
 
 @layer base {
   :root {
-    /* Warm Cream/Ivory Background */
-    --background: 40 30% 97%;
-    --foreground: 25 30% 15%;
+    /* Pastel Mint Cream Background */
+    --background: 140 40% 97%;
+    --foreground: 155 35% 15%;
 
-    /* Card - slightly warmer */
-    --card: 40 25% 95%;
-    --card-foreground: 25 30% 15%;
+    /* Card - soft mint */
+    --card: 140 35% 95%;
+    --card-foreground: 155 35% 15%;
 
     /* Popover */
-    --popover: 40 30% 97%;
-    --popover-foreground: 25 30% 15%;
+    --popover: 140 40% 97%;
+    --popover-foreground: 155 35% 15%;
 
-    /* Primary - Cocoa Brown */
-    --primary: 25 35% 30%;
-    --primary-foreground: 40 30% 97%;
+    /* Primary - Deep Sage Green */
+    --primary: 150 35% 32%;
+    --primary-foreground: 140 40% 97%;
 
-    /* Secondary - Light Cream */
-    --secondary: 35 25% 90%;
-    --secondary-foreground: 25 30% 20%;
+    /* Secondary - Pastel Mint */
+    --secondary: 145 40% 90%;
+    --secondary-foreground: 155 35% 20%;
 
     /* Muted */
-    --muted: 35 20% 88%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 140 25% 88%;
+    --muted-foreground: 155 15% 40%;
 
-    /* Accent - Pistachio Green */
-    --accent: 85 30% 55%;
-    --accent-foreground: 85 40% 15%;
+    /* Accent - Fresh Pistachio */
+    --accent: 130 45% 60%;
+    --accent-foreground: 150 45% 15%;
 
     /* Destructive */
-    --destructive: 0 70% 50%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders */
-    --border: 35 20% 85%;
-    --input: 35 20% 85%;
-    --ring: 25 35% 30%;
+    --border: 140 25% 85%;
+    --input: 140 25% 85%;
+    --ring: 150 35% 32%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Custom tokens */
-    --cream: 40 30% 97%;
-    --cocoa: 25 35% 30%;
-    --cocoa-light: 25 25% 45%;
-    --pistachio: 85 30% 55%;
-    --pistachio-light: 85 35% 75%;
-    --rose: 350 40% 85%;
-    --gold: 40 60% 50%;
+    /* Custom tokens — kept same NAMES so existing components keep working,
+       but re-tinted to the pastel-green identity. */
+    --cream: 140 40% 97%;
+    --cocoa: 150 35% 32%;         /* deep sage (was cocoa brown) */
+    --cocoa-light: 150 25% 48%;   /* medium sage */
+    --pistachio: 130 45% 60%;
+    --pistachio-light: 130 55% 80%;
+    --rose: 145 40% 90%;          /* re-tinted to soft mint */
+    --gold: 80 45% 55%;           /* olive-lime accent (was gold) */
 
     /* Shadows */
-    --shadow-soft: 0 2px 8px -2px hsl(25 30% 15% / 0.08);
-    --shadow-card: 0 4px 12px -4px hsl(25 30% 15% / 0.1);
-    --shadow-hover: 0 8px 24px -8px hsl(25 30% 15% / 0.15);
+    --shadow-soft: 0 2px 8px -2px hsl(150 35% 15% / 0.08);
+    --shadow-card: 0 4px 12px -4px hsl(150 35% 15% / 0.1);
+    --shadow-hover: 0 8px 24px -8px hsl(150 35% 15% / 0.18);
 
     /* Sidebar */
-    --sidebar-background: 40 25% 95%;
-    --sidebar-foreground: 25 30% 15%;
-    --sidebar-primary: 25 35% 30%;
-    --sidebar-primary-foreground: 40 30% 97%;
-    --sidebar-accent: 35 25% 90%;
-    --sidebar-accent-foreground: 25 30% 20%;
-    --sidebar-border: 35 20% 85%;
-    --sidebar-ring: 25 35% 30%;
+    --sidebar-background: 140 35% 95%;
+    --sidebar-foreground: 155 35% 15%;
+    --sidebar-primary: 150 35% 32%;
+    --sidebar-primary-foreground: 140 40% 97%;
+    --sidebar-accent: 145 40% 90%;
+    --sidebar-accent-foreground: 155 35% 20%;
+    --sidebar-border: 140 25% 85%;
+    --sidebar-ring: 150 35% 32%;
   }
 
   .dark {
-    --background: 25 25% 10%;
-    --foreground: 40 20% 90%;
-    --card: 25 20% 15%;
-    --card-foreground: 40 20% 90%;
-    --popover: 25 25% 10%;
-    --popover-foreground: 40 20% 90%;
-    --primary: 40 30% 80%;
-    --primary-foreground: 25 30% 10%;
-    --secondary: 25 15% 20%;
-    --secondary-foreground: 40 20% 90%;
-    --muted: 25 15% 25%;
-    --muted-foreground: 40 15% 60%;
-    --accent: 85 25% 45%;
-    --accent-foreground: 40 20% 95%;
-    --destructive: 0 60% 40%;
+    --background: 155 25% 10%;
+    --foreground: 140 25% 92%;
+    --card: 155 22% 14%;
+    --card-foreground: 140 25% 92%;
+    --popover: 155 25% 10%;
+    --popover-foreground: 140 25% 92%;
+    --primary: 130 45% 65%;
+    --primary-foreground: 155 30% 12%;
+    --secondary: 155 18% 20%;
+    --secondary-foreground: 140 25% 92%;
+    --muted: 155 15% 22%;
+    --muted-foreground: 140 15% 65%;
+    --accent: 130 40% 50%;
+    --accent-foreground: 140 40% 96%;
+    --destructive: 0 60% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 25 15% 25%;
-    --input: 25 15% 25%;
-    --ring: 40 30% 80%;
+    --border: 155 15% 22%;
+    --input: 155 15% 22%;
+    --ring: 130 45% 65%;
   }
 
   * {
@@ -200,52 +201,21 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary) / 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.5);
-}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--primary) / 0.35); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.55); }

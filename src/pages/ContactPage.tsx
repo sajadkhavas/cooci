@@ -42,7 +42,7 @@ const ContactPage = () => {
               </div>
             </div>
             <div className="space-y-4">
-              <a href={generateWhatsAppUrl("سلام")} target="_blank" className="block w-full btn-whatsapp py-4 rounded-xl text-center text-lg font-medium">سفارش در واتساپ</a>
+              <a href={generateWhatsAppUrl("سلام")} target="_blank" className="block w-full btn-whatsapp py-4 rounded-xl text-center text-lg font-medium">پشتیبانی واتساپ</a>
               <a href={brandConfig.instagramUrl} target="_blank" className="flex items-center justify-center gap-2 w-full py-4 bg-card border border-border rounded-xl hover:bg-secondary transition-colors">
                 <Instagram size={20} />اینستاگرام
               </a>

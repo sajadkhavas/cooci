@@ -1,26 +1,30 @@
 export const brandConfig = {
-  brandName: "کوکی",
-  brandNameEn: "Cookie",
-  tagline: "شیرینی‌فروشی تخصصی کوکی",
-  slogan: "طعم خانگی، کیفیت حرفه‌ای",
-  phone: "021-12345678",
-  phoneClean: "02112345678",
-  whatsappNumber: "989121234567",
-  address: "تهران، خیابان ولیعصر، پلاک ۱۲۳",
-  city: "تهران",
+  brandName: "وینیمی بیکری",
+  brandNameEn: "Winimi Bakery",
+  tagline: "کیک و کوکی مثل خانه",
+  slogan: "پخت تازه، طعم خانگی، بسته‌بندی مطمئن",
+  phone: "09212508746",
+  phoneClean: "09212508746",
+  whatsappNumber: "989212508746",
+  email: "hello@winimibakery.com",
+  address: "اندیشه، تهران — ارسال به سراسر ایران",
+  city: "اندیشه",
+  region: "تهران",
   workingHours: {
     weekdays: "۹ صبح تا ۹ شب",
     weekends: "۱۰ صبح تا ۸ شب",
   },
-  instagramUrl: "https://instagram.com/cookie_bakery",
-  mapUrl: "https://maps.google.com/?q=35.7219,51.3347",
+  instagramUrl: "https://www.instagram.com/winimi.bakery",
+  instagramHandle: "winimi.bakery",
+  mapUrl: "https://maps.google.com/?q=Andisheh+Tehran",
   defaultMeta: {
-    title: "کوکی | شیرینی‌فروشی تخصصی کوکی - سفارش آنلاین کوکی تازه",
-    description: "شیرینی‌فروشی تخصصی کوکی - کوکی‌های تازه و خانگی با بهترین مواد اولیه. سفارش تلفنی و واتساپ. ارسال به سراسر تهران.",
+    title: "وینیمی بیکری | کیک و کوکی خانگی با پخت تازه",
+    description:
+      "وینیمی بیکری — کوکی و کیک خانگی با پخت تازه، مواد اولیه درجه یک و بسته‌بندی محافظ. ارسال به تهران و سراسر ایران.",
     image: "/og-image.jpg",
   },
   preparationTime: "۲۴ تا ۴۸ ساعت",
-  deliveryInfo: "ارسال با پیک در تهران",
+  deliveryInfo: "ارسال با پیک در تهران و پست پیشتاز به سراسر ایران",
 };
 
 export const generateWhatsAppUrl = (
@@ -35,12 +39,11 @@ export const generateProductOrderMessage = (
   productName: string,
   productCode: string
 ) => {
-  return `سلام، من محصول ${productName} با کد ${productCode} را می‌خواهم.
-تعداد: ...
-تاریخ تحویل: ...
-توضیحات: ...`;
+  return `سلام، درباره محصول ${productName} (کد ${productCode}) سوال داشتم.`;
 };
 
 export const generatePhoneUrl = (phone: string = brandConfig.phoneClean) => {
-  return `tel:+98${phone.slice(1)}`;
+  return `tel:+98${phone.replace(/^0/, "")}`;
 };
+
+export const SUPPORT_WHATSAPP_MESSAGE = "سلام، برای راهنمایی و پشتیبانی از وینیمی بیکری در خدمتم.";
