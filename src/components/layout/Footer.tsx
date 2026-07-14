@@ -5,14 +5,14 @@ import { brandConfig, generateWhatsAppUrl, generatePhoneUrl } from "@/config/bra
 const footerLinks = {
   quickLinks: [
     { name: "محصولات", href: "/products" },
-    { name: "راهنمای سفارش", href: "/order" },
     { name: "درباره ما", href: "/about" },
+    { name: "وبلاگ", href: "/blog" },
     { name: "تماس با ما", href: "/contact" },
   ],
   categories: [
-    { name: "کوکی شکلاتی", href: "/products?category=chocolate" },
-    { name: "کوکی کلاسیک", href: "/products?category=classic" },
-    { name: "کوکی رژیمی", href: "/products?category=diet" },
+    { name: "کوکی‌ها", href: "/products?category=cookies" },
+    { name: "کیک و دسر", href: "/products?category=cakes" },
+    { name: "رژیمی و بدون قند", href: "/products?category=diet" },
     { name: "باکس هدیه", href: "/products?category=gift" },
   ],
   legal: [

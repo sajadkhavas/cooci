@@ -354,10 +354,10 @@ const HomePage = () => {
 
           <div className="text-center mt-16">
             <Link
-              to="/order"
+              to="/faq"
               className="group inline-flex items-center gap-3 bg-gradient-to-l from-primary/15 via-cocoa/10 to-primary/15 hover:from-primary/25 hover:via-cocoa/20 hover:to-primary/25 text-primary px-10 py-5 rounded-2xl font-bold transition-all duration-500 border border-primary/30 hover:border-gold/50 shadow-lg hover:shadow-xl hover:scale-105"
             >
-              <span>اطلاعات بیشتر درباره سفارش</span>
+              <span>سوالات متداول و راهنمای سفارش</span>
               <ArrowLeft size={22} className="group-hover:-translate-x-2 transition-transform duration-300" />
             </Link>
           </div>
