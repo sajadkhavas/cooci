@@ -181,7 +181,7 @@ const AboutPage = () => {
               rel="noopener noreferrer"
               className="btn-whatsapp px-8 py-4 rounded-lg text-lg font-medium"
             >
-              سفارش در واتساپ
+              پشتیبانی واتساپ
             </a>
             <Link
               to="/products"

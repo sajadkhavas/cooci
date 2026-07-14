@@ -110,7 +110,7 @@ export const Footer = () => {
                 </svg>
               </a>
               <a
-                href="mailto:info@cookiebakery.ir"
+                href={`mailto:${brandConfig.email}`}
                 className="group w-12 h-12 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 border border-primary-foreground/20"
                 aria-label="ایمیل"
               >
