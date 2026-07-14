@@ -15,7 +15,7 @@ import AboutPage from "./pages/AboutPage";
 import GalleryPage from "./pages/GalleryPage";
 import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
-import OrderPage from "./pages/OrderPage";
+
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ShippingPage from "./pages/ShippingPage";
@@ -42,7 +42,7 @@ const App = () => (
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/contact" element={<ContactPage />} />
-                <Route path="/order" element={<OrderPage />} />
+                
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/shipping" element={<ShippingPage />} />
