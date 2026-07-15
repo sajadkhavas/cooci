@@ -602,6 +602,10 @@ export const products: Product[] = [
     images: [{ url: lifestyleBreaking, alt: "کیک باقلوا وینیمی" }],
     isFeatured: false,
     productCode: "VIN-BC-022",
+    variants: [
+      { id: "slice", name: "اسلایس", price: 150000, weight: "یک اسلایس", productCode: "VIN-BC-022" },
+      { id: "ring", name: "رینگ کامل — ۱۰ اسلایس", price: 1500000, weight: "۱۰ اسلایس", productCode: "VIN-BC-022-R" },
+    ],
   }),
   chilledProduct({
     id: "cake-009",
