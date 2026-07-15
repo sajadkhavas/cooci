@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, ShoppingBag, Star, Heart } from "lucide-react";
+import { Phone, ShoppingBag, Star, Heart, Truck, Snowflake } from "lucide-react";
 import { Product } from "@/data/products";
 import { generateWhatsAppUrl, generateProductOrderMessage, generatePhoneUrl } from "@/config/brand";
 import { useState } from "react";
@@ -11,6 +11,10 @@ interface ProductCardProps {
 export const ProductCard = ({ product }: ProductCardProps) => {
   const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
   const [isLiked, setIsLiked] = useState(false);
+  const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
+  const shippingLabel =
+    product.shippingNote ??
+    (product.requiresCooling ? "ارسال یخچالی فقط تهران و کرج" : "ارسال به سراسر ایران");
 
   return (
     <article className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 border border-border/50 hover:border-accent/30">
@@ -98,6 +102,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {product.shortDescription}
         </p>
+
+        <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${product.requiresCooling ? "bg-sky-50 text-sky-800" : "bg-primary/10 text-primary"}`}>
+          <ShippingIcon size={15} />
+          <span className="line-clamp-1">{shippingLabel}</span>
+        </div>
 
         {/* Divider */}
         <div className="h-px bg-gradient-to-l from-transparent via-border to-transparent" />
