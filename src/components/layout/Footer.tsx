@@ -43,33 +43,42 @@ export const Footer = () => {
         clipPath: 'ellipse(60% 100% at 50% 0%)'
       }} />
 
-      {/* Newsletter Section */}
-      <div className="relative pt-32 pb-16">
+      {/* Shipping Info Banner */}
+      <div className="relative pt-32 pb-10">
         <div className="container-custom">
-          <div className="bg-gradient-to-l from-gold/20 via-primary-foreground/10 to-gold/20 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-primary-foreground/20 shadow-2xl">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-4">
+          <div className="bg-gradient-to-l from-gold/20 via-primary-foreground/10 to-gold/20 backdrop-blur-sm rounded-3xl p-8 md:p-10 border border-primary-foreground/20 shadow-2xl">
+            <div className="grid md:grid-cols-2 gap-6 items-center">
+              <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 bg-gold/20 px-4 py-2 rounded-full">
                   <Sparkles size={16} className="text-gold" />
-                  <span className="text-sm font-semibold">عضویت در خبرنامه</span>
+                  <span className="text-sm font-semibold">ارسال و پشتیبانی</span>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold">از تخفیف‌ها و محصولات جدید باخبر شوید</h3>
-                <p className="text-primary-foreground/70">با عضویت در خبرنامه، اولین نفری باشید که از پیشنهادات ویژه مطلع می‌شوید</p>
+                <h3 className="text-xl md:text-2xl font-bold">هماهنگی سفارش با پیام واتساپ</h3>
+                <p className="text-primary-foreground/70 leading-8 text-sm">
+                  {brandConfig.deliveryInfo}
+                </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input 
-                  type="email" 
-                  placeholder="ایمیل خود را وارد کنید..."
-                  className="flex-1 px-6 py-4 rounded-xl bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/50 transition-all"
-                />
-                <button className="px-8 py-4 bg-gold hover:bg-gold/90 text-primary font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-lg whitespace-nowrap">
-                  عضویت
-                </button>
+              <div className="flex flex-col sm:flex-row gap-3 md:justify-end">
+                <a
+                  href={generateWhatsAppUrl("سلام، می‌خواهم درباره سفارش و ارسال هماهنگ کنم.")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-lg text-center"
+                >
+                  پیام در واتساپ
+                </a>
+                <Link
+                  to="/shipping"
+                  className="px-6 py-3 bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground font-bold rounded-xl text-center hover:bg-primary-foreground/20 transition-all"
+                >
+                  شرایط ارسال
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Main Footer Content */}
       <div className="container-custom section-padding relative z-10">
