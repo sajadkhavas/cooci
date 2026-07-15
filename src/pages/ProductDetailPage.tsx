@@ -116,7 +116,7 @@ const ProductDetailPage = () => {
               {/* Product Code */}
               <div className="inline-flex items-center gap-2 bg-secondary px-4 py-2 rounded-full">
                 <span className="text-sm text-muted-foreground">
-                  کد محصول: <span className="font-bold text-foreground">{product.productCode}</span>
+                  کد محصول: <span className="font-bold text-foreground">{activeCode}</span>
                 </span>
               </div>
 
