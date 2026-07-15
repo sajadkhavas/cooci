@@ -1,9 +1,17 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CreditCard, Lock, MapPin, ShoppingBag, Snowflake } from "lucide-react";
+import { CreditCard, Lock, PackageCheck, ShoppingBag, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { formatToman, useCart } from "@/context/CartContext";
-import { createLocalOrder, isCoolingDeliveryCity, type CheckoutCustomer } from "@/lib/orders";
+import {
+  createLocalOrder,
+  deliveryMethods,
+  getRecommendedDeliveryMethod,
+  isCoolingDeliveryCity,
+  isValidIranMobile,
+  type CheckoutCustomer,
+  type DeliveryMethod,
+} from "@/lib/orders";
 
 const initialCustomer: CheckoutCustomer = {
   fullName: "",
@@ -17,12 +25,29 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, subtotal, itemCount, hasCoolingItems, clearCart } = useCart();
   const [customer, setCustomer] = useState<CheckoutCustomer>(initialCustomer);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("standard");
   const [error, setError] = useState("");
 
   const canDeliverCooling = useMemo(
     () => !hasCoolingItems || isCoolingDeliveryCity(customer.city),
     [customer.city, hasCoolingItems],
   );
+
+  const availableDeliveryMethods = useMemo(() => {
+    const entries = Object.entries(deliveryMethods) as Array<[DeliveryMethod, (typeof deliveryMethods)[DeliveryMethod]]>;
+    if (hasCoolingItems) return entries.filter(([method]) => method === "chilled" || method === "pickup");
+    return entries.filter(([method]) => method !== "chilled");
+  }, [hasCoolingItems]);
+
+  const deliveryFee = deliveryMethods[deliveryMethod].fee;
+  const total = subtotal + deliveryFee;
+
+  useEffect(() => {
+    const recommended = getRecommendedDeliveryMethod({ hasCoolingItems, city: customer.city });
+    if (availableDeliveryMethods.some(([method]) => method === recommended)) {
+      setDeliveryMethod(recommended);
+    }
+  }, [availableDeliveryMethods, customer.city, hasCoolingItems]);
 
   const updateField = (field: keyof CheckoutCustomer, value: string) => {
     setCustomer((current) => ({ ...current, [field]: value }));
@@ -42,14 +67,19 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!canDeliverCooling) {
+    if (!isValidIranMobile(customer.phone)) {
+      setError("شماره موبایل را با فرمت درست وارد کنید؛ مثال: 09123456789");
+      return;
+    }
+
+    if (hasCoolingItems && deliveryMethod === "chilled" && !canDeliverCooling) {
       setError("در این سبد محصول یخچالی وجود دارد و ارسال یخچالی فعلاً فقط برای تهران، کرج و اندیشه قابل ثبت است.");
       return;
     }
 
-    const order = createLocalOrder({ customer, items, subtotal });
+    const order = createLocalOrder({ customer, items, subtotal, deliveryMethod });
     clearCart();
-    navigate(`/order-success?order=${encodeURIComponent(order.id)}`);
+    navigate(`/payment/callback?order=${encodeURIComponent(order.id)}&status=paid`);
   };
 
   if (!items.length) {
@@ -74,7 +104,7 @@ const CheckoutPage = () => {
     <>
       <SEO
         title="تکمیل سفارش"
-        description="ثبت اطلاعات ارسال و آماده‌سازی سفارش برای پرداخت آنلاین در وینیمی بیکری."
+        description="ثبت اطلاعات ارسال، محاسبه هزینه ارسال و آماده‌سازی سفارش برای اتصال به درگاه پرداخت وینیمی بیکری."
       />
 
       <section className="bg-secondary/50 py-12">
@@ -85,17 +115,17 @@ const CheckoutPage = () => {
           </span>
           <h1 className="heading-1 text-foreground">تکمیل سفارش</h1>
           <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
-            اطلاعات ارسال را وارد کنید. بعد از اتصال درگاه، همین مرحله به پرداخت بانکی متصل می‌شود.
+            اطلاعات ارسال، روش تحویل و خلاصه پرداخت را بررسی کنید. بعد از دریافت درگاه، همین مسیر به پرداخت بانکی واقعی وصل می‌شود.
           </p>
         </div>
       </section>
 
       <section className="section-padding">
         <div className="container-custom grid lg:grid-cols-[1fr_380px] gap-8 items-start">
-          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-soft space-y-6">
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-soft space-y-7">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">اطلاعات گیرنده</h2>
-              <p className="text-muted-foreground text-sm">این اطلاعات برای ارسال سفارش و صدور سفارش استفاده می‌شود.</p>
+              <p className="text-muted-foreground text-sm">این اطلاعات برای ثبت سفارش، ارسال و پیگیری پرداخت استفاده می‌شود.</p>
             </div>
 
             {error && (
@@ -112,17 +142,19 @@ const CheckoutPage = () => {
                   value={customer.fullName}
                   onChange={(event) => updateField("fullName", event.target.value)}
                   placeholder="مثلاً سجاد خواص"
+                  autoComplete="name"
                 />
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-bold text-foreground">شماره تماس</span>
+                <span className="text-sm font-bold text-foreground">شماره موبایل</span>
                 <input
                   className="input-field w-full ltr:text-left"
                   value={customer.phone}
                   onChange={(event) => updateField("phone", event.target.value)}
                   placeholder="09xxxxxxxxx"
                   inputMode="tel"
+                  autoComplete="tel"
                 />
               </label>
 
@@ -133,6 +165,7 @@ const CheckoutPage = () => {
                   value={customer.city}
                   onChange={(event) => updateField("city", event.target.value)}
                   placeholder="تهران، کرج، اصفهان..."
+                  autoComplete="address-level2"
                 />
               </label>
 
@@ -143,6 +176,7 @@ const CheckoutPage = () => {
                   value={customer.address}
                   onChange={(event) => updateField("address", event.target.value)}
                   placeholder="آدرس، پلاک، واحد و توضیحات لازم برای ارسال"
+                  autoComplete="street-address"
                 />
               </label>
 
@@ -157,12 +191,46 @@ const CheckoutPage = () => {
               </label>
             </div>
 
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold text-foreground">روش ارسال</h2>
+              <div className="grid gap-3">
+                {availableDeliveryMethods.map(([method, option]) => {
+                  const Icon = method === "chilled" ? Snowflake : method === "pickup" ? PackageCheck : Truck;
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setDeliveryMethod(method)}
+                      className={`text-right rounded-2xl border p-4 transition-all ${
+                        deliveryMethod === method
+                          ? "border-primary bg-primary/10 shadow-soft"
+                          : "border-border bg-background hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                          <Icon size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="font-bold text-foreground">{option.label}</h3>
+                            <span className="text-primary font-black">{option.fee ? formatToman(option.fee) : "رایگان"}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-7 mt-1">{option.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {hasCoolingItems && (
               <div className={`rounded-2xl border p-4 text-sm leading-7 ${canDeliverCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-destructive/20 bg-destructive/10 text-destructive"}`}>
                 <div className="flex items-start gap-3">
                   <Snowflake size={20} className="mt-1 flex-shrink-0" />
                   <p>
-                    این سفارش محصول یخچالی دارد. ارسال یخچالی فقط برای تهران، کرج و اندیشه فعال است؛ برای شهرهای دیگر باید محصول یخچالی از سبد حذف شود.
+                    این سفارش محصول یخچالی دارد. ارسال یخچالی فقط برای تهران، کرج و اندیشه فعال است؛ برای شهرهای دیگر باید محصول یخچالی از سبد حذف شود یا تحویل حضوری انتخاب شود.
                   </p>
                 </div>
               </div>
@@ -172,13 +240,13 @@ const CheckoutPage = () => {
               <div className="flex items-start gap-3">
                 <Lock size={19} className="mt-1 flex-shrink-0" />
                 <p>
-                  زیرساخت پرداخت آنلاین آماده شده است. بعد از دریافت درگاه، همین دکمه به آدرس پرداخت امن بانک/پرداخت‌یار متصل می‌شود.
+                  پرداخت آنلاین به‌صورت آماده اتصال پیاده‌سازی شده است. بعد از گرفتن درگاه، همین جریان به API پرداخت و callback واقعی وصل می‌شود.
                 </p>
               </div>
             </div>
 
             <button type="submit" className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2">
-              ثبت سفارش و ادامه پرداخت
+              ثبت سفارش و ورود به پرداخت
               <CreditCard size={21} />
             </button>
           </form>
@@ -212,11 +280,11 @@ const CheckoutPage = () => {
               </div>
               <div className="flex items-center justify-between text-muted-foreground">
                 <span>ارسال</span>
-                <span>بعداً محاسبه می‌شود</span>
+                <span className="font-bold text-foreground">{deliveryFee ? formatToman(deliveryFee) : "رایگان"}</span>
               </div>
               <div className="flex items-center justify-between text-lg font-black text-foreground pt-3 border-t border-border">
                 <span>مبلغ قابل پرداخت</span>
-                <span>{formatToman(subtotal)}</span>
+                <span>{formatToman(total)}</span>
               </div>
             </div>
 
