@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, ShoppingBag, Star, Heart, Truck, Snowflake } from "lucide-react";
+import { Phone, ShoppingBag, Heart, Truck, Snowflake } from "lucide-react";
 import { Product } from "@/data/products";
 import { generateWhatsAppUrl, generateProductOrderMessage, generatePhoneUrl } from "@/config/brand";
 import { useState } from "react";
