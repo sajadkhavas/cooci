@@ -29,7 +29,7 @@ const PaymentCallbackPage = () => {
           setOrder(getLocalOrder(orderId));
         })
         .catch((error) => {
-          setVerificationError(error instanceof Error ? error.message : "تأیید پرداخت از سمت بک‌اند انجام نشد.");
+          setVerificationError(error instanceof Error ? error.message : "تأیید پرداخت انجام نشد. لطفاً برای پیگیری با پشتیبانی تماس بگیرید.");
         })
         .finally(() => setIsVerifying(false));
       return;
@@ -57,14 +57,14 @@ const PaymentCallbackPage = () => {
               <h1 className="heading-1 text-foreground mb-4">{isPaid ? "پرداخت موفق بود" : "پرداخت انجام نشد"}</h1>
               <p className="body-large text-muted-foreground leading-8">
                 {isPaid
-                  ? "سفارش شما با موفقیت ثبت شد. این صفحه برای اتصال نهایی به callback درگاه پرداخت آماده است."
-                  : "پرداخت با موفقیت ثبت نشد. می‌توانید دوباره سفارش را بررسی کنید یا با پشتیبانی تماس بگیرید."}
+                  ? "سفارش شما ثبت شد و برای آماده‌سازی وارد مرحله بررسی می‌شود."
+                  : "پرداخت با موفقیت ثبت نشد. می‌توانید سفارش را دوباره بررسی کنید یا با پشتیبانی تماس بگیرید."}
               </p>
             </div>
 
             {isVerifying && (
               <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-primary text-sm font-bold">
-                در حال تأیید پرداخت از بک‌اند...
+                در حال بررسی نتیجه پرداخت...
               </div>
             )}
 
@@ -95,9 +95,7 @@ const PaymentCallbackPage = () => {
               <div className="flex items-start gap-3">
                 <CreditCard size={22} className="mt-1 flex-shrink-0" />
                 <p>
-                  {useBackendPaymentVerify
-                    ? "این صفحه برای دریافت callback درگاه و ارسال اطلاعات پرداخت به API تأیید پرداخت آماده شده است."
-                    : "در نسخه متصل به بک‌اند، وضعیت پرداخت از درگاه خوانده و با امضای معتبر در سرور تأیید می‌شود. این صفحه فعلاً ساختار فرانت callback را آماده کرده است."}
+                  نتیجه سفارش در همین صفحه نمایش داده می‌شود. برای پیگیری، شماره سفارش را نگه دارید.
                 </p>
               </div>
             </div>
