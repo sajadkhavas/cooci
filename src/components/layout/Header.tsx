@@ -29,7 +29,6 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* Top Bar - Promotional */}
       <div 
         className={`bg-gradient-to-l from-primary via-cocoa to-primary text-primary-foreground text-center text-sm font-medium transition-all duration-300 ease-out overflow-hidden ${
           scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100 py-2"
@@ -37,12 +36,11 @@ export const Header = () => {
       >
         <div className="container-custom flex items-center justify-center gap-2">
           <Sparkles size={14} className="text-gold" />
-          <span>پخت تازه — ثبت سفارش آنلاین — آماده اتصال به درگاه پرداخت</span>
+          <span>پخت تازه، بسته‌بندی محافظ و ثبت سفارش آنلاین</span>
           <Sparkles size={14} className="text-gold" />
         </div>
       </div>
 
-      {/* Main Header */}
       <div className={`transition-all duration-300 ${
         scrolled 
           ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50" 
@@ -50,7 +48,6 @@ export const Header = () => {
       }`}>
         <div className="container-custom">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-primary via-cocoa to-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
@@ -66,7 +63,6 @@ export const Header = () => {
               </div>
             </Link>
 
-            {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.href;
@@ -89,7 +85,6 @@ export const Header = () => {
               })}
             </nav>
 
-            {/* CTA Buttons - Desktop */}
             <div className="hidden md:flex items-center gap-3">
               <a
                 href={generatePhoneUrl()}
@@ -119,7 +114,6 @@ export const Header = () => {
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="lg:hidden p-2.5 text-foreground bg-secondary/50 rounded-xl hover:bg-secondary transition-colors"
@@ -129,7 +123,6 @@ export const Header = () => {
             </button>
           </div>
 
-          {/* Mobile Nav */}
           <div className={`lg:hidden overflow-hidden transition-all duration-500 ${
             isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
           }`}>
