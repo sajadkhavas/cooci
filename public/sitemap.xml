@@ -46,16 +46,6 @@
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://winimibakery.com/cart</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://winimibakery.com/checkout</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
     <loc>https://winimibakery.com/products/cookie-chocolate-walnut</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
