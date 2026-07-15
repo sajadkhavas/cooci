@@ -16,7 +16,7 @@ const OrderDetailPage = () => {
           <div className="container-custom max-w-xl text-center bg-card border border-border rounded-3xl p-10 shadow-soft">
             <span className="text-6xl block mb-5">🔎</span>
             <h1 className="heading-2 text-foreground mb-4">سفارش پیدا نشد</h1>
-            <p className="text-muted-foreground mb-6">شماره سفارش در حافظه مرورگر پیدا نشد.</p>
+            <p className="text-muted-foreground mb-6">شماره سفارش در این مرورگر پیدا نشد.</p>
             <Link to="/products" className="btn-primary px-8 py-3 rounded-xl inline-block">
               مشاهده محصولات
             </Link>
@@ -33,11 +33,11 @@ const OrderDetailPage = () => {
         <div className="container-custom text-center">
           <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
             <PackageCheck size={18} />
-            {order.status === "paid" ? "پرداخت‌شده" : "در انتظار پرداخت"}
+            {order.status === "paid" ? "پرداخت‌شده" : "در انتظار بررسی"}
           </span>
           <h1 className="heading-1 text-foreground">سفارش {order.id}</h1>
           <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
-            این صفحه ساختار پیگیری سفارش را آماده می‌کند و در نسخه بک‌اند به وضعیت واقعی سفارش متصل می‌شود.
+            جزئیات سفارش، محصولات، روش ارسال و مبلغ نهایی در این صفحه قابل مشاهده است.
           </p>
         </div>
       </section>
