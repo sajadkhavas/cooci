@@ -10,6 +10,7 @@ export const brandConfig = {
   address: "اندیشه، تهران",
   city: "اندیشه",
   region: "تهران",
+  website: "https://winimibakery.com",
   workingHours: {
     weekdays: "۹ صبح تا ۹ شب",
     weekends: "۱۰ صبح تا ۸ شب",
@@ -24,7 +25,14 @@ export const brandConfig = {
     image: "/og-image.jpg",
   },
   preparationTime: "۲۴ تا ۴۸ ساعت",
-  deliveryInfo: "محصولات خشک به سراسر ایران ارسال می‌شوند؛ کیک‌ها، تیرامیسو و دسرهای یخچالی فقط تهران و کرج.",
+  deliveryInfo:
+    "محصولات خشک به سراسر ایران ارسال می‌شوند؛ کیک‌ها، تیرامیسو و دسرهای یخچالی فقط تهران و کرج.",
+  trustPillars: [
+    "پخت تازه نزدیک به زمان سفارش",
+    "مواد اولیه باکیفیت و شفاف",
+    "ارسال سراسری برای محصولات خشک",
+    "دسرهای یخچالی فقط تهران و کرج",
+  ],
 };
 
 export const generateWhatsAppUrl = (
@@ -37,13 +45,16 @@ export const generateWhatsAppUrl = (
 
 export const generateProductOrderMessage = (
   productName: string,
-  productCode: string
+  productCode: string,
+  variantName?: string
 ) => {
-  return `سلام، درباره محصول ${productName} (کد ${productCode}) سوال داشتم.`;
+  const variantPart = variantName ? ` — ${variantName}` : "";
+  return `سلام، درباره محصول ${productName}${variantPart} (کد ${productCode}) سوال داشتم.`;
 };
 
 export const generatePhoneUrl = (phone: string = brandConfig.phoneClean) => {
   return `tel:+98${phone.replace(/^0/, "")}`;
 };
 
-export const SUPPORT_WHATSAPP_MESSAGE = "سلام، برای راهنمایی و پشتیبانی از وینیمی بیکری در خدمتم.";
+export const SUPPORT_WHATSAPP_MESSAGE =
+  "سلام، برای راهنمایی و پشتیبانی از وینیمی بیکری در خدمتم.";
