@@ -85,7 +85,7 @@ const CheckoutPage = () => {
   if (!items.length) {
     return (
       <>
-        <SEO title="تکمیل سفارش" description="تکمیل سفارش وینیمی بیکری" />
+        <SEO title="تکمیل سفارش" description="تکمیل سفارش وینیمی بیکری" noIndex />
         <section className="section-padding">
           <div className="container-custom max-w-xl text-center bg-card border border-border rounded-3xl p-10 shadow-soft">
             <span className="text-6xl block mb-5">🛒</span>
@@ -105,6 +105,7 @@ const CheckoutPage = () => {
       <SEO
         title="تکمیل سفارش"
         description="ثبت اطلاعات ارسال، محاسبه هزینه ارسال و آماده‌سازی سفارش برای اتصال به درگاه پرداخت وینیمی بیکری."
+        noIndex
       />
 
       <section className="bg-secondary/50 py-12">
@@ -251,7 +252,7 @@ const CheckoutPage = () => {
             </button>
           </form>
 
-          <aside className="bg-card border border-border rounded-3xl p-6 shadow-hover sticky top-28 space-y-6">
+          <aside className="bg-card border border-border rounded-3xl p-6 shadow-hover lg:sticky lg:top-28 space-y-6">
             <div>
               <h2 className="text-xl font-bold text-foreground mb-1">خلاصه پرداخت</h2>
               <p className="text-sm text-muted-foreground">{itemCount.toLocaleString("fa-IR")} آیتم در سفارش</p>
@@ -261,7 +262,7 @@ const CheckoutPage = () => {
               {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 border-b border-border pb-3 last:border-b-0">
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-secondary flex-shrink-0">
-                    {item.image ? <img src={item.image} alt={item.imageAlt ?? item.name} className="w-full h-full object-cover" /> : null}
+                    {item.image ? <img src={item.image} alt={item.imageAlt ?? item.name} className="w-full h-full object-cover" loading="lazy" /> : null}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm text-foreground line-clamp-1">{item.name}</p>
