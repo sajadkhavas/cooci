@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { CreditCard, Lock, PackageCheck, ShoppingBag, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { formatToman, useCart } from "@/context/CartContext";
+import { API_BASE_URL, apiClient } from "@/lib/api-client";
 import {
   createLocalOrder,
   deliveryMethods,
@@ -11,7 +12,9 @@ import {
   isValidIranMobile,
   type CheckoutCustomer,
   type DeliveryMethod,
+  type PaymentProvider,
 } from "@/lib/orders";
+import { createBackendPaymentStart, createFrontendPaymentStart, redirectToPayment } from "@/lib/payment-adapter";
 
 const initialCustomer: CheckoutCustomer = {
   fullName: "",
@@ -21,12 +24,15 @@ const initialCustomer: CheckoutCustomer = {
   notes: "",
 };
 
+const paymentProvider = (import.meta.env.VITE_PAYMENT_PROVIDER || "gateway-placeholder") as PaymentProvider;
+const useBackendCheckout = Boolean(API_BASE_URL) && import.meta.env.VITE_USE_BACKEND === "true";
+
 const CheckoutPage = () => {
-  const navigate = useNavigate();
   const { items, subtotal, itemCount, hasCoolingItems, clearCart } = useCart();
   const [customer, setCustomer] = useState<CheckoutCustomer>(initialCustomer);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("standard");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const canDeliverCooling = useMemo(
     () => !hasCoolingItems || isCoolingDeliveryCity(customer.city),
@@ -53,7 +59,7 @@ const CheckoutPage = () => {
     setCustomer((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -77,9 +83,37 @@ const CheckoutPage = () => {
       return;
     }
 
-    const order = createLocalOrder({ customer, items, subtotal, deliveryMethod });
-    clearCart();
-    navigate(`/payment/callback?order=${encodeURIComponent(order.id)}&status=paid`);
+    setIsSubmitting(true);
+    try {
+      if (useBackendCheckout) {
+        const response = await apiClient.orders.create({
+          customer,
+          deliveryMethod,
+          paymentProvider,
+          items: items.map((item) => ({
+            productId: item.productId,
+            productSlug: item.productSlug,
+            productCode: item.productCode,
+            variantId: item.variantId,
+            variantName: item.variantName,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        });
+
+        clearCart();
+        redirectToPayment(createBackendPaymentStart(response, paymentProvider));
+        return;
+      }
+
+      const order = createLocalOrder({ customer, items, subtotal, deliveryMethod, paymentProvider });
+      clearCart();
+      redirectToPayment(createFrontendPaymentStart(order));
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : "ثبت سفارش انجام نشد.";
+      setError(`خطا در ثبت سفارش: ${message}`);
+      setIsSubmitting(false);
+    }
   };
 
   if (!items.length) {
@@ -112,11 +146,11 @@ const CheckoutPage = () => {
         <div className="container-custom text-center">
           <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
             <CreditCard size={18} />
-            پرداخت آنلاین آماده اتصال به درگاه
+            {useBackendCheckout ? "اتصال به بک‌اند و درگاه فعال" : "پرداخت آنلاین آماده اتصال به درگاه"}
           </span>
           <h1 className="heading-1 text-foreground">تکمیل سفارش</h1>
           <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
-            اطلاعات ارسال، روش تحویل و خلاصه پرداخت را بررسی کنید. بعد از دریافت درگاه، همین مسیر به پرداخت بانکی واقعی وصل می‌شود.
+            اطلاعات ارسال، روش تحویل و خلاصه پرداخت را بررسی کنید. مسیر سفارش برای بک‌اند و درگاه واقعی آماده است.
           </p>
         </div>
       </section>
@@ -241,13 +275,19 @@ const CheckoutPage = () => {
               <div className="flex items-start gap-3">
                 <Lock size={19} className="mt-1 flex-shrink-0" />
                 <p>
-                  پرداخت آنلاین به‌صورت آماده اتصال پیاده‌سازی شده است. بعد از گرفتن درگاه، همین جریان به API پرداخت و callback واقعی وصل می‌شود.
+                  {useBackendCheckout
+                    ? "این سفارش از طریق API بک‌اند ثبت می‌شود و سپس به paymentUrl برگشتی از سرور منتقل خواهد شد."
+                    : "پرداخت آنلاین به‌صورت آماده اتصال پیاده‌سازی شده است. بعد از گرفتن درگاه، همین جریان به API پرداخت و callback واقعی وصل می‌شود."}
                 </p>
               </div>
             </div>
 
-            <button type="submit" className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2">
-              ثبت سفارش و ورود به پرداخت
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+            >
+              {isSubmitting ? "در حال ثبت سفارش..." : "ثبت سفارش و ورود به پرداخت"}
               <CreditCard size={21} />
             </button>
           </form>
@@ -275,15 +315,15 @@ const CheckoutPage = () => {
             </div>
 
             <div className="space-y-3 border-t border-border pt-5">
-              <div className="flex items-center justify-between text-muted-foreground">
+              <div className="flex items-center justify-between text-muted-foreground gap-4">
                 <span>جمع محصولات</span>
                 <span className="font-bold text-foreground">{formatToman(subtotal)}</span>
               </div>
-              <div className="flex items-center justify-between text-muted-foreground">
+              <div className="flex items-center justify-between text-muted-foreground gap-4">
                 <span>ارسال</span>
                 <span className="font-bold text-foreground">{deliveryFee ? formatToman(deliveryFee) : "رایگان"}</span>
               </div>
-              <div className="flex items-center justify-between text-lg font-black text-foreground pt-3 border-t border-border">
+              <div className="flex items-center justify-between text-lg font-black text-foreground pt-3 border-t border-border gap-4">
                 <span>مبلغ قابل پرداخت</span>
                 <span>{formatToman(total)}</span>
               </div>
