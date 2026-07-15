@@ -1,15 +1,18 @@
-import { useParams, Link } from "react-router-dom";
-import { Phone, AlertTriangle, Clock, Package, Truck, Snowflake } from "lucide-react";
 import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { AlertTriangle, Check, Clock, CreditCard, Package, ShoppingBag, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductBySlug, getRelatedProducts } from "@/data/products";
-import { brandConfig, generateWhatsAppUrl, generateProductOrderMessage, generatePhoneUrl } from "@/config/brand";
+import { brandConfig } from "@/config/brand";
+import { formatToman, useCart } from "@/context/CartContext";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const product = getProductBySlug(slug || "");
+  const { addItem } = useCart();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
 
   if (!product) {
     return (
@@ -28,7 +31,6 @@ const ProductDetailPage = () => {
   const activePrice = selectedVariant?.price ?? product.price;
   const activeWeight = selectedVariant?.weight ?? product.weight;
   const activeCode = selectedVariant?.productCode ?? product.productCode;
-  const whatsappMessage = generateProductOrderMessage(product.name, activeCode, selectedVariant?.name);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText =
     product.shippingNote ??
@@ -39,20 +41,27 @@ const ProductDetailPage = () => {
     "@type": "Product",
     name: product.name,
     description: product.longDescription,
-    sku: product.productCode,
+    sku: activeCode,
     image: product.images[0]?.url,
     brand: {
       "@type": "Brand",
       name: brandConfig.brandName,
     },
-    offers: product.price
+    offers: activePrice
       ? {
           "@type": "Offer",
-          price: product.price,
+          price: activePrice,
           priceCurrency: "IRR",
           availability: "https://schema.org/InStock",
         }
       : undefined,
+  };
+
+  const handleAddToCart = () => {
+    if (!activePrice) return;
+    addItem(product, selectedVariant);
+    setJustAdded(true);
+    window.setTimeout(() => setJustAdded(false), 1600);
   };
 
   return (
@@ -144,29 +153,28 @@ const ProductDetailPage = () => {
                 {product.longDescription}
               </p>
 
-
               {/* Variants */}
               {product.variants && product.variants.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="font-bold text-foreground">انتخاب سایز / نوع:</h3>
                   <div className="flex flex-wrap gap-2">
-                    {product.variants.map((v) => {
-                      const isActive = (selectedVariant?.id ?? product.variants![0].id) === v.id;
+                    {product.variants.map((variant) => {
+                      const isActive = (selectedVariant?.id ?? product.variants![0].id) === variant.id;
                       return (
                         <button
-                          key={v.id}
+                          key={variant.id}
                           type="button"
-                          onClick={() => setSelectedVariantId(v.id)}
+                          onClick={() => setSelectedVariantId(variant.id)}
                           className={`px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
                             isActive
                               ? "border-primary bg-primary text-primary-foreground shadow-md"
                               : "border-border bg-card text-foreground hover:border-primary/50"
                           }`}
                         >
-                          {v.name}
-                          {v.price ? (
+                          {variant.name}
+                          {variant.price ? (
                             <span className="block text-xs opacity-80 mt-0.5">
-                              {v.price.toLocaleString("fa-IR")} تومان
+                              {formatToman(variant.price)}
                             </span>
                           ) : null}
                         </button>
@@ -178,13 +186,15 @@ const ProductDetailPage = () => {
 
               {/* Price & Weight */}
               <div className="flex flex-wrap items-center gap-6 py-4 border-y border-border">
-                {activePrice && (
+                {activePrice ? (
                   <div className="flex items-center gap-2">
                     <span className="text-3xl md:text-4xl font-black bg-gradient-to-l from-primary to-cocoa bg-clip-text text-transparent">
                       {activePrice.toLocaleString("fa-IR")}
                     </span>
                     <span className="text-muted-foreground">تومان</span>
                   </div>
+                ) : (
+                  <span className="text-lg font-bold text-muted-foreground">قیمت با هماهنگی</span>
                 )}
                 {activeWeight && (
                   <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl">
@@ -193,7 +203,6 @@ const ProductDetailPage = () => {
                   </div>
                 )}
               </div>
-
 
               <div className={`flex items-start gap-3 rounded-2xl border p-5 ${product.requiresCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-primary/20 bg-primary/10 text-primary"}`}>
                 <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center flex-shrink-0">
@@ -206,29 +215,32 @@ const ProductDetailPage = () => {
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <a
-                  href={generateWhatsAppUrl(whatsappMessage)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative flex-1 overflow-hidden bg-[#25D366] py-4 px-8 rounded-xl text-center text-lg font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+              <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={!activePrice}
+                  className="group relative overflow-hidden bg-primary py-4 px-8 rounded-xl text-center text-lg font-bold text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                   <span className="relative flex items-center justify-center gap-3">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                    </svg>
-                    پشتیبانی واتساپ
+                    {justAdded ? <Check size={22} /> : <ShoppingBag size={22} />}
+                    {justAdded ? "به سبد اضافه شد" : "افزودن به سبد خرید"}
                   </span>
-                </a>
-                <a
-                  href={generatePhoneUrl()}
+                </button>
+                <Link
+                  to="/checkout"
                   className="group flex items-center justify-center gap-3 px-8 py-4 border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-bold"
                 >
-                  <Phone size={22} className="group-hover:scale-110 transition-transform" />
-                  تماس تلفنی
-                </a>
+                  <CreditCard size={22} className="group-hover:scale-110 transition-transform" />
+                  ادامه پرداخت
+                </Link>
               </div>
+
+              {!activePrice && (
+                <p className="text-sm text-muted-foreground leading-7">
+                  برای این محصول قیمت قطعی ثبت نشده است؛ بعد از تکمیل دیتای بک‌اند، امکان افزودن به سبد خرید فعال می‌شود.
+                </p>
+              )}
 
               {/* Details Cards */}
               <div className="grid gap-4 pt-6">
@@ -297,8 +309,8 @@ const ProductDetailPage = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">محصولات مرتبط</h2>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                {relatedProducts.map((relatedProduct) => (
+                  <ProductCard key={relatedProduct.id} product={relatedProduct} />
                 ))}
               </div>
             </div>
