@@ -5,7 +5,6 @@ export const brandConfig = {
   slogan: "پخت تازه، مواد اولیه باکیفیت، وسواس در بهداشت",
   phone: "09212508746",
   phoneClean: "09212508746",
-  whatsappNumber: "989212508746",
   email: "hello@winimibakery.com",
   address: "اندیشه، تهران",
   city: "اندیشه",
@@ -35,26 +34,6 @@ export const brandConfig = {
   ],
 };
 
-export const generateWhatsAppUrl = (
-  message: string,
-  phone: string = brandConfig.whatsappNumber
-) => {
-  const encodedMessage = encodeURIComponent(message);
-  return `https://wa.me/${phone}?text=${encodedMessage}`;
-};
-
-export const generateProductOrderMessage = (
-  productName: string,
-  productCode: string,
-  variantName?: string
-) => {
-  const variantPart = variantName ? ` — ${variantName}` : "";
-  return `سلام، درباره محصول ${productName}${variantPart} (کد ${productCode}) سوال داشتم.`;
-};
-
 export const generatePhoneUrl = (phone: string = brandConfig.phoneClean) => {
   return `tel:+98${phone.replace(/^0/, "")}`;
 };
-
-export const SUPPORT_WHATSAPP_MESSAGE =
-  "سلام، برای راهنمایی و پشتیبانی از وینیمی بیکری در خدمتم.";
