@@ -12,9 +12,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
   const [isLiked, setIsLiked] = useState(false);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
-  const shippingLabel =
-    product.shippingNote ??
-    (product.requiresCooling ? "ارسال یخچالی فقط تهران و کرج" : "ارسال به سراسر ایران");
+  const shippingLabel = product.requiresCooling
+    ? "ارسال یخچالی تهران و کرج"
+    : "ارسال به سراسر ایران";
+  const variantPrices = product.variants?.map((v) => v.price).filter((p): p is number => typeof p === "number") ?? [];
+  const lowestVariantPrice = variantPrices.length ? Math.min(...variantPrices) : undefined;
+  const displayPrice = product.price ?? lowestVariantPrice;
+  const hasVariants = (product.variants?.length ?? 0) > 0;
 
   return (
     <article className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 border border-border/50 hover:border-accent/30">
