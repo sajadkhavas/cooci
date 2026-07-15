@@ -1,96 +1,136 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
-import { products, categories, getProductsByCategory } from "@/data/products";
+import { categories, getProductsByCategory } from "@/data/products";
 
 const sortOptions = [
-  { value: "featured", label: "پرفروش‌ترین" },
+  { value: "featured", label: "پیشنهادی وینیمی" },
   { value: "newest", label: "جدیدترین" },
   { value: "price-asc", label: "ارزان‌ترین" },
   { value: "price-desc", label: "گران‌ترین" },
 ];
 
+const shippingOptions = [
+  { value: "all", label: "همه ارسال‌ها" },
+  { value: "nationwide", label: "ارسال سراسری" },
+  { value: "chilled", label: "یخچالی تهران/کرج" },
+];
+
+const productPrice = (product: ReturnType<typeof getProductsByCategory>[number]) => {
+  const variantPrices = product.variants?.map((variant) => variant.price).filter((price): price is number => typeof price === "number") ?? [];
+  if (typeof product.price === "number") return product.price;
+  if (variantPrices.length) return Math.min(...variantPrices);
+  return Number.POSITIVE_INFINITY;
+};
+
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("featured");
 
   const activeCategory = searchParams.get("category") || "all";
+  const searchQuery = searchParams.get("q") || "";
+  const sortBy = searchParams.get("sort") || "featured";
+  const shippingFilter = searchParams.get("shipping") || "all";
+  const dietOnly = searchParams.get("diet") === "true";
+
+  const updateParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (!value || value === "all" || value === "featured") {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   const filteredProducts = useMemo(() => {
     let filtered = getProductsByCategory(activeCategory);
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.includes(query) ||
-          p.shortDescription.includes(query) ||
-          p.productCode.toLowerCase().includes(query) ||
-          (p.tags ?? []).some((tag) => tag.includes(query)) ||
-          (p.flavors ?? []).some((flavor) => flavor.includes(query))
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter((product) => {
+        const searchable = [
+          product.name,
+          product.shortDescription,
+          product.longDescription,
+          product.productCode,
+          product.category,
+          product.weight,
+          ...(product.tags ?? []),
+          ...(product.flavors ?? []),
+          ...(product.ingredients ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchable.includes(query);
+      });
+    }
+
+    if (shippingFilter === "nationwide") {
+      filtered = filtered.filter((product) => product.shippingScope === "nationwide" && !product.requiresCooling);
+    }
+
+    if (shippingFilter === "chilled") {
+      filtered = filtered.filter((product) => product.requiresCooling || product.shippingScope === "tehran-karaj");
+    }
+
+    if (dietOnly) {
+      filtered = filtered.filter((product) =>
+        product.categorySlug === "diet" ||
+        product.badges.some((badge) => badge.includes("رژیمی") || badge.includes("بدون قند")) ||
+        (product.tags ?? []).some((tag) => tag.includes("رژیمی") || tag.includes("بدون قند") || tag.includes("دیابتی")),
       );
     }
 
-    // Sort
     switch (sortBy) {
       case "newest":
         filtered = [...filtered].reverse();
         break;
       case "price-asc":
-        filtered = [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
+        filtered = [...filtered].sort((a, b) => productPrice(a) - productPrice(b));
         break;
       case "price-desc":
-        filtered = [...filtered].sort((a, b) => (b.price || 0) - (a.price || 0));
+        filtered = [...filtered].sort((a, b) => productPrice(b) - productPrice(a));
         break;
       case "featured":
       default:
-        filtered = [...filtered].sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+        filtered = [...filtered].sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
     }
 
     return filtered;
-  }, [activeCategory, searchQuery, sortBy]);
+  }, [activeCategory, dietOnly, searchQuery, shippingFilter, sortBy]);
 
-  const handleCategoryChange = (slug: string) => {
-    if (slug === "all") {
-      searchParams.delete("category");
-    } else {
-      searchParams.set("category", slug);
-    }
-    setSearchParams(searchParams);
-  };
+  const resetFilters = () => setSearchParams({}, { replace: true });
 
   return (
     <>
       <SEO
         title="محصولات"
-        description="مشاهده و سفارش محصولات وینیمی؛ کوکی، مینی کوکی، تیرامیسو، چیزکیک، رول دارچینی، مینی کروسان و باکس هدیه."
+        description="مشاهده، فیلتر و خرید آنلاین محصولات وینیمی؛ کوکی، مینی کوکی، تیرامیسو، چیزکیک، رول دارچینی، مینی کروسان و باکس هدیه."
       />
 
-      {/* Header */}
       <section className="bg-secondary/50 py-12">
-        <div className="container-custom">
-          <h1 className="heading-1 text-foreground text-center">محصولات وینیمی</h1>
-          <p className="body-large text-muted-foreground text-center mt-4 max-w-2xl mx-auto">
-            از کوکی‌های روزانه و محصولات بدون قند افزوده تا دسرهای یخچالی و باکس‌های هدیه.
+        <div className="container-custom text-center">
+          <h1 className="heading-1 text-foreground">محصولات وینیمی</h1>
+          <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
+            محصول را انتخاب کنید، نوع یا سایز را مشخص کنید و سفارش را از مسیر سبد خرید و پرداخت آنلاین ادامه دهید.
           </p>
         </div>
       </section>
 
       <section className="section-padding">
         <div className="container-custom">
-          {/* Filters */}
-          <div className="flex flex-col lg:flex-row gap-6 mb-10">
-            {/* Categories */}
+          <div className="mb-10 space-y-5 rounded-3xl border border-border bg-card p-4 md:p-6 shadow-soft">
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat.slug}
-                  onClick={() => handleCategoryChange(cat.slug)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  type="button"
+                  onClick={() => updateParam("category", cat.slug)}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
                     activeCategory === cat.slug
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary text-secondary-foreground hover:bg-muted"
@@ -101,9 +141,7 @@ const ProductsPage = () => {
               ))}
             </div>
 
-            {/* Search & Sort */}
-            <div className="flex flex-col sm:flex-row gap-4 lg:mr-auto">
-              {/* Search */}
+            <div className="grid gap-4 lg:grid-cols-[1fr_auto_auto] items-center">
               <div className="relative">
                 <Search
                   size={18}
@@ -111,14 +149,13 @@ const ProductsPage = () => {
                 />
                 <input
                   type="text"
-                  placeholder="جستجوی محصول، طعم یا کد..."
+                  placeholder="جستجوی محصول، طعم، مواد اولیه یا کد..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-field pr-10 w-full sm:w-64"
+                  onChange={(event) => updateParam("q", event.target.value)}
+                  className="input-field pr-10 w-full"
                 />
               </div>
 
-              {/* Sort */}
               <div className="relative">
                 <SlidersHorizontal
                   size={18}
@@ -126,8 +163,8 @@ const ProductsPage = () => {
                 />
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="input-field pr-10 appearance-none cursor-pointer"
+                  onChange={(event) => updateParam("sort", event.target.value)}
+                  className="input-field pr-10 appearance-none cursor-pointer min-w-44"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -136,15 +173,53 @@ const ProductsPage = () => {
                   ))}
                 </select>
               </div>
+
+              <button
+                type="button"
+                onClick={() => updateParam("diet", dietOnly ? null : "true")}
+                className={`px-4 py-3 rounded-xl text-sm font-bold border transition-colors ${
+                  dietOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:border-primary/50"
+                }`}
+              >
+                فقط رژیمی / بدون قند افزوده
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {shippingOptions.map((option) => {
+                const Icon = option.value === "chilled" ? Snowflake : Truck;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateParam("shipping", option.value)}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                      shippingFilter === option.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Icon size={15} />
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Results count */}
-          <p className="text-muted-foreground mb-6">
-            {filteredProducts.length} محصول یافت شد
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <p className="text-muted-foreground">
+              {filteredProducts.length.toLocaleString("fa-IR")} محصول یافت شد
+            </p>
+            {(activeCategory !== "all" || searchQuery || shippingFilter !== "all" || dietOnly || sortBy !== "featured") && (
+              <button type="button" onClick={resetFilters} className="text-sm font-bold text-primary hover:underline">
+                حذف همه فیلترها
+              </button>
+            )}
+          </div>
 
-          {/* Products Grid */}
           {filteredProducts.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product, index) => (
@@ -158,11 +233,14 @@ const ProductsPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16">
+            <div className="text-center py-16 rounded-3xl bg-card border border-border shadow-soft">
               <span className="text-6xl mb-4 block">🔍</span>
-              <p className="text-muted-foreground body-large">
-                محصولی با این مشخصات یافت نشد
+              <p className="text-muted-foreground body-large mb-4">
+                محصولی با این فیلتر پیدا نشد. دسته‌بندی یا عبارت جستجو را تغییر دهید.
               </p>
+              <button type="button" onClick={resetFilters} className="btn-primary px-8 py-3 rounded-xl">
+                نمایش همه محصولات
+              </button>
             </div>
           )}
         </div>
