@@ -47,6 +47,14 @@ export interface Product {
   images: { url: string; alt: string }[];
   isFeatured: boolean;
   productCode: string;
+  variants?: {
+    id: string;
+    name: string;
+    price?: number;
+    weight?: string;
+    productCode?: string;
+    description?: string;
+  }[];
   seo?: {
     title: string;
     description: string;
