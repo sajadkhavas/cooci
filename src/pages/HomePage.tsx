@@ -134,16 +134,16 @@ const HomePage = () => {
               <span className="text-gold/90 font-medium">با بهترین مواد اولیه، از شکلات بلژیکی تا پسته کرمان</span>
             </p>
 
-            {/* Stats with glass morphism */}
-            <div className="flex flex-wrap gap-6 md:gap-10 py-6 animate-fade-in delay-300">
+            {/* Trust pillars */}
+            <div className="flex flex-wrap gap-3 md:gap-4 py-6 animate-fade-in delay-300">
               {[
-                { value: "+۱۰۰۰", label: "مشتری راضی" },
-                { value: "۱۰+", label: "طعم متنوع" },
-                { value: "۴۸h", label: "تحویل سریع" },
+                { value: "پخت تازه", label: "نزدیک به زمان سفارش" },
+                { value: "ارسال سراسری", label: "برای محصولات خشک" },
+                { value: "تهران و کرج", label: "برای دسرهای یخچالی" },
               ].map((stat, i) => (
-                <div key={i} className="text-center bg-white/5 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/10">
-                  <div className="text-3xl md:text-4xl font-bold text-gold drop-shadow-lg">{stat.value}</div>
-                  <div className="text-sm text-white/70 mt-1">{stat.label}</div>
+                <div key={i} className="bg-white/5 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/10">
+                  <div className="text-lg md:text-xl font-bold text-gold drop-shadow-lg">{stat.value}</div>
+                  <div className="text-xs text-white/70 mt-1">{stat.label}</div>
                 </div>
               ))}
             </div>
