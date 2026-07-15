@@ -1,0 +1,234 @@
+import { FormEvent, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { CreditCard, Lock, MapPin, ShoppingBag, Snowflake } from "lucide-react";
+import { SEO } from "@/components/SEO";
+import { formatToman, useCart } from "@/context/CartContext";
+import { createLocalOrder, isCoolingDeliveryCity, type CheckoutCustomer } from "@/lib/orders";
+
+const initialCustomer: CheckoutCustomer = {
+  fullName: "",
+  phone: "",
+  city: "",
+  address: "",
+  notes: "",
+};
+
+const CheckoutPage = () => {
+  const navigate = useNavigate();
+  const { items, subtotal, itemCount, hasCoolingItems, clearCart } = useCart();
+  const [customer, setCustomer] = useState<CheckoutCustomer>(initialCustomer);
+  const [error, setError] = useState("");
+
+  const canDeliverCooling = useMemo(
+    () => !hasCoolingItems || isCoolingDeliveryCity(customer.city),
+    [customer.city, hasCoolingItems],
+  );
+
+  const updateField = (field: keyof CheckoutCustomer, value: string) => {
+    setCustomer((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+
+    if (!items.length) {
+      setError("سبد خرید شما خالی است.");
+      return;
+    }
+
+    if (!customer.fullName.trim() || !customer.phone.trim() || !customer.city.trim() || !customer.address.trim()) {
+      setError("نام، شماره تماس، شهر و آدرس را کامل وارد کنید.");
+      return;
+    }
+
+    if (!canDeliverCooling) {
+      setError("در این سبد محصول یخچالی وجود دارد و ارسال یخچالی فعلاً فقط برای تهران، کرج و اندیشه قابل ثبت است.");
+      return;
+    }
+
+    const order = createLocalOrder({ customer, items, subtotal });
+    clearCart();
+    navigate(`/order-success?order=${encodeURIComponent(order.id)}`);
+  };
+
+  if (!items.length) {
+    return (
+      <>
+        <SEO title="تکمیل سفارش" description="تکمیل سفارش وینیمی بیکری" />
+        <section className="section-padding">
+          <div className="container-custom max-w-xl text-center bg-card border border-border rounded-3xl p-10 shadow-soft">
+            <span className="text-6xl block mb-5">🛒</span>
+            <h1 className="heading-2 text-foreground mb-4">سبد خرید خالی است</h1>
+            <p className="text-muted-foreground mb-6">برای تکمیل سفارش ابتدا محصولی به سبد خرید اضافه کنید.</p>
+            <Link to="/products" className="btn-primary px-8 py-3 rounded-xl inline-block">
+              مشاهده محصولات
+            </Link>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <SEO
+        title="تکمیل سفارش"
+        description="ثبت اطلاعات ارسال و آماده‌سازی سفارش برای پرداخت آنلاین در وینیمی بیکری."
+      />
+
+      <section className="bg-secondary/50 py-12">
+        <div className="container-custom text-center">
+          <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
+            <CreditCard size={18} />
+            پرداخت آنلاین آماده اتصال به درگاه
+          </span>
+          <h1 className="heading-1 text-foreground">تکمیل سفارش</h1>
+          <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
+            اطلاعات ارسال را وارد کنید. بعد از اتصال درگاه، همین مرحله به پرداخت بانکی متصل می‌شود.
+          </p>
+        </div>
+      </section>
+
+      <section className="section-padding">
+        <div className="container-custom grid lg:grid-cols-[1fr_380px] gap-8 items-start">
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-soft space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">اطلاعات گیرنده</h2>
+              <p className="text-muted-foreground text-sm">این اطلاعات برای ارسال سفارش و صدور سفارش استفاده می‌شود.</p>
+            </div>
+
+            {error && (
+              <div className="rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive p-4 text-sm font-semibold">
+                {error}
+              </div>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-5">
+              <label className="space-y-2">
+                <span className="text-sm font-bold text-foreground">نام و نام خانوادگی</span>
+                <input
+                  className="input-field w-full"
+                  value={customer.fullName}
+                  onChange={(event) => updateField("fullName", event.target.value)}
+                  placeholder="مثلاً سجاد خواص"
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-sm font-bold text-foreground">شماره تماس</span>
+                <input
+                  className="input-field w-full ltr:text-left"
+                  value={customer.phone}
+                  onChange={(event) => updateField("phone", event.target.value)}
+                  placeholder="09xxxxxxxxx"
+                  inputMode="tel"
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-sm font-bold text-foreground">شهر</span>
+                <input
+                  className="input-field w-full"
+                  value={customer.city}
+                  onChange={(event) => updateField("city", event.target.value)}
+                  placeholder="تهران، کرج، اصفهان..."
+                />
+              </label>
+
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-sm font-bold text-foreground">آدرس کامل</span>
+                <textarea
+                  className="input-field w-full min-h-28 resize-none"
+                  value={customer.address}
+                  onChange={(event) => updateField("address", event.target.value)}
+                  placeholder="آدرس، پلاک، واحد و توضیحات لازم برای ارسال"
+                />
+              </label>
+
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-sm font-bold text-foreground">توضیحات سفارش</span>
+                <textarea
+                  className="input-field w-full min-h-24 resize-none"
+                  value={customer.notes}
+                  onChange={(event) => updateField("notes", event.target.value)}
+                  placeholder="زمان پیشنهادی تحویل، توضیح بسته‌بندی، پیام هدیه و..."
+                />
+              </label>
+            </div>
+
+            {hasCoolingItems && (
+              <div className={`rounded-2xl border p-4 text-sm leading-7 ${canDeliverCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-destructive/20 bg-destructive/10 text-destructive"}`}>
+                <div className="flex items-start gap-3">
+                  <Snowflake size={20} className="mt-1 flex-shrink-0" />
+                  <p>
+                    این سفارش محصول یخچالی دارد. ارسال یخچالی فقط برای تهران، کرج و اندیشه فعال است؛ برای شهرهای دیگر باید محصول یخچالی از سبد حذف شود.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm leading-7 text-primary">
+              <div className="flex items-start gap-3">
+                <Lock size={19} className="mt-1 flex-shrink-0" />
+                <p>
+                  زیرساخت پرداخت آنلاین آماده شده است. بعد از دریافت درگاه، همین دکمه به آدرس پرداخت امن بانک/پرداخت‌یار متصل می‌شود.
+                </p>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2">
+              ثبت سفارش و ادامه پرداخت
+              <CreditCard size={21} />
+            </button>
+          </form>
+
+          <aside className="bg-card border border-border rounded-3xl p-6 shadow-hover sticky top-28 space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-1">خلاصه پرداخت</h2>
+              <p className="text-sm text-muted-foreground">{itemCount.toLocaleString("fa-IR")} آیتم در سفارش</p>
+            </div>
+
+            <div className="space-y-4 max-h-80 overflow-auto pr-1">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 border-b border-border pb-3 last:border-b-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-secondary flex-shrink-0">
+                    {item.image ? <img src={item.image} alt={item.imageAlt ?? item.name} className="w-full h-full object-cover" /> : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm text-foreground line-clamp-1">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.variantName ?? item.weight}</p>
+                    <p className="text-xs text-muted-foreground">تعداد: {item.quantity.toLocaleString("fa-IR")}</p>
+                  </div>
+                  <span className="text-sm font-bold text-primary">{formatToman(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 border-t border-border pt-5">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>جمع محصولات</span>
+                <span className="font-bold text-foreground">{formatToman(subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>ارسال</span>
+                <span>بعداً محاسبه می‌شود</span>
+              </div>
+              <div className="flex items-center justify-between text-lg font-black text-foreground pt-3 border-t border-border">
+                <span>مبلغ قابل پرداخت</span>
+                <span>{formatToman(subtotal)}</span>
+              </div>
+            </div>
+
+            <Link to="/cart" className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary">
+              <ShoppingBag size={16} />
+              بازگشت به سبد خرید
+            </Link>
+          </aside>
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default CheckoutPage;
