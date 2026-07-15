@@ -21,8 +21,6 @@ const entries = [
   { path: "/shipping", changefreq: "yearly", priority: "0.4" },
   { path: "/privacy", changefreq: "yearly", priority: "0.2" },
   { path: "/terms", changefreq: "yearly", priority: "0.2" },
-  { path: "/cart", changefreq: "weekly", priority: "0.6" },
-  { path: "/checkout", changefreq: "weekly", priority: "0.4" },
   ...productSlugs.map((slug) => ({
     path: `/products/${slug}`,
     changefreq: "monthly",
