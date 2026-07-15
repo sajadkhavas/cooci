@@ -29,7 +29,9 @@ const ProductsPage = () => {
         (p) =>
           p.name.includes(query) ||
           p.shortDescription.includes(query) ||
-          p.productCode.toLowerCase().includes(query)
+          p.productCode.toLowerCase().includes(query) ||
+          (p.tags ?? []).some((tag) => tag.includes(query)) ||
+          (p.flavors ?? []).some((flavor) => flavor.includes(query))
       );
     }
 
@@ -65,15 +67,15 @@ const ProductsPage = () => {
     <>
       <SEO
         title="محصولات"
-        description="مشاهده و سفارش انواع کوکی‌های تازه و خوشمزه. کوکی شکلاتی، کلاسیک، رژیمی، مغزدار و باکس هدیه."
+        description="مشاهده و سفارش محصولات وینیمی؛ کوکی، مینی کوکی، تیرامیسو، چیزکیک، رول دارچینی، مینی کروسان و باکس هدیه."
       />
 
       {/* Header */}
       <section className="bg-secondary/50 py-12">
         <div className="container-custom">
-          <h1 className="heading-1 text-foreground text-center">محصولات ما</h1>
+          <h1 className="heading-1 text-foreground text-center">محصولات وینیمی</h1>
           <p className="body-large text-muted-foreground text-center mt-4 max-w-2xl mx-auto">
-            انواع کوکی‌های دست‌ساز با طعم‌های متنوع و مواد اولیه درجه یک
+            از کوکی‌های روزانه و محصولات بدون قند افزوده تا دسرهای یخچالی و باکس‌های هدیه.
           </p>
         </div>
       </section>
@@ -109,7 +111,7 @@ const ProductsPage = () => {
                 />
                 <input
                   type="text"
-                  placeholder="جستجوی محصول یا کد..."
+                  placeholder="جستجوی محصول، طعم یا کد..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="input-field pr-10 w-full sm:w-64"
