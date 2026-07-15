@@ -24,7 +24,11 @@ const ProductDetailPage = () => {
   }
 
   const relatedProducts = getRelatedProducts(product, 4);
-  const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
+  const selectedVariant = product.variants?.find((v) => v.id === selectedVariantId) ?? product.variants?.[0];
+  const activePrice = selectedVariant?.price ?? product.price;
+  const activeWeight = selectedVariant?.weight ?? product.weight;
+  const activeCode = selectedVariant?.productCode ?? product.productCode;
+  const whatsappMessage = generateProductOrderMessage(product.name, activeCode, selectedVariant?.name);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText =
     product.shippingNote ??
