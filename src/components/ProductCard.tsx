@@ -117,12 +117,19 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         {/* Footer: Price & Actions */}
         <div className="flex items-center justify-between gap-3">
           {/* Price */}
-          {product.price && (
+          {displayPrice ? (
             <div className="space-y-0.5">
-              <p className="text-xl font-bold text-primary">
-                {product.price.toLocaleString("fa-IR")}
+              {hasVariants && (
+                <span className="text-[10px] text-muted-foreground">شروع از</span>
+              )}
+              <p className="text-xl font-bold text-primary leading-none">
+                {displayPrice.toLocaleString("fa-IR")}
               </p>
               <span className="text-xs text-muted-foreground">تومان</span>
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">
+              قیمت با هماهنگی
             </div>
           )}
 
