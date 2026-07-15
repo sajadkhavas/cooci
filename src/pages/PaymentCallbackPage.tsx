@@ -16,6 +16,7 @@ const PaymentCallbackPage = () => {
       <SEO
         title={isPaid ? "پرداخت موفق" : "پرداخت ناموفق"}
         description="نتیجه پرداخت سفارش وینیمی بیکری"
+        noIndex
       />
 
       <section className="section-padding">
