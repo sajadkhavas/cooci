@@ -69,7 +69,13 @@ const DRY_SHIPPING = "ارسال این محصول با بسته‌بندی مح
 const CHILLED_SHIPPING = "این محصول یخچالی است و فقط در تهران و کرج قابل ارسال است.";
 const DEFAULT_ALLERGENS = ["گلوتن", "تخم‌مرغ", "لبنیات"];
 
-function dryProduct(input: Product): Product {
+type ProductInput = Omit<
+  Product,
+  "storageTips" | "requiresCooling" | "shippingScope" | "shippingNote" | "shelfLifeDays" | "preparationTimeDays" | "stock" | "priceToman"
+> &
+  Partial<Pick<Product, "storageTips" | "requiresCooling" | "shippingScope" | "shippingNote" | "shelfLifeDays" | "preparationTimeDays" | "stock" | "priceToman" | "variants">>;
+
+function dryProduct(input: ProductInput): Product {
   return {
     requiresCooling: false,
     shippingScope: "nationwide",
@@ -83,7 +89,7 @@ function dryProduct(input: Product): Product {
   };
 }
 
-function chilledProduct(input: Product): Product {
+function chilledProduct(input: ProductInput): Product {
   return {
     requiresCooling: true,
     shippingScope: "tehran-karaj",
