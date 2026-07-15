@@ -6,61 +6,36 @@
 
 @layer base {
   :root {
-    /* Pastel Mint Cream Background */
     --background: 140 40% 97%;
     --foreground: 155 35% 15%;
-
-    /* Card - soft mint */
     --card: 140 35% 95%;
     --card-foreground: 155 35% 15%;
-
-    /* Popover */
     --popover: 140 40% 97%;
     --popover-foreground: 155 35% 15%;
-
-    /* Primary - Deep Sage Green */
     --primary: 150 35% 32%;
     --primary-foreground: 140 40% 97%;
-
-    /* Secondary - Pastel Mint */
     --secondary: 145 40% 90%;
     --secondary-foreground: 155 35% 20%;
-
-    /* Muted */
     --muted: 140 25% 88%;
     --muted-foreground: 155 15% 40%;
-
-    /* Accent - Fresh Pistachio */
     --accent: 130 45% 60%;
     --accent-foreground: 150 45% 15%;
-
-    /* Destructive */
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
-
-    /* Borders */
     --border: 140 25% 85%;
     --input: 140 25% 85%;
     --ring: 150 35% 32%;
-
     --radius: 0.75rem;
-
-    /* Custom tokens — kept same NAMES so existing components keep working,
-       but re-tinted to the pastel-green identity. */
     --cream: 140 40% 97%;
-    --cocoa: 150 35% 32%;         /* deep sage (was cocoa brown) */
-    --cocoa-light: 150 25% 48%;   /* medium sage */
+    --cocoa: 150 35% 32%;
+    --cocoa-light: 150 25% 48%;
     --pistachio: 130 45% 60%;
     --pistachio-light: 130 55% 80%;
-    --rose: 145 40% 90%;          /* re-tinted to soft mint */
-    --gold: 80 45% 55%;           /* olive-lime accent (was gold) */
-
-    /* Shadows */
+    --rose: 145 40% 90%;
+    --gold: 80 45% 55%;
     --shadow-soft: 0 2px 8px -2px hsl(150 35% 15% / 0.08);
     --shadow-card: 0 4px 12px -4px hsl(150 35% 15% / 0.1);
     --shadow-hover: 0 8px 24px -8px hsl(150 35% 15% / 0.18);
-
-    /* Sidebar */
     --sidebar-background: 140 35% 95%;
     --sidebar-foreground: 155 35% 15%;
     --sidebar-primary: 150 35% 32%;
@@ -169,10 +144,6 @@
 
   .btn-accent {
     @apply bg-accent text-accent-foreground hover:opacity-90 transition-opacity duration-200;
-  }
-
-  .btn-whatsapp {
-    @apply bg-[#25D366] text-white hover:bg-[#20BD5A] transition-colors duration-200;
   }
 
   .badge-primary {
