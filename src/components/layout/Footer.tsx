@@ -6,11 +6,13 @@ const footerLinks = {
   quickLinks: [
     { name: "محصولات", href: "/products" },
     { name: "درباره ما", href: "/about" },
-    { name: "وبلاگ", href: "/blog" },
+    { name: "گالری", href: "/gallery" },
+    { name: "سوالات متداول", href: "/faq" },
     { name: "تماس با ما", href: "/contact" },
   ],
   categories: [
     { name: "کوکی‌ها", href: "/products?category=cookies" },
+    { name: "مینی کوکی", href: "/products?category=mini-cookies" },
     { name: "کیک و دسر", href: "/products?category=cakes" },
     { name: "رژیمی و بدون قند", href: "/products?category=diet" },
     { name: "باکس هدیه", href: "/products?category=gift" },
