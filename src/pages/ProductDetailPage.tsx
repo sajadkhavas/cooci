@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { Phone, AlertTriangle, Clock, Package, ArrowRight } from "lucide-react";
+import { Phone, AlertTriangle, Clock, Package, Truck, Snowflake } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductBySlug, getRelatedProducts } from "@/data/products";
@@ -23,6 +23,10 @@ const ProductDetailPage = () => {
 
   const relatedProducts = getRelatedProducts(product, 4);
   const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
+  const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
+  const shippingText =
+    product.shippingNote ??
+    (product.requiresCooling ? "ارسال یخچالی فقط تهران و کرج" : "ارسال با بسته‌بندی محافظ به سراسر ایران");
 
   const productSchema = {
     "@context": "https://schema.org",
@@ -48,8 +52,8 @@ const ProductDetailPage = () => {
   return (
     <>
       <SEO
-        title={product.name}
-        description={product.shortDescription}
+        title={product.seo?.title ?? product.name}
+        description={product.seo?.description ?? product.shortDescription}
         type="product"
         schema={productSchema}
       />
@@ -150,6 +154,16 @@ const ProductDetailPage = () => {
                     <span className="text-foreground font-medium">{product.weight}</span>
                   </div>
                 )}
+              </div>
+
+              <div className={`flex items-start gap-3 rounded-2xl border p-5 ${product.requiresCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-primary/20 bg-primary/10 text-primary"}`}>
+                <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center flex-shrink-0">
+                  <ShippingIcon size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold mb-1">شرایط ارسال و نگهداری</h3>
+                  <p className="text-sm leading-7">{shippingText}</p>
+                </div>
               </div>
 
               {/* CTAs */}
