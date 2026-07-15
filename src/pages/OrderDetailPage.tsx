@@ -11,7 +11,7 @@ const OrderDetailPage = () => {
   if (!order) {
     return (
       <>
-        <SEO title="سفارش پیدا نشد" description="سفارش موردنظر در وینیمی پیدا نشد." />
+        <SEO title="سفارش پیدا نشد" description="سفارش موردنظر در وینیمی پیدا نشد." noIndex />
         <section className="section-padding">
           <div className="container-custom max-w-xl text-center bg-card border border-border rounded-3xl p-10 shadow-soft">
             <span className="text-6xl block mb-5">🔎</span>
@@ -28,7 +28,7 @@ const OrderDetailPage = () => {
 
   return (
     <>
-      <SEO title={`سفارش ${order.id}`} description="جزئیات سفارش ثبت‌شده در وینیمی بیکری" />
+      <SEO title={`سفارش ${order.id}`} description="جزئیات سفارش ثبت‌شده در وینیمی بیکری" noIndex />
       <section className="bg-secondary/50 py-12">
         <div className="container-custom text-center">
           <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
@@ -48,7 +48,7 @@ const OrderDetailPage = () => {
             {order.items.map((item) => (
               <article key={item.id} className="bg-card border border-border rounded-3xl p-4 shadow-soft flex items-center gap-4">
                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-secondary flex-shrink-0">
-                  {item.image ? <img src={item.image} alt={item.imageAlt ?? item.name} className="w-full h-full object-cover" /> : null}
+                  {item.image ? <img src={item.image} alt={item.imageAlt ?? item.name} className="w-full h-full object-cover" loading="lazy" /> : null}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="font-bold text-foreground line-clamp-1">{item.name}</h2>
@@ -60,7 +60,7 @@ const OrderDetailPage = () => {
             ))}
           </div>
 
-          <aside className="bg-card border border-border rounded-3xl p-6 shadow-hover sticky top-28 space-y-5">
+          <aside className="bg-card border border-border rounded-3xl p-6 shadow-hover lg:sticky lg:top-28 space-y-5">
             <div className="flex items-start gap-3">
               <CalendarClock className="text-primary" size={22} />
               <div>
@@ -76,15 +76,15 @@ const OrderDetailPage = () => {
               </div>
             </div>
             <div className="border-t border-border pt-5 space-y-3">
-              <div className="flex justify-between text-muted-foreground">
+              <div className="flex justify-between text-muted-foreground gap-4">
                 <span>جمع محصولات</span>
                 <strong className="text-foreground">{formatToman(order.subtotal)}</strong>
               </div>
-              <div className="flex justify-between text-muted-foreground">
+              <div className="flex justify-between text-muted-foreground gap-4">
                 <span>ارسال</span>
                 <strong className="text-foreground">{order.deliveryFee ? formatToman(order.deliveryFee) : "رایگان"}</strong>
               </div>
-              <div className="flex justify-between text-lg font-black text-foreground border-t border-border pt-3">
+              <div className="flex justify-between text-lg font-black text-foreground border-t border-border pt-3 gap-4">
                 <span>مبلغ کل</span>
                 <span>{formatToman(order.total)}</span>
               </div>
