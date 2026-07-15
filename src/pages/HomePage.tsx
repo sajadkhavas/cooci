@@ -379,54 +379,34 @@ const HomePage = () => {
         <div className="container-custom relative z-10">
           <div className="text-center mb-16 space-y-4">
             <span className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold border border-primary-foreground/20">
-              <Star size={16} className="text-gold" />
-              نظرات مشتریان
+              <Sparkles size={16} className="text-gold" />
+              تعهد ما به شما
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold">مشتریان ما چه می‌گویند</h2>
-            <p className="text-primary-foreground/70 max-w-lg mx-auto">
-              بیش از ۱۰۰۰ مشتری راضی از طعم بی‌نظیر کوکی‌های ما
+            <h2 className="text-3xl md:text-4xl font-bold">چهار وعده‌ای که در هر سفارش رعایت می‌کنیم</h2>
+            <p className="text-primary-foreground/70 max-w-lg mx-auto leading-8">
+              وینیمی بیکری با هر سفارش این چهار اصل را ضمانت می‌کند.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {brandConfig.trustPillars.map((pillar, index) => (
               <div
                 key={index}
-                className="group relative bg-gradient-to-br from-primary-foreground/15 to-primary-foreground/5 backdrop-blur-md p-8 rounded-3xl space-y-5 animate-fade-in border border-primary-foreground/10 hover:border-primary-foreground/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
-                style={{ animationDelay: `${index * 150}ms` }}
+                className="group relative bg-gradient-to-br from-primary-foreground/15 to-primary-foreground/5 backdrop-blur-md p-7 rounded-3xl space-y-4 animate-fade-in border border-primary-foreground/10 hover:border-gold/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl text-right"
+                style={{ animationDelay: `${index * 120}ms` }}
               >
-                {/* Quote Icon */}
-                <div className="absolute -top-4 right-6 w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                  </svg>
+                <div className="w-12 h-12 bg-gold/20 border border-gold/30 rounded-2xl flex items-center justify-center">
+                  <Check size={22} className="text-gold" />
                 </div>
-                
-                {/* Stars */}
-                <div className="flex gap-1.5 pt-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={22} fill="currentColor" className="text-gold drop-shadow-sm" />
-                  ))}
-                </div>
-                
-                {/* Text */}
-                <p className="text-lg leading-relaxed text-primary-foreground/90">&ldquo;{testimonial.text}&rdquo;</p>
-                
-                {/* Author */}
-                <div className="flex items-center gap-4 pt-4 border-t border-primary-foreground/10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-gold to-amber-600 rounded-full flex items-center justify-center text-primary font-bold text-lg shadow-lg">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-bold text-primary-foreground">{testimonial.name}</p>
-                    <p className="text-sm text-primary-foreground/60">مشتری وفادار</p>
-                  </div>
-                </div>
+                <p className="text-lg leading-relaxed text-primary-foreground/90 font-medium">
+                  {pillar}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
 
       {/* Instagram */}
       <section className="section-padding">
