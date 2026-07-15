@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Phone, AlertTriangle, Clock, Package, Truck, Snowflake } from "lucide-react";
+import { useState } from "react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductBySlug, getRelatedProducts } from "@/data/products";
@@ -8,6 +9,7 @@ import { brandConfig, generateWhatsAppUrl, generateProductOrderMessage, generate
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const product = getProductBySlug(slug || "");
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   if (!product) {
     return (
