@@ -1,182 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://cooci.lovable.app/</loc>
+    <loc>https://winimibakery.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products</loc>
+    <loc>https://winimibakery.com/products</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/about</loc>
+    <loc>https://winimibakery.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/gallery</loc>
+    <loc>https://winimibakery.com/gallery</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/faq</loc>
+    <loc>https://winimibakery.com/faq</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/contact</loc>
+    <loc>https://winimibakery.com/contact</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/shipping</loc>
+    <loc>https://winimibakery.com/shipping</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/privacy</loc>
+    <loc>https://winimibakery.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/terms</loc>
+    <loc>https://winimibakery.com/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-chocolate-walnut</loc>
+    <loc>https://winimibakery.com/cart</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://winimibakery.com/checkout</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://winimibakery.com/products/cookie-chocolate-walnut</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-red-velvet</loc>
+    <loc>https://winimibakery.com/products/cookie-red-velvet</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-oreo</loc>
+    <loc>https://winimibakery.com/products/cookie-oreo</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-hazelnut-white-chocolate</loc>
+    <loc>https://winimibakery.com/products/cookie-hazelnut-white-chocolate</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-apple-cinnamon</loc>
+    <loc>https://winimibakery.com/products/cookie-apple-cinnamon</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-snickers</loc>
+    <loc>https://winimibakery.com/products/cookie-snickers</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-crinkle</loc>
+    <loc>https://winimibakery.com/products/cookie-crinkle</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/mini-cookie-vanilla-chocolate-chip</loc>
+    <loc>https://winimibakery.com/products/mini-cookie-vanilla-chocolate-chip</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/mini-cookie-chocolate-chip</loc>
+    <loc>https://winimibakery.com/products/mini-cookie-chocolate-chip</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/mini-cookie-red-velvet</loc>
+    <loc>https://winimibakery.com/products/mini-cookie-red-velvet</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-diet-oat-raisin</loc>
+    <loc>https://winimibakery.com/products/cookie-diet-oat-raisin</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/diabetic-cookie-pistachio</loc>
+    <loc>https://winimibakery.com/products/diabetic-cookie-pistachio</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/diabetic-cookie-walnut</loc>
+    <loc>https://winimibakery.com/products/diabetic-cookie-walnut</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/diabetic-cookie-coconut</loc>
+    <loc>https://winimibakery.com/products/diabetic-cookie-coconut</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/san-sebastian-cheesecake-slice</loc>
+    <loc>https://winimibakery.com/products/san-sebastian-cheesecake-slice</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/pomegranate-cheesecake-single</loc>
+    <loc>https://winimibakery.com/products/pomegranate-cheesecake-single</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/classic-cheesecake-single</loc>
+    <loc>https://winimibakery.com/products/classic-cheesecake-single</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/tiramisu-single</loc>
+    <loc>https://winimibakery.com/products/tiramisu-single</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/tiramisu-24cm</loc>
+    <loc>https://winimibakery.com/products/tiramisu-24cm</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/chocolate-cream-cake-single</loc>
+    <loc>https://winimibakery.com/products/chocolate-cream-cake-single</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/wet-chocolate-cake-slice</loc>
+    <loc>https://winimibakery.com/products/wet-chocolate-cake-slice</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/baklava-cake-slice</loc>
+    <loc>https://winimibakery.com/products/baklava-cake-slice</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/carrot-walnut-cake</loc>
+    <loc>https://winimibakery.com/products/carrot-walnut-cake</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cinnamon-roll</loc>
+    <loc>https://winimibakery.com/products/cinnamon-roll</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/mini-croissant</loc>
+    <loc>https://winimibakery.com/products/mini-croissant</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/cookie-whey-protein-nuts</loc>
+    <loc>https://winimibakery.com/products/cookie-whey-protein-nuts</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cooci.lovable.app/products/winimi-gift-box</loc>
+    <loc>https://winimibakery.com/products/winimi-gift-box</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
