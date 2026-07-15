@@ -3,7 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
-import { categories, getProductsByCategory } from "@/data/products";
+import { categories, type Product } from "@/data/products";
+import { useCatalogProducts } from "@/hooks/useCatalog";
 
 const sortOptions = [
   { value: "featured", label: "پیشنهادی وینیمی" },
@@ -18,15 +19,21 @@ const shippingOptions = [
   { value: "chilled", label: "یخچالی تهران/کرج" },
 ];
 
-const productPrice = (product: ReturnType<typeof getProductsByCategory>[number]) => {
+const productPrice = (product: Product) => {
   const variantPrices = product.variants?.map((variant) => variant.price).filter((price): price is number => typeof price === "number") ?? [];
   if (typeof product.price === "number") return product.price;
   if (variantPrices.length) return Math.min(...variantPrices);
   return Number.POSITIVE_INFINITY;
 };
 
+const getProductsByCategoryFromList = (products: Product[], categorySlug: string) => {
+  if (categorySlug === "all") return products;
+  return products.filter((product) => product.categorySlug === categorySlug);
+};
+
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { products: catalogProducts, isFetching, error, isBackendCatalogEnabled } = useCatalogProducts();
 
   const activeCategory = searchParams.get("category") || "all";
   const searchQuery = searchParams.get("q") || "";
@@ -45,7 +52,7 @@ const ProductsPage = () => {
   };
 
   const filteredProducts = useMemo(() => {
-    let filtered = getProductsByCategory(activeCategory);
+    let filtered = getProductsByCategoryFromList(catalogProducts, activeCategory);
 
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
@@ -101,7 +108,7 @@ const ProductsPage = () => {
     }
 
     return filtered;
-  }, [activeCategory, dietOnly, searchQuery, shippingFilter, sortBy]);
+  }, [activeCategory, catalogProducts, dietOnly, searchQuery, shippingFilter, sortBy]);
 
   const resetFilters = () => setSearchParams({}, { replace: true });
 
@@ -208,6 +215,17 @@ const ProductsPage = () => {
               })}
             </div>
           </div>
+
+          {isBackendCatalogEnabled && isFetching && (
+            <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary">
+              در حال به‌روزرسانی محصولات از بک‌اند...
+            </div>
+          )}
+          {isBackendCatalogEnabled && error && (
+            <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+              اتصال به بک‌اند محصولات برقرار نشد؛ فعلاً کاتالوگ داخلی سایت نمایش داده می‌شود.
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <p className="text-muted-foreground">
