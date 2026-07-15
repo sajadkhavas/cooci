@@ -499,7 +499,7 @@ export const products: Product[] = [
     category: "کیک و دسر",
     categorySlug: "cakes",
     price: 150000,
-    weight: "تک‌نفره",
+    weight: "تک‌نفره یا ۲۴ سانتی (۸ تا ۱۰ نفر)",
     weightGrams: 160,
     badges: ["یخچالی", "پرفروش"],
     tags: ["تیرامیسو", "قهوه", "یخچالی"],
@@ -507,9 +507,13 @@ export const products: Product[] = [
     allergens: DEFAULT_ALLERGENS,
     ingredients: ["لیدی فینگر", "قهوه دمی", "خامه پنیر", "پودر کاکائو"],
     shelfLife: "۳ روز در یخچال",
-    images: [{ url: heroAssorted, alt: "تیرامیسو تک‌نفره وینیمی" }],
+    images: [{ url: heroAssorted, alt: "تیرامیسو وینیمی" }],
     isFeatured: true,
     productCode: "VIN-TS-018",
+    variants: [
+      { id: "single", name: "تک‌نفره", price: 150000, weight: "تک‌نفره", productCode: "VIN-TS-018" },
+      { id: "24cm", name: "۲۴ سانتی — مناسب ۸ تا ۱۰ نفر", price: 1500000, weight: "۲۴ سانتی", productCode: "VIN-TL-019" },
+    ],
   }),
   chilledProduct({
     id: "cake-005",
