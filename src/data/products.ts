@@ -47,6 +47,14 @@ export interface Product {
   images: { url: string; alt: string }[];
   isFeatured: boolean;
   productCode: string;
+  variants?: {
+    id: string;
+    name: string;
+    price?: number;
+    weight?: string;
+    productCode?: string;
+    description?: string;
+  }[];
   seo?: {
     title: string;
     description: string;
@@ -69,7 +77,13 @@ const DRY_SHIPPING = "ارسال این محصول با بسته‌بندی مح
 const CHILLED_SHIPPING = "این محصول یخچالی است و فقط در تهران و کرج قابل ارسال است.";
 const DEFAULT_ALLERGENS = ["گلوتن", "تخم‌مرغ", "لبنیات"];
 
-function dryProduct(input: Product): Product {
+type ProductInput = Omit<
+  Product,
+  "storageTips" | "requiresCooling" | "shippingScope" | "shippingNote" | "shelfLifeDays" | "preparationTimeDays" | "stock" | "priceToman"
+> &
+  Partial<Pick<Product, "storageTips" | "requiresCooling" | "shippingScope" | "shippingNote" | "shelfLifeDays" | "preparationTimeDays" | "stock" | "priceToman" | "variants">>;
+
+function dryProduct(input: ProductInput): Product {
   return {
     requiresCooling: false,
     shippingScope: "nationwide",
@@ -83,7 +97,7 @@ function dryProduct(input: Product): Product {
   };
 }
 
-function chilledProduct(input: Product): Product {
+function chilledProduct(input: ProductInput): Product {
   return {
     requiresCooling: true,
     shippingScope: "tehran-karaj",
@@ -485,7 +499,7 @@ export const products: Product[] = [
     category: "کیک و دسر",
     categorySlug: "cakes",
     price: 150000,
-    weight: "تک‌نفره",
+    weight: "تک‌نفره یا ۲۴ سانتی (۸ تا ۱۰ نفر)",
     weightGrams: 160,
     badges: ["یخچالی", "پرفروش"],
     tags: ["تیرامیسو", "قهوه", "یخچالی"],
@@ -493,9 +507,13 @@ export const products: Product[] = [
     allergens: DEFAULT_ALLERGENS,
     ingredients: ["لیدی فینگر", "قهوه دمی", "خامه پنیر", "پودر کاکائو"],
     shelfLife: "۳ روز در یخچال",
-    images: [{ url: heroAssorted, alt: "تیرامیسو تک‌نفره وینیمی" }],
+    images: [{ url: heroAssorted, alt: "تیرامیسو وینیمی" }],
     isFeatured: true,
     productCode: "VIN-TS-018",
+    variants: [
+      { id: "single", name: "تک‌نفره", price: 150000, weight: "تک‌نفره", productCode: "VIN-TS-018" },
+      { id: "24cm", name: "۲۴ سانتی — مناسب ۸ تا ۱۰ نفر", price: 1500000, weight: "۲۴ سانتی", productCode: "VIN-TL-019" },
+    ],
   }),
   chilledProduct({
     id: "cake-005",
@@ -584,6 +602,10 @@ export const products: Product[] = [
     images: [{ url: lifestyleBreaking, alt: "کیک باقلوا وینیمی" }],
     isFeatured: false,
     productCode: "VIN-BC-022",
+    variants: [
+      { id: "slice", name: "اسلایس", price: 150000, weight: "یک اسلایس", productCode: "VIN-BC-022" },
+      { id: "ring", name: "رینگ کامل — ۱۰ اسلایس", price: 1500000, weight: "۱۰ اسلایس", productCode: "VIN-BC-022-R" },
+    ],
   }),
   chilledProduct({
     id: "cake-009",
@@ -649,6 +671,28 @@ export const products: Product[] = [
     images: [{ url: productWhiteChocMacadamia, alt: "مینی کروسان وینیمی" }],
     isFeatured: false,
     productCode: "VIN-MCRO-025",
+  }),
+  dryProduct({
+    id: "diet-005",
+    slug: "cookie-whey-protein-nuts",
+    name: "کوکی پروتئین وی با مغزیجات",
+    shortDescription: "کوکی پروتئین وی همراه با بادام، گردو و پسته؛ گزینه‌ای پرانرژی و رژیمی.",
+    longDescription:
+      "کوکی پروتئین وی وینیمی با پروتئین وی و ترکیبی از بادام، گردو و پسته آماده می‌شود. برای کسانی که دنبال میان‌وعده‌ای پرانرژی و رژیمی هستند مناسب است. این محصول توصیه پزشکی نیست و در صورت رژیم درمانی، مصرف باید با نظر متخصص انجام شود. قیمت اعلام‌شده برای هر عدد ۲۸۹ هزار تومان است.",
+    category: "رژیمی و بدون قند",
+    categorySlug: "diet",
+    price: 289000,
+    weight: "هر عدد",
+    weightGrams: 90,
+    badges: ["پروتئین وی", "مغزیجات"],
+    tags: ["پروتئین وی", "بادام", "گردو", "پسته", "رژیمی"],
+    flavors: ["پروتئین وی", "مغزیجات"],
+    allergens: ["گلوتن", "لبنیات", "بادام", "گردو", "پسته"],
+    ingredients: ["پروتئین وی", "آرد سبوس‌دار", "بادام", "گردو", "پسته", "روغن گیاهی"],
+    shelfLife: "۷ روز در دمای اتاق",
+    images: [{ url: productWhiteChocMacadamia, alt: "کوکی پروتئین وی با مغزیجات" }],
+    isFeatured: false,
+    productCode: "VIN-WP-027",
   }),
   dryProduct({
     id: "gift-001",

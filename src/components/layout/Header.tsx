@@ -8,7 +8,6 @@ const navLinks = [
   { name: "محصولات", href: "/products" },
   { name: "درباره ما", href: "/about" },
   { name: "گالری", href: "/gallery" },
-  { name: "وبلاگ", href: "/blog" },
   { name: "سوالات متداول", href: "/faq" },
   { name: "تماس با ما", href: "/contact" },
 ];

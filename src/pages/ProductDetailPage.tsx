@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Phone, AlertTriangle, Clock, Package, Truck, Snowflake } from "lucide-react";
+import { useState } from "react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductBySlug, getRelatedProducts } from "@/data/products";
@@ -8,6 +9,7 @@ import { brandConfig, generateWhatsAppUrl, generateProductOrderMessage, generate
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const product = getProductBySlug(slug || "");
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   if (!product) {
     return (
@@ -22,7 +24,11 @@ const ProductDetailPage = () => {
   }
 
   const relatedProducts = getRelatedProducts(product, 4);
-  const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
+  const selectedVariant = product.variants?.find((v) => v.id === selectedVariantId) ?? product.variants?.[0];
+  const activePrice = selectedVariant?.price ?? product.price;
+  const activeWeight = selectedVariant?.weight ?? product.weight;
+  const activeCode = selectedVariant?.productCode ?? product.productCode;
+  const whatsappMessage = generateProductOrderMessage(product.name, activeCode, selectedVariant?.name);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText =
     product.shippingNote ??
@@ -110,7 +116,7 @@ const ProductDetailPage = () => {
               {/* Product Code */}
               <div className="inline-flex items-center gap-2 bg-secondary px-4 py-2 rounded-full">
                 <span className="text-sm text-muted-foreground">
-                  کد محصول: <span className="font-bold text-foreground">{product.productCode}</span>
+                  کد محصول: <span className="font-bold text-foreground">{activeCode}</span>
                 </span>
               </div>
 
@@ -138,23 +144,56 @@ const ProductDetailPage = () => {
                 {product.longDescription}
               </p>
 
+
+              {/* Variants */}
+              {product.variants && product.variants.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-bold text-foreground">انتخاب سایز / نوع:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variants.map((v) => {
+                      const isActive = (selectedVariant?.id ?? product.variants![0].id) === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariantId(v.id)}
+                          className={`px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                            isActive
+                              ? "border-primary bg-primary text-primary-foreground shadow-md"
+                              : "border-border bg-card text-foreground hover:border-primary/50"
+                          }`}
+                        >
+                          {v.name}
+                          {v.price ? (
+                            <span className="block text-xs opacity-80 mt-0.5">
+                              {v.price.toLocaleString("fa-IR")} تومان
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Price & Weight */}
               <div className="flex flex-wrap items-center gap-6 py-4 border-y border-border">
-                {product.price && (
+                {activePrice && (
                   <div className="flex items-center gap-2">
                     <span className="text-3xl md:text-4xl font-black bg-gradient-to-l from-primary to-cocoa bg-clip-text text-transparent">
-                      {product.price.toLocaleString("fa-IR")}
+                      {activePrice.toLocaleString("fa-IR")}
                     </span>
                     <span className="text-muted-foreground">تومان</span>
                   </div>
                 )}
-                {product.weight && (
+                {activeWeight && (
                   <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl">
                     <Package size={18} className="text-muted-foreground" />
-                    <span className="text-foreground font-medium">{product.weight}</span>
+                    <span className="text-foreground font-medium">{activeWeight}</span>
                   </div>
                 )}
               </div>
+
 
               <div className={`flex items-start gap-3 rounded-2xl border p-5 ${product.requiresCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-primary/20 bg-primary/10 text-primary"}`}>
                 <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center flex-shrink-0">

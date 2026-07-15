@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, ShoppingBag, Star, Heart, Truck, Snowflake } from "lucide-react";
+import { Phone, ShoppingBag, Heart, Truck, Snowflake } from "lucide-react";
 import { Product } from "@/data/products";
 import { generateWhatsAppUrl, generateProductOrderMessage, generatePhoneUrl } from "@/config/brand";
 import { useState } from "react";
@@ -12,9 +12,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const whatsappMessage = generateProductOrderMessage(product.name, product.productCode);
   const [isLiked, setIsLiked] = useState(false);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
-  const shippingLabel =
-    product.shippingNote ??
-    (product.requiresCooling ? "ارسال یخچالی فقط تهران و کرج" : "ارسال به سراسر ایران");
+  const shippingLabel = product.requiresCooling
+    ? "ارسال یخچالی تهران و کرج"
+    : "ارسال به سراسر ایران";
+  const variantPrices = product.variants?.map((v) => v.price).filter((p): p is number => typeof p === "number") ?? [];
+  const lowestVariantPrice = variantPrices.length ? Math.min(...variantPrices) : undefined;
+  const displayPrice = product.price ?? lowestVariantPrice;
+  const hasVariants = (product.variants?.length ?? 0) > 0;
 
   return (
     <article className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 border border-border/50 hover:border-accent/30">
@@ -80,15 +84,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Content Section */}
       <div className="p-5 space-y-4">
-        {/* Header: Code & Rating */}
+        {/* Header: Code & Category */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
             کد: {product.productCode}
           </span>
-          <div className="flex items-center gap-1">
-            <Star size={14} className="fill-gold text-gold" />
-            <span className="text-sm font-semibold text-foreground">۴.۸</span>
-          </div>
+          <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full font-medium">
+            {product.category}
+          </span>
         </div>
 
         {/* Title */}
@@ -114,12 +117,19 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         {/* Footer: Price & Actions */}
         <div className="flex items-center justify-between gap-3">
           {/* Price */}
-          {product.price && (
+          {displayPrice ? (
             <div className="space-y-0.5">
-              <p className="text-xl font-bold text-primary">
-                {product.price.toLocaleString("fa-IR")}
+              {hasVariants && (
+                <span className="text-[10px] text-muted-foreground">شروع از</span>
+              )}
+              <p className="text-xl font-bold text-primary leading-none">
+                {displayPrice.toLocaleString("fa-IR")}
               </p>
               <span className="text-xs text-muted-foreground">تومان</span>
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">
+              قیمت با هماهنگی
             </div>
           )}
 
