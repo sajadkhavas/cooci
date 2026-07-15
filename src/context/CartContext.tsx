@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Product } from "@/data/products";
 
 export type ProductVariant = NonNullable<Product["variants"]>[number];
@@ -112,23 +112,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearCart = () => setItems([]);
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const hasCoolingItems = items.some((item) => item.requiresCooling);
 
-  const value = useMemo<CartContextValue>(() => {
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const hasCoolingItems = items.some((item) => item.requiresCooling);
-
-    return {
-      items,
-      itemCount,
-      subtotal,
-      hasCoolingItems,
-      addItem,
-      removeItem,
-      updateQuantity,
-      clearCart,
-    };
-  }, [items]);
+  const value: CartContextValue = {
+    items,
+    itemCount,
+    subtotal,
+    hasCoolingItems,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+  };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
