@@ -138,7 +138,7 @@ const CheckoutPage = () => {
     <>
       <SEO
         title="تکمیل سفارش"
-        description="ثبت اطلاعات ارسال، محاسبه هزینه ارسال و آماده‌سازی سفارش برای اتصال به درگاه پرداخت وینیمی بیکری."
+        description="ثبت اطلاعات ارسال، انتخاب روش ارسال و تکمیل سفارش در وینیمی بیکری."
         noIndex
       />
 
@@ -146,11 +146,11 @@ const CheckoutPage = () => {
         <div className="container-custom text-center">
           <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
             <CreditCard size={18} />
-            {useBackendCheckout ? "اتصال به بک‌اند و درگاه فعال" : "پرداخت آنلاین آماده اتصال به درگاه"}
+            ثبت سفارش آنلاین
           </span>
           <h1 className="heading-1 text-foreground">تکمیل سفارش</h1>
           <p className="body-large text-muted-foreground mt-4 max-w-2xl mx-auto">
-            اطلاعات ارسال، روش تحویل و خلاصه پرداخت را بررسی کنید. مسیر سفارش برای بک‌اند و درگاه واقعی آماده است.
+            اطلاعات گیرنده، روش ارسال و خلاصه سفارش را بررسی کنید تا سفارش شما با دقت ثبت شود.
           </p>
         </div>
       </section>
@@ -160,7 +160,7 @@ const CheckoutPage = () => {
           <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-soft space-y-7">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">اطلاعات گیرنده</h2>
-              <p className="text-muted-foreground text-sm">این اطلاعات برای ثبت سفارش، ارسال و پیگیری پرداخت استفاده می‌شود.</p>
+              <p className="text-muted-foreground text-sm">این اطلاعات برای آماده‌سازی، ارسال و پیگیری سفارش استفاده می‌شود.</p>
             </div>
 
             {error && (
@@ -172,57 +172,27 @@ const CheckoutPage = () => {
             <div className="grid md:grid-cols-2 gap-5">
               <label className="space-y-2">
                 <span className="text-sm font-bold text-foreground">نام و نام خانوادگی</span>
-                <input
-                  className="input-field w-full"
-                  value={customer.fullName}
-                  onChange={(event) => updateField("fullName", event.target.value)}
-                  placeholder="مثلاً سجاد خواص"
-                  autoComplete="name"
-                />
+                <input className="input-field w-full" value={customer.fullName} onChange={(event) => updateField("fullName", event.target.value)} placeholder="مثلاً سجاد خواص" autoComplete="name" />
               </label>
 
               <label className="space-y-2">
                 <span className="text-sm font-bold text-foreground">شماره موبایل</span>
-                <input
-                  className="input-field w-full ltr:text-left"
-                  value={customer.phone}
-                  onChange={(event) => updateField("phone", event.target.value)}
-                  placeholder="09xxxxxxxxx"
-                  inputMode="tel"
-                  autoComplete="tel"
-                />
+                <input className="input-field w-full ltr:text-left" value={customer.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="09xxxxxxxxx" inputMode="tel" autoComplete="tel" />
               </label>
 
               <label className="space-y-2">
                 <span className="text-sm font-bold text-foreground">شهر</span>
-                <input
-                  className="input-field w-full"
-                  value={customer.city}
-                  onChange={(event) => updateField("city", event.target.value)}
-                  placeholder="تهران، کرج، اصفهان..."
-                  autoComplete="address-level2"
-                />
+                <input className="input-field w-full" value={customer.city} onChange={(event) => updateField("city", event.target.value)} placeholder="تهران، کرج، اصفهان..." autoComplete="address-level2" />
               </label>
 
               <label className="space-y-2 md:col-span-2">
                 <span className="text-sm font-bold text-foreground">آدرس کامل</span>
-                <textarea
-                  className="input-field w-full min-h-28 resize-none"
-                  value={customer.address}
-                  onChange={(event) => updateField("address", event.target.value)}
-                  placeholder="آدرس، پلاک، واحد و توضیحات لازم برای ارسال"
-                  autoComplete="street-address"
-                />
+                <textarea className="input-field w-full min-h-28 resize-none" value={customer.address} onChange={(event) => updateField("address", event.target.value)} placeholder="آدرس، پلاک، واحد و توضیحات لازم برای ارسال" autoComplete="street-address" />
               </label>
 
               <label className="space-y-2 md:col-span-2">
                 <span className="text-sm font-bold text-foreground">توضیحات سفارش</span>
-                <textarea
-                  className="input-field w-full min-h-24 resize-none"
-                  value={customer.notes}
-                  onChange={(event) => updateField("notes", event.target.value)}
-                  placeholder="زمان پیشنهادی تحویل، توضیح بسته‌بندی، پیام هدیه و..."
-                />
+                <textarea className="input-field w-full min-h-24 resize-none" value={customer.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="زمان پیشنهادی تحویل، توضیح بسته‌بندی، پیام هدیه و..." />
               </label>
             </div>
 
@@ -232,16 +202,7 @@ const CheckoutPage = () => {
                 {availableDeliveryMethods.map(([method, option]) => {
                   const Icon = method === "chilled" ? Snowflake : method === "pickup" ? PackageCheck : Truck;
                   return (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setDeliveryMethod(method)}
-                      className={`text-right rounded-2xl border p-4 transition-all ${
-                        deliveryMethod === method
-                          ? "border-primary bg-primary/10 shadow-soft"
-                          : "border-border bg-background hover:border-primary/40"
-                      }`}
-                    >
+                    <button key={method} type="button" onClick={() => setDeliveryMethod(method)} className={`text-right rounded-2xl border p-4 transition-all ${deliveryMethod === method ? "border-primary bg-primary/10 shadow-soft" : "border-border bg-background hover:border-primary/40"}`}>
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                           <Icon size={20} />
@@ -264,9 +225,7 @@ const CheckoutPage = () => {
               <div className={`rounded-2xl border p-4 text-sm leading-7 ${canDeliverCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-destructive/20 bg-destructive/10 text-destructive"}`}>
                 <div className="flex items-start gap-3">
                   <Snowflake size={20} className="mt-1 flex-shrink-0" />
-                  <p>
-                    این سفارش محصول یخچالی دارد. ارسال یخچالی فقط برای تهران، کرج و اندیشه فعال است؛ برای شهرهای دیگر باید محصول یخچالی از سبد حذف شود یا تحویل حضوری انتخاب شود.
-                  </p>
+                  <p>این سفارش محصول یخچالی دارد. ارسال یخچالی فقط برای تهران، کرج و اندیشه فعال است؛ برای شهرهای دیگر باید محصول یخچالی از سبد حذف شود یا تحویل حضوری انتخاب شود.</p>
                 </div>
               </div>
             )}
@@ -274,20 +233,12 @@ const CheckoutPage = () => {
             <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm leading-7 text-primary">
               <div className="flex items-start gap-3">
                 <Lock size={19} className="mt-1 flex-shrink-0" />
-                <p>
-                  {useBackendCheckout
-                    ? "این سفارش از طریق API بک‌اند ثبت می‌شود و سپس به paymentUrl برگشتی از سرور منتقل خواهد شد."
-                    : "پرداخت آنلاین به‌صورت آماده اتصال پیاده‌سازی شده است. بعد از گرفتن درگاه، همین جریان به API پرداخت و callback واقعی وصل می‌شود."}
-                </p>
+                <p>اطلاعات سفارش با دقت ثبت می‌شود و برای آماده‌سازی، هماهنگی ارسال و پیگیری وضعیت خرید استفاده خواهد شد.</p>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
-            >
-              {isSubmitting ? "در حال ثبت سفارش..." : "ثبت سفارش و ورود به پرداخت"}
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait">
+              {isSubmitting ? "در حال ثبت سفارش..." : "ثبت سفارش و ادامه"}
               <CreditCard size={21} />
             </button>
           </form>
