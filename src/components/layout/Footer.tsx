@@ -40,7 +40,6 @@ export const Footer = () => {
 
       <div className="absolute top-0 left-0 right-0 h-20 bg-background" style={{ clipPath: "ellipse(60% 100% at 50% 0%)" }} />
 
-      {/* Checkout Info Banner */}
       <div className="relative pt-32 pb-10">
         <div className="container-custom">
           <div className="bg-gradient-to-l from-gold/20 via-primary-foreground/10 to-gold/20 backdrop-blur-sm rounded-3xl p-8 md:p-10 border border-primary-foreground/20 shadow-2xl">
@@ -50,9 +49,9 @@ export const Footer = () => {
                   <Sparkles size={16} className="text-gold" />
                   <span className="text-sm font-semibold">ثبت سفارش آنلاین</span>
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold">سبد خرید و پرداخت آنلاین آماده اتصال به درگاه</h3>
+                <h3 className="text-xl md:text-2xl font-bold">محصول دلخواه را انتخاب کنید و سفارش را آنلاین تکمیل کنید</h3>
                 <p className="text-primary-foreground/70 leading-8 text-sm">
-                  {brandConfig.deliveryInfo} بعد از اتصال درگاه، سفارش‌ها از همین مسیر به پرداخت بانکی منتقل می‌شوند.
+                  {brandConfig.deliveryInfo} محصولات خشک برای ارسال سراسری آماده می‌شوند و محصولات یخچالی فقط در محدوده‌های قابل ارسال سرد ثبت می‌شوند.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 md:justify-end">
@@ -75,10 +74,8 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* Main Footer Content */}
       <div className="container-custom section-padding relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          {/* Brand */}
           <div className="space-y-6 lg:col-span-1">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-gold to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -97,7 +94,7 @@ export const Footer = () => {
             <div className="grid gap-3 text-sm text-primary-foreground/70">
               <div className="flex items-start gap-2">
                 <ShieldCheck size={18} className="text-gold mt-1" />
-                <span>پرداخت آنلاین بعد از اتصال درگاه فعال می‌شود.</span>
+                <span>ثبت سفارش شفاف، اطلاعات ارسال روشن و پیگیری ساده سفارش.</span>
               </div>
               <div className="flex items-start gap-2">
                 <Truck size={18} className="text-gold mt-1" />
@@ -124,7 +121,6 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="font-bold text-lg mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-gold rounded-full" />
@@ -145,7 +141,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Categories */}
           <div>
             <h4 className="font-bold text-lg mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-gold rounded-full" />
@@ -184,7 +179,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="font-bold text-lg mb-6 flex items-center gap-2">
               <span className="w-8 h-1 bg-gold rounded-full" />
@@ -224,7 +218,6 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom */}
         <div className="mt-16 pt-8 border-t border-primary-foreground/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-primary-foreground/60 text-sm flex items-center gap-2">
