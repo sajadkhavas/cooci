@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Check, Cookie, CreditCard, Heart, ShieldCheck, ShoppingBag, Snowflake, Sparkles, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
-import { getFeaturedProducts } from "@/data/products";
 import { brandConfig } from "@/config/brand";
+import { useCatalogProducts } from "@/hooks/useCatalog";
 import heroImage from "@/assets/cookies/hero-main.jpg";
 import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
@@ -36,7 +36,7 @@ const features = [
 const steps = [
   { num: "۱", title: "انتخاب محصول", desc: "محصول، سایز یا نوع دلخواه را از صفحه محصولات انتخاب کنید", icon: Cookie },
   { num: "۲", title: "افزودن به سبد", desc: "محصولات را به سبد خرید اضافه و تعداد را دقیق تنظیم کنید", icon: ShoppingBag },
-  { num: "۳", title: "ثبت و پرداخت", desc: "اطلاعات ارسال را وارد کنید؛ مسیر پرداخت آماده اتصال به درگاه است", icon: CreditCard },
+  { num: "۳", title: "ثبت و پرداخت", desc: "اطلاعات ارسال را وارد کنید و سفارش را با مسیر آنلاین تکمیل کنید", icon: CreditCard },
 ];
 
 const instagramImages = [
@@ -49,19 +49,21 @@ const instagramImages = [
 ];
 
 const HomePage = () => {
-  const featuredProducts = getFeaturedProducts().slice(0, 6);
+  const { products } = useCatalogProducts();
+  const featuredProducts = products.filter((product) => product.isFeatured).slice(0, 6);
 
   return (
     <>
       <SEO />
 
-      {/* Hero Section */}
       <section className="relative min-h-[100vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={heroImage}
             alt="محصولات تازه وینیمی بیکری"
             className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
@@ -101,8 +103,8 @@ const HomePage = () => {
                 { value: "پخت تازه", label: "نزدیک به زمان سفارش" },
                 { value: "ارسال سراسری", label: "برای محصولات خشک" },
                 { value: "تهران و کرج", label: "برای دسرهای یخچالی" },
-              ].map((stat, i) => (
-                <div key={i} className="bg-white/5 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/10">
+              ].map((stat) => (
+                <div key={stat.value} className="bg-white/5 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/10">
                   <div className="text-lg md:text-xl font-bold text-gold drop-shadow-lg">{stat.value}</div>
                   <div className="text-xs text-white/70 mt-1">{stat.label}</div>
                 </div>
@@ -131,7 +133,6 @@ const HomePage = () => {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* Featured Products */}
       <section className="section-padding bg-gradient-to-b from-background to-secondary/30">
         <div className="container-custom">
           <div className="text-center mb-12 space-y-4">
@@ -166,7 +167,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Why Us */}
       <section className="section-padding bg-gradient-to-b from-secondary/20 to-background">
         <div className="container-custom">
           <div className="text-center mb-16 space-y-4">
@@ -180,7 +180,7 @@ const HomePage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div
-                key={index}
+                key={feature.title}
                 className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 animate-fade-in border border-border/50 hover:border-accent/30"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
@@ -189,6 +189,7 @@ const HomePage = () => {
                     src={feature.image} 
                     alt={feature.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <div className="absolute bottom-4 right-4 w-14 h-14 bg-accent rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -205,7 +206,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* How to Order */}
       <section className="section-padding bg-gradient-to-b from-background via-secondary/30 to-background overflow-hidden relative">
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-[150px]" />
@@ -220,17 +220,17 @@ const HomePage = () => {
               <Sparkles size={16} className="text-gold" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-              مسیر <span className="bg-gradient-to-l from-primary via-cocoa to-primary bg-clip-text text-transparent">سفارش</span> جدید
+              مسیر <span className="bg-gradient-to-l from-primary via-cocoa to-primary bg-clip-text text-transparent">سفارش</span>
             </h2>
             <p className="body-large text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              واتساپ از مسیر خرید حذف شد؛ کاربر محصول را انتخاب می‌کند، سبد خرید می‌سازد و به پرداخت آنلاین می‌رسد.
+              خرید از وینیمی از انتخاب محصول شروع می‌شود، با سبد خرید ادامه پیدا می‌کند و با ثبت اطلاعات ارسال تکمیل می‌شود.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-10 md:gap-8">
             {steps.map((step, index) => (
               <div
-                key={index}
+                key={step.num}
                 className="relative text-center space-y-8 animate-fade-in group"
                 style={{ animationDelay: `${index * 200}ms` }}
               >
@@ -259,7 +259,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Trust */}
       <section className="section-padding bg-gradient-to-br from-primary via-cocoa to-primary text-primary-foreground overflow-hidden relative">
         <div className="container-custom relative z-10">
           <div className="text-center mb-16 space-y-4">
@@ -276,7 +275,7 @@ const HomePage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {brandConfig.trustPillars.map((pillar, index) => (
               <div
-                key={index}
+                key={pillar}
                 className="group relative bg-gradient-to-br from-primary-foreground/15 to-primary-foreground/5 backdrop-blur-md p-7 rounded-3xl space-y-4 animate-fade-in border border-primary-foreground/10 hover:border-gold/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl text-right"
                 style={{ animationDelay: `${index * 120}ms` }}
               >
@@ -292,7 +291,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Instagram */}
       <section className="section-padding">
         <div className="container-custom">
           <div className="text-center mb-12 space-y-4">
@@ -311,7 +309,7 @@ const HomePage = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {instagramImages.map((image, index) => (
               <div
-                key={index}
+                key={image}
                 className="aspect-square rounded-xl overflow-hidden card-hover group"
               >
                 <img
@@ -326,7 +324,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-cocoa to-primary" />
         <div className="absolute top-0 left-0 w-80 h-80 bg-gold/20 rounded-full blur-[150px]" />
@@ -335,7 +332,7 @@ const HomePage = () => {
         <div className="container-custom relative z-10 text-center">
           <div className="inline-flex items-center gap-3 bg-primary-foreground/10 backdrop-blur-md px-6 py-3 rounded-full border border-primary-foreground/20 mb-8 shadow-lg">
             <CreditCard className="text-gold" size={20} />
-            <span className="text-primary-foreground font-semibold">سبد خرید و پرداخت آنلاین</span>
+            <span className="text-primary-foreground font-semibold">سبد خرید و ثبت سفارش آنلاین</span>
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
           </div>
 
@@ -344,7 +341,7 @@ const HomePage = () => {
           </h2>
           
           <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-2xl mx-auto leading-relaxed">
-            محصولات را انتخاب کنید، سبد خرید را تکمیل کنید و بعد از اتصال درگاه، پرداخت آنلاین را انجام دهید.
+            محصولات را انتخاب کنید، سبد خرید را تکمیل کنید و اطلاعات ارسال را برای ثبت سفارش وارد کنید.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
