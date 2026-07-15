@@ -2,12 +2,12 @@ export const brandConfig = {
   brandName: "وینیمی بیکری",
   brandNameEn: "Winimi Bakery",
   tagline: "کیک و کوکی مثل خانه",
-  slogan: "پخت تازه، طعم خانگی، بسته‌بندی مطمئن",
+  slogan: "پخت تازه، مواد اولیه باکیفیت، وسواس در بهداشت",
   phone: "09212508746",
   phoneClean: "09212508746",
   whatsappNumber: "989212508746",
   email: "hello@winimibakery.com",
-  address: "اندیشه، تهران — ارسال به سراسر ایران",
+  address: "اندیشه، تهران",
   city: "اندیشه",
   region: "تهران",
   workingHours: {
@@ -20,11 +20,11 @@ export const brandConfig = {
   defaultMeta: {
     title: "وینیمی بیکری | کیک و کوکی خانگی با پخت تازه",
     description:
-      "وینیمی بیکری — کوکی و کیک خانگی با پخت تازه، مواد اولیه درجه یک و بسته‌بندی محافظ. ارسال به تهران و سراسر ایران.",
+      "وینیمی بیکری؛ کوکی، کیک، تیرامیسو، چیزکیک و محصولات بدون قند افزوده با پخت تازه، مواد اولیه باکیفیت و بسته‌بندی محافظ.",
     image: "/og-image.jpg",
   },
   preparationTime: "۲۴ تا ۴۸ ساعت",
-  deliveryInfo: "ارسال با پیک در تهران و پست پیشتاز به سراسر ایران",
+  deliveryInfo: "محصولات خشک به سراسر ایران ارسال می‌شوند؛ کیک‌ها، تیرامیسو و دسرهای یخچالی فقط تهران و کرج.",
 };
 
 export const generateWhatsAppUrl = (
