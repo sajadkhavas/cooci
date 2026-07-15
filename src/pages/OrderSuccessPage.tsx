@@ -14,6 +14,7 @@ const OrderSuccessPage = () => {
       <SEO
         title="ثبت سفارش"
         description="نتیجه ثبت سفارش در وینیمی بیکری و آماده‌سازی برای اتصال به درگاه پرداخت."
+        noIndex
       />
 
       <section className="section-padding">
@@ -70,8 +71,8 @@ const OrderSuccessPage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/products" className="btn-primary px-8 py-3 rounded-xl font-bold">
-                ادامه خرید
+              <Link to={order ? `/orders/${order.id}` : "/products"} className="btn-primary px-8 py-3 rounded-xl font-bold">
+                {order ? "مشاهده سفارش" : "ادامه خرید"}
               </Link>
               <Link to="/" className="px-8 py-3 rounded-xl font-bold border border-border hover:bg-secondary transition-colors">
                 بازگشت به خانه
