@@ -1,15 +1,42 @@
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, CreditCard, XCircle } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/context/CartContext";
-import { getLocalOrder, updateLocalOrderPaymentStatus } from "@/lib/orders";
+import { API_BASE_URL, apiClient } from "@/lib/api-client";
+import { getLocalOrder, type LocalOrder, updateLocalOrderPaymentStatus } from "@/lib/orders";
+
+const useBackendPaymentVerify = Boolean(API_BASE_URL) && import.meta.env.VITE_USE_BACKEND === "true";
 
 const PaymentCallbackPage = () => {
   const [params] = useSearchParams();
   const orderId = params.get("order");
+  const authority = params.get("authority") || params.get("Authority") || params.get("token") || "";
   const status = params.get("status") === "failed" ? "failed" : "paid";
-  const order = orderId ? updateLocalOrderPaymentStatus(orderId, status) ?? getLocalOrder(orderId) : undefined;
   const isPaid = status === "paid";
+  const [order, setOrder] = useState<LocalOrder | undefined>(() => getLocalOrder(orderId));
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    if (useBackendPaymentVerify && authority) {
+      setIsVerifying(true);
+      apiClient.payments
+        .verify({ orderId, authority, status })
+        .then(() => {
+          setOrder(getLocalOrder(orderId));
+        })
+        .catch((error) => {
+          setVerificationError(error instanceof Error ? error.message : "تأیید پرداخت از سمت بک‌اند انجام نشد.");
+        })
+        .finally(() => setIsVerifying(false));
+      return;
+    }
+
+    setOrder(updateLocalOrderPaymentStatus(orderId, status) ?? getLocalOrder(orderId));
+  }, [authority, orderId, status]);
 
   return (
     <>
@@ -35,6 +62,18 @@ const PaymentCallbackPage = () => {
               </p>
             </div>
 
+            {isVerifying && (
+              <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-primary text-sm font-bold">
+                در حال تأیید پرداخت از بک‌اند...
+              </div>
+            )}
+
+            {verificationError && (
+              <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-destructive text-sm font-bold">
+                {verificationError}
+              </div>
+            )}
+
             {order && (
               <div className="grid md:grid-cols-3 gap-4 text-right">
                 <div className="rounded-2xl bg-secondary/60 border border-border p-4">
@@ -56,7 +95,9 @@ const PaymentCallbackPage = () => {
               <div className="flex items-start gap-3">
                 <CreditCard size={22} className="mt-1 flex-shrink-0" />
                 <p>
-                  در نسخه متصل به بک‌اند، وضعیت پرداخت از درگاه خوانده و با امضای معتبر در سرور تأیید می‌شود. این صفحه فقط ساختار فرانت callback را آماده کرده است.
+                  {useBackendPaymentVerify
+                    ? "این صفحه برای دریافت callback درگاه و ارسال اطلاعات پرداخت به API تأیید پرداخت آماده شده است."
+                    : "در نسخه متصل به بک‌اند، وضعیت پرداخت از درگاه خوانده و با امضای معتبر در سرور تأیید می‌شود. این صفحه فعلاً ساختار فرانت callback را آماده کرده است."}
                 </p>
               </div>
             </div>
