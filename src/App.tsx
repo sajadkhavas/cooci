@@ -13,7 +13,9 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import PaymentCallbackPage from "./pages/PaymentCallbackPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
 import AboutPage from "./pages/AboutPage";
 import GalleryPage from "./pages/GalleryPage";
 import FAQPage from "./pages/FAQPage";
@@ -43,7 +45,9 @@ const App = () => (
                   <Route path="/products/:slug" element={<ProductDetailPage />} />
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/payment/callback" element={<PaymentCallbackPage />} />
                   <Route path="/order-success" element={<OrderSuccessPage />} />
+                  <Route path="/orders/:orderId" element={<OrderDetailPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/gallery" element={<GalleryPage />} />
                   <Route path="/faq" element={<FAQPage />} />
