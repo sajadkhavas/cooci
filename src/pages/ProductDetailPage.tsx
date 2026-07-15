@@ -3,13 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import { AlertTriangle, Check, Clock, CreditCard, Minus, Package, Plus, ShoppingBag, Snowflake, Truck } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
-import { getFeaturedProducts, getProductBySlug, getRelatedProducts } from "@/data/products";
 import { brandConfig } from "@/config/brand";
 import { formatToman, useCart } from "@/context/CartContext";
+import { getRelatedFromCatalog, useCatalogProduct } from "@/hooks/useCatalog";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const product = getProductBySlug(slug || "");
+  const { product, products: catalogProducts, isBackendCatalogEnabled, isFetching, error } = useCatalogProduct(slug);
   const { addItem } = useCart();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -20,6 +20,9 @@ const ProductDetailPage = () => {
       <div className="container-custom section-padding text-center">
         <span className="text-6xl mb-4 block">🔍</span>
         <h1 className="heading-2 mb-4">محصول یافت نشد</h1>
+        <p className="text-muted-foreground mb-6">
+          {isBackendCatalogEnabled && isFetching ? "در حال دریافت اطلاعات محصول..." : "این محصول در کاتالوگ فعلی پیدا نشد."}
+        </p>
         <Link to="/products" className="btn-primary px-6 py-3 rounded-lg inline-block">
           بازگشت به محصولات
         </Link>
@@ -27,18 +30,13 @@ const ProductDetailPage = () => {
     );
   }
 
-  const relatedProducts = getRelatedProducts(product, 4);
-  const safeRelatedProducts = relatedProducts.length >= 4
-    ? relatedProducts
-    : [
-        ...relatedProducts,
-        ...getFeaturedProducts().filter((item) => item.id !== product.id && !relatedProducts.some((related) => related.id === item.id)),
-      ].slice(0, 4);
+  const safeRelatedProducts = getRelatedFromCatalog(product, catalogProducts, 4);
   const selectedVariant = product.variants?.find((v) => v.id === selectedVariantId) ?? product.variants?.[0];
   const activePrice = selectedVariant?.price ?? product.price;
   const activeWeight = selectedVariant?.weight ?? product.weight;
   const activeCode = selectedVariant?.productCode ?? product.productCode;
   const isOutOfStock = product.stock === 0;
+  const canBuy = Boolean(activePrice) && !isOutOfStock;
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText =
     product.shippingNote ??
@@ -66,7 +64,7 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = () => {
-    if (!activePrice || isOutOfStock) return;
+    if (!canBuy) return;
     addItem(product, selectedVariant, quantity);
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
@@ -81,15 +79,21 @@ const ProductDetailPage = () => {
         schema={productSchema}
       />
 
-      <section className="section-padding">
+      <section className="section-padding pb-32 md:pb-24">
         <div className="container-custom">
-          <nav className="flex items-center justify-start gap-2 text-sm text-muted-foreground mb-8">
+          <nav className="flex items-center justify-start gap-2 text-sm text-muted-foreground mb-8 overflow-x-auto whitespace-nowrap pb-2">
             <Link to="/" className="hover:text-primary transition-colors">خانه</Link>
             <span className="text-border">/</span>
             <Link to="/products" className="hover:text-primary transition-colors">محصولات</Link>
             <span className="text-border">/</span>
             <span className="text-foreground font-medium">{product.name}</span>
           </nav>
+
+          {isBackendCatalogEnabled && error && (
+            <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+              اتصال به بک‌اند محصول برقرار نشد؛ نسخه داخلی کاتالوگ نمایش داده می‌شود.
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             <div className="space-y-4 order-2 lg:order-1">
@@ -99,6 +103,8 @@ const ProductDetailPage = () => {
                     src={product.images[0].url}
                     alt={product.images[0].alt || product.name}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    loading="eager"
+                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -107,10 +113,10 @@ const ProductDetailPage = () => {
                 )}
               </div>
               {product.images.length > 1 && (
-                <div className="flex gap-3">
+                <div className="flex gap-3 overflow-x-auto pb-2">
                   {product.images.slice(0, 4).map((img, idx) => (
-                    <div key={idx} className="w-20 h-20 rounded-xl overflow-hidden bg-secondary cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-                      <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                    <div key={idx} className="w-20 h-20 rounded-xl overflow-hidden bg-secondary cursor-pointer hover:ring-2 hover:ring-primary transition-all flex-shrink-0">
+                      <img src={img.url} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -133,7 +139,7 @@ const ProductDetailPage = () => {
               )}
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">{product.name}</h1>
-              <p className="text-lg text-muted-foreground leading-relaxed">{product.longDescription}</p>
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">{product.longDescription}</p>
 
               {product.variants && product.variants.length > 0 && (
                 <div className="space-y-3">
@@ -157,7 +163,7 @@ const ProductDetailPage = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-6 py-4 border-y border-border">
+              <div className="flex flex-wrap items-center gap-4 md:gap-6 py-4 border-y border-border">
                 {activePrice ? (
                   <div className="flex items-center gap-2">
                     <span className="text-3xl md:text-4xl font-black bg-gradient-to-l from-primary to-cocoa bg-clip-text text-transparent">{activePrice.toLocaleString("fa-IR")}</span>
@@ -207,7 +213,7 @@ const ProductDetailPage = () => {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={!activePrice || isOutOfStock}
+                  disabled={!canBuy}
                   className="group relative overflow-hidden bg-primary py-4 px-8 rounded-xl text-center text-lg font-bold text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <span className="relative flex items-center justify-center gap-3">
@@ -270,6 +276,25 @@ const ProductDetailPage = () => {
           )}
         </div>
       </section>
+
+      {canBuy && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-xl p-3 mobile-sticky-bar shadow-[0_-10px_30px_-20px_rgba(0,0,0,0.35)] md:hidden">
+          <div className="container-custom flex items-center gap-3 px-0">
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-bold text-foreground">{product.name}</p>
+              <p className="text-xs text-muted-foreground">{formatToman((activePrice ?? 0) * quantity)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="btn-primary rounded-xl px-5 py-3 text-sm font-black shadow-lg flex items-center gap-2"
+            >
+              {justAdded ? <Check size={18} /> : <ShoppingBag size={18} />}
+              {justAdded ? "اضافه شد" : "افزودن"}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
