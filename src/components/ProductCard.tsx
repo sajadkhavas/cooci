@@ -80,15 +80,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Content Section */}
       <div className="p-5 space-y-4">
-        {/* Header: Code & Rating */}
+        {/* Header: Code & Category */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
             کد: {product.productCode}
           </span>
-          <div className="flex items-center gap-1">
-            <Star size={14} className="fill-gold text-gold" />
-            <span className="text-sm font-semibold text-foreground">۴.۸</span>
-          </div>
+          <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full font-medium">
+            {product.category}
+          </span>
         </div>
 
         {/* Title */}
