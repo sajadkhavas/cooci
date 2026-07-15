@@ -1,17 +1,24 @@
-// Runs before `vite dev` and `vite build` (predev/prebuild hooks); writes public/sitemap.xml.
-import { writeFileSync } from "fs";
+// Runs before `vite dev` and `vite build`; writes public/sitemap.xml.
+// Reads slugs from src/data/products.ts by regex to avoid importing image assets.
+import { writeFileSync, readFileSync } from "fs";
 import { resolve } from "path";
-import { products } from "../src/data/products";
 
 const BASE_URL = "https://cooci.lovable.app";
 
-interface SitemapEntry {
+const productsSource = readFileSync(resolve("src/data/products.ts"), "utf-8");
+const categorySlugs = new Set(["all", "cookies", "mini-cookies", "cakes", "diet", "gift", "pastry"]);
+const slugMatches = Array.from(productsSource.matchAll(/slug:\s*"([a-z0-9-]+)"/g))
+  .map((m) => m[1])
+  .filter((s) => !categorySlugs.has(s));
+const productSlugs = Array.from(new Set(slugMatches));
+
+interface Entry {
   path: string;
-  changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+  changefreq?: string;
   priority?: string;
 }
 
-const staticEntries: SitemapEntry[] = [
+const entries: Entry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/products", changefreq: "weekly", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.6" },
@@ -21,15 +28,12 @@ const staticEntries: SitemapEntry[] = [
   { path: "/shipping", changefreq: "yearly", priority: "0.4" },
   { path: "/privacy", changefreq: "yearly", priority: "0.2" },
   { path: "/terms", changefreq: "yearly", priority: "0.2" },
+  ...productSlugs.map((slug) => ({
+    path: `/products/${slug}`,
+    changefreq: "monthly",
+    priority: "0.7",
+  })),
 ];
-
-const productEntries: SitemapEntry[] = products.map((p) => ({
-  path: `/products/${p.slug}`,
-  changefreq: "monthly",
-  priority: "0.7",
-}));
-
-const entries = [...staticEntries, ...productEntries];
 
 const urls = entries
   .map((e) =>
