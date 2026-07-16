@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Cookie, CreditCard, Heart, ShieldCheck, ShoppingBag, Snowflake, Sparkles, Truck } from "lucide-react";
+import { ArrowLeft, Check, Cookie, Heart, MessageCircle, Package, ShieldCheck, Snowflake, Sparkles, Truck } from "lucide-react";
+import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { brandConfig } from "@/config/brand";
@@ -35,8 +36,8 @@ const features = [
 
 const steps = [
   { num: "۱", title: "انتخاب محصول", desc: "محصول، سایز یا نوع دلخواه را از صفحه محصولات انتخاب کنید", icon: Cookie },
-  { num: "۲", title: "افزودن به سبد", desc: "محصولات را به سبد خرید اضافه و تعداد را دقیق تنظیم کنید", icon: ShoppingBag },
-  { num: "۳", title: "ثبت و پرداخت", desc: "اطلاعات ارسال را وارد کنید و سفارش را با مسیر آنلاین تکمیل کنید", icon: CreditCard },
+  { num: "۲", title: "پیام در واتساپ", desc: "روی دکمه سفارش در واتساپ بزنید تا پیام آماده ارسال شود", icon: MessageCircle },
+  { num: "۳", title: "هماهنگی و تحویل", desc: "زمان آماده‌سازی و ارسال را با تیم پشتیبانی هماهنگ کنید", icon: Package },
 ];
 
 const instagramImages = [
@@ -119,13 +120,15 @@ const HomePage = () => {
                 مشاهده و انتخاب محصولات
                 <ArrowLeft size={20} className="group-hover:-translate-x-2 transition-transform duration-300" />
               </Link>
-              <Link
-                to="/cart"
-                className="group px-10 py-5 rounded-2xl text-lg font-bold text-center bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 hover:border-gold/50 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl"
+              <a
+                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group px-10 py-5 rounded-2xl text-lg font-bold text-center bg-whatsapp text-white hover:bg-whatsapp/90 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl"
               >
-                <ShoppingBag size={21} />
-                سبد خرید
-              </Link>
+                <MessageCircle size={21} />
+                سفارش در واتساپ
+              </a>
             </div>
           </div>
         </div>
@@ -331,17 +334,17 @@ const HomePage = () => {
 
         <div className="container-custom relative z-10 text-center">
           <div className="inline-flex items-center gap-3 bg-primary-foreground/10 backdrop-blur-md px-6 py-3 rounded-full border border-primary-foreground/20 mb-8 shadow-lg">
-            <CreditCard className="text-gold" size={20} />
-            <span className="text-primary-foreground font-semibold">سبد خرید و ثبت سفارش آنلاین</span>
+            <MessageCircle className="text-gold" size={20} />
+            <span className="text-primary-foreground font-semibold">سفارش سریع در واتساپ</span>
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
           </div>
 
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-foreground mb-6 leading-tight">
-            آماده <span className="bg-gradient-to-l from-gold via-amber-300 to-gold bg-clip-text text-transparent">ثبت سفارش</span> هستید؟
+            آماده <span className="bg-gradient-to-l from-gold via-amber-300 to-gold bg-clip-text text-transparent">سفارش</span> هستید؟
           </h2>
-          
+
           <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-2xl mx-auto leading-relaxed">
-            محصولات را انتخاب کنید، سبد خرید را تکمیل کنید و اطلاعات ارسال را برای ثبت سفارش وارد کنید.
+            محصول دلخواه‌تان را انتخاب کنید و در چند ثانیه سفارش را در واتساپ ثبت کنید.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
@@ -352,13 +355,15 @@ const HomePage = () => {
               مشاهده محصولات
               <ArrowLeft size={22} className="group-hover:-translate-x-2 transition-transform duration-300" />
             </Link>
-            <Link
-              to="/checkout"
-              className="group px-10 py-6 rounded-2xl text-xl font-bold text-primary-foreground bg-primary-foreground/10 backdrop-blur-md border-2 border-primary-foreground/30 hover:bg-primary-foreground/20 hover:border-gold/50 transition-all duration-500 flex items-center gap-3"
+            <a
+              href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group px-10 py-6 rounded-2xl text-xl font-bold text-white bg-whatsapp hover:bg-whatsapp/90 transition-all duration-500 flex items-center gap-3 shadow-xl"
             >
-              تکمیل سفارش
-              <CreditCard size={22} />
-            </Link>
+              پیام در واتساپ
+              <MessageCircle size={22} />
+            </a>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-8 mt-14 text-primary-foreground/70">
