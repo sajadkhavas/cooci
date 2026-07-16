@@ -1,51 +1,55 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Sparkles, Cookie, ShoppingBag } from "lucide-react";
-import { brandConfig, generatePhoneUrl } from "@/config/brand";
-import { useCart } from "@/context/CartContext";
+import { Menu, X, Phone, Sparkles, Cookie, MessageCircle } from "lucide-react";
+import {
+  brandConfig,
+  generatePhoneUrl,
+  generateWhatsAppUrl,
+  SUPPORT_WHATSAPP_MESSAGE,
+} from "@/config/brand";
 
 const navLinks = [
   { name: "خانه", href: "/" },
   { name: "محصولات", href: "/products" },
+  { name: "دسته‌بندی‌ها", href: "/products/category/cookies" },
+  { name: "باکس هدیه", href: "/gift" },
+  { name: "بلاگ", href: "/blog" },
   { name: "درباره ما", href: "/about" },
-  { name: "گالری", href: "/gallery" },
-  { name: "سوالات متداول", href: "/faq" },
-  { name: "تماس با ما", href: "/contact" },
+  { name: "تماس", href: "/contact" },
 ];
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { itemCount } = useCart();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <header className="sticky top-0 z-50">
-      <div 
+      <div
         className={`bg-gradient-to-l from-primary via-cocoa to-primary text-primary-foreground text-center text-sm font-medium transition-all duration-300 ease-out overflow-hidden ${
           scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100 py-2"
         }`}
       >
         <div className="container-custom flex items-center justify-center gap-2">
           <Sparkles size={14} className="text-gold" />
-          <span>پخت تازه، بسته‌بندی محافظ و ثبت سفارش آنلاین</span>
+          <span>پخت تازه، بسته‌بندی محافظ و ارسال سراسری</span>
           <Sparkles size={14} className="text-gold" />
         </div>
       </div>
 
-      <div className={`transition-all duration-300 ${
-        scrolled 
-          ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50" 
-          : "bg-background"
-      }`}>
+      <div
+        className={`transition-all duration-300 ${
+          scrolled
+            ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50"
+            : "bg-background"
+        }`}
+      >
         <div className="container-custom">
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link to="/" className="flex items-center gap-3 group">
@@ -59,59 +63,52 @@ export const Header = () => {
                 <span className="text-xl md:text-2xl font-bold bg-gradient-to-l from-primary via-cocoa to-primary bg-clip-text text-transparent">
                   {brandConfig.brandName}
                 </span>
-                <span className="text-[10px] text-muted-foreground hidden md:block">{brandConfig.tagline}</span>
+                <span className="text-[10px] text-muted-foreground hidden md:block">
+                  {brandConfig.tagline}
+                </span>
               </div>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => {
-                const isActive = location.pathname === link.href;
+                const isActive =
+                  link.href === "/"
+                    ? location.pathname === "/"
+                    : location.pathname.startsWith(link.href.split("?")[0]);
                 return (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className={`relative px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                      isActive 
-                        ? "text-primary bg-primary/10" 
+                    className={`relative px-3 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
+                      isActive
+                        ? "text-primary bg-primary/10"
                         : "text-foreground/70 hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     {link.name}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                    )}
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
               <a
                 href={generatePhoneUrl()}
-                className="group flex items-center gap-2 px-4 py-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all duration-300 hover:bg-primary/5"
+                className="group flex items-center gap-2 px-3 py-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all duration-300 hover:bg-primary/5"
+                aria-label={`تماس با ${brandConfig.brandName}`}
               >
-                <div className="relative">
-                  <Phone size={18} className="group-hover:scale-110 transition-transform" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                </div>
-                <span className="hidden xl:inline font-medium">{brandConfig.phone}</span>
+                <Phone size={18} />
+                <span className="hidden xl:inline font-medium text-sm">{brandConfig.phone}</span>
               </a>
-              <Link
-                to="/cart"
-                className="group relative overflow-hidden bg-primary px-6 py-2.5 rounded-xl font-bold text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              <a
+                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 bg-primary px-5 py-2.5 rounded-xl font-bold text-primary-foreground text-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                <span className="relative flex items-center gap-2">
-                  <span className="relative">
-                    <ShoppingBag size={20} />
-                    {itemCount > 0 && (
-                      <span className="absolute -top-3 -right-3 min-w-5 h-5 px-1 bg-gold text-primary rounded-full text-[10px] flex items-center justify-center font-black">
-                        {itemCount.toLocaleString("fa-IR")}
-                      </span>
-                    )}
-                  </span>
-                  سبد خرید
-                </span>
-              </Link>
+                <MessageCircle size={18} />
+                سفارش در واتساپ
+              </a>
             </div>
 
             <button
@@ -123,43 +120,40 @@ export const Header = () => {
             </button>
           </div>
 
-          <div className={`lg:hidden overflow-hidden transition-all duration-500 ${
-            isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-          }`}>
+          <div
+            className={`lg:hidden overflow-hidden transition-all duration-500 ${
+              isOpen ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
             <div className="py-4 border-t border-border/50">
               <nav className="flex flex-col gap-1">
-                {navLinks.map((link) => {
-                  const isActive = location.pathname === link.href;
-                  return (
-                    <Link
-                      key={link.href}
-                      to={link.href}
-                      onClick={() => setIsOpen(false)}
-                      className={`px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${
-                        isActive 
-                          ? "text-primary bg-primary/10" 
-                          : "text-foreground/80 hover:text-primary hover:bg-secondary"
-                      }`}
-                    >
-                      {link.name}
-                    </Link>
-                  );
-                })}
-                <div className="flex flex-col gap-3 mt-4 px-2 pt-4 border-t border-border/50">
+                {navLinks.map((link) => (
                   <Link
-                    to="/cart"
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="px-4 py-3 rounded-xl font-medium text-foreground/80 hover:text-primary hover:bg-secondary transition-all"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+                <div className="flex flex-col gap-3 mt-4 px-2 pt-4 border-t border-border/50">
+                  <a
+                    href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={() => setIsOpen(false)}
                     className="flex items-center justify-center gap-3 bg-primary px-4 py-3.5 rounded-xl font-bold text-primary-foreground shadow-lg"
                   >
-                    <ShoppingBag size={20} />
-                    سبد خرید {itemCount > 0 ? `(${itemCount.toLocaleString("fa-IR")})` : ""}
-                  </Link>
+                    <MessageCircle size={20} />
+                    سفارش در واتساپ
+                  </a>
                   <a
                     href={generatePhoneUrl()}
-                    className="flex items-center justify-center gap-3 px-4 py-3.5 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-all"
+                    className="flex items-center justify-center gap-3 px-4 py-3.5 border-2 border-primary text-primary rounded-xl font-bold"
                   >
                     <Phone size={20} />
-                    تماس تلفنی
+                    {brandConfig.phone}
                   </a>
                 </div>
               </nav>

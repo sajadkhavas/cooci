@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Cookie, CreditCard, Heart, ShieldCheck, ShoppingBag, Snowflake, Sparkles, Truck } from "lucide-react";
+import { ArrowLeft, Check, Cookie, Heart, MessageCircle, Package, ShieldCheck, Snowflake, Sparkles, Truck } from "lucide-react";
+import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { brandConfig } from "@/config/brand";
@@ -35,8 +36,8 @@ const features = [
 
 const steps = [
   { num: "۱", title: "انتخاب محصول", desc: "محصول، سایز یا نوع دلخواه را از صفحه محصولات انتخاب کنید", icon: Cookie },
-  { num: "۲", title: "افزودن به سبد", desc: "محصولات را به سبد خرید اضافه و تعداد را دقیق تنظیم کنید", icon: ShoppingBag },
-  { num: "۳", title: "ثبت و پرداخت", desc: "اطلاعات ارسال را وارد کنید و سفارش را با مسیر آنلاین تکمیل کنید", icon: CreditCard },
+  { num: "۲", title: "پیام در واتساپ", desc: "روی دکمه سفارش در واتساپ بزنید تا پیام آماده ارسال شود", icon: MessageCircle },
+  { num: "۳", title: "هماهنگی و تحویل", desc: "زمان آماده‌سازی و ارسال را با تیم پشتیبانی هماهنگ کنید", icon: Package },
 ];
 
 const instagramImages = [
@@ -119,13 +120,15 @@ const HomePage = () => {
                 مشاهده و انتخاب محصولات
                 <ArrowLeft size={20} className="group-hover:-translate-x-2 transition-transform duration-300" />
               </Link>
-              <Link
-                to="/cart"
-                className="group px-10 py-5 rounded-2xl text-lg font-bold text-center bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/20 hover:border-gold/50 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl"
+              <a
+                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group px-10 py-5 rounded-2xl text-lg font-bold text-center bg-whatsapp text-white hover:bg-whatsapp/90 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl"
               >
-                <ShoppingBag size={21} />
-                سبد خرید
-              </Link>
+                <MessageCircle size={21} />
+                سفارش در واتساپ
+              </a>
             </div>
           </div>
         </div>
