@@ -115,16 +115,23 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             <div className="text-xs text-muted-foreground">قیمت با هماهنگی</div>
           )}
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-whatsapp text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-2"
-            aria-label={`سفارش ${product.name} در واتساپ ${brandConfig.brandName}`}
-          >
-            <MessageCircle size={16} />
-            سفارش
-          </a>
+          {hasVariants ? (
+            <Link
+              to={`/products/${product.slug}`}
+              className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 shadow-md flex items-center gap-2"
+            >
+              انتخاب سایز
+            </Link>
+          ) : (
+            <button
+              onClick={handleAdd}
+              className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 shadow-md flex items-center gap-2"
+              aria-label={`افزودن ${product.name} به سبد خرید`}
+            >
+              <ShoppingCart size={16} />
+              {inCart ? "در سبد" : "افزودن"}
+            </button>
+          )}
         </div>
       </div>
     </article>
