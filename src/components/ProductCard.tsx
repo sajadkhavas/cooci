@@ -10,6 +10,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  const { addItem, items } = useCart();
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingLabel = product.requiresCooling
     ? "ارسال یخچالی تهران/کرج"
@@ -18,10 +19,28 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const lowestVariantPrice = variantPrices.length ? Math.min(...variantPrices) : undefined;
   const displayPrice = product.price ?? lowestVariantPrice;
   const hasVariants = (product.variants?.length ?? 0) > 0;
+  const inCart = items.find((i) => i.id === product.id && !i.selectedVariant);
 
-  const whatsappUrl = generateWhatsAppUrl(
-    generateProductOrderMessage(product.name, product.productCode),
-  );
+  const handleAdd = () => {
+    if (hasVariants) {
+      toast.info("لطفاً از صفحه محصول نوع/سایز را انتخاب کنید");
+      return;
+    }
+    if (!displayPrice) {
+      toast.error("قیمت این محصول با هماهنگی مشخص می‌شود");
+      return;
+    }
+    addItem({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      productCode: product.productCode,
+      priceToman: displayPrice,
+      requiresCooling: !!product.requiresCooling,
+      image: product.images[0]?.url ?? "",
+    });
+    toast.success("به سبد اضافه شد");
+  };
 
   return (
     <article className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 border border-border/50 hover:border-accent/30 flex flex-col">
