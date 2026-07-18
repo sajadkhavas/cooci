@@ -168,10 +168,10 @@ export const Header = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-3 bg-primary px-4 py-3.5 rounded-xl font-bold text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 bg-whatsapp px-4 py-3.5 rounded-xl font-bold text-white shadow-lg"
                   >
                     <MessageCircle size={20} />
-                    سفارش در واتساپ
+                    پشتیبانی واتساپ
                   </a>
                   <a
                     href={generatePhoneUrl()}
