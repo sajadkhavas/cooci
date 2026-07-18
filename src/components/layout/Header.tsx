@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Sparkles, Cookie, MessageCircle } from "lucide-react";
+import { Menu, X, Phone, Sparkles, Cookie, MessageCircle, ShoppingCart, User } from "lucide-react";
 import {
   brandConfig,
   generatePhoneUrl,
   generateWhatsAppUrl,
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
+import { getSession } from "@/lib/session";
 
 const navLinks = [
   { name: "خانه", href: "/" },
