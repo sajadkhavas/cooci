@@ -11,9 +11,23 @@ const slugMatches = Array.from(productsSource.matchAll(/slug:\s*"([a-z0-9-]+)"/g
   .filter((slug) => !categorySlugs.has(slug));
 const productSlugs = Array.from(new Set(slugMatches));
 
+const categorySlugList = ["cookies", "mini-cookies", "cakes", "diet", "gift", "pastry"];
+const citySlugs = ["tehran", "karaj", "andisheh"];
+const blogSource = (() => {
+  try { return readFileSync(resolve("src/data/blogPosts.ts"), "utf-8"); } catch { return ""; }
+})();
+const blogSlugs = Array.from(new Set(
+  Array.from(blogSource.matchAll(/slug:\s*"([a-z0-9-]+)"/g)).map((m) => m[1])
+));
+
 const entries = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/products", changefreq: "weekly", priority: "0.9" },
+  { path: "/blog", changefreq: "weekly", priority: "0.7" },
+  { path: "/gift", changefreq: "monthly", priority: "0.7" },
+  { path: "/corporate", changefreq: "monthly", priority: "0.6" },
+  { path: "/reviews", changefreq: "monthly", priority: "0.6" },
+  { path: "/quality", changefreq: "monthly", priority: "0.5" },
   { path: "/about", changefreq: "monthly", priority: "0.6" },
   { path: "/gallery", changefreq: "monthly", priority: "0.6" },
   { path: "/faq", changefreq: "monthly", priority: "0.5" },
@@ -21,11 +35,10 @@ const entries = [
   { path: "/shipping", changefreq: "yearly", priority: "0.4" },
   { path: "/privacy", changefreq: "yearly", priority: "0.2" },
   { path: "/terms", changefreq: "yearly", priority: "0.2" },
-  ...productSlugs.map((slug) => ({
-    path: `/products/${slug}`,
-    changefreq: "monthly",
-    priority: "0.7",
-  })),
+  ...categorySlugList.map((slug) => ({ path: `/products/category/${slug}`, changefreq: "weekly", priority: "0.7" })),
+  ...citySlugs.map((slug) => ({ path: `/city/${slug}`, changefreq: "monthly", priority: "0.6" })),
+  ...blogSlugs.map((slug) => ({ path: `/blog/${slug}`, changefreq: "monthly", priority: "0.6" })),
+  ...productSlugs.map((slug) => ({ path: `/products/${slug}`, changefreq: "monthly", priority: "0.7" })),
 ];
 
 const urls = entries
