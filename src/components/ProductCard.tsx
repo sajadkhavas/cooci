@@ -1,12 +1,9 @@
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Snowflake, Truck } from "lucide-react";
+import { Heart, ShoppingCart, Snowflake, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { Product } from "@/data/products";
-import {
-  brandConfig,
-  formatToman,
-  generateProductOrderMessage,
-  generateWhatsAppUrl,
-} from "@/config/brand";
+import { formatToman } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
