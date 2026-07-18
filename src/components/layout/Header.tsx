@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Sparkles, Cookie, MessageCircle } from "lucide-react";
+import { Menu, X, Phone, Sparkles, Cookie, MessageCircle, ShoppingCart, User } from "lucide-react";
 import {
   brandConfig,
   generatePhoneUrl,
   generateWhatsAppUrl,
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
+import { getSession } from "@/lib/session";
 
 const navLinks = [
   { name: "خانه", href: "/" },
@@ -22,6 +24,8 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { totalItems } = useCart();
+  const isLoggedIn = !!getSession();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -91,10 +95,29 @@ export const Header = () => {
               })}
             </nav>
 
-            <div className="hidden md:flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2">
+              <Link
+                to={isLoggedIn ? "/account" : "/account/login"}
+                className="p-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all hover:bg-primary/5"
+                aria-label="حساب کاربری"
+              >
+                <User size={20} />
+              </Link>
+              <Link
+                to="/cart"
+                className="relative p-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all hover:bg-primary/5"
+                aria-label="سبد خرید"
+              >
+                <ShoppingCart size={20} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -left-1 bg-destructive text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-bold">
+                    {totalItems.toLocaleString("fa-IR")}
+                  </span>
+                )}
+              </Link>
               <a
                 href={generatePhoneUrl()}
-                className="group flex items-center gap-2 px-3 py-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all duration-300 hover:bg-primary/5"
+                className="hidden md:flex items-center gap-2 px-3 py-2.5 text-foreground/80 hover:text-primary rounded-xl transition-all hover:bg-primary/5"
                 aria-label={`تماس با ${brandConfig.brandName}`}
               >
                 <Phone size={18} />
@@ -104,10 +127,12 @@ export const Header = () => {
                 href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center gap-2 bg-primary px-5 py-2.5 rounded-xl font-bold text-primary-foreground text-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="hidden md:flex items-center gap-2 bg-whatsapp px-4 py-2.5 rounded-xl font-bold text-white text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                aria-label="پشتیبانی واتساپ"
+                title="پشتیبانی واتساپ"
               >
                 <MessageCircle size={18} />
-                سفارش در واتساپ
+                پشتیبانی
               </a>
             </div>
 
@@ -143,10 +168,10 @@ export const Header = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-3 bg-primary px-4 py-3.5 rounded-xl font-bold text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 bg-whatsapp px-4 py-3.5 rounded-xl font-bold text-white shadow-lg"
                   >
                     <MessageCircle size={20} />
-                    سفارش در واتساپ
+                    پشتیبانی واتساپ
                   </a>
                   <a
                     href={generatePhoneUrl()}

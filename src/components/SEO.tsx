@@ -14,10 +14,12 @@ interface SEOProps {
   noIndex?: boolean;
 }
 
+const SITE_ORIGIN = (import.meta.env.VITE_SITE_ORIGIN as string | undefined) || brandConfig.website;
+
 const absoluteUrl = (value: string) => {
-  if (!value) return brandConfig.website;
+  if (!value) return SITE_ORIGIN;
   if (value.startsWith("http")) return value;
-  return `${brandConfig.website}${value.startsWith("/") ? value : `/${value}`}`;
+  return `${SITE_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
 export const SEO = ({

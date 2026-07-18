@@ -1,18 +1,16 @@
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Snowflake, Truck } from "lucide-react";
+import { Heart, ShoppingCart, Snowflake, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { Product } from "@/data/products";
-import {
-  brandConfig,
-  formatToman,
-  generateProductOrderMessage,
-  generateWhatsAppUrl,
-} from "@/config/brand";
+import { formatToman } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  const { addItem, items } = useCart();
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingLabel = product.requiresCooling
     ? "ارسال یخچالی تهران/کرج"
@@ -21,10 +19,28 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const lowestVariantPrice = variantPrices.length ? Math.min(...variantPrices) : undefined;
   const displayPrice = product.price ?? lowestVariantPrice;
   const hasVariants = (product.variants?.length ?? 0) > 0;
+  const inCart = items.find((i) => i.id === product.id && !i.selectedVariant);
 
-  const whatsappUrl = generateWhatsAppUrl(
-    generateProductOrderMessage(product.name, product.productCode),
-  );
+  const handleAdd = () => {
+    if (hasVariants) {
+      toast.info("لطفاً از صفحه محصول نوع/سایز را انتخاب کنید");
+      return;
+    }
+    if (!displayPrice) {
+      toast.error("قیمت این محصول با هماهنگی مشخص می‌شود");
+      return;
+    }
+    addItem({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      productCode: product.productCode,
+      priceToman: displayPrice,
+      requiresCooling: !!product.requiresCooling,
+      image: product.images[0]?.url ?? "",
+    });
+    toast.success("به سبد اضافه شد");
+  };
 
   return (
     <article className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 border border-border/50 hover:border-accent/30 flex flex-col">
@@ -99,16 +115,23 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             <div className="text-xs text-muted-foreground">قیمت با هماهنگی</div>
           )}
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-whatsapp text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-2"
-            aria-label={`سفارش ${product.name} در واتساپ ${brandConfig.brandName}`}
-          >
-            <MessageCircle size={16} />
-            سفارش
-          </a>
+          {hasVariants ? (
+            <Link
+              to={`/products/${product.slug}`}
+              className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 shadow-md flex items-center gap-2"
+            >
+              انتخاب سایز
+            </Link>
+          ) : (
+            <button
+              onClick={handleAdd}
+              className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 shadow-md flex items-center gap-2"
+              aria-label={`افزودن ${product.name} به سبد خرید`}
+            >
+              <ShoppingCart size={16} />
+              {inCart ? "در سبد" : "افزودن"}
+            </button>
+          )}
         </div>
       </div>
     </article>

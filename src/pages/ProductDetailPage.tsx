@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { AlertTriangle, Clock, MessageCircle, Minus, Package, Phone, Plus, Snowflake, Truck } from "lucide-react";
+import { AlertTriangle, Clock, ShoppingCart, Minus, Package, Phone, Plus, Snowflake, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ProductCard";
@@ -9,9 +9,8 @@ import {
   brandConfig,
   formatToman,
   generatePhoneUrl,
-  generateProductOrderMessage,
-  generateWhatsAppUrl,
 } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 import { getRelatedFromCatalog, useCatalogProduct, useCatalogProducts } from "@/hooks/useCatalog";
 import { reviews } from "@/data/reviews";
 
@@ -74,16 +73,32 @@ const ProductDetailPage = () => {
       : undefined,
   };
 
-  const whatsappUrl = generateWhatsAppUrl(
-    generateProductOrderMessage(
-      product.name,
-      product.productCode,
-      selectedVariant
-        ? { name: selectedVariant.name, price: selectedVariant.price, productCode: selectedVariant.productCode }
-        : undefined,
+  const { addItem, items } = useCart();
+  const cartKey = selectedVariant ? `${product.id}::${selectedVariant.id}` : `${product.id}::`;
+  const inCart = items.some((i) => `${i.id}::${i.selectedVariant?.id ?? ""}` === cartKey);
+
+  const handleAddToCart = () => {
+    if (!activePrice) {
+      toast.error("قیمت با هماهنگی مشخص می‌شود؛ لطفاً تماس بگیرید");
+      return;
+    }
+    addItem(
+      {
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        productCode: activeCode,
+        priceToman: activePrice,
+        requiresCooling: !!product.requiresCooling,
+        image: product.images[0]?.url ?? "",
+        selectedVariant: selectedVariant
+          ? { id: selectedVariant.id, name: selectedVariant.name, priceToman: selectedVariant.price ?? activePrice }
+          : undefined,
+      },
       quantity,
-    ),
-  );
+    );
+    toast.success(`${product.name} به سبد اضافه شد`);
+  };
 
   return (
     <>
@@ -221,18 +236,25 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4 pt-2">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-whatsapp py-4 px-8 rounded-xl text-center text-lg font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3"
+                <button
+                  onClick={handleAddToCart}
+                  className="bg-primary py-4 px-8 rounded-xl text-lg font-bold text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-3"
                 >
-                  <MessageCircle size={22} />
-                  سفارش در واتساپ
-                </a>
-                <a href={generatePhoneUrl()} className="flex items-center justify-center gap-3 px-8 py-4 border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all font-bold">
-                  <Phone size={22} />
-                  تماس تلفنی
+                  <ShoppingCart size={22} />
+                  {inCart ? "افزودن دوباره به سبد" : "افزودن به سبد خرید"}
+                </button>
+                <Link
+                  to="/cart"
+                  className="flex items-center justify-center gap-3 px-8 py-4 border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all font-bold"
+                >
+                  مشاهده سبد خرید
+                </Link>
+                <a
+                  href={generatePhoneUrl()}
+                  className="sm:col-span-2 flex items-center justify-center gap-3 px-8 py-3 border border-border text-foreground/80 rounded-xl hover:bg-secondary transition-all text-sm"
+                >
+                  <Phone size={18} />
+                  سوال دارید؟ {brandConfig.phone}
                 </a>
               </div>
 
@@ -310,15 +332,13 @@ const ProductDetailPage = () => {
               <p className="line-clamp-1 text-sm font-bold text-foreground">{product.name}</p>
               <p className="text-xs text-muted-foreground">{formatToman(activePrice * quantity)}</p>
             </div>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-whatsapp text-white rounded-xl px-5 py-3 text-sm font-black shadow-lg flex items-center gap-2"
+            <button
+              onClick={handleAddToCart}
+              className="bg-primary text-primary-foreground rounded-xl px-5 py-3 text-sm font-black shadow-lg flex items-center gap-2"
             >
-              <MessageCircle size={18} />
-              سفارش
-            </a>
+              <ShoppingCart size={18} />
+              افزودن
+            </button>
           </div>
         </div>
       )}
