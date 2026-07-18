@@ -332,15 +332,13 @@ const ProductDetailPage = () => {
               <p className="line-clamp-1 text-sm font-bold text-foreground">{product.name}</p>
               <p className="text-xs text-muted-foreground">{formatToman(activePrice * quantity)}</p>
             </div>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-whatsapp text-white rounded-xl px-5 py-3 text-sm font-black shadow-lg flex items-center gap-2"
+            <button
+              onClick={handleAddToCart}
+              className="bg-primary text-primary-foreground rounded-xl px-5 py-3 text-sm font-black shadow-lg flex items-center gap-2"
             >
-              <MessageCircle size={18} />
-              سفارش
-            </a>
+              <ShoppingCart size={18} />
+              افزودن
+            </button>
           </div>
         </div>
       )}
