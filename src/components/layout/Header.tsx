@@ -24,6 +24,8 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { totalItems } = useCart();
+  const isLoggedIn = !!getSession();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
