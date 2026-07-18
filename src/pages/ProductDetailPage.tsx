@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { AlertTriangle, Clock, MessageCircle, Minus, Package, Phone, Plus, Snowflake, Truck } from "lucide-react";
+import { AlertTriangle, Clock, ShoppingCart, Minus, Package, Phone, Plus, Snowflake, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ProductCard";
@@ -9,9 +9,8 @@ import {
   brandConfig,
   formatToman,
   generatePhoneUrl,
-  generateProductOrderMessage,
-  generateWhatsAppUrl,
 } from "@/config/brand";
+import { useCart } from "@/context/CartContext";
 import { getRelatedFromCatalog, useCatalogProduct, useCatalogProducts } from "@/hooks/useCatalog";
 import { reviews } from "@/data/reviews";
 
