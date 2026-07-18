@@ -73,16 +73,32 @@ const ProductDetailPage = () => {
       : undefined,
   };
 
-  const whatsappUrl = generateWhatsAppUrl(
-    generateProductOrderMessage(
-      product.name,
-      product.productCode,
-      selectedVariant
-        ? { name: selectedVariant.name, price: selectedVariant.price, productCode: selectedVariant.productCode }
-        : undefined,
+  const { addItem, items } = useCart();
+  const cartKey = selectedVariant ? `${product.id}::${selectedVariant.id}` : `${product.id}::`;
+  const inCart = items.some((i) => `${i.id}::${i.selectedVariant?.id ?? ""}` === cartKey);
+
+  const handleAddToCart = () => {
+    if (!activePrice) {
+      toast.error("قیمت با هماهنگی مشخص می‌شود؛ لطفاً تماس بگیرید");
+      return;
+    }
+    addItem(
+      {
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        productCode: activeCode,
+        priceToman: activePrice,
+        requiresCooling: !!product.requiresCooling,
+        image: product.images[0]?.url ?? "",
+        selectedVariant: selectedVariant
+          ? { id: selectedVariant.id, name: selectedVariant.name, priceToman: selectedVariant.price ?? activePrice }
+          : undefined,
+      },
       quantity,
-    ),
-  );
+    );
+    toast.success(`${product.name} به سبد اضافه شد`);
+  };
 
   return (
     <>
