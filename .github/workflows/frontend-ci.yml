@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: Lint, typecheck and build
+    name: Audit, lint, typecheck and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -43,16 +43,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Frontend route and content audit
+        id: frontend_audit
+        run: |
+          set -o pipefail
+          npm run audit:frontend 2>&1 | tee frontend-audit.log
+
+      - name: Upload frontend audit diagnostics
+        if: failure() && steps.frontend_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-audit-diagnostics
+          path: frontend-audit.log
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Lint
         run: npm run lint
 
       - name: Typecheck
+        id: typecheck
         run: |
           set -o pipefail
           npm run typecheck 2>&1 | tee typecheck.log
 
       - name: Upload typecheck diagnostics
-        if: failure()
+        if: failure() && steps.typecheck.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: typecheck-diagnostics
