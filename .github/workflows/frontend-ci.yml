@@ -4,28 +4,41 @@ on:
   push:
     branches:
       - main
+      - "feature/**"
   pull_request:
     branches:
       - main
 
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  build-and-lint:
+  validate:
+    name: Lint, typecheck and build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build
-        run: npm run build
-
-      - name: Lint
-        run: npm run lint
+      - name: Validate frontend
+        run: npm run check
+        env:
+          SITE_URL: https://winimibakery.com
+          VITE_SITE_ORIGIN: https://winimibakery.com
+          VITE_USE_BACKEND: "false"
+          VITE_PAYMENT_PROVIDER: gateway-placeholder
