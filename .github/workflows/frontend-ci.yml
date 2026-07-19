@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: Audit content, accessibility, types and build
+    name: Audit content, accessibility, performance, types and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -118,5 +118,26 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-      - name: Production build
-        run: npm run build
+      - name: Production build and performance budget
+        id: production_build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee production-build.log
+
+      - name: Upload build diagnostics
+        if: failure() && steps.production_build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-diagnostics
+          path: production-build.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-performance-report
+          path: performance-report.json
+          if-no-files-found: ignore
+          retention-days: 14
