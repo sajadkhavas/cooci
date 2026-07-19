@@ -1,0 +1,40 @@
+name: Phase 8 Content Migration
+
+on:
+  push:
+    branches:
+      - feature/phase-8-content-integrity
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/phase-8-content-integrity
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply content migration
+        run: node scripts/phase8-content-migration.mjs
+
+      - name: Commit migrated content
+        run: |
+          if git diff --quiet; then
+            echo "No migration changes were required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/ProductDetailPage.tsx src/pages/HomePage.tsx src/components/layout/Footer.tsx
+          git commit -m "content: apply phase 8 integrity migration"
+          git push origin HEAD:feature/phase-8-content-integrity
