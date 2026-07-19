@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { generateOTP, verifyOTP } from "@/lib/otp";
-import { getSession, setSession } from "@/lib/session";
-import { isSimulationMode } from "@/lib/zarinpal";
+import { clearSession, getSession, setSession } from "@/lib/session";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -12,16 +11,15 @@ const LoginPage = () => {
   const [mobile, setMobile] = useState("");
   const [code, setCode] = useState("");
   const [countdown, setCountdown] = useState(0);
-  const isSim = isSimulationMode(); // reuse env presence pattern
 
   useEffect(() => {
     if (getSession()) navigate("/account", { replace: true });
   }, [navigate]);
 
   useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
+    if (countdown <= 0) return undefined;
+    const timer = window.setTimeout(() => setCountdown((current) => current - 1), 1000);
+    return () => window.clearTimeout(timer);
   }, [countdown]);
 
   const sendCode = () => {
@@ -29,9 +27,8 @@ const LoginPage = () => {
       toast.error("شماره موبایل معتبر نیست");
       return;
     }
-    const c = generateOTP(mobile);
-    // Simulation mode: reveal the code so the user can log in without SMS gateway.
-    toast.success(`کد آزمایشی شما: ${c}`, { duration: 8000 });
+    const generatedCode = generateOTP(mobile);
+    toast.success(`کد آزمایشی شما: ${generatedCode}`, { duration: 8000 });
     setStep(2);
     setCountdown(120);
   };
@@ -54,31 +51,36 @@ const LoginPage = () => {
     <>
       <SEO title="ورود به حساب کاربری" />
       <section className="section-padding">
-        <div className="container-custom max-w-md mx-auto">
-          <div className="bg-card border border-border rounded-2xl p-8 text-right">
-            <h1 className="text-2xl font-bold mb-2">ورود به حساب</h1>
-            <p className="text-muted-foreground text-sm mb-6">
+        <div className="container-custom mx-auto max-w-md">
+          <div className="rounded-2xl border border-border bg-card p-8 text-right">
+            <h1 className="mb-2 text-2xl font-bold">ورود به حساب</h1>
+            <p className="mb-6 text-sm text-muted-foreground">
               با شماره موبایل خود وارد شوید تا سفارش‌هایتان را مشاهده کنید.
             </p>
 
             {step === 1 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm mb-1">شماره موبایل</label>
+                  <label htmlFor="login-mobile" className="mb-1 block text-sm">
+                    شماره موبایل
+                  </label>
                   <input
+                    id="login-mobile"
                     type="tel"
                     value={mobile}
-                    onChange={(e) => setMobile(e.target.value)}
+                    onChange={(event) => setMobile(event.target.value.replace(/\D/g, ""))}
                     placeholder="09xxxxxxxxx"
                     dir="ltr"
-                    className="w-full border border-border bg-background rounded-xl px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-primary"
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-left outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <button
+                  type="button"
                   onClick={sendCode}
-                  className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold"
+                  className="w-full rounded-xl bg-primary py-3 font-bold text-primary-foreground"
                 >
-                  ارسال کد تایید
+                  ارسال کد تأیید
                 </button>
               </div>
             )}
@@ -93,29 +95,35 @@ const LoginPage = () => {
                   inputMode="numeric"
                   maxLength={4}
                   value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  className="w-full border border-border bg-background rounded-xl px-4 py-3 text-center tracking-[0.5em] text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-center text-2xl font-bold tracking-[0.5em] outline-none focus:ring-2 focus:ring-primary"
                   placeholder="----"
+                  aria-label="کد تأیید چهار رقمی"
                 />
                 <button
+                  type="button"
                   onClick={verify}
-                  className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold"
+                  className="w-full rounded-xl bg-primary py-3 font-bold text-primary-foreground"
                 >
-                  تایید و ورود
+                  تأیید و ورود
                 </button>
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <button
-                    onClick={() => setStep(1)}
+                    type="button"
+                    onClick={() => {
+                      setStep(1);
+                      setCode("");
+                    }}
                     className="text-muted-foreground hover:text-foreground"
                   >
                     تغییر شماره
                   </button>
                   {countdown > 0 ? (
                     <span className="text-muted-foreground">
-                      ارسال مجدد تا {countdown} ثانیه
+                      ارسال مجدد تا {countdown.toLocaleString("fa-IR")} ثانیه
                     </span>
                   ) : (
-                    <button onClick={sendCode} className="text-primary font-bold">
+                    <button type="button" onClick={sendCode} className="font-bold text-primary">
                       ارسال مجدد کد
                     </button>
                   )}

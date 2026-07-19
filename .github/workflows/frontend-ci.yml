@@ -20,7 +20,8 @@ env:
   SITE_URL: https://winimibakery.com
   VITE_SITE_ORIGIN: https://winimibakery.com
   VITE_USE_BACKEND: "false"
-  VITE_PAYMENT_PROVIDER: gateway-placeholder
+  VITE_API_BASE_URL: https://api.winimibakery.com
+  VITE_PAYMENT_MODE: disabled
 
 jobs:
   validate:
@@ -35,46 +36,28 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Lint
-        id: lint
-        continue-on-error: true
-        run: npm run lint -- --format json --output-file eslint-report.json
-
-      - name: Upload lint report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: eslint-report
-          path: eslint-report.json
-          if-no-files-found: ignore
-          retention-days: 3
+        run: npm run lint
 
       - name: Typecheck
-        id: typecheck
-        continue-on-error: true
-        run: npm run typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: typecheck.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Production build
-        id: build
-        continue-on-error: true
         run: npm run build
-
-      - name: Enforce validation result
-        if: always()
-        env:
-          LINT_RESULT: ${{ steps.lint.outcome }}
-          TYPECHECK_RESULT: ${{ steps.typecheck.outcome }}
-          BUILD_RESULT: ${{ steps.build.outcome }}
-        run: |
-          echo "Lint: $LINT_RESULT"
-          echo "Typecheck: $TYPECHECK_RESULT"
-          echo "Build: $BUILD_RESULT"
-          if [ "$LINT_RESULT" != "success" ] || [ "$TYPECHECK_RESULT" != "success" ] || [ "$BUILD_RESULT" != "success" ]; then
-            exit 1
-          fi

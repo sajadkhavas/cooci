@@ -26,6 +26,7 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import PaymentCallbackPage from "./pages/PaymentCallbackPage";
+import PaymentMockPage from "./pages/PaymentMockPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -81,6 +82,7 @@ const App = () => (
                     </CheckoutGuard>
                   )}
                 />
+                <Route path="/payment/mock" element={<PaymentMockPage />} />
                 <Route path="/payment/callback" element={<PaymentCallbackPage />} />
                 <Route path="/account/login" element={<LoginPage />} />
                 <Route path="/account" element={<AccountPage />} />
