@@ -7,12 +7,12 @@ const KIB = 1024;
 const MIB = 1024 * KIB;
 
 const budgets = {
-  entryGzip: 190 * KIB,
-  largestJavaScriptGzip: 300 * KIB,
-  totalJavaScriptGzip: 1.5 * MIB,
-  largestCssGzip: 100 * KIB,
-  largestImage: 2.5 * MIB,
-  minimumJavaScriptChunks: 8,
+  entryGzip: 90 * KIB,
+  largestJavaScriptGzip: 100 * KIB,
+  totalJavaScriptGzip: 450 * KIB,
+  largestCssGzip: 40 * KIB,
+  largestImage: 1 * MIB,
+  minimumJavaScriptChunks: 12,
 };
 
 const failures = [];
