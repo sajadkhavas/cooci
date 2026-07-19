@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: Audit content, accessibility, performance, types and build
+    name: Audit modern UI, content, accessibility, performance, types and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -97,6 +97,21 @@ jobs:
         with:
           name: content-audit-diagnostics
           path: content-audit.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Full modern UI audit
+        id: modern_ui_audit
+        run: |
+          set -o pipefail
+          npm run audit:modern-ui 2>&1 | tee modern-ui-audit.log
+
+      - name: Upload modern UI diagnostics
+        if: failure() && steps.modern_ui_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-ui-audit-diagnostics
+          path: modern-ui-audit.log
           if-no-files-found: error
           retention-days: 3
 
