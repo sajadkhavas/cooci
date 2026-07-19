@@ -1,4 +1,9 @@
-const SESSION_KEY = "winimi_session_v1";
+import {
+  cacheSession,
+  logoutAuth,
+  readCachedSession,
+  type AuthSession,
+} from "@/lib/auth";
 
 export interface WinimiSession {
   mobile: string;
@@ -6,22 +11,26 @@ export interface WinimiSession {
 }
 
 export const getSession = (): WinimiSession | null => {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw) as WinimiSession;
-    if (Date.now() - s.loginAt > 7 * 24 * 60 * 60 * 1000) {
-      localStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    return s;
-  } catch {
-    return null;
-  }
+  const session = readCachedSession();
+  if (!session) return null;
+  return {
+    mobile: session.user.mobile,
+    loginAt: session.authenticatedAt,
+  };
 };
 
 export const setSession = (mobile: string) => {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ mobile, loginAt: Date.now() }));
+  const session: AuthSession = {
+    user: {
+      id: `legacy-${mobile}`,
+      mobile,
+    },
+    authenticatedAt: Date.now(),
+  };
+  cacheSession(session);
 };
 
-export const clearSession = () => localStorage.removeItem(SESSION_KEY);
+export const clearSession = () => {
+  cacheSession(null);
+  void logoutAuth();
+};
