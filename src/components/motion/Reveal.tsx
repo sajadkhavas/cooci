@@ -1,8 +1,13 @@
-import { type CSSProperties, type ElementType, type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface RevealProps {
   children: ReactNode;
-  as?: ElementType;
   className?: string;
   delay?: number;
   threshold?: number;
@@ -10,12 +15,11 @@ interface RevealProps {
 
 export const Reveal = ({
   children,
-  as: Component = "div",
   className = "",
   delay = 0,
   threshold = 0.12,
 }: RevealProps) => {
-  const elementRef = useRef<HTMLElement | null>(null);
+  const elementRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -43,12 +47,12 @@ export const Reveal = ({
   const style = { "--reveal-delay": `${delay}ms` } as CSSProperties;
 
   return (
-    <Component
+    <div
       ref={elementRef}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
       style={style}
     >
       {children}
-    </Component>
+    </div>
   );
 };
