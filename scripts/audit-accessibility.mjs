@@ -26,14 +26,20 @@ for (const file of files.filter((path) => path.endsWith(".tsx"))) {
     }
   }
 
-  for (const match of source.matchAll(/<a\b[\s\S]*?target=["']_blank["'][\s\S]*?>/g)) {
+  for (const match of source.matchAll(
+    /<a\b[\s\S]*?target=["']_blank["'][\s\S]*?>/g,
+  )) {
     if (!/rel=["'][^"']*noopener[^"']*["']/.test(match[0])) {
-      errors.push(`${displayPath}: target=_blank link is missing rel=noopener.`);
+      errors.push(
+        `${displayPath}: target=_blank link is missing rel=noopener.`,
+      );
     }
   }
 
   if (/tabIndex=\{?[1-9]/.test(source)) {
-    errors.push(`${displayPath}: positive tabIndex changes the natural keyboard order.`);
+    errors.push(
+      `${displayPath}: positive tabIndex changes the natural keyboard order.`,
+    );
   }
 
   if (/<(?:div|span)\b[^>]*\bonClick=/.test(source)) {
@@ -42,7 +48,9 @@ for (const file of files.filter((path) => path.endsWith(".tsx"))) {
     );
   }
 
-  for (const match of source.matchAll(/className=["'`]([^"'`]*outline-none[^"'`]*)["'`]/g)) {
+  for (const match of source.matchAll(
+    /className=["'`]([^"'`]*outline-none[^"'`]*)["'`]/g,
+  )) {
     if (!/(?:focus|focus-visible):/.test(match[1])) {
       warnings.push(
         `${displayPath}: outline-none class has no explicit focus replacement.`,
@@ -50,15 +58,21 @@ for (const file of files.filter((path) => path.endsWith(".tsx"))) {
     }
   }
 
-  for (const match of source.matchAll(/<button\b([\s\S]*?)>([\s\S]*?)<\/button>/g)) {
+  for (const match of source.matchAll(
+    /<button\b([\s\S]*?)>([\s\S]*?)<\/button>/g,
+  )) {
     const attributes = match[1];
-    const body = match[2]
-      .replace(/<[^>]+>/g, "")
-      .replace(/\{[^}]*\}/g, "")
-      .replace(/\s+/g, "")
-      .trim();
-    if (!body && !/aria-label=|title=/.test(attributes)) {
-      warnings.push(`${displayPath}: possible icon-only button without an accessible name.`);
+    const rawBody = match[2].trim();
+    const containsOnlyStaticIcon =
+      /^<[A-Z][A-Za-z0-9_.]*(?:\s[\s\S]*?)?\/>$/.test(rawBody);
+
+    if (
+      containsOnlyStaticIcon &&
+      !/aria-label=|aria-labelledby=|title=/.test(attributes)
+    ) {
+      warnings.push(
+        `${displayPath}: icon-only button may be missing an accessible name.`,
+      );
     }
   }
 }
@@ -103,12 +117,18 @@ for (const requirement of [
   "setFocus",
 ]) {
   if (!checkout.includes(requirement)) {
-    errors.push(`Checkout accessibility contract is missing ${requirement}.`);
+    errors.push(
+      `Checkout accessibility contract is missing ${requirement}.`,
+    );
   }
 }
 
 const login = read("src/pages/LoginPage.tsx");
-for (const requirement of ["aria-invalid", "aria-describedby", "role=\"alert\""]) {
+for (const requirement of [
+  "aria-invalid",
+  "aria-describedby",
+  'role="alert"',
+]) {
   if (!login.includes(requirement)) {
     errors.push(`Login accessibility contract is missing ${requirement}.`);
   }
@@ -118,7 +138,10 @@ const indexHtml = read("index.html");
 if (!indexHtml.includes("viewport-fit=cover")) {
   errors.push("index.html must support safe-area viewport fitting.");
 }
-if (!indexHtml.includes('lang="fa-IR"') || !indexHtml.includes('dir="rtl"')) {
+if (
+  !indexHtml.includes('lang="fa-IR"') ||
+  !indexHtml.includes('dir="rtl"')
+) {
   errors.push("index.html must declare Persian language and RTL direction.");
 }
 
