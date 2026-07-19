@@ -4,22 +4,24 @@ import {
   ArrowRight,
   CheckCircle2,
   CreditCard,
+  Loader2,
   RefreshCcw,
+  ShieldX,
   XCircle,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";
+import { useAuth } from "@/context/AuthContext";
+import { loadOwnedOrder } from "@/lib/account";
 import { retryOrderPayment } from "@/lib/checkout";
 import {
-  getOrderById,
   paymentStatusLabels,
   statusLabels,
   type LocalOrder,
   type PaymentAttemptStatus,
 } from "@/lib/orders";
-import { getSession } from "@/lib/session";
 
 const deliveryLabel = {
   standard: "ارسال پستی سراسری",
@@ -37,22 +39,44 @@ const attemptLabel: Record<PaymentAttemptStatus, string> = {
 
 const OrderDetailPage = () => {
   const { orderId } = useParams();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [order, setOrder] = useState<LocalOrder | null | undefined>(undefined);
+  const [loadError, setLoadError] = useState<string | undefined>();
   const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
-    if (!getSession()) {
-      navigate("/account/login", { replace: true });
+    if (!user || !orderId) {
+      setOrder(null);
       return;
     }
-    setOrder(orderId ? getOrderById(orderId) ?? null : null);
-  }, [navigate, orderId]);
+    let cancelled = false;
 
-  if (order === undefined) return null;
+    const load = async () => {
+      setOrder(undefined);
+      setLoadError(undefined);
+      try {
+        const result = await loadOwnedOrder(user, orderId);
+        if (!cancelled) setOrder(result);
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "دریافت سفارش با مشکل روبه‌رو شد.",
+          );
+          setOrder(null);
+        }
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, user]);
 
   const retryPayment = async () => {
-    if (!order) return;
+    if (!order || !user) return;
     setRetrying(true);
     const result = await retryOrderPayment(order.id);
     if (result.success && result.paymentUrl) {
@@ -60,9 +84,23 @@ const OrderDetailPage = () => {
       return;
     }
     toast.error(result.error || "شروع پرداخت جدید ناموفق بود.");
+    const refreshed = await loadOwnedOrder(user, order.id);
+    setOrder(refreshed ?? order);
     setRetrying(false);
-    setOrder(getOrderById(order.id) ?? order);
   };
+
+  if (order === undefined) {
+    return (
+      <section className="section-padding">
+        <div className="container-custom max-w-3xl">
+          <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-soft" role="status">
+            <Loader2 className="mx-auto mb-4 animate-spin text-primary" size={46} aria-hidden="true" />
+            <p className="font-bold">در حال بررسی سفارش و مالکیت آن…</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const canRetry =
     Boolean(order) &&
@@ -71,7 +109,7 @@ const OrderDetailPage = () => {
 
   return (
     <>
-      <SEO title={`سفارش ${orderId}`} noIndex />
+      <SEO title={`سفارش ${orderId ?? ""}`} noIndex />
       <section className="section-padding bg-gradient-to-b from-secondary/20 to-background">
         <div className="container-custom mx-auto max-w-4xl">
           <Link
@@ -83,10 +121,16 @@ const OrderDetailPage = () => {
           </Link>
 
           {!order ? (
-            <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-soft">
-              <p className="mb-4 text-lg font-bold">سفارش پیدا نشد</p>
+            <div className="rounded-3xl border border-destructive/25 bg-card p-10 text-center shadow-soft">
+              <ShieldX className="mx-auto mb-4 text-destructive" size={52} aria-hidden="true" />
+              <h1 className="mb-3 text-2xl font-black text-foreground">
+                سفارش در دسترس نیست
+              </h1>
+              <p className="mx-auto mb-6 max-w-lg leading-8 text-muted-foreground">
+                {loadError || "این سفارش وجود ندارد یا متعلق به حساب فعلی نیست."}
+              </p>
               <Link to="/account" className="btn-primary rounded-xl px-6 py-3">
-                بازگشت
+                بازگشت به سفارش‌های من
               </Link>
             </div>
           ) : (
@@ -123,11 +167,13 @@ const OrderDetailPage = () => {
                 <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-950 sm:flex-row sm:items-center">
                   <div>
                     <p className="font-bold">این سفارش هنوز پرداخت نشده است</p>
-                    <p className="mt-1 text-sm leading-7">برای این سفارش یک تلاش پرداخت جدید ایجاد می‌شود؛ سفارش تکراری ساخته نخواهد شد.</p>
+                    <p className="mt-1 text-sm leading-7">
+                      یک تلاش پرداخت جدید برای همین سفارش ایجاد می‌شود و سفارش تکراری ساخته نخواهد شد.
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={retryPayment}
+                    onClick={() => void retryPayment()}
                     disabled={retrying}
                     className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground disabled:opacity-50"
                   >
