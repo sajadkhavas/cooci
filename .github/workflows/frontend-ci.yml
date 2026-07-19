@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   SITE_URL: https://winimibakery.com
@@ -39,6 +39,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Regenerate corrected lockfile
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/phase-7-responsive-accessibility'
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "fix: synchronize dependency lockfile"
+            git push origin HEAD:feature/phase-7-responsive-accessibility
+          fi
 
       - name: Install dependencies
         id: install
