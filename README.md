@@ -1,73 +1,119 @@
-# Welcome to your Lovable project
+# Winimi Bakery Storefront
 
-## Project info
+Production storefront for Winimi Bakery, built with React, TypeScript, Vite and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+The production backend lives in `sajadkhavas/winimi-bakery-backend` and is completed before the full integration phase.
 
-## How can I edit this code?
+## Current status
 
-There are several ways of editing your application.
+| Area | Status |
+|---|---|
+| Responsive storefront and route structure | Complete |
+| Full modern editorial UI | Complete in Phase 9.5 |
+| Cart, checkout, OTP, account and payment-state UX | Prepared |
+| Backend catalog integration | Phase 17 |
+| Backend authentication integration | Phase 17 |
+| Backend checkout/order/payment integration | Phase 17 |
+| End-to-end completion | Phase 18 |
+| Production deployment | Phase 19 |
+| External activation only | Phase 20 |
 
-**Use Lovable**
+The complete audited roadmap and current integration gaps are documented in:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- `docs/FULL_LAUNCH_ROADMAP.md`
+- `docs/checkout-api-contract.md`
 
-Changes made via Lovable will be committed automatically to this repo.
+## Locked delivery strategy
 
-**Use your preferred IDE**
+All internal frontend and backend work is completed before public activation. At the end of Phase 19, the only remaining supplied values are:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. payment gateway credentials / Zarinpal Merchant ID
+2. eNAMAD badge code
+3. SMS provider API key and approved OTP template
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+No additional implementation work may be deferred to the activation phase.
 
-Follow these steps:
+## Technology
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- React 18
+- TypeScript
+- Vite
+- React Router
+- TanStack Query
+- Tailwind CSS
+- Radix/shadcn UI primitives
+- React Hook Form + Zod
+- PWA service worker and performance budgets
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Local setup
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm ci
+cp .env.example .env
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Validation
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run check
+```
 
-**Use GitHub Codespaces**
+The validation pipeline includes:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
+- route and content audit
+- accessibility regression audit
+- content integrity audit
+- full modern UI audit
+- full-launch roadmap audit
+- ESLint
 - TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- production build
+- performance budget enforcement
 
-## How can I deploy this project?
+## Safe environment defaults
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```env
+SITE_URL=https://winimibakery.com
+VITE_SITE_ORIGIN=https://winimibakery.com
+VITE_USE_BACKEND=false
+VITE_API_BASE_URL=https://api.winimibakery.com
+VITE_AUTH_MODE=disabled
+VITE_PAYMENT_MODE=disabled
+```
 
-## Can I connect a custom domain to my Lovable project?
+The frontend must never contain payment credentials, SMS API keys, verification secrets or trusted payment state.
 
-Yes, you can!
+## Current integration boundary
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Before Phase 17:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- products are sourced from the verified static catalog
+- mock authentication/payment may be used only for development
+- local orders exist only as a development fallback
+- production backend modes remain disabled
+
+During Phase 17 these boundaries are replaced by one typed API client, Sanctum CSRF/session handling, server catalog data, server-authoritative checkout and customer-owned orders.
+
+## Production domains
+
+```text
+https://winimibakery.com
+https://www.winimibakery.com
+https://api.winimibakery.com
+```
+
+Deployment, DNS, HTTPS, secure cookies, queue/scheduler, backups, monitoring and rollback are completed in Phase 19 while payment, eNAMAD and SMS remain disabled until their three external values are supplied.
+
+## Locked phase roadmap
+
+- Phase 1–9.5: storefront foundation and full-modern frontend — complete
+- Phase 10–13: backend foundation, catalog, customer auth, checkout and orders — complete
+- Phase 13.5: full-launch audit and roadmap lock — current
+- Phase 14: provider-ready payment backend
+- Phase 15: complete store operations backend
+- Phase 16: backend completion and contract freeze
+- Phase 17: full frontend/backend integration
+- Phase 18: end-to-end completion
+- Phase 19: production server deployment
+- Phase 20: external activation only
