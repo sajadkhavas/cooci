@@ -10,7 +10,7 @@ export const brandConfig = {
   address: "اندیشه، تهران",
   city: "اندیشه",
   region: "تهران",
-  website: "https://cooci.lovable.app",
+  website: "https://winimibakery.com",
   workingHours: {
     weekdays: "۹ صبح تا ۹ شب",
     weekends: "۱۰ صبح تا ۸ شب",
@@ -26,7 +26,7 @@ export const brandConfig = {
   defaultMeta: {
     title: "وینیمی بیکری | کوکی خانگی، کیک تازه و باکس هدیه",
     description:
-      "وینیمی بیکری؛ سفارش کوکی خانگی، کیک، تیرامیسو، چیزکیک و باکس هدیه با پخت تازه، مواد اولیه درجه یک و ارسال سراسری. سفارش سریع از طریق واتساپ و تماس.",
+      "خرید آنلاین کوکی خانگی، کیک، تیرامیسو، چیزکیک و باکس هدیه وینیمی با پخت تازه، قیمت و موجودی شفاف، سبد خرید و تکمیل سفارش آنلاین.",
     image: "/og-image.jpg",
   },
   preparationTime: "۲۴ تا ۴۸ ساعت",
@@ -40,39 +40,13 @@ export const brandConfig = {
   ],
 };
 
-export const SUPPORT_WHATSAPP_MESSAGE = `سلام، از سایت ${brandConfig.brandName} با شما تماس گرفتم. یک سؤال درباره محصولات دارم.`;
+export const SUPPORT_WHATSAPP_MESSAGE = `سلام، از سایت ${brandConfig.brandName} با شما تماس گرفتم. یک سؤال درباره محصولات یا سفارش دارم.`;
 
 export const generatePhoneUrl = (phone: string = brandConfig.phoneClean) =>
   `tel:+98${phone.replace(/^0/, "")}`;
 
 export const generateWhatsAppUrl = (message: string = SUPPORT_WHATSAPP_MESSAGE) =>
   `https://wa.me/${brandConfig.whatsappNumber}?text=${encodeURIComponent(message)}`;
-
-export interface OrderableVariant {
-  name: string;
-  price?: number;
-  productCode?: string;
-}
-
-export const generateProductOrderMessage = (
-  productName: string,
-  productCode?: string,
-  variant?: OrderableVariant,
-  quantity: number = 1,
-) => {
-  const lines = [
-    `سلام، می‌خواهم این محصول را از ${brandConfig.brandName} سفارش دهم:`,
-    `🍪 محصول: ${productName}`,
-  ];
-  if (variant?.name) lines.push(`📦 نوع/سایز: ${variant.name}`);
-  const code = variant?.productCode ?? productCode;
-  if (code) lines.push(`🔖 کد محصول: ${code}`);
-  const price = variant?.price;
-  if (price) lines.push(`💰 قیمت: ${price.toLocaleString("fa-IR")} تومان`);
-  if (quantity > 1) lines.push(`🔢 تعداد: ${quantity.toLocaleString("fa-IR")}`);
-  lines.push("", "لطفاً برای هماهنگی سفارش و ارسال راهنمایی بفرمایید. ممنون 🙏");
-  return lines.join("\n");
-};
 
 export const formatToman = (amount: number) =>
   `${amount.toLocaleString("fa-IR")} تومان`;
