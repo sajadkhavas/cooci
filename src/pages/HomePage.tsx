@@ -31,23 +31,23 @@ import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 
 const features = [
   {
-    title: "مواد اولیه باکیفیت",
+    title: "اطلاعات قابل‌بررسی",
     description:
-      "مواد اولیه تازه و شفاف؛ انتخاب‌شده با همان وسواسی که برای خانواده خودمان داریم.",
+      "قیمت فعلی، نیاز به سرمایش و وضعیت تأیید هر بخش جداگانه نمایش داده می‌شود.",
     icon: Cookie,
     image: galleryBaking,
   },
   {
-    title: "پخت نزدیک به سفارش",
+    title: "زمان آماده‌سازی قابل تأیید",
     description:
-      "محصولات با زمان آماده‌سازی مشخص ثبت می‌شوند تا تازگی و کیفیت بهتر حفظ شود.",
+      "زمان آماده‌سازی پس از دریافت داده معتبر محصول و روش تحویل نهایی می‌شود.",
     icon: Heart,
     image: lifestyleBreaking,
   },
   {
-    title: "ارسال و نگهداری روشن",
+    title: "تحویل متناسب با محصول",
     description:
-      "محصولات خشک سراسری ارسال می‌شوند و دسرهای یخچالی فقط تهران و کرج دارند.",
+      "Checkout روش‌های قابل انتخاب را نمایش می‌دهد و بک‌اند محدوده و مبلغ نهایی را تأیید می‌کند.",
     icon: Truck,
     image: galleryGiftBoxes,
   },
@@ -58,7 +58,7 @@ const orderSteps = [
     number: "۱",
     title: "انتخاب محصول",
     description:
-      "محصول، نوع یا سایز دلخواه را از کاتالوگ انتخاب و موجودی آن را بررسی کنید.",
+      "محصول و گزینه دلخواه را انتخاب کنید؛ موجودی نهایی در سمت سرور بررسی خواهد شد.",
     icon: Cookie,
   },
   {
@@ -72,7 +72,7 @@ const orderSteps = [
     number: "۳",
     title: "ارسال و پرداخت",
     description:
-      "اطلاعات گیرنده و روش تحویل را ثبت کنید و سفارش را از مسیر پرداخت امن تکمیل کنید.",
+      "اطلاعات گیرنده و روش تحویل را ثبت کنید؛ پرداخت واقعی بعد از اتصال امن بک‌اند فعال می‌شود.",
     icon: PackageCheck,
   },
 ];
@@ -124,22 +124,22 @@ const HomePage = () => {
             </div>
 
             <h1 className="text-5xl font-black leading-[1.12] text-white drop-shadow-2xl md:text-6xl lg:text-7xl">
-              همه‌چیز از
+              کاتالوگ وینیمی
               <span className="block bg-gradient-to-l from-amber-300 via-yellow-300 to-orange-400 bg-clip-text text-transparent">
-                بوی کیک تازه
+                برای انتخاب روشن‌تر
               </span>
-              شروع شد
+              آماده شده است
             </h1>
 
             <p className="max-w-xl text-lg leading-9 text-white/85 md:text-xl">
-              {brandConfig.slogan}. محصول را آنلاین انتخاب کنید، موجودی و قیمت را ببینید و سفارش را از سبد خرید تکمیل کنید.
+              {brandConfig.slogan}. قیمت فعلی را ببینید، محصول را به سبد اضافه کنید و موارد نیازمند تأیید را پیش از پرداخت بررسی کنید.
             </p>
 
             <div className="flex flex-wrap gap-3 py-2">
               {[
-                ["پخت تازه", "نزدیک به زمان سفارش"],
-                ["ارسال سراسری", "برای محصولات خشک"],
-                ["تهران و کرج", "برای دسرهای یخچالی"],
+                ["قیمت کاتالوگ", "نمایش در فرانت‌اند"],
+                ["نیاز به سرمایش", "مشخص برای هر محصول"],
+                ["تأیید نهایی", "داده نهایی با بک‌اند"],
               ].map(([value, label]) => (
                 <div
                   key={value}
@@ -186,10 +186,10 @@ const HomePage = () => {
       <section className="section-padding bg-gradient-to-b from-background to-secondary/30">
         <div className="container-custom">
           <div className="mb-12 space-y-4 text-center">
-            <span className="font-medium text-accent">انتخاب‌های محبوب وینیمی</span>
+            <span className="font-medium text-accent">انتخاب‌های پیشنهادی کاتالوگ</span>
             <h2 className="heading-2 text-foreground">محصولات منتخب</h2>
             <p className="mx-auto max-w-2xl text-muted-foreground">
-              قیمت، موجودی، مواد اولیه و شرایط ارسال هر محصول پیش از افزودن به سبد مشخص است.
+              قیمت فعلی و نیاز به سرمایش نمایش داده می‌شوند؛ موجودی، ترکیبات و تحویل نهایی نیازمند تأیید هستند.
             </p>
           </div>
 
@@ -252,9 +252,9 @@ const HomePage = () => {
             <span className="inline-flex rounded-full bg-accent/20 px-4 py-1.5 text-sm font-bold text-accent-foreground">
               چرا وینیمی؟
             </span>
-            <h2 className="heading-2 text-foreground">اعتماد، قبل از اولین لقمه</h2>
+            <h2 className="heading-2 text-foreground">اطلاعات روشن، قبل از خرید</h2>
             <p className="mx-auto max-w-2xl leading-8 text-muted-foreground">
-              تصویر زیبا مهم است، اما اطلاعات شفاف محصول، آلرژن، نگهداری و ارسال مهم‌تر است.
+              تصویر نمایشی جای داده محصول را نمی‌گیرد؛ وضعیت تأیید اطلاعات باید برای کاربر روشن باشد.
             </p>
           </div>
 

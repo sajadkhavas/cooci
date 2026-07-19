@@ -21,7 +21,6 @@ import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { brandConfig, formatToman, generatePhoneUrl } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
-import { reviews } from "@/data/reviews";
 import {
   getRelatedFromCatalog,
   useCatalogProduct,
@@ -32,7 +31,15 @@ import {
   getProductRegularPrice,
   getProductSalePrice,
   getProductStock,
+  getPublicAllergens,
+  getPublicIngredients,
+  getPublicProductBadges,
+  getPublicProductDescription,
+  getPublicShelfLife,
+  getPublicStorageTips,
   getStockPresentation,
+  isProductContentVerified,
+  isProductInventoryVerified,
 } from "@/lib/catalog";
 
 const ProductDetailSkeleton = () => (
@@ -135,15 +142,26 @@ const ProductDetailPage = () => {
   const regularPrice = selectedVariant?.price ?? getProductRegularPrice(product);
   const salePrice = selectedVariant ? undefined : getProductSalePrice(product);
   const activePrice = salePrice ?? regularPrice;
-  const activeWeight = selectedVariant?.weight ?? product.weight;
+  const contentVerified = isProductContentVerified(product);
+  const inventoryVerified = isProductInventoryVerified(product);
+  const publicDescription = getPublicProductDescription(product);
+  const publicBadges = getPublicProductBadges(product);
+  const publicIngredients = getPublicIngredients(product);
+  const publicAllergens = getPublicAllergens(product);
+  const publicShelfLife = getPublicShelfLife(product);
+  const publicStorageTips = getPublicStorageTips(product);
+  const activeWeight = contentVerified
+    ? selectedVariant?.weight ?? product.weight
+    : undefined;
   const activeCode = selectedVariant?.productCode ?? product.productCode;
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
-  const shippingText =
-    product.shippingNote ??
-    (product.requiresCooling
-      ? "ارسال یخچالی فقط تهران و کرج"
-      : "ارسال با بسته‌بندی محافظ به سراسر ایران");
-  const stockPresentation = getStockPresentation(activeStock);
+  const shippingText = product.requiresCooling
+    ? "این انتخاب نیازمند روش تحویل سرد است. محدوده و ظرفیت نهایی در Checkout و بک‌اند تأیید می‌شود."
+    : "روش تحویل قابل انتخاب بر اساس شهر مقصد و تنظیمات فعال Checkout نمایش داده می‌شود.";
+  const stockPresentation = getStockPresentation(
+    activeStock,
+    inventoryVerified,
+  );
   const discountPercent = salePrice ? getDiscountPercent(product) : 0;
   const cartKey = `${product.id}::${selectedVariant?.id ?? ""}`;
   const existingCartItem = items.find(
@@ -153,26 +171,15 @@ const ProductDetailPage = () => {
   const canAddToCart = Boolean(activePrice) && activeStock > 0 && remainingStock > 0;
   const maxQuantity = Math.max(1, remainingStock);
 
-  const productReviews = reviews.filter((review) => review.product === product.name).slice(0, 3);
-  const avgRating = productReviews.length
-    ? productReviews.reduce((sum, review) => sum + review.rating, 0) / productReviews.length
-    : 5;
 
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.longDescription,
+    description: publicDescription,
     sku: activeCode,
     image: product.images.map((image) => image.url),
     brand: { "@type": "Brand", name: brandConfig.brandName },
-    aggregateRating: productReviews.length
-      ? {
-          "@type": "AggregateRating",
-          ratingValue: avgRating.toFixed(1),
-          reviewCount: productReviews.length,
-        }
-      : undefined,
     offers: activePrice
       ? {
           "@type": "Offer",
@@ -271,7 +278,7 @@ const ProductDetailPage = () => {
                 <span className="rounded-full bg-secondary px-4 py-2 text-sm text-muted-foreground">
                   کد محصول: <strong className="text-foreground">{activeCode}</strong>
                 </span>
-                {product.badges.map((badge) => (
+                {publicBadges.map((badge) => (
                   <span key={badge} className="rounded-full border border-gold/30 bg-gold/15 px-4 py-2 text-sm font-bold text-amber-800">
                     {badge}
                   </span>
@@ -282,8 +289,17 @@ const ProductDetailPage = () => {
                 {product.name}
               </h1>
               <p className="text-base leading-8 text-muted-foreground md:text-lg">
-                {product.longDescription}
+                {publicDescription}
               </p>
+
+              {!contentVerified && (
+                <div
+                  className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7 text-amber-950"
+                  role="note"
+                >
+                  اطلاعات ترکیبات، آلرژن، وزن، ماندگاری و رسانه این محصول هنوز از منبع تأییدشده بک‌اند دریافت نشده‌اند و پیش از خرید حساس یا پزشکی باید جداگانه بررسی شوند.
+                </div>
+              )}
 
               {product.variants && product.variants.length > 0 && (
                 <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
@@ -318,8 +334,10 @@ const ProductDetailPage = () => {
                       );
                     })}
                   </div>
-                  {selectedVariant?.description && (
-                    <p className="text-sm leading-7 text-muted-foreground">{selectedVariant.description}</p>
+                  {contentVerified && selectedVariant?.description && (
+                    <p className="text-sm leading-7 text-muted-foreground">
+                      {selectedVariant.description}
+                    </p>
                   )}
                 </div>
               )}
@@ -444,10 +462,18 @@ const ProductDetailPage = () => {
                     <span className="h-1 w-8 rounded-full bg-primary" />
                     مواد تشکیل‌دهنده
                   </h2>
-                  <p className="leading-relaxed text-muted-foreground">{product.ingredients.join("، ")}</p>
+                  {publicIngredients.length > 0 ? (
+                    <p className="leading-relaxed text-muted-foreground">
+                      {publicIngredients.join("، ")}
+                    </p>
+                  ) : (
+                    <p className="leading-8 text-amber-900">
+                      فهرست ترکیبات تأییدشده هنوز از بک‌اند دریافت نشده است.
+                    </p>
+                  )}
                 </div>
 
-                {product.allergens.length > 0 && (
+                {publicAllergens.length > 0 && (
                   <div className="rounded-2xl border border-rose/30 bg-gradient-to-l from-rose/10 to-red-50 p-5">
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose/20">
@@ -455,7 +481,7 @@ const ProductDetailPage = () => {
                       </div>
                       <div>
                         <h2 className="mb-1 font-bold text-destructive">هشدار آلرژی</h2>
-                        <p className="text-sm text-muted-foreground">حاوی: {product.allergens.join("، ")}</p>
+                        <p className="text-sm text-muted-foreground">حاوی: {publicAllergens.join("، ")}</p>
                       </div>
                     </div>
                   </div>
@@ -469,7 +495,7 @@ const ProductDetailPage = () => {
                       </div>
                       <div>
                         <h2 className="mb-1 font-semibold text-foreground">ماندگاری</h2>
-                        <p className="text-sm text-muted-foreground">{product.shelfLife}</p>
+                        <p className="text-sm text-muted-foreground">{publicShelfLife}</p>
                       </div>
                     </div>
                   </div>
@@ -480,7 +506,7 @@ const ProductDetailPage = () => {
                       </div>
                       <div>
                         <h2 className="mb-1 font-semibold text-foreground">نگهداری</h2>
-                        <p className="text-sm text-muted-foreground">{product.storageTips}</p>
+                        <p className="text-sm text-muted-foreground">{publicStorageTips}</p>
                       </div>
                     </div>
                   </div>
@@ -488,27 +514,6 @@ const ProductDetailPage = () => {
               </div>
             </div>
           </div>
-
-          {productReviews.length > 0 && (
-            <section className="mt-20 border-t border-border pt-10" aria-labelledby="product-reviews-title">
-              <h2 id="product-reviews-title" className="mb-8 text-2xl font-bold text-foreground md:text-3xl">
-                نظرات مشتریان درباره {product.name}
-              </h2>
-              <div className="grid gap-6 md:grid-cols-3">
-                {productReviews.map((review) => (
-                  <article key={review.id} className="rounded-2xl border border-border bg-card p-6">
-                    <div className="mb-3 flex text-gold" aria-label={`${review.rating} از ۵ ستاره`}>
-                      {"★".repeat(review.rating)}
-                    </div>
-                    <p className="mb-4 text-sm leading-7 text-foreground/80">{review.text}</p>
-                    <div className="text-xs text-muted-foreground">
-                      <strong className="text-foreground">{review.name}</strong> — {review.city} · {review.date}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
 
           {relatedProducts.length > 0 && (
             <section className="mt-24 border-t border-border pt-12" aria-labelledby="related-products-title">

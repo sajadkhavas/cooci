@@ -26,17 +26,17 @@ const footerLinks = {
     { name: "خانه", href: "/" },
     { name: "همه محصولات", href: "/products" },
     { name: "درباره ما", href: "/about" },
-    { name: "نظرات مشتریان", href: "/reviews" },
+    { name: "نظرهای تأییدشده", href: "/reviews" },
     { name: "بلاگ", href: "/blog" },
     { name: "تماس با ما", href: "/contact" },
   ],
   categories: [
     { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
     { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-    { name: "کوکی رژیمی و دیابتی", href: "/products/category/diet-diabetic" },
+    { name: "رژیمی و بدون قند", href: "/products/category/diet" },
     { name: "کیک تازه", href: "/products/category/cakes" },
-    { name: "چیزکیک", href: "/products/category/cheesecakes" },
-    { name: "باکس هدیه", href: "/products/category/gift-boxes" },
+    { name: "کیک و دسر", href: "/products/category/cakes" },
+    { name: "باکس هدیه", href: "/products/category/gift" },
   ],
   cities: [
     { name: "کوکی در تهران", href: "/city/tehran" },
@@ -78,10 +78,10 @@ export const Footer = () => {
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full bg-gold/20 px-4 py-2">
                   <Sparkles size={16} className="text-gold" aria-hidden="true" />
-                  <span className="text-sm font-semibold">خرید آنلاین سریع و مطمئن</span>
+                  <span className="text-sm font-semibold">مسیر سفارش مرحله‌به‌مرحله</span>
                 </div>
                 <h2 className="text-xl font-bold md:text-2xl">
-                  محصول دلخواه‌تان را انتخاب کنید و سفارش را آنلاین تکمیل کنید
+                  محصول را انتخاب کنید و موارد نیازمند تأیید را پیش از پرداخت ببینید
                 </h2>
                 <p className="text-sm leading-8 text-primary-foreground/70">
                   {brandConfig.deliveryInfo}
@@ -124,11 +124,11 @@ export const Footer = () => {
             <div className="grid gap-3 text-sm text-primary-foreground/70">
               <div className="flex items-start gap-2">
                 <ShieldCheck size={18} className="mt-1 shrink-0 text-gold" aria-hidden="true" />
-                <span>پخت تازه، مواد اولیه شفاف، وسواس در بهداشت.</span>
+                <span>قیمت فعلی کاتالوگ و وضعیت تأیید اطلاعات به‌صورت جداگانه نمایش داده می‌شوند.</span>
               </div>
               <div className="flex items-start gap-2">
                 <Truck size={18} className="mt-1 shrink-0 text-gold" aria-hidden="true" />
-                <span>محصولات خشک سراسری؛ یخچالی فقط تهران و کرج.</span>
+                <span>روش تحویل به نوع محصول، مقصد و تنظیمات فعال بک‌اند وابسته است.</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
