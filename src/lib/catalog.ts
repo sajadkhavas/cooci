@@ -10,7 +10,7 @@ const PERSIAN_NORMALIZATION_MAP: Record<string, string> = {
   ى: "ی",
   ك: "ک",
   ة: "ه",
- ۀ: "ه",
+  ۀ: "ه",
 };
 
 export const normalizeCatalogText = (value: string) =>
@@ -77,11 +77,14 @@ export const getDiscountPercent = (product: Product) => {
 
 export const getProductStock = (product: Product, variantId?: string | null) => {
   const variant = product.variants?.find((item) => item.id === variantId);
-  const variantStock = variant && "stock" in variant ? (variant as typeof variant & { stock?: number }).stock : undefined;
+  const variantStock =
+    variant && "stock" in variant
+      ? (variant as typeof variant & { stock?: number }).stock
+      : undefined;
 
   if (typeof variantStock === "number") return Math.max(0, variantStock);
   if (typeof product.stock === "number") return Math.max(0, product.stock);
-  return 0;
+  return 1;
 };
 
 export const isProductInStock = (product: Product, variantId?: string | null) =>
@@ -93,7 +96,10 @@ export const getStockPresentation = (stock: number) => {
   }
 
   if (stock <= 5) {
-    return { label: `فقط ${stock.toLocaleString("fa-IR")} عدد باقی مانده`, tone: "warning" as const };
+    return {
+      label: `فقط ${stock.toLocaleString("fa-IR")} عدد باقی مانده`,
+      tone: "warning" as const,
+    };
   }
 
   return { label: "موجود و آماده سفارش", tone: "success" as const };
@@ -141,7 +147,10 @@ export const filterCatalogProducts = ({
   inStockOnly,
   sort,
 }: FilterCatalogOptions) => {
-  let result = products.filter((product) => product.isActive !== false);
+  let result = products.filter((product) => {
+    if (!("isActive" in product)) return true;
+    return (product as Product & { isActive?: boolean }).isActive !== false;
+  });
 
   if (category !== "all") {
     result = result.filter((product) => product.categorySlug === category);
