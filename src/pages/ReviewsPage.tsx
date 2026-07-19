@@ -1,4 +1,4 @@
-import { MessageCircle, Quote, ShieldCheck, Star } from "lucide-react";
+import { MessageCircle, Quote, ShieldCheck } from "lucide-react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SEO } from "@/components/SEO";
 import {
@@ -79,16 +79,24 @@ const ReviewsPage = () => {
                   key={review.id}
                   className="rounded-3xl border border-border bg-card p-6 shadow-card"
                 >
-                  <Quote className="mb-3 text-primary/30" size={32} aria-hidden="true" />
+                  <Quote
+                    className="mb-3 text-primary/30"
+                    size={32}
+                    aria-hidden="true"
+                  />
                   <div
                     className="mb-3 flex text-gold"
                     aria-label={`${review.rating} از ۵ ستاره`}
                   >
                     {"★".repeat(review.rating)}
                   </div>
-                  <p className="mb-5 leading-8 text-foreground/80">{review.text}</p>
+                  <p className="mb-5 leading-8 text-foreground/80">
+                    {review.text}
+                  </p>
                   <div className="border-t border-border pt-4">
-                    <p className="font-bold text-foreground">{review.displayName}</p>
+                    <p className="font-bold text-foreground">
+                      {review.displayName}
+                    </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       خرید تأییدشده
                       {review.city ? ` · ${review.city}` : ""}
