@@ -81,6 +81,17 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
+const fieldOrder: (keyof FormValues)[] = [
+  "fullName",
+  "mobile",
+  "province",
+  "city",
+  "address",
+  "postalCode",
+  "notes",
+  "deliveryMethod",
+];
+
 const CheckoutPage = () => {
   const {
     items,
@@ -101,6 +112,7 @@ const CheckoutPage = () => {
     handleSubmit,
     watch,
     setValue,
+    setFocus,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -223,8 +235,14 @@ const CheckoutPage = () => {
     setSubmitting(false);
   };
 
-  const inputClass =
-    "w-full rounded-xl border border-border bg-background px-4 py-3 text-right outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted";
+  const onInvalid = (formErrors: typeof errors) => {
+    const firstInvalidField = fieldOrder.find((field) => formErrors[field]);
+    if (firstInvalidField) setFocus(firstInvalidField);
+    toast.error("لطفاً فیلدهای مشخص‌شده را بررسی کنید.");
+  };
+
+  const inputClass = "input-field min-h-12 bg-background text-right";
+  const errorClass = "mt-1.5 text-xs leading-6 text-destructive";
 
   return (
     <>
@@ -237,14 +255,21 @@ const CheckoutPage = () => {
             <h1 className="text-3xl font-bold text-foreground md:text-4xl">
               تکمیل اطلاعات سفارش
             </h1>
-            <p className="mt-3 text-muted-foreground">
-              سبد خرید تا زمان تأیید نهایی پرداخت حفظ می‌شود.
+            <p className="mt-3 leading-7 text-muted-foreground">
+              سبد خرید تا زمان تأیید نهایی پرداخت حفظ می‌شود. فیلدهای ستاره‌دار الزامی هستند.
             </p>
           </div>
 
           {paymentMode === "mock" && (
-            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900" role="alert">
-              <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <div
+              className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900"
+              role="alert"
+            >
+              <AlertTriangle
+                size={20}
+                className="mt-0.5 shrink-0"
+                aria-hidden="true"
+              />
               <div>
                 <p className="font-bold">حالت آزمایشی پرداخت فعال است</p>
                 <p className="mt-1 text-sm leading-7">
@@ -255,8 +280,15 @@ const CheckoutPage = () => {
           )}
 
           {paymentMode === "disabled" && (
-            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert">
-              <LockKeyhole size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <div
+              className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive"
+              role="alert"
+            >
+              <LockKeyhole
+                size={20}
+                className="mt-0.5 shrink-0"
+                aria-hidden="true"
+              />
               <div>
                 <p className="font-bold">پرداخت واقعی غیرفعال است</p>
                 <p className="mt-1 text-sm leading-7">
@@ -266,113 +298,354 @@ const CheckoutPage = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
-              <section className="space-y-5 rounded-3xl border border-border bg-card p-5 text-right shadow-soft md:p-7">
+          <form
+            onSubmit={handleSubmit(onSubmit, onInvalid)}
+            className="grid min-w-0 gap-8 lg:grid-cols-3"
+            noValidate
+            aria-busy={submitting}
+          >
+            <div className="min-w-0 space-y-6 lg:col-span-2">
+              <section className="space-y-5 rounded-3xl border border-border bg-card p-4 text-right shadow-soft sm:p-5 md:p-7">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="text-primary" size={22} aria-hidden="true" />
+                  <CheckCircle2
+                    className="text-primary"
+                    size={22}
+                    aria-hidden="true"
+                  />
                   <h2 className="text-xl font-bold">اطلاعات تماس و گیرنده</h2>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium">نام و نام خانوادگی *</label>
-                    <input id="fullName" {...register("fullName")} className={inputClass} autoComplete="name" />
-                    {errors.fullName && <p className="mt-1 text-xs text-destructive">{errors.fullName.message}</p>}
+                <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                  <div className="min-w-0">
+                    <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium">
+                      نام و نام خانوادگی <span aria-hidden="true">*</span>
+                    </label>
+                    <input
+                      id="fullName"
+                      {...register("fullName")}
+                      className={inputClass}
+                      autoComplete="name"
+                      required
+                      aria-invalid={Boolean(errors.fullName)}
+                      aria-describedby={errors.fullName ? "fullName-error" : undefined}
+                    />
+                    {errors.fullName && (
+                      <p id="fullName-error" className={errorClass} role="alert">
+                        {errors.fullName.message}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="mobile" className="mb-1.5 block text-sm font-medium">شماره موبایل *</label>
-                    <input id="mobile" {...register("mobile")} className={inputClass} placeholder="09xxxxxxxxx" inputMode="numeric" dir="ltr" autoComplete="tel" />
-                    {errors.mobile && <p className="mt-1 text-xs text-destructive">{errors.mobile.message}</p>}
+
+                  <div className="min-w-0">
+                    <label htmlFor="mobile" className="mb-1.5 block text-sm font-medium">
+                      شماره موبایل <span aria-hidden="true">*</span>
+                    </label>
+                    <input
+                      id="mobile"
+                      {...register("mobile")}
+                      className={`${inputClass} text-left`}
+                      placeholder="09xxxxxxxxx"
+                      inputMode="numeric"
+                      dir="ltr"
+                      autoComplete="tel"
+                      required
+                      aria-invalid={Boolean(errors.mobile)}
+                      aria-describedby={errors.mobile ? "mobile-error" : undefined}
+                    />
+                    {errors.mobile && (
+                      <p id="mobile-error" className={errorClass} role="alert">
+                        {errors.mobile.message}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="province" className="mb-1.5 block text-sm font-medium">استان {deliveryMethod !== "pickup" && "*"}</label>
-                    <input id="province" {...register("province")} className={inputClass} disabled={deliveryMethod === "pickup"} autoComplete="address-level1" />
-                    {errors.province && <p className="mt-1 text-xs text-destructive">{errors.province.message}</p>}
+
+                  <div className="min-w-0">
+                    <label htmlFor="province" className="mb-1.5 block text-sm font-medium">
+                      استان {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
+                    </label>
+                    <input
+                      id="province"
+                      {...register("province")}
+                      className={inputClass}
+                      disabled={deliveryMethod === "pickup"}
+                      autoComplete="address-level1"
+                      aria-invalid={Boolean(errors.province)}
+                      aria-describedby={errors.province ? "province-error" : undefined}
+                    />
+                    {errors.province && (
+                      <p id="province-error" className={errorClass} role="alert">
+                        {errors.province.message}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="city" className="mb-1.5 block text-sm font-medium">شهر {deliveryMethod !== "pickup" && "*"}</label>
-                    <input id="city" {...register("city")} className={inputClass} disabled={deliveryMethod === "pickup"} autoComplete="address-level2" />
-                    {errors.city && <p className="mt-1 text-xs text-destructive">{errors.city.message}</p>}
+
+                  <div className="min-w-0">
+                    <label htmlFor="city" className="mb-1.5 block text-sm font-medium">
+                      شهر {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
+                    </label>
+                    <input
+                      id="city"
+                      {...register("city")}
+                      className={inputClass}
+                      disabled={deliveryMethod === "pickup"}
+                      autoComplete="address-level2"
+                      aria-invalid={Boolean(errors.city)}
+                      aria-describedby={errors.city ? "city-error" : undefined}
+                    />
+                    {errors.city && (
+                      <p id="city-error" className={errorClass} role="alert">
+                        {errors.city.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="md:col-span-2">
-                    <label htmlFor="address" className="mb-1.5 block text-sm font-medium">آدرس کامل {deliveryMethod !== "pickup" && "*"}</label>
-                    <textarea id="address" {...register("address")} className={inputClass} rows={4} disabled={deliveryMethod === "pickup"} autoComplete="street-address" />
-                    {errors.address && <p className="mt-1 text-xs text-destructive">{errors.address.message}</p>}
+
+                  <div className="min-w-0 md:col-span-2">
+                    <label htmlFor="address" className="mb-1.5 block text-sm font-medium">
+                      آدرس کامل {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
+                    </label>
+                    <textarea
+                      id="address"
+                      {...register("address")}
+                      className={inputClass}
+                      rows={4}
+                      disabled={deliveryMethod === "pickup"}
+                      autoComplete="street-address"
+                      aria-invalid={Boolean(errors.address)}
+                      aria-describedby={errors.address ? "address-error" : undefined}
+                    />
+                    {errors.address && (
+                      <p id="address-error" className={errorClass} role="alert">
+                        {errors.address.message}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="postalCode" className="mb-1.5 block text-sm font-medium">کد پستی</label>
-                    <input id="postalCode" {...register("postalCode")} className={inputClass} inputMode="numeric" dir="ltr" disabled={deliveryMethod === "pickup"} autoComplete="postal-code" />
-                    {errors.postalCode && <p className="mt-1 text-xs text-destructive">{errors.postalCode.message}</p>}
+
+                  <div className="min-w-0">
+                    <label htmlFor="postalCode" className="mb-1.5 block text-sm font-medium">
+                      کد پستی
+                    </label>
+                    <input
+                      id="postalCode"
+                      {...register("postalCode")}
+                      className={`${inputClass} text-left`}
+                      inputMode="numeric"
+                      dir="ltr"
+                      disabled={deliveryMethod === "pickup"}
+                      autoComplete="postal-code"
+                      aria-invalid={Boolean(errors.postalCode)}
+                      aria-describedby={errors.postalCode ? "postalCode-error" : undefined}
+                    />
+                    {errors.postalCode && (
+                      <p id="postalCode-error" className={errorClass} role="alert">
+                        {errors.postalCode.message}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="notes" className="mb-1.5 block text-sm font-medium">یادداشت سفارش</label>
-                    <input id="notes" {...register("notes")} className={inputClass} />
-                    {errors.notes && <p className="mt-1 text-xs text-destructive">{errors.notes.message}</p>}
+
+                  <div className="min-w-0">
+                    <label htmlFor="notes" className="mb-1.5 block text-sm font-medium">
+                      یادداشت سفارش
+                    </label>
+                    <input
+                      id="notes"
+                      {...register("notes")}
+                      className={inputClass}
+                      aria-invalid={Boolean(errors.notes)}
+                      aria-describedby={errors.notes ? "notes-error" : undefined}
+                    />
+                    {errors.notes && (
+                      <p id="notes-error" className={errorClass} role="alert">
+                        {errors.notes.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>
 
-              <section className="space-y-3 rounded-3xl border border-border bg-card p-5 text-right shadow-soft md:p-7">
-                <h2 className="mb-2 text-xl font-bold">روش تحویل</h2>
+              <fieldset
+                className="space-y-3 rounded-3xl border border-border bg-card p-4 text-right shadow-soft sm:p-5 md:p-7"
+                aria-describedby={deliveryError ? "delivery-error" : "delivery-help"}
+              >
+                <legend className="px-1 text-xl font-bold">روش تحویل</legend>
+                <p id="delivery-help" className="text-sm leading-7 text-muted-foreground">
+                  روش قابل‌انتخاب بر اساس نوع محصولات و شهر مقصد تعیین می‌شود.
+                </p>
 
-                <label className={`flex items-start gap-3 rounded-2xl border-2 p-4 transition ${deliveryMethod === "standard" ? "border-primary bg-primary/5" : "border-border"} ${canUseStandard ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
-                  <input type="radio" checked={deliveryMethod === "standard"} disabled={!canUseStandard} onChange={() => selectDelivery("standard")} className="mt-1" />
-                  <Truck size={21} className="mt-0.5 text-primary" aria-hidden="true" />
-                  <div className="flex-1">
-                    <div className="flex flex-wrap justify-between gap-2"><strong>ارسال پستی سراسری</strong><strong className="text-primary">{formatToman(getDeliveryFee("standard"))}</strong></div>
-                    <p className="mt-1 text-sm text-muted-foreground">برای محصولات خشک و بدون نیاز به زنجیره سرد.</p>
-                  </div>
+                <label
+                  className={`flex min-w-0 items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
+                    deliveryMethod === "standard"
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  } ${canUseStandard ? "cursor-pointer" : "cursor-not-allowed opacity-55"}`}
+                >
+                  <input
+                    type="radio"
+                    {...register("deliveryMethod")}
+                    value="standard"
+                    checked={deliveryMethod === "standard"}
+                    disabled={!canUseStandard}
+                    onChange={() => selectDelivery("standard")}
+                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
+                  />
+                  <Truck size={21} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
+                      <strong>ارسال پستی سراسری</strong>
+                      <strong className="text-primary">
+                        {formatToman(getDeliveryFee("standard"))}
+                      </strong>
+                    </span>
+                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
+                      برای محصولات خشک و بدون نیاز به زنجیره سرد.
+                    </span>
+                  </span>
                 </label>
 
-                <label className={`flex items-start gap-3 rounded-2xl border-2 p-4 transition ${deliveryMethod === "chilled" ? "border-primary bg-primary/5" : "border-border"} ${canUseChilled ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
-                  <input type="radio" checked={deliveryMethod === "chilled"} disabled={!canUseChilled} onChange={() => selectDelivery("chilled")} className="mt-1" />
-                  <Snowflake size={21} className="mt-0.5 text-sky-700" aria-hidden="true" />
-                  <div className="flex-1">
-                    <div className="flex flex-wrap justify-between gap-2"><strong>ارسال یخچالی تهران و کرج</strong><strong className="text-primary">{formatToman(getDeliveryFee("chilled"))}</strong></div>
-                    <p className="mt-1 text-sm text-muted-foreground">پس از واردکردن تهران یا کرج در فیلد شهر فعال می‌شود.</p>
-                  </div>
+                <label
+                  className={`flex min-w-0 items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
+                    deliveryMethod === "chilled"
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  } ${canUseChilled ? "cursor-pointer" : "cursor-not-allowed opacity-55"}`}
+                >
+                  <input
+                    type="radio"
+                    {...register("deliveryMethod")}
+                    value="chilled"
+                    checked={deliveryMethod === "chilled"}
+                    disabled={!canUseChilled}
+                    onChange={() => selectDelivery("chilled")}
+                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
+                  />
+                  <Snowflake size={21} className="mt-0.5 shrink-0 text-sky-700" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
+                      <strong>ارسال یخچالی تهران و کرج</strong>
+                      <strong className="text-primary">
+                        {formatToman(getDeliveryFee("chilled"))}
+                      </strong>
+                    </span>
+                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
+                      پس از واردکردن تهران یا کرج در فیلد شهر فعال می‌شود.
+                    </span>
+                  </span>
                 </label>
 
-                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition ${deliveryMethod === "pickup" ? "border-primary bg-primary/5" : "border-border"}`}>
-                  <input type="radio" checked={deliveryMethod === "pickup"} onChange={() => selectDelivery("pickup")} className="mt-1" />
-                  <MapPin size={21} className="mt-0.5 text-primary" aria-hidden="true" />
-                  <div className="flex-1">
-                    <div className="flex flex-wrap justify-between gap-2"><strong>تحویل حضوری با هماهنگی</strong><strong className="text-emerald-700">رایگان</strong></div>
-                    <p className="mt-1 text-sm text-muted-foreground">زمان و محل تحویل پس از ثبت سفارش هماهنگ می‌شود.</p>
-                  </div>
+                <label
+                  className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
+                    deliveryMethod === "pickup"
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    {...register("deliveryMethod")}
+                    value="pickup"
+                    checked={deliveryMethod === "pickup"}
+                    onChange={() => selectDelivery("pickup")}
+                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
+                  />
+                  <MapPin size={21} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
+                      <strong>تحویل حضوری با هماهنگی</strong>
+                      <strong className="text-emerald-700">رایگان</strong>
+                    </span>
+                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
+                      زمان و محل تحویل پس از ثبت سفارش هماهنگ می‌شود.
+                    </span>
+                  </span>
                 </label>
 
-                {deliveryError && <p className="rounded-xl bg-destructive/10 p-3 text-sm leading-7 text-destructive" role="alert">{deliveryError}</p>}
-              </section>
+                {deliveryError && (
+                  <p
+                    id="delivery-error"
+                    className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm leading-7 text-destructive"
+                    role="alert"
+                  >
+                    {deliveryError}
+                  </p>
+                )}
+              </fieldset>
             </div>
 
-            <aside>
-              <div className="sticky top-24 space-y-4 rounded-3xl border border-border bg-card p-6 text-right shadow-card">
-                <h2 className="border-b border-border pb-4 text-xl font-bold">خلاصه سفارش</h2>
-                <div className="max-h-64 space-y-3 overflow-y-auto">
+            <aside className="min-w-0 lg:col-span-1" aria-label="خلاصه سفارش">
+              <div className="space-y-4 rounded-3xl border border-border bg-card p-5 text-right shadow-card sm:p-6 lg:sticky lg:top-24">
+                <h2 className="border-b border-border pb-4 text-xl font-bold">
+                  خلاصه سفارش
+                </h2>
+                <ul className="max-h-64 space-y-3 overflow-y-auto overscroll-contain pl-1">
                   {items.map((item) => {
                     const price = item.selectedVariant?.priceToman ?? item.priceToman;
                     return (
-                      <div key={`${item.id}-${item.selectedVariant?.id ?? ""}`} className="flex justify-between gap-3 text-sm">
-                        <div className="min-w-0"><p className="line-clamp-1 font-medium">{item.name}</p><p className="text-xs text-muted-foreground">{item.selectedVariant?.name ? `${item.selectedVariant.name} · ` : ""}{item.quantity.toLocaleString("fa-IR")} عدد</p></div>
-                        <strong className="shrink-0">{formatToman(price * item.quantity)}</strong>
-                      </div>
+                      <li
+                        key={`${item.id}-${item.selectedVariant?.id ?? ""}`}
+                        className="flex min-w-0 justify-between gap-3 text-sm"
+                      >
+                        <div className="min-w-0">
+                          <p className="line-clamp-2 font-medium">{item.name}</p>
+                          <p className="text-xs leading-6 text-muted-foreground">
+                            {item.selectedVariant?.name
+                              ? `${item.selectedVariant.name} · `
+                              : ""}
+                            {item.quantity.toLocaleString("fa-IR")} عدد
+                          </p>
+                        </div>
+                        <strong className="shrink-0 text-left">
+                          {formatToman(price * item.quantity)}
+                        </strong>
+                      </li>
                     );
                   })}
-                </div>
+                </ul>
+
                 <div className="space-y-3 border-t border-border pt-4 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">مبلغ محصولات</span><strong>{formatToman(subtotal)}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">بسته‌بندی</span><strong>{formatToman(packagingFee)}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">هزینه تحویل</span><strong>{formatToman(deliveryFee)}</strong></div>
-                  <div className="flex justify-between border-t border-border pt-4 text-lg"><strong>مبلغ قابل پرداخت</strong><strong className="text-primary">{formatToman(total)}</strong></div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">مبلغ محصولات</span>
+                    <strong>{formatToman(subtotal)}</strong>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">بسته‌بندی</span>
+                    <strong>{formatToman(packagingFee)}</strong>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">هزینه تحویل</span>
+                    <strong>{formatToman(deliveryFee)}</strong>
+                  </div>
+                  <div
+                    className="flex flex-col gap-1 border-t border-border pt-4 text-lg sm:flex-row sm:justify-between sm:gap-3"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <strong>مبلغ قابل پرداخت</strong>
+                    <strong className="text-primary">{formatToman(total)}</strong>
+                  </div>
                 </div>
-                <button type="submit" disabled={submitting || Boolean(deliveryError) || paymentMode === "disabled"} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-bold text-primary-foreground shadow-lg disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground">
+
+                <button
+                  type="submit"
+                  disabled={
+                    submitting ||
+                    Boolean(deliveryError) ||
+                    paymentMode === "disabled"
+                  }
+                  className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg"
+                >
                   <LockKeyhole size={18} aria-hidden="true" />
-                  {submitting ? "در حال ساخت سفارش امن…" : "ثبت سفارش و انتقال به درگاه"}
+                  {submitting
+                    ? "در حال ساخت سفارش امن…"
+                    : "ثبت سفارش و انتقال به درگاه"}
                 </button>
-                <p className="text-center text-xs leading-6 text-muted-foreground">مبلغ و موجودی در بک‌اند دوباره محاسبه می‌شود.</p>
-                <Link to="/cart" className="block text-center text-sm font-bold text-primary hover:underline">بازگشت و ویرایش سبد</Link>
+                <p className="text-center text-xs leading-6 text-muted-foreground">
+                  مبلغ و موجودی در بک‌اند دوباره محاسبه می‌شود.
+                </p>
+                <Link
+                  to="/cart"
+                  className="touch-target flex items-center justify-center rounded-lg text-center text-sm font-bold text-primary hover:underline"
+                >
+                  بازگشت و ویرایش سبد
+                </Link>
               </div>
             </aside>
           </form>

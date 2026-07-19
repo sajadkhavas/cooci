@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -37,6 +37,8 @@ const LoginPage = () => {
   const [countdown, setCountdown] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
 
   const destination = useMemo(() => {
     const state = location.state as LoginLocationState | null;
@@ -44,14 +46,34 @@ const LoginPage = () => {
   }, [location.state]);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) navigate(destination, { replace: true });
+    if (!authLoading && isAuthenticated) {
+      navigate(destination, { replace: true });
+    }
   }, [authLoading, destination, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (countdown <= 0) return undefined;
-    const timer = window.setTimeout(() => setCountdown((current) => current - 1), 1000);
+    const timer = window.setTimeout(
+      () => setCountdown((current) => current - 1),
+      1000,
+    );
     return () => window.clearTimeout(timer);
   }, [countdown]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      if (step === "mobile") mobileInputRef.current?.focus();
+      else codeInputRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
+
+  const focusCurrentInput = () => {
+    window.requestAnimationFrame(() => {
+      if (step === "mobile") mobileInputRef.current?.focus();
+      else codeInputRef.current?.focus();
+    });
+  };
 
   const requestCode = async () => {
     const normalized = normalizeMobile(mobile);
@@ -60,6 +82,7 @@ const LoginPage = () => {
 
     if (!isValidIranianMobile(normalized)) {
       setError("شماره موبایل را به‌صورت 09xxxxxxxxx وارد کنید.");
+      focusCurrentInput();
       return;
     }
 
@@ -78,6 +101,7 @@ const LoginPage = () => {
           ? requestError.message
           : "ارسال کد تأیید ناموفق بود.",
       );
+      focusCurrentInput();
     } finally {
       setSubmitting(false);
     }
@@ -90,6 +114,7 @@ const LoginPage = () => {
 
     if (!/^\d{4,6}$/.test(normalizedCode)) {
       setError("کد تأیید ۴ تا ۶ رقمی را کامل وارد کنید.");
+      focusCurrentInput();
       return;
     }
 
@@ -108,6 +133,7 @@ const LoginPage = () => {
           ? verifyError.message
           : "تأیید کد ناموفق بود.",
       );
+      focusCurrentInput();
     } finally {
       setSubmitting(false);
     }
@@ -125,26 +151,40 @@ const LoginPage = () => {
   if (authLoading) {
     return (
       <section className="section-padding">
-        <div className="container-custom max-w-md text-center" role="status">
-          <Loader2 className="mx-auto mb-4 animate-spin text-primary" size={44} aria-hidden="true" />
+        <div
+          className="container-custom max-w-md text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2
+            className="mx-auto mb-4 animate-spin text-primary"
+            size={44}
+            aria-hidden="true"
+          />
           <p className="font-bold">در حال بررسی نشست کاربری…</p>
         </div>
       </section>
     );
   }
 
+  const errorId = error ? "login-form-error" : undefined;
+  const inputClass =
+    "input-field min-h-12 bg-background px-11 py-3.5 disabled:opacity-60";
+
   return (
     <>
       <SEO title="ورود به حساب کاربری" noIndex />
       <section className="section-padding bg-gradient-to-b from-secondary/30 to-background">
-        <div className="container-custom mx-auto max-w-lg">
-          <div className="rounded-3xl border border-border bg-card p-6 text-right shadow-card md:p-9">
+        <div className="container-custom max-w-lg">
+          <div className="rounded-3xl border border-border bg-card p-5 text-right shadow-card sm:p-7 md:p-9">
             <div className="mb-7 flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <ShieldCheck size={26} aria-hidden="true" />
               </div>
-              <div>
-                <h1 className="text-2xl font-black text-foreground">ورود امن به حساب</h1>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-black text-foreground">
+                  ورود امن به حساب
+                </h1>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   برای مشاهده سفارش‌ها و پرداخت مجدد، شماره موبایل خود را تأیید کنید.
                 </p>
@@ -152,9 +192,16 @@ const LoginPage = () => {
             </div>
 
             {mode === "disabled" ? (
-              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5" role="alert">
+              <div
+                className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5"
+                role="alert"
+              >
                 <div className="flex items-start gap-3 text-destructive">
-                  <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <AlertTriangle
+                    size={20}
+                    className="mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="font-bold">ورود کاربران هنوز فعال نیست</p>
                     <p className="mt-2 text-sm leading-7">
@@ -166,8 +213,15 @@ const LoginPage = () => {
             ) : (
               <>
                 {mode === "mock" && (
-                  <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="alert">
-                    <AlertTriangle size={19} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <div
+                    className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950"
+                    role="alert"
+                  >
+                    <AlertTriangle
+                      size={19}
+                      className="mt-0.5 shrink-0"
+                      aria-hidden="true"
+                    />
                     <p className="text-sm leading-7">
                       حالت آزمایشی ورود فعال است و پیامک واقعی ارسال نمی‌شود. این حالت فقط برای توسعه است.
                     </p>
@@ -175,7 +229,12 @@ const LoginPage = () => {
                 )}
 
                 {error && (
-                  <div className="mb-5 rounded-xl bg-destructive/10 p-3 text-sm leading-7 text-destructive" role="alert">
+                  <div
+                    id="login-form-error"
+                    className="mb-5 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm leading-7 text-destructive"
+                    role="alert"
+                    aria-live="assertive"
+                  >
                     {error}
                   </div>
                 )}
@@ -187,11 +246,18 @@ const LoginPage = () => {
                       void requestCode();
                     }}
                     className="space-y-5"
+                    noValidate
                   >
                     <div>
-                      <label htmlFor="login-mobile" className="mb-2 block text-sm font-bold text-foreground">
+                      <label
+                        htmlFor="login-mobile"
+                        className="mb-2 block text-sm font-bold text-foreground"
+                      >
                         شماره موبایل
                       </label>
+                      <p id="login-mobile-help" className="mb-2 text-xs leading-6 text-muted-foreground">
+                        شماره باید با 09 شروع شود و ۱۱ رقم باشد.
+                      </p>
                       <div className="relative">
                         <Phone
                           size={18}
@@ -199,25 +265,44 @@ const LoginPage = () => {
                           aria-hidden="true"
                         />
                         <input
+                          ref={mobileInputRef}
                           id="login-mobile"
                           type="tel"
                           value={mobile}
-                          onChange={(event) => setMobile(normalizeMobile(event.target.value))}
+                          onChange={(event) => {
+                            setMobile(normalizeMobile(event.target.value));
+                            if (error) setError(undefined);
+                          }}
                           placeholder="09xxxxxxxxx"
                           dir="ltr"
                           inputMode="numeric"
                           autoComplete="tel"
                           maxLength={11}
-                          className="w-full rounded-xl border border-border bg-background px-11 py-3.5 text-left outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                          required
+                          aria-invalid={Boolean(error)}
+                          aria-describedby={
+                            ["login-mobile-help", errorId]
+                              .filter(Boolean)
+                              .join(" ")
+                          }
+                          className={`${inputClass} text-left`}
                         />
                       </div>
                     </div>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-bold text-primary-foreground shadow-lg transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg transition-shadow hover:shadow-xl"
                     >
-                      {submitting ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <MessageSquareText size={18} aria-hidden="true" />}
+                      {submitting ? (
+                        <Loader2
+                          size={18}
+                          className="animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <MessageSquareText size={18} aria-hidden="true" />
+                      )}
                       {submitting ? "در حال ارسال…" : "ارسال کد تأیید"}
                     </button>
                   </form>
@@ -228,6 +313,7 @@ const LoginPage = () => {
                       void verifyCode();
                     }}
                     className="space-y-5"
+                    noValidate
                   >
                     <div className="rounded-xl bg-secondary/70 p-4 text-sm leading-7">
                       کد تأیید برای <strong dir="ltr">{mobile}</strong> ارسال شد.
@@ -236,14 +322,25 @@ const LoginPage = () => {
                     {devCode && (
                       <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-center text-amber-950">
                         <p className="text-xs font-bold">کد آزمایشی توسعه</p>
-                        <strong className="mt-1 block text-2xl tracking-[0.35em]" dir="ltr">{devCode}</strong>
+                        <strong
+                          className="mt-1 block overflow-wrap-anywhere text-2xl tracking-[0.25em] sm:tracking-[0.35em]"
+                          dir="ltr"
+                        >
+                          {devCode}
+                        </strong>
                       </div>
                     )}
 
                     <div>
-                      <label htmlFor="login-code" className="mb-2 block text-sm font-bold">
+                      <label
+                        htmlFor="login-code"
+                        className="mb-2 block text-sm font-bold"
+                      >
                         کد تأیید
                       </label>
+                      <p id="login-code-help" className="mb-2 text-xs leading-6 text-muted-foreground">
+                        کد ۴ تا ۶ رقمی ارسال‌شده را وارد کنید.
+                      </p>
                       <div className="relative">
                         <KeyRound
                           size={18}
@@ -251,15 +348,28 @@ const LoginPage = () => {
                           aria-hidden="true"
                         />
                         <input
+                          ref={codeInputRef}
                           id="login-code"
                           type="text"
                           inputMode="numeric"
                           maxLength={6}
                           value={code}
-                          onChange={(event) => setCode(normalizeMobile(event.target.value).slice(0, 6))}
-                          className="w-full rounded-xl border border-border bg-background px-11 py-3.5 text-center text-2xl font-black tracking-[0.35em] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                          onChange={(event) => {
+                            setCode(
+                              normalizeMobile(event.target.value).slice(0, 6),
+                            );
+                            if (error) setError(undefined);
+                          }}
+                          className={`${inputClass} text-center text-xl font-black tracking-[0.2em] sm:text-2xl sm:tracking-[0.35em]`}
                           placeholder="------"
                           autoComplete="one-time-code"
+                          required
+                          aria-invalid={Boolean(error)}
+                          aria-describedby={
+                            ["login-code-help", errorId]
+                              .filter(Boolean)
+                              .join(" ")
+                          }
                         />
                       </div>
                     </div>
@@ -267,23 +377,34 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-bold text-primary-foreground shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg"
                     >
-                      {submitting ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}
+                      {submitting ? (
+                        <Loader2
+                          size={18}
+                          className="animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <CheckCircle2 size={18} aria-hidden="true" />
+                      )}
                       {submitting ? "در حال تأیید…" : "تأیید و ورود"}
                     </button>
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div className="flex flex-col items-stretch justify-between gap-3 text-sm sm:flex-row sm:items-center">
                       <button
                         type="button"
                         onClick={changeMobile}
-                        className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                        className="touch-target inline-flex items-center justify-center gap-1 rounded-lg px-2 text-muted-foreground transition-colors hover:text-foreground sm:justify-start"
                       >
                         <ArrowRight size={15} aria-hidden="true" />
                         تغییر شماره
                       </button>
                       {countdown > 0 ? (
-                        <span className="text-muted-foreground">
+                        <span
+                          className="text-center text-muted-foreground sm:text-left"
+                          aria-label={`${countdown} ثانیه تا امکان ارسال مجدد`}
+                        >
                           ارسال مجدد تا {countdown.toLocaleString("fa-IR")} ثانیه
                         </span>
                       ) : (
@@ -291,7 +412,7 @@ const LoginPage = () => {
                           type="button"
                           disabled={submitting}
                           onClick={() => void requestCode()}
-                          className="font-bold text-primary disabled:opacity-50"
+                          className="touch-target rounded-lg px-2 font-bold text-primary disabled:opacity-50"
                         >
                           ارسال مجدد کد
                         </button>

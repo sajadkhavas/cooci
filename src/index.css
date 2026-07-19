@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -76,13 +76,51 @@
     direction: rtl;
     scroll-behavior: smooth;
     overflow-x: hidden;
+    min-width: 320px;
   }
 
   body {
-    @apply bg-background text-foreground font-vazir antialiased;
+    @apply bg-background font-vazir text-foreground antialiased;
+    min-width: 320px;
     overflow-x: hidden;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
+    color: hsl(var(--foreground));
   }
 
   img,
@@ -91,31 +129,39 @@
   svg {
     max-width: 100%;
   }
+
+  img {
+    height: auto;
+  }
+
+  [id] {
+    scroll-margin-top: 7rem;
+  }
 }
 
 @layer components {
   .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
   .section-padding {
-    @apply py-14 md:py-24;
+    @apply py-12 sm:py-14 md:py-24;
   }
 
   .heading-1 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+    @apply text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl;
   }
 
   .heading-2 {
-    @apply text-2xl md:text-3xl font-semibold leading-tight;
+    @apply text-2xl font-semibold leading-tight sm:text-3xl;
   }
 
   .heading-3 {
-    @apply text-xl md:text-2xl font-medium leading-snug;
+    @apply text-xl font-medium leading-snug sm:text-2xl;
   }
 
   .body-large {
-    @apply text-lg md:text-xl leading-relaxed;
+    @apply text-lg leading-relaxed sm:text-xl;
   }
 
   .body-base {
@@ -126,36 +172,44 @@
     @apply text-sm leading-relaxed;
   }
 
+  .skip-link {
+    @apply fixed right-4 top-3 z-[100] -translate-y-24 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground shadow-xl transition-transform focus:translate-y-0;
+  }
+
   .link-underline {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:right-0 after:bg-primary after:origin-bottom-left after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-right;
+    @apply relative inline-block after:absolute after:bottom-0 after:right-0 after:h-0.5 after:w-full after:origin-bottom-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:content-[''] hover:after:origin-bottom-right hover:after:scale-x-100;
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
+    @apply transition duration-300 hover:-translate-y-1 hover:shadow-hover;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-cocoa-light transition-colors duration-200;
+    @apply bg-primary text-primary-foreground transition-colors duration-200 hover:bg-cocoa-light disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-muted transition-colors duration-200;
+    @apply bg-secondary text-secondary-foreground transition-colors duration-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-accent {
-    @apply bg-accent text-accent-foreground hover:opacity-90 transition-opacity duration-200;
+    @apply bg-accent text-accent-foreground transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .badge-primary {
-    @apply bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium;
+    @apply rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary;
   }
 
   .badge-accent {
-    @apply bg-accent/20 text-accent-foreground px-3 py-1 rounded-full text-sm font-medium;
+    @apply rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent-foreground;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200;
+    @apply w-full rounded-xl border border-border bg-card px-4 py-3 transition duration-200 placeholder:text-muted-foreground/75 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:bg-muted;
+  }
+
+  .touch-target {
+    @apply min-h-11 min-w-11;
   }
 
   .mobile-sticky-bar {
@@ -166,6 +220,10 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
   }
 
   .pb-safe {
@@ -198,6 +256,16 @@
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 4px;
+  }
+
+  .text-muted-foreground {
+    color: hsl(var(--foreground) / 0.82);
   }
 }
 
