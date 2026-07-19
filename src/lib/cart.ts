@@ -30,8 +30,20 @@ export interface CartItem {
   selectedVariant?: CartVariantSnapshot;
 }
 
-export type CartItemInput = Omit<CartItem, "quantity" | "availability"> & {
+export interface CartVariantInput {
+  id: string;
+  name: string;
+  priceToman: number;
+  stock?: number;
+}
+
+export type CartItemInput = Omit<
+  CartItem,
+  "quantity" | "availability" | "stock" | "selectedVariant"
+> & {
   availability?: CartAvailability;
+  stock?: number;
+  selectedVariant?: CartVariantInput;
 };
 
 export interface StoredCart {
