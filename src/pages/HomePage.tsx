@@ -1,9 +1,25 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Cookie, Heart, MessageCircle, Package, ShieldCheck, Snowflake, Sparkles, Truck } from "lucide-react";
-import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";
-import { SEO } from "@/components/SEO";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Cookie,
+  Gift,
+  Heart,
+  MessageCircle,
+  PackageCheck,
+  ShieldCheck,
+  ShoppingCart,
+  Snowflake,
+  Sparkles,
+  Truck,
+} from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { brandConfig } from "@/config/brand";
+import { SEO } from "@/components/SEO";
+import {
+  brandConfig,
+  generateWhatsAppUrl,
+  SUPPORT_WHATSAPP_MESSAGE,
+} from "@/config/brand";
 import { useCatalogProducts } from "@/hooks/useCatalog";
 import heroImage from "@/assets/cookies/hero-main.jpg";
 import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
@@ -16,28 +32,49 @@ import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 const features = [
   {
     title: "مواد اولیه باکیفیت",
-    description: "مواد اولیه تازه و شفاف؛ انتخاب‌شده با همان وسواسی که برای خانواده خودمان داریم.",
+    description:
+      "مواد اولیه تازه و شفاف؛ انتخاب‌شده با همان وسواسی که برای خانواده خودمان داریم.",
     icon: Cookie,
     image: galleryBaking,
   },
   {
     title: "پخت نزدیک به سفارش",
-    description: "محصولات با زمان آماده‌سازی مشخص ثبت می‌شوند تا تازگی و کیفیت بهتر حفظ شود.",
+    description:
+      "محصولات با زمان آماده‌سازی مشخص ثبت می‌شوند تا تازگی و کیفیت بهتر حفظ شود.",
     icon: Heart,
     image: lifestyleBreaking,
   },
   {
     title: "ارسال و نگهداری روشن",
-    description: "محصولات خشک سراسری ارسال می‌شوند و دسرهای یخچالی فقط تهران و کرج دارند.",
+    description:
+      "محصولات خشک سراسری ارسال می‌شوند و دسرهای یخچالی فقط تهران و کرج دارند.",
     icon: Truck,
     image: galleryGiftBoxes,
   },
 ];
 
-const steps = [
-  { num: "۱", title: "انتخاب محصول", desc: "محصول، سایز یا نوع دلخواه را از صفحه محصولات انتخاب کنید", icon: Cookie },
-  { num: "۲", title: "پیام در واتساپ", desc: "روی دکمه سفارش در واتساپ بزنید تا پیام آماده ارسال شود", icon: MessageCircle },
-  { num: "۳", title: "هماهنگی و تحویل", desc: "زمان آماده‌سازی و ارسال را با تیم پشتیبانی هماهنگ کنید", icon: Package },
+const orderSteps = [
+  {
+    number: "۱",
+    title: "انتخاب محصول",
+    description:
+      "محصول، نوع یا سایز دلخواه را از کاتالوگ انتخاب و موجودی آن را بررسی کنید.",
+    icon: Cookie,
+  },
+  {
+    number: "۲",
+    title: "افزودن به سبد",
+    description:
+      "تعداد را مشخص کنید؛ قیمت، تخفیف و شرایط ارسال قبل از ادامه نمایش داده می‌شود.",
+    icon: ShoppingCart,
+  },
+  {
+    number: "۳",
+    title: "ارسال و پرداخت",
+    description:
+      "اطلاعات گیرنده و روش تحویل را ثبت کنید و سفارش را از مسیر پرداخت امن تکمیل کنید.",
+    icon: PackageCheck,
+  },
 ];
 
 const instagramImages = [
@@ -50,244 +87,245 @@ const instagramImages = [
 ];
 
 const HomePage = () => {
-  const { products } = useCatalogProducts();
-  const featuredProducts = products.filter((product) => product.isFeatured).slice(0, 6);
+  const { products, isLoading, error } = useCatalogProducts();
+  const featuredProducts = products
+    .filter((product) => product.isFeatured)
+    .slice(0, 6);
 
   return (
     <>
       <SEO />
 
-      <section className="relative min-h-[100vh] flex items-center overflow-hidden">
+      <section className="relative flex min-h-[calc(100vh-4rem)] items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={heroImage}
             alt="محصولات تازه وینیمی بیکری"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
             loading="eager"
             decoding="async"
+            width={1920}
+            height={1080}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/30 via-black/55 to-black/90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
         </div>
 
-        <div className="absolute top-20 right-10 w-40 h-40 bg-accent/30 rounded-full blur-[100px]" />
-        <div className="absolute bottom-20 left-20 w-52 h-52 bg-gold/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-rose/20 rounded-full blur-[80px]" />
+        <div className="absolute right-10 top-20 h-40 w-40 rounded-full bg-accent/30 blur-[100px]" />
+        <div className="absolute bottom-20 left-20 h-52 w-52 rounded-full bg-gold/20 blur-[120px]" />
 
-        <div className="w-full px-4 sm:px-8 lg:px-16 relative z-10">
-          <div className="max-w-xl lg:max-w-2xl space-y-8">
-            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20 animate-fade-in shadow-lg">
-              <Sparkles size={18} className="text-amber-400" />
-              <span className="text-sm font-semibold text-white/90 tracking-wide">{brandConfig.brandNameEn} — {brandConfig.brandName}</span>
+        <div className="container-custom relative z-10 py-20">
+          <div className="max-w-2xl space-y-7 text-right">
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-white/90 shadow-lg backdrop-blur-md">
+              <Sparkles size={18} className="text-amber-400" aria-hidden="true" />
+              <span className="text-sm font-semibold">
+                {brandConfig.brandNameEn} — {brandConfig.brandName}
+              </span>
             </div>
 
-            <div className="space-y-3 animate-fade-in delay-100">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.1] drop-shadow-2xl">
-                <span className="block">همه‌چیز از</span>
-                <span className="block relative inline-block">
-                  <span className="bg-gradient-to-l from-amber-400 via-yellow-300 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.6)]">
-                    بوی کیک تازه
-                  </span>
-                </span>
-                <span className="block text-white/95">شروع شد</span>
-              </h1>
-            </div>
+            <h1 className="text-5xl font-black leading-[1.12] text-white drop-shadow-2xl md:text-6xl lg:text-7xl">
+              همه‌چیز از
+              <span className="block bg-gradient-to-l from-amber-300 via-yellow-300 to-orange-400 bg-clip-text text-transparent">
+                بوی کیک تازه
+              </span>
+              شروع شد
+            </h1>
 
-            <p className="text-xl md:text-2xl text-white/85 animate-fade-in delay-200 leading-relaxed font-light drop-shadow-lg">
-              {brandConfig.slogan}
-              <br />
-              <span className="text-gold/90 font-medium">مواد اولیه تازه، وسواس در بهداشت، پخت با عشق و ثبت سفارش آنلاین</span>
+            <p className="max-w-xl text-lg leading-9 text-white/85 md:text-xl">
+              {brandConfig.slogan}. محصول را آنلاین انتخاب کنید، موجودی و قیمت را ببینید و سفارش را از سبد خرید تکمیل کنید.
             </p>
 
-            <div className="flex flex-wrap gap-3 md:gap-4 py-6 animate-fade-in delay-300">
+            <div className="flex flex-wrap gap-3 py-2">
               {[
-                { value: "پخت تازه", label: "نزدیک به زمان سفارش" },
-                { value: "ارسال سراسری", label: "برای محصولات خشک" },
-                { value: "تهران و کرج", label: "برای دسرهای یخچالی" },
-              ].map((stat) => (
-                <div key={stat.value} className="bg-white/5 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/10">
-                  <div className="text-lg md:text-xl font-bold text-gold drop-shadow-lg">{stat.value}</div>
-                  <div className="text-xs text-white/70 mt-1">{stat.label}</div>
+                ["پخت تازه", "نزدیک به زمان سفارش"],
+                ["ارسال سراسری", "برای محصولات خشک"],
+                ["تهران و کرج", "برای دسرهای یخچالی"],
+              ].map(([value, label]) => (
+                <div
+                  key={value}
+                  className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-sm"
+                >
+                  <div className="font-black text-gold">{value}</div>
+                  <div className="mt-1 text-xs text-white/70">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row flex-wrap gap-4 animate-fade-in delay-400 pt-4">
+            <div className="flex flex-col gap-4 pt-3 sm:flex-row sm:flex-wrap">
               <Link
                 to="/products"
-                className="group relative overflow-hidden bg-gold text-primary px-10 py-5 rounded-2xl text-lg font-black text-center transition-all duration-300 hover:scale-105 shadow-xl flex items-center justify-center gap-3"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gold px-9 py-4 text-lg font-black text-primary shadow-xl transition hover:scale-[1.03]"
               >
                 مشاهده و انتخاب محصولات
-                <ArrowLeft size={20} className="group-hover:-translate-x-2 transition-transform duration-300" />
+                <ArrowLeft size={20} aria-hidden="true" />
               </Link>
-              <a
-                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group px-10 py-5 rounded-2xl text-lg font-bold text-center bg-whatsapp text-white hover:bg-whatsapp/90 transition-all duration-300 flex items-center justify-center gap-3 shadow-xl"
+              <Link
+                to="/cart"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/25 bg-white/10 px-9 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-md transition hover:bg-white/20"
               >
-                <MessageCircle size={21} />
-                سفارش در واتساپ
-              </a>
+                <ShoppingCart size={20} aria-hidden="true" />
+                مشاهده سبد خرید
+              </Link>
             </div>
+
+            <a
+              href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-white/75 transition hover:text-white"
+            >
+              <MessageCircle size={17} aria-hidden="true" />
+              سؤال دارید؟ پشتیبانی واتساپ
+            </a>
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       <section className="section-padding bg-gradient-to-b from-background to-secondary/30">
         <div className="container-custom">
-          <div className="text-center mb-12 space-y-4">
-            <span className="text-accent font-medium">انتخاب‌های محبوب وینیمی</span>
+          <div className="mb-12 space-y-4 text-center">
+            <span className="font-medium text-accent">انتخاب‌های محبوب وینیمی</span>
             <h2 className="heading-2 text-foreground">محصولات منتخب</h2>
-            <p className="body-base text-muted-foreground max-w-2xl mx-auto">
-              از کوکی‌های روزانه تا دسرهای یخچالی، هر محصول با قیمت، واحد فروش و شرایط ارسال مشخص نمایش داده می‌شود.
+            <p className="mx-auto max-w-2xl text-muted-foreground">
+              قیمت، موجودی، مواد اولیه و شرایط ارسال هر محصول پیش از افزودن به سبد مشخص است.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="در حال بارگذاری محصولات منتخب">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className="overflow-hidden rounded-3xl border border-border bg-card">
+                  <div className="aspect-[4/3] animate-pulse bg-muted" />
+                  <div className="space-y-3 p-5">
+                    <div className="h-6 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                    <div className="h-11 w-full animate-pulse rounded-xl bg-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-soft">
+              <Cookie className="mx-auto mb-4 text-primary" size={48} aria-hidden="true" />
+              <h3 className="text-xl font-bold text-foreground">محصول منتخب فعالی وجود ندارد</h3>
+              <p className="mt-2 text-muted-foreground">
+                همه محصولات فعال را از کاتالوگ مشاهده کنید.
+              </p>
+            </div>
+          )}
 
-          <div className="text-center mt-10">
+          {error && (
+            <p className="mt-5 text-center text-sm text-amber-800" role="status">
+              نسخه داخلی کاتالوگ نمایش داده شده است؛ اتصال به منبع اصلی محصولات موقتاً برقرار نیست.
+            </p>
+          )}
+
+          <div className="mt-10 text-center">
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 btn-primary px-8 py-3 rounded-lg font-medium"
+              className="btn-primary inline-flex items-center gap-2 rounded-xl px-8 py-3 font-bold"
             >
               مشاهده همه محصولات
-              <ArrowLeft size={18} />
+              <ArrowLeft size={18} aria-hidden="true" />
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="section-padding bg-gradient-to-b from-secondary/20 to-background">
+      <section className="section-padding">
         <div className="container-custom">
-          <div className="text-center mb-16 space-y-4">
-            <span className="inline-block bg-accent/20 text-accent-foreground px-4 py-1.5 rounded-full text-sm font-semibold">چرا وینیمی؟</span>
-            <h2 className="heading-2 text-foreground">فروشگاه باید زیبا باشد، اما اعتماد هم بسازد</h2>
-            <p className="body-base text-muted-foreground max-w-2xl mx-auto">
-              وینیمی فقط تصویر قشنگ نیست؛ محصول، ارسال، نگهداری و آلرژن‌ها باید شفاف باشند.
+          <div className="mb-14 space-y-4 text-center">
+            <span className="inline-flex rounded-full bg-accent/20 px-4 py-1.5 text-sm font-bold text-accent-foreground">
+              چرا وینیمی؟
+            </span>
+            <h2 className="heading-2 text-foreground">اعتماد، قبل از اولین لقمه</h2>
+            <p className="mx-auto max-w-2xl leading-8 text-muted-foreground">
+              تصویر زیبا مهم است، اما اطلاعات شفاف محصول، آلرژن، نگهداری و ارسال مهم‌تر است.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div
+          <div className="grid gap-8 md:grid-cols-3">
+            {features.map((feature) => (
+              <article
                 key={feature.title}
-                className="group bg-card rounded-3xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-500 animate-fade-in border border-border/50 hover:border-accent/30"
-                style={{ animationDelay: `${index * 150}ms` }}
+                className="group overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card transition hover:-translate-y-1 hover:shadow-hover"
               >
                 <div className="relative h-52 overflow-hidden">
-                  <img 
-                    src={feature.image} 
+                  <img
+                    src={feature.image}
                     alt={feature.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     loading="lazy"
+                    width={640}
+                    height={420}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                  <div className="absolute bottom-4 right-4 w-14 h-14 bg-accent rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="text-accent-foreground" size={28} />
+                  <div className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent shadow-lg">
+                    <feature.icon className="text-accent-foreground" size={28} aria-hidden="true" />
                   </div>
                 </div>
-                <div className="p-6 space-y-3">
-                  <h3 className="heading-3 text-foreground group-hover:text-primary transition-colors">{feature.title}</h3>
-                  <p className="body-base text-muted-foreground leading-relaxed">{feature.description}</p>
+                <div className="space-y-3 p-6">
+                  <h3 className="heading-3 text-foreground">{feature.title}</h3>
+                  <p className="leading-8 text-muted-foreground">{feature.description}</p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section-padding bg-gradient-to-b from-background via-secondary/30 to-background overflow-hidden relative">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-gold/15 to-transparent rounded-full blur-[180px]" />
-        </div>
-
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-20 space-y-6">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-l from-accent/30 via-gold/20 to-accent/30 backdrop-blur-sm px-6 py-3 rounded-full border border-gold/30 shadow-lg">
-              <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
-              <span className="text-sm font-bold bg-gradient-to-l from-gold to-amber-600 bg-clip-text text-transparent">سفارش آنلاین</span>
-              <Sparkles size={16} className="text-gold" />
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-              مسیر <span className="bg-gradient-to-l from-primary via-cocoa to-primary bg-clip-text text-transparent">سفارش</span>
-            </h2>
-            <p className="body-large text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              خرید از وینیمی از انتخاب محصول شروع می‌شود، با سبد خرید ادامه پیدا می‌کند و با ثبت اطلاعات ارسال تکمیل می‌شود.
+      <section className="section-padding bg-secondary/30">
+        <div className="container-custom">
+          <div className="mb-14 space-y-4 text-center">
+            <span className="font-bold text-primary">سه مرحله روشن</span>
+            <h2 className="heading-2 text-foreground">مسیر سفارش آنلاین</h2>
+            <p className="mx-auto max-w-xl leading-8 text-muted-foreground">
+              هیچ سفارش محصولی خارج از سبد خرید ثبت نمی‌شود؛ پشتیبانی فقط برای سؤال و هماهنگی موارد ویژه است.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-10 md:gap-8">
-            {steps.map((step, index) => (
-              <div
-                key={step.num}
-                className="relative text-center space-y-8 animate-fade-in group"
-                style={{ animationDelay: `${index * 200}ms` }}
-              >
-                <div className="relative z-10 mx-auto">
-                  <div className="absolute inset-0 w-36 h-36 mx-auto border-2 border-dashed border-primary/30 rounded-full animate-spin" style={{ animationDuration: "20s" }} />
-                  <div className="relative w-32 h-32 mx-auto">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary via-cocoa to-primary rounded-full shadow-2xl group-hover:shadow-[0_0_60px_rgba(139,90,43,0.4)] transition-all duration-700" />
-                    <div className="absolute inset-2 bg-gradient-to-br from-primary/90 to-cocoa/90 rounded-full" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-6xl font-black text-primary-foreground drop-shadow-lg">{step.num}</span>
-                    </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {orderSteps.map((step) => (
+              <article key={step.number} className="relative rounded-3xl border border-border bg-card p-7 text-right shadow-soft">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <step.icon size={24} aria-hidden="true" />
                   </div>
-                  <div className="absolute inset-0 w-32 h-32 mx-auto bg-gold/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
+                  <span className="text-5xl font-black text-primary/15">{step.number}</span>
                 </div>
-
-                <div className="relative bg-card/90 backdrop-blur-md p-8 rounded-3xl border border-border/50 shadow-xl group-hover:shadow-2xl group-hover:border-gold/30 transition-all duration-500 group-hover:-translate-y-2">
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-gold to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <step.icon size={20} className="text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors pt-4">{step.title}</h3>
-                  <p className="body-base text-muted-foreground leading-relaxed">{step.desc}</p>
-                </div>
-              </div>
+                <h3 className="mb-3 text-xl font-black text-foreground">{step.title}</h3>
+                <p className="leading-8 text-muted-foreground">{step.description}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section-padding bg-gradient-to-br from-primary via-cocoa to-primary text-primary-foreground overflow-hidden relative">
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-16 space-y-4">
-            <span className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold border border-primary-foreground/20">
-              <Sparkles size={16} className="text-gold" />
-              تعهد ما به شما
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold">چهار اصل ثابت در هر سفارش</h2>
-            <p className="text-primary-foreground/70 max-w-lg mx-auto leading-8">
-              در هر سفارش تلاش می‌کنیم این اصول را با دقت رعایت کنیم.
-            </p>
+      <section className="section-padding bg-gradient-to-l from-primary via-cocoa to-primary text-primary-foreground">
+        <div className="container-custom">
+          <div className="mb-12 text-center">
+            <Sparkles className="mx-auto mb-4 text-gold" size={28} aria-hidden="true" />
+            <h2 className="text-3xl font-black md:text-4xl">چهار اصل ثابت هر سفارش</h2>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {brandConfig.trustPillars.map((pillar, index) => (
-              <div
-                key={pillar}
-                className="group relative bg-gradient-to-br from-primary-foreground/15 to-primary-foreground/5 backdrop-blur-md p-7 rounded-3xl space-y-4 animate-fade-in border border-primary-foreground/10 hover:border-gold/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl text-right"
-                style={{ animationDelay: `${index * 120}ms` }}
-              >
-                <div className="w-12 h-12 bg-gold/20 border border-gold/30 rounded-2xl flex items-center justify-center">
-                  <Check size={22} className="text-gold" />
-                </div>
-                <p className="text-lg leading-relaxed text-primary-foreground/90 font-medium">
-                  {pillar}
-                </p>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {brandConfig.trustPillars.map((pillar) => (
+              <div key={pillar} className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+                <CheckCircle2 className="mb-3 text-gold" size={23} aria-hidden="true" />
+                <p className="font-bold leading-8">{pillar}</p>
               </div>
             ))}
           </div>
@@ -296,89 +334,70 @@ const HomePage = () => {
 
       <section className="section-padding">
         <div className="container-custom">
-          <div className="text-center mb-12 space-y-4">
-            <span className="text-accent font-medium">اینستاگرام</span>
-            <h2 className="heading-2 text-foreground">ما را دنبال کنید</h2>
-            <a
-              href={brandConfig.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary font-medium link-underline text-lg"
-            >
-              @{brandConfig.instagramHandle}
-            </a>
+          <div className="mb-10 text-center">
+            <span className="font-medium text-accent">پشت صحنه وینیمی</span>
+            <h2 className="heading-2 mt-3 text-foreground">پخت، بسته‌بندی و لحظه‌های شیرین</h2>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             {instagramImages.map((image, index) => (
-              <div
+              <a
                 key={image}
-                className="aspect-square rounded-xl overflow-hidden card-hover group"
+                href={brandConfig.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group aspect-square overflow-hidden rounded-2xl"
+                aria-label={`مشاهده اینستاگرام وینیمی، تصویر ${index + 1}`}
               >
                 <img
                   src={image}
-                  alt={`تصویر برند و محصولات وینیمی ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  alt={`محصولات و فضای وینیمی ${index + 1}`}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   loading="lazy"
+                  width={360}
+                  height={360}
                 />
-              </div>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-cocoa to-primary" />
-        <div className="absolute top-0 left-0 w-80 h-80 bg-gold/20 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-[180px]" />
-
-        <div className="container-custom relative z-10 text-center">
-          <div className="inline-flex items-center gap-3 bg-primary-foreground/10 backdrop-blur-md px-6 py-3 rounded-full border border-primary-foreground/20 mb-8 shadow-lg">
-            <MessageCircle className="text-gold" size={20} />
-            <span className="text-primary-foreground font-semibold">سفارش سریع در واتساپ</span>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          </div>
-
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-foreground mb-6 leading-tight">
-            آماده <span className="bg-gradient-to-l from-gold via-amber-300 to-gold bg-clip-text text-transparent">سفارش</span> هستید؟
-          </h2>
-
-          <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-2xl mx-auto leading-relaxed">
-            محصول دلخواه‌تان را انتخاب کنید و در چند ثانیه سفارش را در واتساپ ثبت کنید.
+      <section className="section-padding bg-gradient-to-br from-primary via-cocoa to-primary text-primary-foreground">
+        <div className="container-custom text-center">
+          <Gift className="mx-auto mb-5 text-gold" size={38} aria-hidden="true" />
+          <h2 className="text-3xl font-black md:text-5xl">برای انتخاب شیرین آماده‌اید؟</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-9 text-primary-foreground/80">
+            کاتالوگ را ببینید، محصول را به سبد اضافه کنید و هزینه‌ها و روش تحویل را قبل از پرداخت بررسی کنید.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+          <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               to="/products"
-              className="group relative overflow-hidden bg-gold text-primary px-12 py-6 rounded-2xl text-xl font-black shadow-2xl transition-all duration-500 hover:scale-105 flex items-center gap-3"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gold px-9 py-4 text-lg font-black text-primary"
             >
               مشاهده محصولات
-              <ArrowLeft size={22} className="group-hover:-translate-x-2 transition-transform duration-300" />
+              <ArrowLeft size={20} aria-hidden="true" />
             </Link>
-            <a
-              href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group px-10 py-6 rounded-2xl text-xl font-bold text-white bg-whatsapp hover:bg-whatsapp/90 transition-all duration-500 flex items-center gap-3 shadow-xl"
+            <Link
+              to="/cart"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-9 py-4 text-lg font-bold text-white"
             >
-              پیام در واتساپ
-              <MessageCircle size={22} />
-            </a>
+              <ShoppingCart size={20} aria-hidden="true" />
+              رفتن به سبد خرید
+            </Link>
           </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-8 mt-14 text-primary-foreground/70">
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={20} className="text-gold" />
-              <span>مواد اولیه شفاف</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Snowflake size={20} className="text-gold" />
-              <span>قانون ارسال یخچالی</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Truck size={20} className="text-gold" />
-              <span>ارسال سراسری محصولات خشک</span>
-            </div>
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-6 text-sm text-primary-foreground/75">
+            <span className="inline-flex items-center gap-2">
+              <ShieldCheck size={18} className="text-gold" aria-hidden="true" />
+              اطلاعات شفاف محصول
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Snowflake size={18} className="text-gold" aria-hidden="true" />
+              قانون ارسال یخچالی
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Truck size={18} className="text-gold" aria-hidden="true" />
+              ارسال سراسری محصولات خشک
+            </span>
           </div>
         </div>
       </section>
