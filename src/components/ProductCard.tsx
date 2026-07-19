@@ -69,6 +69,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       name: product.name,
       productCode: product.productCode,
       priceToman: displayPrice,
+      regularPriceToman:
+        regularPrice && regularPrice > displayPrice ? regularPrice : undefined,
+      stock,
       requiresCooling: Boolean(product.requiresCooling),
       image: product.images[0]?.url ?? "",
     });
