@@ -5,6 +5,12 @@ export type ShippingFilter = "all" | "nationwide" | "chilled";
 
 export const CATALOG_PAGE_SIZE = 12;
 
+interface ProductVerificationFlags {
+  inventoryVerified?: boolean;
+  contentVerified?: boolean;
+  mediaVerified?: boolean;
+}
+
 const PERSIAN_NORMALIZATION_MAP: Record<string, string> = {
   ي: "ی",
   ى: "ی",
@@ -13,18 +19,77 @@ const PERSIAN_NORMALIZATION_MAP: Record<string, string> = {
   ۀ: "ه",
 };
 
+const FACTUAL_BADGE_PATTERNS = [
+  /کیلویی/,
+  /بدون قند افزوده/,
+  /نیازمند نگهداری سرد/,
+];
+
+const getVerificationFlags = (product: Product) =>
+  product as Product & ProductVerificationFlags;
+
+export const isProductInventoryVerified = (product: Product) =>
+  getVerificationFlags(product).inventoryVerified === true;
+
+export const isProductContentVerified = (product: Product) =>
+  getVerificationFlags(product).contentVerified === true;
+
+export const isProductMediaVerified = (product: Product) =>
+  getVerificationFlags(product).mediaVerified === true;
+
+export const getPublicProductBadges = (product: Product) => {
+  if (isProductContentVerified(product)) return product.badges;
+  return product.badges.filter((badge) =>
+    FACTUAL_BADGE_PATTERNS.some((pattern) => pattern.test(badge)),
+  );
+};
+
+export const getPublicProductDescription = (product: Product) => {
+  if (isProductContentVerified(product)) return product.longDescription;
+
+  const priceSentence = getProductDisplayPrice(product)
+    ? "قیمت فعلی این انتخاب در همین صفحه نمایش داده می‌شود."
+    : "قیمت این انتخاب نیازمند استعلام است.";
+
+  return `${product.name} در دسته ${product.category} قرار دارد. ${priceSentence} جزئیات ترکیبات، آلرژن، وزن نهایی، ماندگاری و زمان آماده‌سازی باید پیش از تأیید سفارش از منبع معتبر بررسی شوند.`;
+};
+
+export const getPublicIngredients = (product: Product) =>
+  isProductContentVerified(product) ? product.ingredients : [];
+
+export const getPublicAllergens = (product: Product) =>
+  isProductContentVerified(product) ? product.allergens : [];
+
+export const getPublicShelfLife = (product: Product) =>
+  isProductContentVerified(product)
+    ? product.shelfLife
+    : "مدت دقیق ماندگاری پس از تأیید محصول و روی بسته‌بندی سفارش اعلام می‌شود.";
+
+export const getPublicStorageTips = (product: Product) =>
+  isProductContentVerified(product)
+    ? product.storageTips
+    : product.requiresCooling
+      ? "تا زمان تأیید دستور اختصاصی محصول، نگهداری سرد و پیروی از برچسب بسته‌بندی الزامی است."
+      : "پس از تحویل، دستور درج‌شده روی بسته‌بندی را مبنا قرار دهید.";
+
 export const normalizeCatalogText = (value: string) =>
   value
     .trim()
     .toLocaleLowerCase("fa-IR")
-    .replace(/[يىكةۀ]/g, (character) => PERSIAN_NORMALIZATION_MAP[character] ?? character)
+    .replace(
+      /[يىكةۀ]/g,
+      (character) => PERSIAN_NORMALIZATION_MAP[character] ?? character,
+    )
     .replace(/[\u064B-\u065F\u0670]/g, "")
     .replace(/\s+/g, " ");
 
 export const getVariantPrices = (product: Product) =>
   product.variants
     ?.map((variant) => variant.price)
-    .filter((price): price is number => typeof price === "number" && Number.isFinite(price)) ?? [];
+    .filter(
+      (price): price is number =>
+        typeof price === "number" && Number.isFinite(price),
+    ) ?? [];
 
 export const getProductRegularPrice = (product: Product) => {
   if (typeof product.priceToman === "number") return product.priceToman;
@@ -75,7 +140,10 @@ export const getDiscountPercent = (product: Product) => {
   return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
 };
 
-export const getProductStock = (product: Product, variantId?: string | null) => {
+export const getProductStock = (
+  product: Product,
+  variantId?: string | null,
+) => {
   const variant = product.variants?.find((item) => item.id === variantId);
   const variantStock =
     variant && "stock" in variant
@@ -87,10 +155,22 @@ export const getProductStock = (product: Product, variantId?: string | null) => 
   return 1;
 };
 
-export const isProductInStock = (product: Product, variantId?: string | null) =>
-  getProductStock(product, variantId) > 0;
+export const isProductInStock = (
+  product: Product,
+  variantId?: string | null,
+) => getProductStock(product, variantId) > 0;
 
-export const getStockPresentation = (stock: number) => {
+export const getStockPresentation = (
+  stock: number,
+  inventoryVerified = false,
+) => {
+  if (!inventoryVerified) {
+    return {
+      label: "موجودی نهایی هنگام ثبت سفارش توسط بک‌اند بررسی می‌شود",
+      tone: "warning" as const,
+    };
+  }
+
   if (stock <= 0) {
     return { label: "ناموجود", tone: "danger" as const };
   }
@@ -113,13 +193,11 @@ export const productMatchesQuery = (product: Product, rawQuery: string) => {
     [
       product.name,
       product.shortDescription,
-      product.longDescription,
       product.productCode,
       product.category,
       product.weight,
       ...(product.tags ?? []),
       ...(product.flavors ?? []),
-      ...(product.ingredients ?? []),
     ]
       .filter(Boolean)
       .join(" "),
@@ -162,13 +240,15 @@ export const filterCatalogProducts = ({
 
   if (shipping === "nationwide") {
     result = result.filter(
-      (product) => product.shippingScope === "nationwide" && !product.requiresCooling,
+      (product) =>
+        product.shippingScope === "nationwide" && !product.requiresCooling,
     );
   }
 
   if (shipping === "chilled") {
     result = result.filter(
-      (product) => product.requiresCooling || product.shippingScope === "tehran-karaj",
+      (product) =>
+        product.requiresCooling || product.shippingScope === "tehran-karaj",
     );
   }
 
@@ -217,7 +297,11 @@ export const filterCatalogProducts = ({
   }
 };
 
-export const paginateCatalog = <T,>(items: T[], page: number, pageSize = CATALOG_PAGE_SIZE) => {
+export const paginateCatalog = <T,>(
+  items: T[],
+  page: number,
+  pageSize = CATALOG_PAGE_SIZE,
+) => {
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const startIndex = (safePage - 1) * pageSize;
