@@ -1,4 +1,10 @@
-import { ImageIcon, ShoppingCart, Snowflake, Truck } from "lucide-react";
+import {
+  ArrowUpLeft,
+  ImageIcon,
+  ShoppingCart,
+  Snowflake,
+  Truck,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { formatToman } from "@/config/brand";
@@ -22,9 +28,9 @@ interface ProductCardProps {
 }
 
 const stockToneClasses = {
-  danger: "bg-destructive/10 text-destructive",
-  warning: "bg-amber-100 text-amber-900",
-  success: "bg-emerald-100 text-emerald-800",
+  danger: "border-destructive/20 bg-destructive/8 text-destructive",
+  warning: "border-amber-300/70 bg-amber-50/80 text-amber-950",
+  success: "border-emerald-300/70 bg-emerald-50/80 text-emerald-900",
 };
 
 export const ProductCard = ({ product }: ProductCardProps) => {
@@ -86,21 +92,21 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card transition duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-hover focus-within:border-primary/50 focus-within:shadow-hover">
+    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-border/65 bg-card/75 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-primary/25 hover:shadow-hover focus-within:border-primary/40 focus-within:shadow-hover">
       <Link
         to={`/products/${product.slug}`}
-        className="relative block aspect-[4/3] overflow-hidden bg-muted"
+        className="relative block aspect-[1.12/1] overflow-hidden bg-muted"
         aria-label={`مشاهده جزئیات ${product.name}`}
       >
         {product.images[0]?.url ? (
           <img
             src={product.images[0].url}
             alt={product.images[0].alt || product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.07]"
             loading="lazy"
             decoding="async"
-            width={600}
-            height={450}
+            width={640}
+            height={570}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-secondary to-muted text-muted-foreground">
@@ -109,17 +115,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
 
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-white/5 opacity-75 transition duration-500 group-hover:opacity-95" />
+
         {!mediaVerified && product.images[0]?.url && (
-          <span className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-[11px] font-bold text-white">
+          <span className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur-lg">
             تصویر نمایشی
           </span>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-        <div className="absolute right-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2 sm:right-4 sm:top-4">
+        <div className="absolute right-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2">
           {discountPercent > 0 && (
-            <span className="rounded-full bg-destructive px-3 py-1.5 text-xs font-black text-white shadow-lg">
+            <span className="rounded-full bg-destructive px-3 py-1.5 text-xs font-black text-white shadow-xl">
               {discountPercent.toLocaleString("fa-IR")}٪ تخفیف
             </span>
           )}
@@ -128,92 +134,100 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             .map((badge) => (
               <span
                 key={badge}
-                className="max-w-full truncate rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground shadow-lg"
+                className="max-w-full truncate rounded-full border border-white/20 bg-white/75 px-3 py-1.5 text-[10px] font-black text-primary shadow-lg backdrop-blur-xl"
               >
                 {badge}
               </span>
             ))}
         </div>
 
+        <span className="absolute bottom-4 right-4 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-accent text-accent-foreground opacity-0 shadow-xl transition duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          <ArrowUpLeft size={19} aria-hidden="true" />
+        </span>
+
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
-            <span className="rounded-full bg-destructive px-5 py-2 text-sm font-black text-white shadow-lg">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/72 backdrop-blur-md">
+            <span className="rounded-full bg-destructive px-5 py-2 text-sm font-black text-white shadow-xl">
               ناموجود
             </span>
           </div>
         )}
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col space-y-4 p-4 sm:p-5">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-          <span className="max-w-full overflow-wrap-anywhere rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-            کد: {product.productCode}
-          </span>
+      <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+        <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
           <Link
             to={`/products?category=${product.categorySlug}`}
-            className="inline-flex min-h-9 items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+            className="inline-flex min-h-8 items-center rounded-full border border-primary/12 bg-primary/8 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-primary transition hover:bg-primary/12"
           >
             {product.category}
           </Link>
+          <span className="overflow-wrap-anywhere text-[10px] font-bold text-muted-foreground/65">
+            #{product.productCode}
+          </span>
         </div>
 
-        <Link to={`/products/${product.slug}`} className="rounded-lg">
-          <h2 className="line-clamp-2 text-lg font-bold leading-7 text-foreground transition-colors group-hover:text-primary">
+        <Link to={`/products/${product.slug}`} className="rounded-xl">
+          <h2 className="line-clamp-2 text-xl font-black leading-8 text-foreground transition-colors group-hover:text-primary">
             {product.name}
           </h2>
         </Link>
 
-        <p className="line-clamp-2 text-sm leading-7 text-muted-foreground">
+        <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">
           {product.shortDescription}
         </p>
 
-        <div className="grid gap-2">
+        <div className="mt-5 grid gap-2">
           <div
-            className={`flex min-w-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${
+            className={`flex min-w-0 items-center gap-2 rounded-2xl border px-3.5 py-2.5 text-[11px] font-bold backdrop-blur-md ${
               product.requiresCooling
-                ? "bg-sky-50 text-sky-800"
-                : "bg-primary/10 text-primary"
+                ? "border-sky-200 bg-sky-50/80 text-sky-900"
+                : "border-primary/10 bg-primary/7 text-primary"
             }`}
           >
             <ShippingIcon size={15} className="shrink-0" aria-hidden="true" />
             <span className="line-clamp-2">{shippingLabel}</span>
           </div>
           <div
-            className={`rounded-xl px-3 py-2 text-xs font-bold ${stockToneClasses[stockPresentation.tone]}`}
+            className={`rounded-2xl border px-3.5 py-2.5 text-[11px] font-bold ${stockToneClasses[stockPresentation.tone]}`}
             aria-label={`وضعیت موجودی: ${stockPresentation.label}`}
           >
             {stockPresentation.label}
           </div>
         </div>
 
-        <div className="h-px bg-gradient-to-l from-transparent via-border to-transparent" />
+        <div className="my-5 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
 
-        <div className="mt-auto flex min-w-0 flex-col gap-4 xs:flex-row xs:items-end xs:justify-between">
+        <div className="mt-auto flex min-w-0 items-end justify-between gap-4">
           {displayPrice ? (
-            <div className="min-w-0 space-y-1">
+            <div className="min-w-0">
               {salePrice && regularPrice && (
-                <p className="text-xs text-muted-foreground line-through">
+                <p className="mb-1 text-[11px] text-muted-foreground line-through">
                   {formatToman(regularPrice)}
                 </p>
               )}
               {hasVariants && priceRange.min !== priceRange.max && (
-                <span className="block text-[11px] text-muted-foreground">
+                <span className="mb-1 block text-[10px] font-bold text-muted-foreground">
                   شروع از
                 </span>
               )}
-              <p className="overflow-wrap-anywhere text-xl font-black leading-none text-primary">
+              <p className="overflow-wrap-anywhere text-xl font-black leading-none text-primary sm:text-2xl">
                 {formatToman(displayPrice).replace(" تومان", "")}
               </p>
-              <span className="text-xs text-muted-foreground">تومان</span>
+              <span className="mt-1 block text-[10px] font-bold text-muted-foreground">
+                تومان
+              </span>
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground">قیمت با استعلام</div>
+            <div className="text-xs font-bold text-muted-foreground">
+              قیمت با استعلام
+            </div>
           )}
 
           {hasVariants ? (
             isOutOfStock ? (
               <span
-                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-muted px-4 py-2.5 text-sm font-bold text-muted-foreground"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-muted px-5 text-sm font-black text-muted-foreground"
                 aria-disabled="true"
               >
                 ناموجود
@@ -221,7 +235,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             ) : (
               <Link
                 to={`/products/${product.slug}`}
-                className="btn-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow-md"
+                className="btn-primary inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black"
               >
                 انتخاب نوع
               </Link>
@@ -231,7 +245,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               type="button"
               onClick={handleAdd}
               disabled={isOutOfStock || isCartAtStockLimit}
-              className="btn-primary flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow-md xs:shrink-0"
+              className="btn-primary flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black"
               aria-label={`افزودن ${product.name} به سبد خرید`}
             >
               <ShoppingCart size={16} aria-hidden="true" />
