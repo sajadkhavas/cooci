@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from "react";
-import { Calendar, Clock, MessageCircle, User } from "lucide-react";
+import { CalendarCheck2, Clock, MessageCircle, User } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SEO } from "@/components/SEO";
@@ -33,7 +33,10 @@ const renderContent = (content: string) => {
 
     if (line.startsWith("### ")) {
       blocks.push(
-        <h3 key={`h3-${index}`} className="mb-3 mt-8 text-xl font-bold text-foreground">
+        <h3
+          key={`h3-${index}`}
+          className="mb-3 mt-8 text-xl font-bold text-foreground"
+        >
           {line.slice(4)}
         </h3>,
       );
@@ -42,7 +45,10 @@ const renderContent = (content: string) => {
 
     if (line.startsWith("## ")) {
       blocks.push(
-        <h2 key={`h2-${index}`} className="mb-4 mt-10 text-2xl font-bold text-foreground">
+        <h2
+          key={`h2-${index}`}
+          className="mb-4 mt-10 text-2xl font-bold text-foreground"
+        >
           {line.slice(3)}
         </h2>,
       );
@@ -57,7 +63,10 @@ const renderContent = (content: string) => {
       }
       index -= 1;
       blocks.push(
-        <ol key={`ol-${index}`} className="my-5 list-decimal space-y-2 pr-6 text-foreground/80">
+        <ol
+          key={`ol-${index}`}
+          className="my-5 list-decimal space-y-2 pr-6 text-foreground/80"
+        >
           {items.map((item) => (
             <li key={item} className="leading-9">
               {renderInlineText(item)}
@@ -76,7 +85,10 @@ const renderContent = (content: string) => {
       }
       index -= 1;
       blocks.push(
-        <ul key={`ul-${index}`} className="my-5 list-disc space-y-2 pr-6 text-foreground/80">
+        <ul
+          key={`ul-${index}`}
+          className="my-5 list-disc space-y-2 pr-6 text-foreground/80"
+        >
           {items.map((item) => (
             <li key={item} className="leading-9">
               {renderInlineText(item)}
@@ -118,7 +130,7 @@ const BlogDetailPage = () => {
     headline: post.title,
     description: post.excerpt,
     image: post.image.url,
-    datePublished: post.publishDate,
+    dateModified: post.reviewedAt,
     author: { "@type": "Organization", name: brandConfig.brandName },
     publisher: {
       "@type": "Organization",
@@ -136,7 +148,6 @@ const BlogDetailPage = () => {
         type="article"
         schema={schema}
         image={post.image.url}
-        publishedTime={post.publishDate}
         author={post.author}
       />
 
@@ -146,7 +157,7 @@ const BlogDetailPage = () => {
             className="mb-8"
             items={[
               { name: "خانه", href: "/" },
-              { name: "بلاگ", href: "/blog" },
+              { name: "راهنماها", href: "/blog" },
               { name: post.title },
             ]}
           />
@@ -162,7 +173,7 @@ const BlogDetailPage = () => {
               <User size={14} aria-hidden="true" /> {post.author}
             </span>
             <span className="flex items-center gap-1">
-              <Calendar size={14} aria-hidden="true" /> {post.publishDate}
+              <CalendarCheck2 size={14} aria-hidden="true" /> {post.reviewedLabel}
             </span>
             <span className="flex items-center gap-1">
               <Clock size={14} aria-hidden="true" /> {post.readTime}
@@ -179,19 +190,31 @@ const BlogDetailPage = () => {
               width={1200}
               height={675}
             />
+            {post.image.isRepresentative && (
+              <figcaption className="border-t border-border bg-card px-4 py-3 text-center text-xs leading-6 text-muted-foreground">
+                این تصویر برای توضیح موضوع مقاله استفاده شده و الزاماً محصول نهایی سفارش نیست.
+              </figcaption>
+            )}
           </figure>
+
+          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-950">
+            این راهنما عمومی است. اطلاعات صفحه همان محصول، برچسب بسته‌بندی، آلرژن تأییدشده و توصیه متخصص در موارد پزشکی اولویت دارند.
+          </div>
 
           <div>{renderContent(post.content)}</div>
 
-          <div className="mt-12 rounded-3xl bg-primary/10 p-8 text-center">
+          <div className="mt-12 rounded-3xl bg-primary/10 p-6 text-center sm:p-8">
             <h2 className="mb-3 text-xl font-bold text-foreground">
-              محصولات مرتبط با این راهنما را ببینید
+              اطلاعات هر محصول را جداگانه بررسی کنید
             </h2>
             <p className="mb-6 leading-8 text-muted-foreground">
-              قیمت، موجودی، مواد اولیه و شرایط ارسال هر محصول در کاتالوگ مشخص است.
+              قیمت فعلی کاتالوگ در فرانت نمایش داده می‌شود؛ موجودی، ترکیبات و شرایط نهایی تحویل باید پیش از پرداخت تأیید شوند.
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
-              <Link to="/products" className="btn-primary rounded-xl px-6 py-3 font-bold">
+              <Link
+                to="/products"
+                className="btn-primary rounded-xl px-6 py-3 font-bold"
+              >
                 مشاهده محصولات
               </Link>
               <a
@@ -208,8 +231,11 @@ const BlogDetailPage = () => {
 
           {related.length > 0 && (
             <section className="mt-16" aria-labelledby="related-articles-title">
-              <h2 id="related-articles-title" className="mb-6 text-xl font-bold text-foreground">
-                مقالات مرتبط
+              <h2
+                id="related-articles-title"
+                className="mb-6 text-xl font-bold text-foreground"
+              >
+                راهنماهای مرتبط
               </h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {related.map((article) => (
@@ -230,7 +256,9 @@ const BlogDetailPage = () => {
                       <p className="line-clamp-2 text-sm font-bold text-foreground">
                         {article.title}
                       </p>
-                      <p className="mt-2 text-xs text-muted-foreground">{article.readTime}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {article.readTime}
+                      </p>
                     </div>
                   </Link>
                 ))}

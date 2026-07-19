@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import type { Product } from "@/data/products";
+import { isProductMediaVerified } from "@/lib/catalog";
 
 interface ProductGalleryProps {
   product: Product;
@@ -9,6 +10,7 @@ interface ProductGalleryProps {
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const mediaVerified = isProductMediaVerified(product);
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -40,30 +42,47 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   };
 
   return (
-    <section className="min-w-0 space-y-4" aria-label={`گالری تصاویر ${product.name}`}>
-      <div
-        id={`product-image-panel-${product.id}`}
-        role="tabpanel"
-        aria-label={`تصویر ${activeImageIndex + 1} از ${product.images.length || 1}`}
-        className="relative aspect-square overflow-hidden rounded-3xl bg-gradient-to-br from-secondary to-muted shadow-2xl"
-      >
-        {activeImage?.url ? (
-          <img
-            src={activeImage.url}
-            alt={activeImage.alt || product.name}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-            loading="eager"
-            decoding="async"
-            width={900}
-            height={900}
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
-            <ImageIcon size={56} aria-hidden="true" />
-            <span>تصویر محصول ثبت نشده است</span>
-          </div>
+    <section
+      className="min-w-0 space-y-4"
+      aria-label={`گالری تصاویر ${product.name}`}
+    >
+      <figure className="overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <div
+          id={`product-image-panel-${product.id}`}
+          role="tabpanel"
+          aria-label={`تصویر ${activeImageIndex + 1} از ${product.images.length || 1}`}
+          className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary to-muted"
+        >
+          {activeImage?.url ? (
+            <img
+              src={activeImage.url}
+              alt={activeImage.alt || product.name}
+              className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+              loading="eager"
+              decoding="async"
+              width={900}
+              height={900}
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
+              <ImageIcon size={56} aria-hidden="true" />
+              <span>تصویر محصول ثبت نشده است</span>
+            </div>
+          )}
+
+          {!mediaVerified && activeImage?.url && (
+            <span className="absolute bottom-4 left-4 rounded-full bg-black/75 px-3 py-1.5 text-xs font-bold text-white">
+              تصویر نمایشی کاتالوگ
+            </span>
+          )}
+        </div>
+
+        {!mediaVerified && (
+          <figcaption className="border-t border-border px-4 py-3 text-center text-xs leading-6 text-muted-foreground">
+            این رسانه هنوز به‌عنوان تصویر تأییدشده همان محصول علامت‌گذاری نشده و ممکن است با سفارش نهایی تفاوت داشته باشد.
+          </figcaption>
         )}
-      </div>
+      </figure>
 
       {product.images.length > 1 && (
         <div

@@ -1,4 +1,4 @@
-import { ShoppingCart, Snowflake, Truck } from "lucide-react";
+import { ImageIcon, ShoppingCart, Snowflake, Truck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { formatToman } from "@/config/brand";
@@ -11,7 +11,10 @@ import {
   getProductRegularPrice,
   getProductSalePrice,
   getProductStock,
+  getPublicProductBadges,
   getStockPresentation,
+  isProductInventoryVerified,
+  isProductMediaVerified,
 } from "@/lib/catalog";
 
 interface ProductCardProps {
@@ -20,7 +23,7 @@ interface ProductCardProps {
 
 const stockToneClasses = {
   danger: "bg-destructive/10 text-destructive",
-  warning: "bg-amber-100 text-amber-800",
+  warning: "bg-amber-100 text-amber-900",
   success: "bg-emerald-100 text-emerald-800",
 };
 
@@ -28,8 +31,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem, items } = useCart();
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingLabel = product.requiresCooling
-    ? "ارسال یخچالی تهران/کرج"
-    : "ارسال به سراسر ایران";
+    ? "نیازمند روش تحویل سرد"
+    : "روش تحویل در Checkout تعیین می‌شود";
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const regularPrice = getProductRegularPrice(product);
   const salePrice = getProductSalePrice(product);
@@ -37,12 +40,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const priceRange = getProductPriceRange(product);
   const discountPercent = getDiscountPercent(product);
   const stock = getProductStock(product);
-  const stockPresentation = getStockPresentation(stock);
+  const inventoryVerified = isProductInventoryVerified(product);
+  const mediaVerified = isProductMediaVerified(product);
+  const stockPresentation = getStockPresentation(stock, inventoryVerified);
+  const publicBadges = getPublicProductBadges(product);
   const cartItem = items.find(
     (item) => item.id === product.id && !item.selectedVariant,
   );
-  const isOutOfStock = stock <= 0;
-  const isCartAtStockLimit = Boolean(cartItem && cartItem.quantity >= stock);
+  const isOutOfStock = inventoryVerified && stock <= 0;
+  const isCartAtStockLimit = Boolean(
+    inventoryVerified && cartItem && cartItem.quantity >= stock,
+  );
 
   const handleAdd = () => {
     if (hasVariants) {
@@ -50,15 +58,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       return;
     }
     if (isOutOfStock) {
-      toast.error("این محصول در حال حاضر ناموجود است");
+      toast.error("این محصول براساس موجودی تأییدشده ناموجود است");
       return;
     }
     if (isCartAtStockLimit) {
-      toast.info("تمام موجودی قابل سفارش این محصول در سبد شماست");
+      toast.info("تمام موجودی تأییدشده این محصول در سبد شماست");
       return;
     }
     if (!displayPrice) {
-      toast.error("قیمت این محصول با هماهنگی مشخص می‌شود");
+      toast.error("قیمت این محصول نیازمند استعلام است");
       return;
     }
 
@@ -74,7 +82,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       requiresCooling: Boolean(product.requiresCooling),
       image: product.images[0]?.url ?? "",
     });
-    toast.success(`${product.name} به سبد اضافه شد`);
+    toast.success(`${product.name} به سبد اضافه شد؛ موجودی در ادامه تأیید می‌شود`);
   };
 
   return (
@@ -95,11 +103,16 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             height={450}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <span className="text-8xl opacity-20" aria-hidden="true">
-              🍪
-            </span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-secondary to-muted text-muted-foreground">
+            <ImageIcon size={42} aria-hidden="true" />
+            <span className="text-sm">تصویر ثبت نشده است</span>
           </div>
+        )}
+
+        {!mediaVerified && product.images[0]?.url && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-[11px] font-bold text-white">
+            تصویر نمایشی
+          </span>
         )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -110,7 +123,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               {discountPercent.toLocaleString("fa-IR")}٪ تخفیف
             </span>
           )}
-          {product.badges
+          {publicBadges
             .slice(0, discountPercent > 0 ? 1 : 2)
             .map((badge) => (
               <span
@@ -194,7 +207,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               <span className="text-xs text-muted-foreground">تومان</span>
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground">قیمت با هماهنگی</div>
+            <div className="text-xs text-muted-foreground">قیمت با استعلام</div>
           )}
 
           {hasVariants ? (

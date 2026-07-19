@@ -1,183 +1,218 @@
-import { Award, Heart, Leaf } from "lucide-react";
+import {
+  CheckCircle2,
+  Database,
+  Eye,
+  ServerCog,
+  ShieldCheck,
+  ShoppingCart,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { SEO } from "@/components/SEO";
+import { brandConfig } from "@/config/brand";
 import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
-import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 
-const values = [
+const principles = [
   {
-    icon: Heart,
-    title: "عشق به پخت",
-    description: "وینیمی از علاقه واقعی به پخت کیک و شیرینی شروع شد؛ هر محصول با دقتی شبیه پخت برای خانواده آماده می‌شود.",
+    icon: Eye,
+    title: "شفافیت قبل از تبلیغ",
+    description:
+      "آمار فروش، امتیاز مشتری، گواهی، موجودی و ویژگی محصول فقط زمانی قطعی نمایش داده می‌شوند که منبع قابل‌بررسی داشته باشند.",
   },
   {
-    icon: Leaf,
-    title: "مواد اولیه تازه",
-    description: "مواد اولیه‌ای انتخاب می‌کنیم که خودمان هم با خیال راحت برای خانواده‌مان استفاده می‌کنیم.",
+    icon: Database,
+    title: "داده واقعی از بک‌اند",
+    description:
+      "کاتالوگ داخلی برای تکمیل فرانت‌اند استفاده می‌شود؛ قیمت، موجودی، ترکیبات و سفارش نهایی باید از API معتبر دریافت شوند.",
   },
   {
-    icon: Award,
-    title: "وسواس در بهداشت",
-    description: "از انتخاب مواد اولیه تا پخت، بسته‌بندی و ارسال، تمیزی و کنترل کیفیت قبل از هر چیز اولویت دارد.",
+    icon: ShieldCheck,
+    title: "مرزبندی اطلاعات حساس",
+    description:
+      "اطلاعات پزشکی، آلرژن، مجوز و روش پرداخت با متن تبلیغاتی جایگزین نمی‌شوند و نیازمند تأیید جداگانه‌اند.",
   },
 ];
 
-const AboutPage = () => {
-  return (
-    <>
-      <SEO
-        title="درباره ما"
-        description="داستان وینیمی بیکری؛ از بوی کیک تازه در خانه تا ساخت کیک، کوکی و شیرینی با مواد اولیه تازه، بهداشت و عشق به پخت."
-      />
+const workflow = [
+  {
+    title: "انتخاب از کاتالوگ",
+    description:
+      "کاربر محصول و گزینه فعلی را می‌بیند و موارد نیازمند تأیید با برچسب روشن مشخص می‌شوند.",
+  },
+  {
+    title: "افزودن به سبد",
+    description:
+      "سبد در مرورگر حفظ می‌شود و پیش از Checkout دوباره با کاتالوگ همگام خواهد شد.",
+  },
+  {
+    title: "تأیید سمت سرور",
+    description:
+      "بعد از اتصال بک‌اند، قیمت، موجودی، روش تحویل و مالکیت سفارش در Laravel دوباره بررسی می‌شوند.",
+  },
+  {
+    title: "پرداخت و پیگیری",
+    description:
+      "پرداخت واقعی و وضعیت سفارش فقط از پاسخ تأییدشده سرور معتبر خواهند بود.",
+  },
+];
 
-      <section className="bg-secondary/50 section-padding">
-        <div className="container-custom text-center">
-          <h1 className="heading-1 text-foreground mb-4">درباره وینیمی بیکری</h1>
-          <p className="body-large text-muted-foreground max-w-3xl mx-auto">
-            همه‌چیز از بوی کیک تازه شروع شد؛ از خاطره‌های خانگی تا یک برند کوچک با وسواس روی کیفیت و بهداشت.
+const AboutPage = () => (
+  <>
+    <SEO
+      title="درباره وینیمی و وضعیت اطلاعات سایت"
+      description="معرفی وینیمی بیکری و سیاست سایت برای تفکیک داده تأییدشده، محتوای کاتالوگ داخلی و اطلاعاتی که باید از بک‌اند دریافت شوند."
+    />
+
+    <section className="section-padding bg-secondary/50">
+      <div className="container-custom max-w-4xl text-center">
+        <h1 className="heading-1 mb-5 text-foreground">درباره وینیمی بیکری</h1>
+        <p className="body-large mx-auto max-w-3xl leading-9 text-muted-foreground">
+          وینیمی یک فروشگاه آنلاین در حال تکمیل است. فرانت‌اند مسیر کاتالوگ، سبد، Checkout و حساب کاربری را فراهم می‌کند و مرحله بعد اتصال آن به بک‌اند واقعی پروژه است.
+        </p>
+      </div>
+    </section>
+
+    <section className="section-padding">
+      <div className="container-custom">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+          <div className="space-y-5">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary">
+              <ServerCog size={17} aria-hidden="true" />
+              وضعیت فعلی پروژه
+            </span>
+            <h2 className="heading-2 text-foreground">
+              فرانت‌اند کامل، داده نهایی وابسته به بک‌اند
+            </h2>
+            <div className="space-y-4 leading-8 text-muted-foreground">
+              <p>
+                صفحات فروشگاه، فیلتر محصولات، جزئیات محصول، سبد خرید، فرم ارسال، پرداخت و حساب کاربری طراحی شده‌اند. این بخش‌ها از نظر تجربه کاربری آماده اتصال به API هستند.
+              </p>
+              <p>
+                بخشی از اطلاعات فعلی از کاتالوگ داخلی فرانت‌اند می‌آید. این داده‌ها برای توسعه رابط استفاده می‌شوند و نباید جایگزین موجودی، ترکیبات، مجوز یا وضعیت سفارش در سرور شوند.
+              </p>
+              <p>
+                در مرحله اتصال به <strong>Winimi-bakery-backend</strong>، منبع اصلی حقیقت برای محصول، مشتری، سفارش و پرداخت به بک‌اند منتقل خواهد شد.
+              </p>
+            </div>
+          </div>
+
+          <figure className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+            <img
+              src={galleryBakery}
+              alt="تصویر نمایشی فضای یک کارگاه شیرینی‌پزی"
+              className="aspect-square h-full w-full object-cover"
+              width={900}
+              height={900}
+            />
+            <figcaption className="border-t border-border px-4 py-3 text-center text-xs leading-6 text-muted-foreground">
+              تصویر نمایشی است و به‌عنوان عکس تأییدشده محل فعالیت وینیمی منتشر نشده است.
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section className="section-padding bg-secondary/40">
+      <div className="container-custom">
+        <div className="mb-12 text-center">
+          <h2 className="heading-2 mb-4 text-foreground">اصول انتشار محتوا</h2>
+          <p className="mx-auto max-w-2xl leading-8 text-muted-foreground">
+            کامل‌بودن ظاهر سایت نباید با ساختن اطلاعات غیرواقعی اشتباه گرفته شود.
           </p>
         </div>
-      </section>
-
-      <section className="section-padding">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="heading-2 text-foreground">داستان ما</h2>
-              <div className="space-y-4 body-base text-muted-foreground">
-                <p>
-                  از کودکی، عطر کیک و شیرینی تازه همیشه در خانه ما می‌پیچید. شیرینی‌پزی برای ما فقط یک سرگرمی نبود؛ بخشی از زندگی و خاطرات خانوادگی‌مان بود. همان علاقه سال‌ها بعد به وینیمی تبدیل شد.
-                </p>
-                <p>
-                  اما برای ما، خوشمزه بودن هیچ‌وقت کافی نبود. همیشه مهم بود مطمئن باشیم چیزی که می‌خوریم با مواد اولیه تازه، باکیفیت و در محیطی کاملاً تمیز و بهداشتی تهیه شده است.
-                </p>
-                <p>
-                  به همین دلیل، در وینیمی روی تک‌تک مراحل کار نظارت می‌کنیم؛ از انتخاب مواد اولیه تا پخت، بسته‌بندی و ارسال. هر محصول قرار است همان دقتی را داشته باشد که اگر برای عزیزان خودمان می‌پختیم.
-                </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          {principles.map((principle) => (
+            <article
+              key={principle.title}
+              className="rounded-3xl border border-border bg-card p-7 text-center shadow-soft"
+            >
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <principle.icon size={27} aria-hidden="true" />
               </div>
-            </div>
-
-            <div className="aspect-square rounded-2xl overflow-hidden animate-fade-in delay-200 shadow-lg">
-              <img
-                src={galleryBakery}
-                alt="فضای پخت و بسته‌بندی وینیمی"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+              <h3 className="mb-3 text-xl font-bold text-foreground">
+                {principle.title}
+              </h3>
+              <p className="leading-8 text-muted-foreground">
+                {principle.description}
+              </p>
+            </article>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section className="section-padding bg-secondary/50">
-        <div className="container-custom">
-          <h2 className="heading-2 text-foreground text-center mb-12">ارزش‌های ما</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {values.map((value, index) => (
-              <div
-                key={index}
-                className="bg-card p-8 rounded-xl text-center space-y-4 shadow-soft animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-16 h-16 mx-auto bg-accent/20 rounded-full flex items-center justify-center">
-                  <value.icon className="text-accent" size={28} />
-                </div>
-                <h3 className="heading-3">{value.title}</h3>
-                <p className="body-base text-muted-foreground">{value.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    <section className="section-padding">
+      <div className="container-custom">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+          <figure className="order-2 overflow-hidden rounded-3xl border border-border bg-card shadow-card lg:order-1">
+            <img
+              src={galleryBaking}
+              alt="تصویر نمایشی آماده‌سازی شیرینی"
+              className="aspect-[4/3] h-full w-full object-cover"
+              loading="lazy"
+              width={900}
+              height={675}
+            />
+            <figcaption className="border-t border-border px-4 py-3 text-center text-xs leading-6 text-muted-foreground">
+              تصویر صرفاً برای نمایش موضوع فرآیند آماده‌سازی استفاده شده است.
+            </figcaption>
+          </figure>
 
-      <section className="section-padding">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-lg animate-fade-in">
-              <img
-                src={galleryBaking}
-                alt="فرآیند پخت محصولات وینیمی"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <div className="order-1 lg:order-2">
-              <h2 className="heading-2 text-foreground mb-8">فرآیند پخت و سفارش</h2>
-              <div className="space-y-6">
-                {[
-                  { title: "انتخاب مواد اولیه", desc: "مواد تازه و باکیفیت انتخاب می‌شوند؛ همان چیزی که برای خانواده خودمان می‌پسندیم." },
-                  { title: "آماده‌سازی با دقت", desc: "محصولات با زمان آماده‌سازی مشخص و نزدیک به سفارش تهیه می‌شوند." },
-                  { title: "کنترل کیفیت و بسته‌بندی", desc: "طعم، بافت، ظاهر، بهداشت و بسته‌بندی در هر مرحله بررسی می‌شود." },
-                  { title: "ثبت سفارش آنلاین", desc: "کاربر محصول را انتخاب می‌کند، وارد سبد خرید می‌شود و مسیر پرداخت آنلاین را ادامه می‌دهد." },
-                ].map((step, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{step.title}</h3>
-                      <p className="text-muted-foreground">{step.desc}</p>
-                    </div>
+          <div className="order-1 lg:order-2">
+            <h2 className="heading-2 mb-7 text-foreground">
+              مسیر سفارش پس از اتصال کامل
+            </h2>
+            <ol className="space-y-5">
+              {workflow.map((step, index) => (
+                <li key={step.title} className="flex items-start gap-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary font-black text-primary-foreground">
+                    {(index + 1).toLocaleString("fa-IR")}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-foreground">{step.title}</h3>
+                    <p className="mt-1 leading-7 text-muted-foreground">
+                      {step.description}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section className="section-padding bg-secondary/30">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="heading-2 text-foreground">چرا گزینه‌های بدون قند افزوده؟</h2>
-              <p className="body-base text-muted-foreground">
-                بعضی از عزیزان ما با دیابت زندگی می‌کنند و همیشه دلمان می‌خواست آن‌ها هم بتوانند با انتخاب آگاهانه‌تری از طعم یک شیرینی خوب لذت ببرند. همین باعث شد کنار محصولات کلاسیک، روی کوکی‌های بدون قند افزوده و گزینه‌های رژیمی هم کار کنیم.
-              </p>
-              <p className="body-base text-muted-foreground">
-                این محصولات توصیه پزشکی نیستند، اما ترکیبات و آلرژن‌ها با شفافیت نوشته می‌شوند تا انتخاب آگاهانه‌تری داشته باشید.
-              </p>
-            </div>
-
-            <div className="aspect-square rounded-2xl overflow-hidden animate-fade-in delay-200 shadow-lg">
-              <img
-                src={lifestyleBreaking}
-                alt="کوکی تازه وینیمی"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+    <section className="section-padding bg-primary text-primary-foreground">
+      <div className="container-custom text-center">
+        <ShoppingCart
+          className="mx-auto mb-4"
+          size={38}
+          aria-hidden="true"
+        />
+        <h2 className="heading-2 mb-4">
+          فرانت‌اند را از مسیر واقعی کاربر بررسی کنید
+        </h2>
+        <p className="body-large mx-auto mb-8 max-w-2xl opacity-90">
+          محصول را انتخاب کنید، سبد را بسازید و تا مرحله Checkout پیش بروید. پرداخت و ورود واقعی تا اتصال امن بک‌اند غیرفعال باقی می‌مانند.
+        </p>
+        <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <Link
+            to="/products"
+            className="rounded-xl bg-gold px-8 py-4 text-lg font-black text-primary transition hover:bg-gold/90"
+          >
+            مشاهده محصولات
+          </Link>
+          <Link
+            to="/quality"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary-foreground/30 px-8 py-4 text-lg font-bold transition hover:bg-primary-foreground/10"
+          >
+            <CheckCircle2 size={20} aria-hidden="true" />
+            سیاست شفافیت
+          </Link>
         </div>
-      </section>
-
-      <section className="section-padding bg-primary text-primary-foreground">
-        <div className="container-custom text-center">
-          <h2 className="heading-2 mb-4">وینیمی را از محصول شروع کنید</h2>
-          <p className="body-large mb-8 opacity-90">
-            محصول دلخواه را انتخاب کنید، وارد سبد خرید شوید و سفارش را از مسیر آنلاین ادامه دهید.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/products"
-              className="btn-primary px-8 py-4 rounded-lg text-lg font-medium bg-gold text-primary hover:bg-gold/90"
-            >
-              مشاهده محصولات
-            </Link>
-            <Link
-              to="/cart"
-              className="px-8 py-4 rounded-lg text-lg font-medium border border-primary-foreground/30 hover:bg-primary-foreground/10 transition-colors"
-            >
-              سبد خرید
-            </Link>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-};
+      </div>
+    </section>
+  </>
+);
 
 export default AboutPage;
