@@ -23,7 +23,6 @@ import {
   LEGACY_CART_STORAGE_KEY,
   PACKAGING_FEE,
   parseStoredCart,
-  sanitizeCartItems,
   serializeCart,
   type CartItem,
   type CartItemInput,
@@ -41,9 +40,11 @@ type Action =
   | { type: "CLEAR" }
   | { type: "SYNC_CATALOG"; products: Product[] };
 
-const getVariantStock = (variant: Product["variants"] extends Array<infer V> ? V : never) => {
-  if (variant && "stock" in variant) {
-    const stock = (variant as typeof variant & { stock?: number }).stock;
+type ProductVariant = NonNullable<Product["variants"]>[number];
+
+const getVariantStock = (variant: ProductVariant) => {
+  if ("stock" in variant) {
+    const stock = (variant as ProductVariant & { stock?: number }).stock;
     if (typeof stock === "number" && Number.isFinite(stock)) return Math.max(0, stock);
   }
   return undefined;
@@ -129,12 +130,19 @@ const syncItemWithCatalog = (item: CartItem, products: Product[]): CartItem => {
 const reducer = (state: CartState, action: Action): CartState => {
   switch (action.type) {
     case "ADD": {
+      const stock = Math.max(
+        0,
+        action.item.selectedVariant?.stock ?? action.item.stock ?? 99,
+      );
       const item: CartItem = {
         ...action.item,
+        stock,
+        selectedVariant: action.item.selectedVariant
+          ? { ...action.item.selectedVariant, stock }
+          : undefined,
         availability: action.item.availability ?? "available",
         quantity: 1,
       };
-      const stock = getCartItemStock(item);
 
       if (stock <= 0 || item.availability !== "available") return state;
 
@@ -250,10 +258,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window === "undefined") return;
 
     try {
-      window.localStorage.setItem(
-        CART_STORAGE_KEY,
-        serializeCart(sanitizeCartItems(state.items)),
-      );
+      window.localStorage.setItem(CART_STORAGE_KEY, serializeCart(state.items));
       window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
     } catch {
       // Storage can be unavailable in private browsing or restricted environments.
