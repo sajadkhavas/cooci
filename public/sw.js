@@ -47,7 +47,8 @@ const staleWhileRevalidate = async (request, cacheName) => {
     })
     .catch(() => undefined);
 
-  return cached || networkPromise || Response.error();
+  if (cached) return cached;
+  return (await networkPromise) || Response.error();
 };
 
 const networkFirstNavigation = async (request) => {
