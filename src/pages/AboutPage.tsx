@@ -2,7 +2,6 @@ import {
   CheckCircle2,
   Database,
   Eye,
-  ImageIcon,
   ServerCog,
   ShieldCheck,
   ShoppingCart,
@@ -160,7 +159,9 @@ const AboutPage = () => (
           </figure>
 
           <div className="order-1 lg:order-2">
-            <h2 className="heading-2 mb-7 text-foreground">مسیر سفارش پس از اتصال کامل</h2>
+            <h2 className="heading-2 mb-7 text-foreground">
+              مسیر سفارش پس از اتصال کامل
+            </h2>
             <ol className="space-y-5">
               {workflow.map((step, index) => (
                 <li key={step.title} className="flex items-start gap-4">
@@ -183,8 +184,14 @@ const AboutPage = () => (
 
     <section className="section-padding bg-primary text-primary-foreground">
       <div className="container-custom text-center">
-        <ShoppingCart className="mx-auto mb-4" size={38} aria-hidden="true" />
-        <h2 className="heading-2 mb-4">فرانت‌اند را از مسیر واقعی کاربر بررسی کنید</h2>
+        <ShoppingCart
+          className="mx-auto mb-4"
+          size={38}
+          aria-hidden="true"
+        />
+        <h2 className="heading-2 mb-4">
+          فرانت‌اند را از مسیر واقعی کاربر بررسی کنید
+        </h2>
         <p className="body-large mx-auto mb-8 max-w-2xl opacity-90">
           محصول را انتخاب کنید، سبد را بسازید و تا مرحله Checkout پیش بروید. پرداخت و ورود واقعی تا اتصال امن بک‌اند غیرفعال باقی می‌مانند.
         </p>
