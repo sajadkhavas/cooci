@@ -1,6 +1,7 @@
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { CheckoutGuard } from "@/components/cart/CheckoutGuard";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -72,7 +73,14 @@ const App = () => (
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/shipping" element={<ShippingPage />} />
                 <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route
+                  path="/checkout"
+                  element={(
+                    <CheckoutGuard>
+                      <CheckoutPage />
+                    </CheckoutGuard>
+                  )}
+                />
                 <Route path="/payment/callback" element={<PaymentCallbackPage />} />
                 <Route path="/account/login" element={<LoginPage />} />
                 <Route path="/account" element={<AccountPage />} />
