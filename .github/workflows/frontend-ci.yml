@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: Audit modern UI, content, accessibility, performance, types and build
+    name: Audit launch, modern UI, content, accessibility, performance, types and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -52,6 +52,21 @@ jobs:
         with:
           name: npm-install-diagnostics
           path: npm-install.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Full-launch roadmap audit
+        id: launch_audit
+        run: |
+          set -o pipefail
+          npm run audit:launch 2>&1 | tee launch-audit.log
+
+      - name: Upload launch audit diagnostics
+        if: failure() && steps.launch_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-audit-diagnostics
+          path: launch-audit.log
           if-no-files-found: error
           retention-days: 3
 
