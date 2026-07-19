@@ -1,9 +1,11 @@
+import { lazy, Suspense, type ComponentType, type ReactElement } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { CheckoutGuard } from "@/components/cart/CheckoutGuard";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,41 +13,56 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
-import AboutPage from "./pages/AboutPage";
-import AccountPage from "./pages/AccountPage";
-import BlogDetailPage from "./pages/BlogDetailPage";
-import BlogListPage from "./pages/BlogListPage";
-import CartPage from "./pages/CartPage";
-import CategoryPage from "./pages/CategoryPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import CityPage from "./pages/CityPage";
-import ContactPage from "./pages/ContactPage";
-import CorporatePage from "./pages/CorporatePage";
-import FAQPage from "./pages/FAQPage";
-import GalleryPage from "./pages/GalleryPage";
-import GiftPage from "./pages/GiftPage";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import NotFoundPage from "./pages/NotFoundPage";
-import OrderDetailPage from "./pages/OrderDetailPage";
-import PaymentCallbackPage from "./pages/PaymentCallbackPage";
-import PaymentMockPage from "./pages/PaymentMockPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import ProductsPage from "./pages/ProductsPage";
-import QualityPage from "./pages/QualityPage";
-import ReviewsPage from "./pages/ReviewsPage";
-import ShippingPage from "./pages/ShippingPage";
-import TermsPage from "./pages/TermsPage";
+
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
+const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
+const BlogListPage = lazy(() => import("./pages/BlogListPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const CityPage = lazy(() => import("./pages/CityPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const CorporatePage = lazy(() => import("./pages/CorporatePage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const GalleryPage = lazy(() => import("./pages/GalleryPage"));
+const GiftPage = lazy(() => import("./pages/GiftPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const PaymentCallbackPage = lazy(() => import("./pages/PaymentCallbackPage"));
+const PaymentMockPage = lazy(() => import("./pages/PaymentMockPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const QualityPage = lazy(() => import("./pages/QualityPage"));
+const ReviewsPage = lazy(() => import("./pages/ReviewsPage"));
+const ShippingPage = lazy(() => import("./pages/ShippingPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
       retry: 1,
+      networkMode: "offlineFirst",
+    },
+    mutations: {
+      networkMode: "online",
+      retry: 0,
     },
   },
 });
+
+const lazyElement = (Page: ComponentType): ReactElement => (
+  <Suspense fallback={<RouteLoadingFallback />}>
+    <Page />
+  </Suspense>
+);
 
 const App = () => (
   <HelmetProvider>
@@ -61,52 +78,73 @@ const App = () => (
                 <Routes>
                   <Route element={<SiteLayout />}>
                     <Route path="/" element={<HomePage />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/products/category/:slug" element={<CategoryPage />} />
-                    <Route path="/products/:slug" element={<ProductDetailPage />} />
-                    <Route path="/blog" element={<BlogListPage />} />
-                    <Route path="/blog/:slug" element={<BlogDetailPage />} />
-                    <Route path="/city/:slug" element={<CityPage />} />
-                    <Route path="/gift" element={<GiftPage />} />
-                    <Route path="/corporate" element={<CorporatePage />} />
-                    <Route path="/reviews" element={<ReviewsPage />} />
-                    <Route path="/quality" element={<QualityPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/gallery" element={<GalleryPage />} />
-                    <Route path="/faq" element={<FAQPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/privacy" element={<PrivacyPage />} />
-                    <Route path="/terms" element={<TermsPage />} />
-                    <Route path="/shipping" element={<ShippingPage />} />
-                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/products" element={lazyElement(ProductsPage)} />
+                    <Route
+                      path="/products/category/:slug"
+                      element={lazyElement(CategoryPage)}
+                    />
+                    <Route
+                      path="/products/:slug"
+                      element={lazyElement(ProductDetailPage)}
+                    />
+                    <Route path="/blog" element={lazyElement(BlogListPage)} />
+                    <Route
+                      path="/blog/:slug"
+                      element={lazyElement(BlogDetailPage)}
+                    />
+                    <Route path="/city/:slug" element={lazyElement(CityPage)} />
+                    <Route path="/gift" element={lazyElement(GiftPage)} />
+                    <Route
+                      path="/corporate"
+                      element={lazyElement(CorporatePage)}
+                    />
+                    <Route path="/reviews" element={lazyElement(ReviewsPage)} />
+                    <Route path="/quality" element={lazyElement(QualityPage)} />
+                    <Route path="/about" element={lazyElement(AboutPage)} />
+                    <Route path="/gallery" element={lazyElement(GalleryPage)} />
+                    <Route path="/faq" element={lazyElement(FAQPage)} />
+                    <Route path="/contact" element={lazyElement(ContactPage)} />
+                    <Route path="/privacy" element={lazyElement(PrivacyPage)} />
+                    <Route path="/terms" element={lazyElement(TermsPage)} />
+                    <Route path="/shipping" element={lazyElement(ShippingPage)} />
+                    <Route path="/cart" element={lazyElement(CartPage)} />
                     <Route
                       path="/checkout"
-                      element={(
+                      element={
                         <CheckoutGuard>
-                          <CheckoutPage />
+                          {lazyElement(CheckoutPage)}
                         </CheckoutGuard>
-                      )}
+                      }
                     />
-                    <Route path="/payment/mock" element={<PaymentMockPage />} />
-                    <Route path="/payment/callback" element={<PaymentCallbackPage />} />
-                    <Route path="/account/login" element={<LoginPage />} />
+                    <Route
+                      path="/payment/mock"
+                      element={lazyElement(PaymentMockPage)}
+                    />
+                    <Route
+                      path="/payment/callback"
+                      element={lazyElement(PaymentCallbackPage)}
+                    />
+                    <Route
+                      path="/account/login"
+                      element={lazyElement(LoginPage)}
+                    />
                     <Route
                       path="/account"
-                      element={(
+                      element={
                         <ProtectedRoute>
-                          <AccountPage />
+                          {lazyElement(AccountPage)}
                         </ProtectedRoute>
-                      )}
+                      }
                     />
                     <Route
                       path="/account/orders/:orderId"
-                      element={(
+                      element={
                         <ProtectedRoute>
-                          <OrderDetailPage />
+                          {lazyElement(OrderDetailPage)}
                         </ProtectedRoute>
-                      )}
+                      }
                     />
-                    <Route path="*" element={<NotFoundPage />} />
+                    <Route path="*" element={lazyElement(NotFoundPage)} />
                   </Route>
                 </Routes>
               </RouteErrorBoundary>

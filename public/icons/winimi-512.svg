@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">نشان وینیمی بیکری</title>
+  <rect width="512" height="512" fill="#356f50"/>
+  <circle cx="256" cy="256" r="170" fill="#f5fbf7"/>
+  <circle cx="181" cy="184" r="22" fill="#7b9b45"/>
+  <circle cx="326" cy="171" r="19" fill="#7b9b45"/>
+  <circle cx="345" cy="304" r="25" fill="#7b9b45"/>
+  <circle cx="193" cy="329" r="17" fill="#7b9b45"/>
+  <path d="M137 157 193 354h49l24-96 25 96h49l55-197h-47l-32 133-30-117h-39l-31 117-31-133Z" fill="#356f50"/>
+</svg>
