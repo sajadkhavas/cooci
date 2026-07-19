@@ -1,28 +1,35 @@
-import { Link, useParams, Navigate } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import { AlertCircle, MessageCircle } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ProductGridSkeleton } from "@/components/catalog/ProductGridSkeleton";
 import { ProductCard } from "@/components/ProductCard";
+import { SEO } from "@/components/SEO";
+import {
+  brandConfig,
+  generateWhatsAppUrl,
+  SUPPORT_WHATSAPP_MESSAGE,
+} from "@/config/brand";
 import { getCategoryContent } from "@/data/categoriesContent";
 import { useCatalogProducts } from "@/hooks/useCatalog";
-import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE, brandConfig } from "@/config/brand";
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const content = slug ? getCategoryContent(slug) : undefined;
-  const { products } = useCatalogProducts();
+  const { products, isLoading, error } = useCatalogProducts();
 
   if (!content) return <Navigate to="/products" replace />;
 
-  const categoryProducts = products.filter((p) => p.categorySlug === content.productCategorySlug);
+  const categoryProducts = products.filter(
+    (product) => product.categorySlug === content.productCategorySlug,
+  );
 
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: content.faq.map((f) => ({
+    mainEntity: content.faq.map((faq) => ({
       "@type": "Question",
-      name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: f.answer },
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
     })),
   };
 
@@ -41,33 +48,47 @@ const CategoryPage = () => {
             ]}
           />
           <div className="max-w-3xl">
-            <h1 className="heading-1 text-foreground mb-6">{content.heading}</h1>
-            <p className="body-large text-muted-foreground leading-9">{content.intro}</p>
+            <h1 className="heading-1 mb-6 text-foreground">{content.heading}</h1>
+            <p className="body-large leading-9 text-muted-foreground">{content.intro}</p>
           </div>
         </div>
       </section>
 
-      {categoryProducts.length > 0 && (
-        <section className="section-padding">
-          <div className="container-custom">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoryProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+      <section className="section-padding">
+        <div className="container-custom">
+          {isLoading ? (
+            <ProductGridSkeleton count={6} />
+          ) : error && products.length === 0 ? (
+            <div className="rounded-3xl border border-destructive/30 bg-destructive/5 px-6 py-14 text-center" role="alert">
+              <AlertCircle className="mx-auto mb-4 text-destructive" size={48} aria-hidden="true" />
+              <h2 className="heading-3 mb-3 text-foreground">محصولات این دسته دریافت نشد</h2>
+              <p className="text-muted-foreground">صفحه را دوباره بارگذاری کنید یا همه محصولات را مشاهده کنید.</p>
+            </div>
+          ) : categoryProducts.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {categoryProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          ) : (
+            <div className="rounded-3xl border border-border bg-card px-6 py-14 text-center shadow-soft">
+              <span className="mb-4 block text-6xl" aria-hidden="true">🍪</span>
+              <h2 className="heading-3 mb-3 text-foreground">محصول فعالی در این دسته نیست</h2>
+              <p className="text-muted-foreground">محصولات جدید این دسته به‌زودی اضافه می‌شوند.</p>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="section-padding bg-secondary/30">
         <div className="container-custom max-w-4xl space-y-8">
-          {content.sections.map((s) => (
-            <article key={s.title} className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-soft">
-              <h2 className="heading-3 text-foreground mb-3 flex items-center gap-3">
-                <span className="w-8 h-1 bg-primary rounded-full" />
-                {s.title}
+          {content.sections.map((section) => (
+            <article key={section.title} className="rounded-3xl border border-border bg-card p-6 shadow-soft md:p-8">
+              <h2 className="heading-3 mb-3 flex items-center gap-3 text-foreground">
+                <span className="h-1 w-8 rounded-full bg-primary" />
+                {section.title}
               </h2>
-              <p className="text-muted-foreground leading-9">{s.body}</p>
+              <p className="leading-9 text-muted-foreground">{section.body}</p>
             </article>
           ))}
         </div>
@@ -75,28 +96,30 @@ const CategoryPage = () => {
 
       <section className="section-padding">
         <div className="container-custom max-w-3xl">
-          <h2 className="heading-2 text-foreground text-center mb-8">پرسش‌های متداول درباره {content.name}</h2>
+          <h2 className="heading-2 mb-8 text-center text-foreground">
+            پرسش‌های متداول درباره {content.name}
+          </h2>
           <div className="space-y-3">
-            {content.faq.map((f) => (
-              <details key={f.question} className="group bg-card border border-border rounded-2xl p-5">
-                <summary className="cursor-pointer font-bold text-foreground list-none flex justify-between items-center">
-                  {f.question}
-                  <span className="text-primary group-open:rotate-45 transition-transform">+</span>
+            {content.faq.map((faq) => (
+              <details key={faq.question} className="group rounded-2xl border border-border bg-card p-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between font-bold text-foreground">
+                  {faq.question}
+                  <span className="text-primary transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-muted-foreground leading-8">{f.answer}</p>
+                <p className="mt-3 leading-8 text-muted-foreground">{faq.answer}</p>
               </details>
             ))}
           </div>
-          <div className="mt-10 text-center bg-primary/10 rounded-3xl p-8">
-            <p className="text-foreground font-bold mb-4">سؤالی درباره {content.name} دارید؟</p>
+          <div className="mt-10 rounded-3xl bg-primary/10 p-8 text-center">
+            <p className="mb-4 font-bold text-foreground">سؤالی درباره {content.name} دارید؟</p>
             <a
               href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-whatsapp text-white px-6 py-3 rounded-xl font-bold"
+              className="inline-flex items-center gap-2 rounded-xl bg-whatsapp px-6 py-3 font-bold text-white"
             >
-              <MessageCircle size={18} />
-              مشاوره در واتساپ {brandConfig.brandName}
+              <MessageCircle size={18} aria-hidden="true" />
+              پشتیبانی واتساپ {brandConfig.brandName}
             </a>
           </div>
         </div>
