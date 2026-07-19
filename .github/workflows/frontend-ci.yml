@@ -16,6 +16,12 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  SITE_URL: https://winimibakery.com
+  VITE_SITE_ORIGIN: https://winimibakery.com
+  VITE_USE_BACKEND: "false"
+  VITE_PAYMENT_PROVIDER: gateway-placeholder
+
 jobs:
   validate:
     name: Lint, typecheck and build
@@ -35,10 +41,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate frontend
-        run: npm run check
-        env:
-          SITE_URL: https://winimibakery.com
-          VITE_SITE_ORIGIN: https://winimibakery.com
-          VITE_USE_BACKEND: "false"
-          VITE_PAYMENT_PROVIDER: gateway-placeholder
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
