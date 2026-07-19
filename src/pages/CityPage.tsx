@@ -1,61 +1,131 @@
-import { Link, Navigate, useParams } from "react-router-dom";
-import { Clock, MapPin, MessageCircle, Phone } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import {
+  Clock,
+  MapPin,
+  MessageCircle,
+  Phone,
+  ShoppingCart,
+  Truck,
+} from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ProductCard";
+import { SEO } from "@/components/SEO";
+import {
+  brandConfig,
+  generatePhoneUrl,
+  generateWhatsAppUrl,
+  SUPPORT_WHATSAPP_MESSAGE,
+} from "@/config/brand";
 import { getCityBySlug } from "@/data/cities";
 import { useCatalogProducts } from "@/hooks/useCatalog";
-import { brandConfig, generatePhoneUrl, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 const CityPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const city = slug ? getCityBySlug(slug) : undefined;
-  const { products } = useCatalogProducts();
+  const { products, isLoading, error } = useCatalogProducts();
 
-  if (!city) return <Navigate to="/" replace />;
+  if (!city) return <NotFoundPage />;
 
-  const featured = products.filter((p) => p.isFeatured).slice(0, 6);
-  const message = `سلام، از ${city.name} می‌خواهم سفارش بدهم. لطفاً راهنمایی کنید.`;
+  const featured = products
+    .filter((product) => product.isFeatured)
+    .slice(0, 6);
 
   const schema = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: `${brandConfig.brandName} - ${city.name}`,
-    telephone: brandConfig.phone,
-    address: { "@type": "PostalAddress", addressLocality: city.name, addressCountry: "IR" },
-    areaServed: city.name,
+    "@graph": [
+      {
+        "@type": "Service",
+        name: `ارسال محصولات ${brandConfig.brandName} به ${city.name}`,
+        serviceType: "فروش و ارسال محصولات بیکری",
+        provider: {
+          "@type": "Bakery",
+          name: brandConfig.brandName,
+          url: brandConfig.website,
+          telephone: brandConfig.phone,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: brandConfig.city,
+            addressRegion: brandConfig.region,
+            addressCountry: "IR",
+          },
+        },
+        areaServed: {
+          "@type": "City",
+          name: city.name,
+        },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: city.faq.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      },
+    ],
   };
 
   return (
     <>
-      <SEO title={city.seoTitle} description={city.seoDescription} schema={schema} />
+      <SEO
+        title={city.seoTitle}
+        description={city.seoDescription}
+        schema={schema}
+      />
+
       <section className="section-padding bg-gradient-to-b from-primary/5 to-background">
         <div className="container-custom">
-          <Breadcrumbs className="mb-8" items={[{ name: "خانه", href: "/" }, { name: city.name }]} />
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4 text-sm font-bold">
-              <MapPin size={16} />
-              ارسال به {city.name}
+          <Breadcrumbs
+            className="mb-8"
+            items={[
+              { name: "خانه", href: "/" },
+              { name: "محصولات", href: "/products" },
+              { name: city.name },
+            ]}
+          />
+
+          <div className="max-w-4xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary">
+              <MapPin size={16} aria-hidden="true" />
+              خرید و ارسال به {city.name}
             </div>
-            <h1 className="heading-1 text-foreground mb-6">{city.heading}</h1>
-            <p className="body-large text-muted-foreground leading-9 mb-8">{city.intro}</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-card border border-border rounded-2xl p-5">
-                <Clock className="text-primary mb-2" size={22} />
+            <h1 className="heading-1 mb-6 text-foreground">{city.heading}</h1>
+            <p className="body-large mb-8 max-w-3xl leading-9 text-muted-foreground">
+              {city.intro}
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+                <Clock className="mb-3 text-primary" size={22} aria-hidden="true" />
                 <p className="font-bold text-foreground">{city.deliveryTime}</p>
-                <p className="text-sm text-muted-foreground mt-1">{city.deliveryScope}</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {city.deliveryScope}
+                </p>
               </div>
-              <div className="bg-primary text-primary-foreground rounded-2xl p-5">
-                <MessageCircle className="mb-2" size={22} />
-                <p className="font-bold mb-2">سفارش سریع در واتساپ</p>
-                <a
-                  href={generateWhatsAppUrl(message)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-white text-primary rounded-xl px-4 py-2 text-sm font-bold"
-                >
-                  شروع سفارش
-                </a>
+              <div className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-soft">
+                <ShoppingCart className="mb-3" size={22} aria-hidden="true" />
+                <p className="mb-2 font-bold">سفارش از مسیر آنلاین سایت</p>
+                <p className="mb-4 text-sm leading-7 text-primary-foreground/75">
+                  محصول را انتخاب کنید و شهر و روش تحویل را در Checkout ثبت کنید.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/products"
+                    className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-primary"
+                  >
+                    مشاهده محصولات
+                  </Link>
+                  <Link
+                    to="/cart"
+                    className="rounded-xl border border-white/25 px-4 py-2 text-sm font-bold text-white"
+                  >
+                    سبد خرید
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -64,52 +134,106 @@ const CityPage = () => {
 
       <section className="section-padding bg-secondary/30">
         <div className="container-custom max-w-4xl">
-          <h2 className="heading-2 text-foreground mb-6">چرا {brandConfig.brandName} در {city.name}؟</h2>
-          <ul className="grid md:grid-cols-2 gap-4">
-            {city.highlights.map((h) => (
-              <li key={h} className="bg-card border border-border rounded-2xl p-4 flex gap-3">
-                <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                <span className="text-foreground leading-8">{h}</span>
+          <h2 className="heading-2 mb-7 text-foreground">
+            خرید از {brandConfig.brandName} برای {city.name}
+          </h2>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {city.highlights.map((highlight) => (
+              <li
+                key={highlight}
+                className="flex gap-3 rounded-2xl border border-border bg-card p-4 leading-8 text-foreground"
+              >
+                <span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                {highlight}
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {featured.length > 0 && (
-        <section className="section-padding">
-          <div className="container-custom">
-            <h2 className="heading-2 text-foreground text-center mb-10">محبوب‌ترین انتخاب‌ها برای {city.name}</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featured.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-            <div className="text-center mt-8">
-              <Link to="/products" className="btn-primary px-8 py-3 rounded-xl font-bold inline-block">همه محصولات</Link>
-            </div>
+      <section className="section-padding">
+        <div className="container-custom">
+          <div className="mb-10 text-center">
+            <h2 className="heading-2 text-foreground">
+              انتخاب‌های محبوب برای {city.name}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+              موجودی و امکان ارسال هر محصول را در صفحه جزئیات بررسی کنید.
+            </p>
           </div>
-        </section>
-      )}
+
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className="overflow-hidden rounded-3xl border border-border bg-card">
+                  <div className="aspect-[4/3] animate-pulse bg-muted" />
+                  <div className="space-y-3 p-5">
+                    <div className="h-6 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : featured.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-border bg-card p-10 text-center">
+              <Truck className="mx-auto mb-4 text-primary" size={46} aria-hidden="true" />
+              <p className="font-bold text-foreground">محصول منتخب فعالی وجود ندارد</p>
+              <Link to="/products" className="mt-5 inline-block font-bold text-primary hover:underline">
+                مشاهده همه محصولات
+              </Link>
+            </div>
+          )}
+
+          {error && (
+            <p className="mt-5 text-center text-sm text-amber-800" role="status">
+              نسخه داخلی محصولات نمایش داده شده است.
+            </p>
+          )}
+        </div>
+      </section>
 
       <section className="section-padding bg-secondary/30">
         <div className="container-custom max-w-3xl">
-          <h2 className="heading-2 text-foreground text-center mb-8">سؤالات متداول {city.name}</h2>
+          <h2 className="heading-2 mb-8 text-center text-foreground">
+            سؤالات متداول {city.name}
+          </h2>
           <div className="space-y-3">
-            {city.faq.map((f) => (
-              <details key={f.question} className="group bg-card border border-border rounded-2xl p-5">
-                <summary className="cursor-pointer font-bold text-foreground list-none flex justify-between items-center">
-                  {f.question}
-                  <span className="text-primary group-open:rotate-45 transition-transform">+</span>
+            {city.faq.map((item) => (
+              <details
+                key={item.question}
+                className="group rounded-2xl border border-border bg-card p-5"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between font-bold text-foreground">
+                  {item.question}
+                  <span className="text-primary transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-muted-foreground leading-8">{f.answer}</p>
+                <p className="mt-3 leading-8 text-muted-foreground">{item.answer}</p>
               </details>
             ))}
           </div>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <a href={generateWhatsAppUrl(message)} target="_blank" rel="noopener noreferrer" className="bg-whatsapp text-white rounded-xl px-6 py-3 font-bold text-center flex items-center justify-center gap-2">
-              <MessageCircle size={18} /> واتساپ
+
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <a
+              href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-whatsapp px-6 py-3 font-bold text-white"
+            >
+              <MessageCircle size={18} aria-hidden="true" />
+              سؤال از پشتیبانی
             </a>
-            <a href={generatePhoneUrl()} className="border-2 border-primary text-primary rounded-xl px-6 py-3 font-bold text-center flex items-center justify-center gap-2">
-              <Phone size={18} /> {brandConfig.phone}
+            <a
+              href={generatePhoneUrl()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary px-6 py-3 font-bold text-primary"
+            >
+              <Phone size={18} aria-hidden="true" />
+              {brandConfig.phone}
             </a>
           </div>
         </div>
