@@ -20,7 +20,8 @@ env:
   SITE_URL: https://winimibakery.com
   VITE_SITE_ORIGIN: https://winimibakery.com
   VITE_USE_BACKEND: "false"
-  VITE_PAYMENT_PROVIDER: gateway-placeholder
+  VITE_API_BASE_URL: https://api.winimibakery.com
+  VITE_PAYMENT_MODE: disabled
 
 jobs:
   validate:
