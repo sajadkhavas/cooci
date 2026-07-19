@@ -1,108 +1,203 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  RefreshCcw,
+  ShoppingCart,
+  XCircle,
+} from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { CheckoutSteps } from "@/components/cart/CheckoutSteps";
 import { SEO } from "@/components/SEO";
-import { getOrderById, updateOrderStatus } from "@/lib/orders";
-import { verifyPayment, isSimulationMode } from "@/lib/zarinpal";
 import { formatToman } from "@/config/brand";
-
-type State = "loading" | "success" | "failed";
+import { useCart } from "@/context/CartContext";
+import {
+  clearCheckoutDraft,
+  retryOrderPayment,
+  verifyPaymentResult,
+  type PaymentResultState,
+} from "@/lib/checkout";
+import type { LocalOrder } from "@/lib/orders";
 
 const PaymentCallbackPage = () => {
   const [params] = useSearchParams();
-  const [state, setState] = useState<State>("loading");
-  const [refId, setRefId] = useState<string | null>(null);
-  const orderId = params.get("order") || "";
-  const authority = params.get("Authority") || params.get("authority");
-  const status = params.get("Status") || params.get("status");
+  const { clearCart } = useCart();
+  const [state, setState] = useState<"loading" | PaymentResultState>("loading");
+  const [order, setOrder] = useState<LocalOrder | undefined>();
+  const [error, setError] = useState<string | undefined>();
+  const [retrying, setRetrying] = useState(false);
+  const orderId = params.get("order") ?? "";
+  const authority = params.get("Authority") ?? params.get("authority");
+  const providerStatus = params.get("Status") ?? params.get("status");
+  const attemptId = params.get("attempt");
+  const mockToken = params.get("mock_token");
+
+  const verify = useCallback(async () => {
+    if (!orderId) {
+      setState("unknown");
+      setError("شماره سفارش در آدرس بازگشت وجود ندارد.");
+      return;
+    }
+
+    setState("loading");
+    setError(undefined);
+    const result = await verifyPaymentResult({
+      orderId,
+      authority,
+      status: providerStatus,
+      attemptId,
+      mockToken,
+    });
+
+    setOrder(result.order);
+    setError(result.error);
+    setState(result.state);
+
+    if (result.state === "success") {
+      clearCart();
+      clearCheckoutDraft();
+    }
+  }, [attemptId, authority, clearCart, mockToken, orderId, providerStatus]);
 
   useEffect(() => {
-    const run = async () => {
-      const order = orderId ? getOrderById(orderId) : undefined;
+    void verify();
+  }, [verify]);
 
-      if (status === "paid") {
-        if (order) updateOrderStatus(orderId, { status: "paid", paymentStatus: "paid" });
-        setState("success");
-        return;
-      }
-      if (status === "failed" || status === "NOK") {
-        if (order) updateOrderStatus(orderId, { paymentStatus: "failed" });
-        setState("failed");
-        return;
-      }
+  const retry = async () => {
+    if (!orderId) return;
+    setRetrying(true);
+    const result = await retryOrderPayment(orderId);
+    if (result.success && result.paymentUrl) {
+      window.location.assign(result.paymentUrl);
+      return;
+    }
+    toast.error(result.error || "شروع دوباره پرداخت ناموفق بود.");
+    setRetrying(false);
+  };
 
-      if (status === "OK" && authority && order) {
-        if (isSimulationMode()) {
-          updateOrderStatus(orderId, { status: "paid", paymentStatus: "paid" });
-          setState("success");
-          return;
-        }
-        const v = await verifyPayment({ authority, amountToman: order.total });
-        if (v.success) {
-          updateOrderStatus(orderId, {
-            status: "paid",
-            paymentStatus: "paid",
-            refId: v.refId,
-          });
-          if (v.refId) setRefId(v.refId);
-          setState("success");
-        } else {
-          updateOrderStatus(orderId, { paymentStatus: "failed" });
-          setState("failed");
-        }
-        return;
-      }
-
-      setState("failed");
-    };
-    run();
-  }, [orderId, authority, status]);
+  const orderTotal = order?.total;
+  const refId = order?.refId;
 
   return (
     <>
       <SEO title="نتیجه پرداخت" noIndex />
-      <section className="section-padding">
-        <div className="container-custom max-w-xl mx-auto text-center">
+      <section className="section-padding bg-gradient-to-b from-secondary/20 to-background">
+        <div className="container-custom max-w-2xl">
+          <CheckoutSteps current="payment" />
+
           {state === "loading" && (
-            <div className="bg-card border border-border rounded-2xl p-10">
-              <Loader2 className="mx-auto mb-4 animate-spin text-primary" size={48} />
-              <p>در حال بررسی وضعیت پرداخت…</p>
+            <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-card" role="status">
+              <Loader2 className="mx-auto mb-5 animate-spin text-primary" size={52} aria-hidden="true" />
+              <h1 className="text-xl font-bold text-foreground">در حال تأیید پرداخت</h1>
+              <p className="mt-3 leading-8 text-muted-foreground">
+                نتیجه فقط پس از استعلام از بک‌اند و درگاه نهایی می‌شود. این صفحه را نبندید.
+              </p>
             </div>
           )}
 
           {state === "success" && (
-            <div className="bg-card border border-border rounded-2xl p-10">
-              <CheckCircle className="mx-auto mb-4 text-green-600" size={64} />
-              <h1 className="text-2xl font-bold mb-2">پرداخت موفق بود</h1>
-              <p className="text-muted-foreground mb-2">شماره سفارش: <strong>{orderId}</strong></p>
-              {refId && <p className="text-muted-foreground mb-2">کد پیگیری: <strong>{refId}</strong></p>}
-              {orderId && (() => {
-                const o = getOrderById(orderId);
-                return o ? (
-                  <p className="text-muted-foreground mb-6">مبلغ پرداخت: <strong>{formatToman(o.total)}</strong></p>
-                ) : null;
-              })()}
-              <div className="flex gap-3 justify-center flex-wrap">
-                <Link to="/account" className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold">
-                  مشاهده جزئیات سفارش
+            <div className="rounded-3xl border border-emerald-300 bg-card p-7 text-center shadow-card md:p-10">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <CheckCircle2 size={44} aria-hidden="true" />
+              </div>
+              <h1 className="text-2xl font-black text-foreground md:text-3xl">پرداخت با موفقیت تأیید شد</h1>
+              <p className="mt-3 leading-8 text-muted-foreground">
+                سفارش برای آماده‌سازی ثبت شد و سبد خرید اکنون پاک شده است.
+              </p>
+
+              <div className="my-7 space-y-3 rounded-2xl bg-secondary/60 p-5 text-right">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">شماره سفارش</span>
+                  <strong dir="ltr">{orderId}</strong>
+                </div>
+                {refId && (
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">کد پیگیری پرداخت</span>
+                    <strong dir="ltr">{refId}</strong>
+                  </div>
+                )}
+                {typeof orderTotal === "number" && (
+                  <div className="flex justify-between gap-3 border-t border-border pt-3 text-lg">
+                    <span className="font-bold">مبلغ پرداخت‌شده</span>
+                    <strong className="text-primary">{formatToman(orderTotal)}</strong>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                <Link
+                  to={`/account/orders/${encodeURIComponent(orderId)}`}
+                  className="btn-primary rounded-xl px-6 py-3"
+                >
+                  مشاهده سفارش
                 </Link>
-                <Link to="/products" className="border border-border px-6 py-3 rounded-xl font-bold">
-                  بازگشت به خرید
+                <Link to="/products" className="btn-secondary rounded-xl border border-border px-6 py-3">
+                  ادامه خرید
                 </Link>
               </div>
             </div>
           )}
 
-          {state === "failed" && (
-            <div className="bg-card border border-border rounded-2xl p-10">
-              <XCircle className="mx-auto mb-4 text-destructive" size={64} />
-              <h1 className="text-2xl font-bold mb-2">پرداخت انجام نشد</h1>
-              <p className="text-muted-foreground mb-6">
-                در صورت کسر وجه، مبلغ ظرف ۷۲ ساعت به حساب شما بازگردانده می‌شود.
+          {(state === "failed" || state === "cancelled") && (
+            <div className="rounded-3xl border border-destructive/30 bg-card p-7 text-center shadow-card md:p-10">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <XCircle size={44} aria-hidden="true" />
+              </div>
+              <h1 className="text-2xl font-black text-foreground">
+                {state === "cancelled" ? "پرداخت لغو شد" : "پرداخت تأیید نشد"}
+              </h1>
+              <p className="mt-3 leading-8 text-muted-foreground">
+                {error || "سفارش و سبد خرید شما حفظ شده است و می‌توانید دوباره تلاش کنید."}
               </p>
-              <Link to="/checkout" className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold">
-                تلاش مجدد
-              </Link>
+              <p className="mt-2 text-sm text-muted-foreground">
+                در صورت کسر وجه و تأیید نشدن تراکنش، بازگشت وجه طبق مقررات شبکه بانکی انجام می‌شود.
+              </p>
+
+              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={retry}
+                  disabled={retrying}
+                  className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 disabled:opacity-50"
+                >
+                  <RefreshCcw size={18} className={retrying ? "animate-spin" : ""} aria-hidden="true" />
+                  {retrying ? "در حال ایجاد پرداخت جدید…" : "تلاش مجدد برای پرداخت"}
+                </button>
+                <Link
+                  to="/cart"
+                  className="btn-secondary inline-flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3"
+                >
+                  <ShoppingCart size={18} aria-hidden="true" />
+                  بازگشت به سبد
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {state === "unknown" && (
+            <div className="rounded-3xl border border-amber-300 bg-card p-7 text-center shadow-card md:p-10">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                <AlertCircle size={44} aria-hidden="true" />
+              </div>
+              <h1 className="text-2xl font-black text-foreground">وضعیت پرداخت مشخص نیست</h1>
+              <p className="mt-3 leading-8 text-muted-foreground">
+                {error || "پاسخ قطعی از سرور دریافت نشد. سفارش پرداخت‌شده علامت‌گذاری نشده و سبد شما نیز حفظ شده است."}
+              </p>
+              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => void verify()}
+                  className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3"
+                >
+                  <RefreshCcw size={18} aria-hidden="true" />
+                  بررسی دوباره وضعیت
+                </button>
+                <Link to="/cart" className="btn-secondary rounded-xl border border-border px-6 py-3">
+                  بازگشت به سبد
+                </Link>
+              </div>
             </div>
           )}
         </div>
