@@ -26,16 +26,18 @@ if (!routePaths.includes("*")) {
   errors.push("src/App.tsx must include a wildcard 404 route.");
 }
 
-const routeRegexes = routePaths.map((route) => {
-  if (route === "*") return /^\/.*$/;
-  const expression = route
-    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\\:([a-zA-Z0-9_]+)/g, "[^/]+")
-    .replace(/\\\*/g, ".*");
-  return new RegExp(`^${expression}/?$`);
-});
+const routeRegexes = routePaths
+  .filter((route) => route !== "*")
+  .map((route) => {
+    const expression = route
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/:[a-zA-Z0-9_]+/g, "[^/]+")
+      .replace(/\\\*/g, ".*");
+    return new RegExp(`^${expression}/?$`);
+  });
 
-const isKnownRoute = (pathname) => routeRegexes.some((pattern) => pattern.test(pathname));
+const isKnownRoute = (pathname) =>
+  routeRegexes.some((pattern) => pattern.test(pathname));
 
 for (const file of sourceFiles) {
   const source = readFileSync(file, "utf8");
@@ -45,7 +47,9 @@ for (const file of sourceFiles) {
     const target = match[1];
     const pathname = target.split(/[?#]/, 1)[0] || "/";
     if (!isKnownRoute(pathname)) {
-      errors.push(`${displayPath}: internal link does not match an app route: ${target}`);
+      errors.push(
+        `${displayPath}: internal link does not match an app route: ${target}`,
+      );
     }
   }
 
@@ -57,7 +61,10 @@ for (const file of sourceFiles) {
     { pattern: /cooci\.lovable\.app/gi, message: "temporary Lovable domain" },
     { pattern: /سفارش سریع در واتساپ/g, message: "legacy WhatsApp ordering CTA" },
     { pattern: /سفارش در واتساپ/g, message: "legacy WhatsApp ordering CTA" },
-    { pattern: /در واتساپ ثبت (?:کنید|شود)/g, message: "legacy WhatsApp ordering copy" },
+    {
+      pattern: /در واتساپ ثبت (?:کنید|شود)/g,
+      message: "legacy WhatsApp ordering copy",
+    },
   ];
 
   for (const rule of forbiddenPatterns) {
@@ -88,9 +95,12 @@ if (!brandSource.includes('website: "https://winimibakery.com"')) {
 }
 
 const appImports = Array.from(
-  appSource.matchAll(/import\s+([A-Za-z0-9_]+)\s+from\s+["']\.\/pages\/(.+Page)["']/g),
+  appSource.matchAll(
+    /import\s+([A-Za-z0-9_]+)\s+from\s+["']\.\/pages\/(.+Page)["']/g,
+  ),
   (match) => ({ component: match[1], file: `src/pages/${match[2]}.tsx` }),
 );
+
 for (const page of appImports) {
   try {
     read(page.file);
@@ -99,8 +109,19 @@ for (const page of appImports) {
   }
 }
 
+const importedPageFiles = new Set(appImports.map((page) => resolve(page.file)));
+for (const pageFile of pageFiles) {
+  if (!importedPageFiles.has(pageFile)) {
+    warnings.push(
+      `${relative(ROOT, pageFile)} is not imported directly by src/App.tsx; verify that it is intentionally nested or unused.`,
+    );
+  }
+}
+
 if (routePaths.length < 20) {
-  warnings.push(`Only ${routePaths.length} routes were detected; review the route extraction if routes were refactored.`);
+  warnings.push(
+    `Only ${routePaths.length} routes were detected; review route extraction if routes were refactored.`,
+  );
 }
 
 if (warnings.length) {
