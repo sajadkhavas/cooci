@@ -1,24 +1,41 @@
 // Writes public/sitemap.xml before dev/build without requiring Bun or tsx.
-// Reads slugs from src/data/products.ts by regex to avoid importing image assets.
+// Reads route slugs from source files to keep the sitemap aligned with the app.
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const BASE_URL = process.env.SITE_URL || "https://winimibakery.com";
-const productsSource = readFileSync(resolve("src/data/products.ts"), "utf-8");
-const categorySlugs = new Set(["all", "cookies", "mini-cookies", "cakes", "diet", "gift", "pastry"]);
-const slugMatches = Array.from(productsSource.matchAll(/slug:\s*"([a-z0-9-]+)"/g))
-  .map((match) => match[1])
-  .filter((slug) => !categorySlugs.has(slug));
-const productSlugs = Array.from(new Set(slugMatches));
+const BASE_URL = (process.env.SITE_URL || "https://winimibakery.com").replace(/\/$/, "");
 
-const categorySlugList = ["cookies", "mini-cookies", "cakes", "diet", "gift", "pastry"];
+const readSource = (path) => {
+  try {
+    return readFileSync(resolve(path), "utf-8");
+  } catch {
+    return "";
+  }
+};
+
+const uniqueMatches = (source, pattern) =>
+  Array.from(new Set(Array.from(source.matchAll(pattern)).map((match) => match[1])));
+
+const productsSource = readSource("src/data/products.ts");
+const categoriesSource = readSource("src/data/categoriesContent.ts");
+const blogSource = readSource("src/data/blogPosts.ts");
+
+const productCategorySlugs = new Set([
+  "all",
+  "cookies",
+  "mini-cookies",
+  "cakes",
+  "diet",
+  "gift",
+  "pastry",
+]);
+
+const productSlugs = uniqueMatches(productsSource, /^\s*slug:\s*"([a-z0-9-]+)"/gm).filter(
+  (slug) => !productCategorySlugs.has(slug),
+);
+const categorySlugs = uniqueMatches(categoriesSource, /^\s*slug:\s*"([a-z0-9-]+)"/gm);
+const blogSlugs = uniqueMatches(blogSource, /^\s*slug:\s*"([a-z0-9-]+)"/gm);
 const citySlugs = ["tehran", "karaj", "andisheh"];
-const blogSource = (() => {
-  try { return readFileSync(resolve("src/data/blogPosts.ts"), "utf-8"); } catch { return ""; }
-})();
-const blogSlugs = Array.from(new Set(
-  Array.from(blogSource.matchAll(/slug:\s*"([a-z0-9-]+)"/g)).map((m) => m[1])
-));
 
 const entries = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
@@ -35,10 +52,26 @@ const entries = [
   { path: "/shipping", changefreq: "yearly", priority: "0.4" },
   { path: "/privacy", changefreq: "yearly", priority: "0.2" },
   { path: "/terms", changefreq: "yearly", priority: "0.2" },
-  ...categorySlugList.map((slug) => ({ path: `/products/category/${slug}`, changefreq: "weekly", priority: "0.7" })),
-  ...citySlugs.map((slug) => ({ path: `/city/${slug}`, changefreq: "monthly", priority: "0.6" })),
-  ...blogSlugs.map((slug) => ({ path: `/blog/${slug}`, changefreq: "monthly", priority: "0.6" })),
-  ...productSlugs.map((slug) => ({ path: `/products/${slug}`, changefreq: "monthly", priority: "0.7" })),
+  ...categorySlugs.map((slug) => ({
+    path: `/products/category/${slug}`,
+    changefreq: "weekly",
+    priority: "0.7",
+  })),
+  ...citySlugs.map((slug) => ({
+    path: `/city/${slug}`,
+    changefreq: "monthly",
+    priority: "0.6",
+  })),
+  ...blogSlugs.map((slug) => ({
+    path: `/blog/${slug}`,
+    changefreq: "monthly",
+    priority: "0.6",
+  })),
+  ...productSlugs.map((slug) => ({
+    path: `/products/${slug}`,
+    changefreq: "monthly",
+    priority: "0.7",
+  })),
 ];
 
 const urls = entries

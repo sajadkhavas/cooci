@@ -18,6 +18,7 @@ const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { product } = useCatalogProduct(slug);
   const { products: catalogProducts } = useCatalogProducts();
+  const { addItem, items } = useCart();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
@@ -73,7 +74,6 @@ const ProductDetailPage = () => {
       : undefined,
   };
 
-  const { addItem, items } = useCart();
   const cartKey = selectedVariant ? `${product.id}::${selectedVariant.id}` : `${product.id}::`;
   const inCart = items.some((i) => `${i.id}::${i.selectedVariant?.id ?? ""}` === cartKey);
 
