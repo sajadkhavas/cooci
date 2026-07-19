@@ -1,43 +1,40 @@
 export const brandConfig = {
   brandName: "وینیمی بیکری",
   brandNameEn: "Winimi Bakery",
-  tagline: "کیک و کوکی مثل خانه",
-  slogan: "پخت تازه، مواد اولیه باکیفیت، وسواس در بهداشت",
+  tagline: "کیک و کوکی خانگی",
+  slogan: "انتخاب آنلاین محصول با اطلاعات روشن و مسیر سفارش مرحله‌به‌مرحله",
   phone: "09212508746",
   phoneClean: "09212508746",
   whatsappNumber: "989212508746",
   email: "hello@winimibakery.com",
-  address: "اندیشه، تهران",
+  address: "محدوده اندیشه، استان تهران",
   city: "اندیشه",
   region: "تهران",
   website: "https://winimibakery.com",
   workingHours: {
-    weekdays: "۹ صبح تا ۹ شب",
-    weekends: "۱۰ صبح تا ۸ شب",
+    weekdays: "پاسخ‌گویی با هماهنگی",
+    weekends: "پاسخ‌گویی با هماهنگی",
   },
   instagramUrl: "https://www.instagram.com/winimi.bakery",
   instagramHandle: "winimi.bakery",
   mapUrl: "https://maps.google.com/?q=Andisheh+Tehran",
-  founder: {
-    name: "تیم وینیمی",
-    role: "بنیان‌گذار و سرآشپز",
-    bio: "با بیش از ۵ سال تجربه در پخت کوکی و کیک خانگی، وینیمی از دل عشق به شیرینی‌های خانگی متولد شد.",
-  },
   defaultMeta: {
-    title: "وینیمی بیکری | کوکی خانگی، کیک تازه و باکس هدیه",
+    title: "وینیمی بیکری | کاتالوگ کوکی، کیک و باکس هدیه",
     description:
-      "خرید آنلاین کوکی خانگی، کیک، تیرامیسو، چیزکیک و باکس هدیه وینیمی با پخت تازه، قیمت و موجودی شفاف، سبد خرید و تکمیل سفارش آنلاین.",
+      "مشاهده کاتالوگ وینیمی، مقایسه قیمت و گزینه‌های محصول، افزودن به سبد و تکمیل اطلاعات سفارش آنلاین.",
     image: "/og-image.jpg",
   },
-  preparationTime: "۲۴ تا ۴۸ ساعت",
+  preparationTime: "پس از انتخاب محصول و روش تحویل اعلام می‌شود",
   deliveryInfo:
-    "محصولات خشک به سراسر ایران ارسال می‌شوند؛ کیک‌ها، تیرامیسو و دسرهای یخچالی فقط تهران و کرج.",
+    "روش‌های قابل انتخاب تحویل براساس نوع محصول، شهر مقصد و تنظیمات فعال Checkout نمایش داده می‌شوند.",
   trustPillars: [
-    "پخت تازه نزدیک به زمان سفارش",
-    "مواد اولیه باکیفیت و شفاف",
-    "ارسال سراسری برای محصولات خشک",
-    "دسرهای یخچالی فقط تهران و کرج",
+    "نمایش قیمت فعلی کاتالوگ",
+    "اعلام نیاز به نگهداری سرد",
+    "مشاهده آلرژن فقط پس از تأیید اطلاعات محصول",
+    "تأیید نهایی مبلغ و موجودی توسط بک‌اند",
   ],
+  contentNotice:
+    "اطلاعات ثابت فرانت‌اند جایگزین تأیید نهایی موجودی، ترکیبات، زمان آماده‌سازی و محدوده تحویل توسط بک‌اند نیست.",
 };
 
 export const SUPPORT_WHATSAPP_MESSAGE = `سلام، از سایت ${brandConfig.brandName} با شما تماس گرفتم. یک سؤال درباره محصولات یا سفارش دارم.`;
@@ -45,7 +42,9 @@ export const SUPPORT_WHATSAPP_MESSAGE = `سلام، از سایت ${brandConfig.
 export const generatePhoneUrl = (phone: string = brandConfig.phoneClean) =>
   `tel:+98${phone.replace(/^0/, "")}`;
 
-export const generateWhatsAppUrl = (message: string = SUPPORT_WHATSAPP_MESSAGE) =>
+export const generateWhatsAppUrl = (
+  message: string = SUPPORT_WHATSAPP_MESSAGE,
+) =>
   `https://wa.me/${brandConfig.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
 export const formatToman = (amount: number) =>
