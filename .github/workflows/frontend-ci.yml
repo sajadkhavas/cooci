@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: Audit, lint, typecheck and build
+    name: Audit, accessibility, lint, typecheck and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -55,6 +55,21 @@ jobs:
         with:
           name: frontend-audit-diagnostics
           path: frontend-audit.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Accessibility regression audit
+        id: accessibility_audit
+        run: |
+          set -o pipefail
+          npm run audit:accessibility 2>&1 | tee accessibility-audit.log
+
+      - name: Upload accessibility diagnostics
+        if: failure() && steps.accessibility_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-audit-diagnostics
+          path: accessibility-audit.log
           if-no-files-found: error
           retention-days: 3
 
