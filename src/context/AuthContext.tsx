@@ -24,6 +24,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: Error | null;
   mode: AuthMode;
   sendOtp: (mobile: string) => Promise<OtpRequestResult>;
   confirmOtp: (input: VerifyOtpInput) => Promise<AuthUser>;
@@ -37,13 +38,25 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const mode = getAuthMode();
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
-    const session = await bootstrapAuth();
-    setUser(session?.user ?? null);
-    setIsLoading(false);
+    setError(null);
+    try {
+      const session = await bootstrapAuth();
+      setUser(session?.user ?? null);
+    } catch (refreshError) {
+      setUser(null);
+      setError(
+        refreshError instanceof Error
+          ? refreshError
+          : new Error("بررسی نشست کاربری ناموفق بود."),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -55,12 +68,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const confirmOtp = useCallback(async (input: VerifyOtpInput) => {
     const session = await verifyOtp(input);
     setUser(session.user);
+    setError(null);
     return session.user;
   }, []);
 
   const logout = useCallback(async () => {
     await logoutAuth();
     setUser(null);
+    setError(null);
   }, []);
 
   const updateProfile = useCallback(async (fullName: string) => {
@@ -74,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       isAuthenticated: Boolean(user),
       isLoading,
+      error,
       mode,
       sendOtp,
       confirmOtp,
@@ -81,7 +97,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       updateProfile,
       refresh,
     }),
-    [confirmOtp, isLoading, logout, mode, refresh, sendOtp, updateProfile, user],
+    [
+      confirmOtp,
+      error,
+      isLoading,
+      logout,
+      mode,
+      refresh,
+      sendOtp,
+      updateProfile,
+      user,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
