@@ -38,9 +38,14 @@ import {
   getPublicShelfLife,
   getPublicStorageTips,
   getStockPresentation,
+  getVariantDiscountPercent,
+  getVariantDisplayPrice,
+  getVariantRegularPrice,
+  getVariantSalePrice,
   isProductContentVerified,
   isProductInventoryVerified,
 } from "@/lib/catalog";
+import { getPreferredProductVariant } from "@/lib/product-selection";
 
 const ProductDetailSkeleton = () => (
   <section className="section-padding">
@@ -85,7 +90,7 @@ const ProductDetailPage = () => {
   const selectedVariant = useMemo(
     () =>
       product?.variants?.find((variant) => variant.id === selectedVariantId) ??
-      product?.variants?.[0],
+      (product ? getPreferredProductVariant(product) : undefined),
     [product, selectedVariantId],
   );
 
@@ -139,9 +144,15 @@ const ProductDetailPage = () => {
   }
 
   const relatedProducts = getRelatedFromCatalog(product, catalogProducts, 4);
-  const regularPrice = selectedVariant?.price ?? getProductRegularPrice(product);
-  const salePrice = selectedVariant ? undefined : getProductSalePrice(product);
-  const activePrice = salePrice ?? regularPrice;
+  const regularPrice = selectedVariant
+    ? getVariantRegularPrice(selectedVariant)
+    : getProductRegularPrice(product);
+  const salePrice = selectedVariant
+    ? getVariantSalePrice(selectedVariant)
+    : getProductSalePrice(product);
+  const activePrice = selectedVariant
+    ? getVariantDisplayPrice(selectedVariant)
+    : salePrice ?? regularPrice;
   const contentVerified = isProductContentVerified(product);
   const inventoryVerified = isProductInventoryVerified(product);
   const publicDescription = getPublicProductDescription(product);
@@ -162,7 +173,11 @@ const ProductDetailPage = () => {
     activeStock,
     inventoryVerified,
   );
-  const discountPercent = salePrice ? getDiscountPercent(product) : 0;
+  const discountPercent = selectedVariant
+    ? getVariantDiscountPercent(selectedVariant)
+    : salePrice
+      ? getDiscountPercent(product)
+      : 0;
   const cartKey = `${product.id}::${selectedVariant?.id ?? ""}`;
   const existingCartItem = items.find(
     (item) => `${item.id}::${item.selectedVariant?.id ?? ""}` === cartKey,
@@ -185,11 +200,15 @@ const ProductDetailPage = () => {
           "@type": "Offer",
           price: activePrice * 10,
           priceCurrency: "IRR",
-          availability:
-            activeStock > 0
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-          url: `${brandConfig.website}/products/${product.slug}`,
+          ...(inventoryVerified
+            ? {
+                availability:
+                  activeStock > 0
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
+              }
+            : {}),
+          url: `${brandConfig.website}/products/${encodeURIComponent(product.slug)}`,
         }
       : undefined,
   };
@@ -224,6 +243,9 @@ const ProductDetailPage = () => {
         name: product.name,
         productCode: activeCode,
         priceToman: activePrice,
+        regularPriceToman:
+          regularPrice && regularPrice > activePrice ? regularPrice : undefined,
+        stock: activeStock,
         requiresCooling: Boolean(product.requiresCooling),
         image: product.images[0]?.url ?? "",
         selectedVariant: selectedVariant
@@ -231,6 +253,7 @@ const ProductDetailPage = () => {
               id: selectedVariant.id,
               name: selectedVariant.name,
               priceToman: activePrice,
+              stock: activeStock,
             }
           : undefined,
       },
@@ -243,7 +266,7 @@ const ProductDetailPage = () => {
     <>
       <SEO
         title={product.seo?.title ?? product.name}
-        description={product.seo?.description ?? product.shortDescription}
+        description={product.seo?.description || publicDescription}
         type="product"
         schema={productSchema}
         image={product.images[0]?.url}
@@ -256,7 +279,10 @@ const ProductDetailPage = () => {
             items={[
               { name: "خانه", href: "/" },
               { name: "محصولات", href: "/products" },
-              { name: product.category, href: `/products?category=${product.categorySlug}` },
+              {
+                name: product.category,
+                href: `/products?category=${encodeURIComponent(product.categorySlug)}`,
+              },
               { name: product.name },
             ]}
           />
@@ -264,7 +290,7 @@ const ProductDetailPage = () => {
           {error && (
             <div className="mb-8 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
               <AlertCircle className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
-              اطلاعات داخلی محصول نمایش داده می‌شود؛ ارتباط با منبع اصلی کاتالوگ موقتاً برقرار نیست.
+              آخرین اطلاعات دریافت‌شده نمایش داده می‌شود؛ به‌روزرسانی کاتالوگ موقتاً ناموفق بود.
             </div>
           )}
 

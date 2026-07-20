@@ -38,7 +38,9 @@ const shippingOptions = [
 
 const parsePositivePage = (value: string | null) => {
   const parsed = Number.parseInt(value ?? "1", 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  return Number.isFinite(parsed) && parsed > 0
+    ? Math.min(10_000, parsed)
+    : 1;
 };
 
 const ProductsPage = () => {
@@ -78,6 +80,7 @@ const ProductsPage = () => {
     isFetching,
     error,
     isBackendCatalogEnabled,
+    refetch,
   } = useCatalogProducts({
     category: effectiveCategory,
     search: deferredSearch || undefined,
@@ -93,13 +96,18 @@ const ProductsPage = () => {
     perPage: 12,
   });
 
-  const updateParam = (key: string, value: string | null) => {
+  const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
-    if (!value || value === "all" || value === "featured") next.delete(key);
-    else next.set(key, value);
-    if (key !== "page") next.delete("page");
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === "all" || value === "featured") next.delete(key);
+      else next.set(key, value);
+    });
+    if (!("page" in updates)) next.delete("page");
     setSearchParams(next, { replace: true });
   };
+
+  const updateParam = (key: string, value: string | null) =>
+    updateParams({ [key]: value });
 
   useEffect(() => {
     if (!pagination || requestedPage <= pagination.totalPages) return;
@@ -165,10 +173,9 @@ const ProductsPage = () => {
                   <button
                     key={category.id}
                     type="button"
-                    onClick={() => {
-                      updateParam("category", category.slug);
-                      if (dietOnly) updateParam("diet", null);
-                    }}
+                    onClick={() =>
+                      updateParams({ category: category.slug, diet: null })
+                    }
                     aria-pressed={isActive}
                     className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                       isActive
@@ -198,7 +205,9 @@ const ProductsPage = () => {
                   type="search"
                   placeholder="جستجوی نام، توضیح کوتاه یا کد محصول…"
                   value={searchQuery}
-                  onChange={(event) => updateParam("q", event.target.value)}
+                  onChange={(event) =>
+                    updateParam("q", event.target.value.slice(0, 120))
+                  }
                   className="input-field w-full px-10"
                   aria-label="جستجو در محصولات"
                   autoComplete="off"
@@ -237,7 +246,13 @@ const ProductsPage = () => {
 
               <button
                 type="button"
-                onClick={() => updateParam("diet", dietOnly ? null : "true")}
+                onClick={() =>
+                  updateParams(
+                    dietOnly
+                      ? { diet: null }
+                      : { diet: "true", category: null },
+                  )
+                }
                 aria-pressed={dietOnly}
                 className={`rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
                   dietOnly
@@ -316,7 +331,7 @@ const ProductsPage = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={() => window.location.reload()}
+                  onClick={() => void refetch()}
                   className="btn-primary rounded-xl px-7 py-3"
                 >
                   تلاش دوباره
