@@ -3,7 +3,6 @@ import { getAuthMode, type AuthUser } from "@/lib/auth";
 import type {
   BackendAddress,
   BackendAddressInput,
-  BackendOrder,
 } from "@/lib/backend-contract";
 import {
   cancelOwnedMockOrder,
@@ -109,8 +108,8 @@ export const loadOwnedOrder = async (
 };
 
 export const cancelOwnedOrder = async (
-  user: AuthUser,
   orderId: string,
+  user?: AuthUser,
 ): Promise<LocalOrder> => {
   if (getAuthMode() === "backend") {
     const response = await apiRequest<{ order: unknown }>(
@@ -123,7 +122,12 @@ export const cancelOwnedOrder = async (
   if (!areDevelopmentMocksEnabled) {
     throw new Error("لغو سفارش مرورگر در production مجاز نیست.");
   }
-  return cancelOwnedMockOrder(orderId, user.mobile);
+  const stored = getOrderById(orderId);
+  const ownerMobile = user?.mobile || stored?.customer.mobile;
+  if (!ownerMobile) {
+    throw new Error("مالک سفارش آزمایشی مشخص نیست.");
+  }
+  return cancelOwnedMockOrder(orderId, ownerMobile);
 };
 
 export const loadAccountAddresses = async (): Promise<BackendAddress[]> =>
