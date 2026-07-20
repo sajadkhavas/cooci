@@ -1,0 +1,161 @@
+name: Phase 18 End-to-End Acceptance
+
+on:
+  push:
+    branches:
+      - "agent/phase-18-*"
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: phase18-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: http://127.0.0.1:4173
+  VITE_SITE_ORIGIN: http://127.0.0.1:4173
+  VITE_USE_BACKEND: "true"
+  VITE_API_BASE_URL: http://127.0.0.1:8000
+  VITE_ALLOW_DEV_MOCKS: "false"
+  VITE_AUTH_MODE: disabled
+  VITE_PAYMENT_MODE: disabled
+  PHASE18_FRONTEND_URL: http://127.0.0.1:4173
+  PHASE18_API_URL: http://127.0.0.1:8000
+  APP_ENV: testing
+  APP_DEBUG: "true"
+  APP_URL: http://127.0.0.1:8000
+  FRONTEND_URL: http://127.0.0.1:4173
+  FRONTEND_URLS: http://127.0.0.1:4173,http://localhost:4173
+  SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4173,127.0.0.1:8000,localhost:4173,localhost:8000
+  SESSION_DRIVER: file
+  SESSION_DOMAIN: ""
+  SESSION_SECURE_COOKIE: "false"
+  SESSION_SAME_SITE: lax
+  DB_CONNECTION: sqlite
+  DB_DATABASE: database/database.sqlite
+  CACHE_STORE: array
+  QUEUE_CONNECTION: sync
+  MAIL_MAILER: array
+  SMS_PROVIDER: testing
+  OTP_EXPOSE_TEST_CODE: "true"
+  OTP_RETRY_AFTER_SECONDS: "0"
+  CHECKOUT_ENABLED: "true"
+  PAYMENT_ENABLED: "true"
+  PAYMENT_PROVIDER: testing
+  PAYMENT_CALLBACK_URL: http://127.0.0.1:4173/payment/callback
+  ORDER_SMS_PROVIDER: disabled
+  TELESCOPE_ENABLED: "false"
+  PULSE_ENABLED: "false"
+
+jobs:
+  browser-acceptance:
+    name: Desktop and mobile Chromium against Laravel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Checkout merged Phase 18 backend
+        uses: actions/checkout@v4
+        with:
+          repository: sajadkhavas/winimi-bakery-backend
+          ref: main
+          path: backend
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: bcmath, ctype, curl, dom, fileinfo, gd, intl, mbstring, openssl, pdo_sqlite, sqlite3, tokenizer, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install and prepare Laravel
+        working-directory: backend
+        run: |
+          composer install --prefer-dist --no-interaction --no-progress
+          cp .env.example .env
+          mkdir -p database storage/framework/sessions storage/framework/cache storage/framework/views
+          touch database/database.sqlite
+          php artisan key:generate --force
+          php artisan optimize:clear
+          php artisan migrate:fresh --force
+          php artisan db:seed --class='Database\Seeders\WinimiStagingSeeder' --force
+          php scripts/audit-phase-18-acceptance.php
+
+      - name: Start Laravel API
+        working-directory: backend
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 > ../backend-server.log 2>&1 &
+          echo $! > ../backend-server.pid
+
+      - name: Wait for Laravel readiness
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/system/ready > backend-ready.json; then
+              cat backend-ready.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat backend-server.log
+          exit 1
+
+      - name: Install storefront and pinned browser runner
+        run: |
+          npm ci
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Phase 18 frontend architecture audit
+        run: npm run audit:acceptance
+
+      - name: Start Vite storefront
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
+          echo $! > frontend-server.pid
+
+      - name: Wait for storefront
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:4173/products > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat frontend-server.log
+          exit 1
+
+      - name: Run desktop and mobile acceptance
+        id: browser_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e 2>&1 | tee phase18-browser.log
+
+      - name: Upload Phase 18 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase18-browser-acceptance
+          path: |
+            phase18-browser.log
+            backend-ready.json
+            backend-server.log
+            frontend-server.log
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
