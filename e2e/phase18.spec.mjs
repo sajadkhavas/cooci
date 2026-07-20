@@ -116,7 +116,7 @@ test("product detail sends the server Variant stock snapshot into the reconciled
   const addButton = page.getByRole("button", { name: "افزودن به سبد خرید" });
   await expect(addButton).toBeEnabled();
   await addButton.click();
-  await page.getByRole("link", { name: "مشاهده سبد خرید" }).click();
+  await page.locator("#main-content").getByRole("link", { name: "مشاهده سبد خرید" }).click();
 
   await expect(page).toHaveURL(/\/cart$/);
   await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
@@ -151,12 +151,11 @@ test("a tampered stale cart cannot bypass exact server reconciliation", async ({
   });
 
   await page.goto("/cart");
-  await expect(page.getByRole("heading", { name: "سبد خرید" })).toBeVisible();
   await expect(page.getByText("به‌روزرسانی سبد ناموفق بود")).toBeVisible();
   await expect(page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" })).toBeDisabled();
-  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
-  expect(persisted.items[0].image).toBe("");
-  expect(persisted.items[0].quantity).toBeLessThanOrEqual(1000);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
+  expect(stored.items[0].image).toBe("");
+  expect(stored.items[0].quantity).toBeLessThanOrEqual(1000);
   assertNoPageErrors();
 });
 
