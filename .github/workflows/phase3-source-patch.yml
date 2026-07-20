@@ -6,12 +6,14 @@ on:
       - agent/frontend-full-audit-phase-3-catalog-cart
     paths:
       - scripts/phase3-source-patch.py
+      - scripts/phase3-source-patch-trigger.txt
   pull_request:
     branches:
       - main
     types: [opened, synchronize]
     paths:
       - scripts/phase3-source-patch.py
+      - scripts/phase3-source-patch-trigger.txt
 
 permissions:
   contents: write
