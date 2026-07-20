@@ -28,7 +28,7 @@ env:
 
 jobs:
   validate:
-    name: Audit integration, brand, UI, content, accessibility, types and build
+    name: Audit integration, brand, transaction safety, UI, content, accessibility, types and build
     runs-on: ubuntu-latest
     timeout-minutes: 18
 
@@ -53,6 +53,9 @@ jobs:
 
       - name: Winimi pastel brand audit
         run: npm run audit:brand
+
+      - name: Frontend full-audit Phase 1
+        run: npm run audit:phase1
 
       - name: Frontend route and content audit
         run: npm run audit:frontend
