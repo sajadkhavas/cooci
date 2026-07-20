@@ -62,11 +62,11 @@ jobs:
       - name: Checkout storefront
         uses: actions/checkout@v4
 
-      - name: Checkout Phase 18 backend
+      - name: Checkout merged Phase 18 backend
         uses: actions/checkout@v4
         with:
           repository: sajadkhavas/winimi-bakery-backend
-          ref: agent/phase-18-e2e-acceptance
+          ref: main
           path: backend
 
       - name: Set up Node.js
