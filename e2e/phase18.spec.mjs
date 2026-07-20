@@ -122,7 +122,7 @@ test("product detail sends the server Variant stock snapshot into the reconciled
   const assertNoPageErrors = attachPageErrorGuard(page);
 
   await addStagingCookieToCart(page);
-  await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
+  await expect(page.getByRole("link", { name: "کوکی شکلاتی تست", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" })).toBeEnabled();
   assertNoPageErrors();
 });
@@ -177,7 +177,7 @@ test("real Laravel checkout verifies testing payment and clears cart only after 
   await page.getByLabel("نشانی کامل").fill("تهران، خیابان تست، پلاک ۱۰");
   await page.getByLabel("کد پستی").fill("1234567890");
 
-  const standardDelivery = page.getByRole("button", { name: /ارسال استاندارد/ });
+  const standardDelivery = page.getByRole("button", { name: /ارسال معمولی/ });
   await expect(standardDelivery).toBeEnabled();
   await standardDelivery.click();
   await page.getByRole("button", { name: "ثبت سفارش و ادامه پرداخت" }).click();
@@ -210,7 +210,7 @@ test("forged callback authority never clears an existing cart", async ({ page })
   const after = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
   expect(after.items.length).toBe(before.items.length);
   await page.goto("/cart");
-  await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
+  await expect(page.getByRole("link", { name: "کوکی شکلاتی تست", exact: true })).toBeVisible();
   assertNoPageErrors();
 });
 
