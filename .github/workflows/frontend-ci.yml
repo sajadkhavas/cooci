@@ -64,13 +64,49 @@ jobs:
         run: npm run audit:modern-ui
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee lint.log
+
+      - name: Upload lint diagnostics
+        if: failure() && steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-diagnostics
+          path: lint.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Typecheck
-        run: npm run typecheck
+        id: typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: failure() && steps.typecheck.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: typecheck.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Production build and performance budget
-        run: npm run build
+        id: production_build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee production-build.log
+
+      - name: Upload build diagnostics
+        if: failure() && steps.production_build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-diagnostics
+          path: production-build.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Upload performance report
         if: always()
