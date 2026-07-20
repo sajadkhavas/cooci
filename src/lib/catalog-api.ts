@@ -3,10 +3,19 @@ import type { Product } from "@/data/products";
 import { apiRequest } from "@/lib/api";
 import type {
   BackendCategory,
-  BackendPagination,
   BackendProduct,
   BackendProductVariant,
 } from "@/lib/backend-contract";
+import {
+  parseBackendCategories,
+  parseBackendPagination,
+  parseBackendProduct,
+  parseBackendProducts,
+} from "@/lib/catalog-schema";
+
+const MAX_SEARCH_LENGTH = 120;
+const MAX_PAGE = 10_000;
+const MAX_PER_PAGE = 100;
 
 export interface CatalogQuery {
   category?: string;
@@ -21,7 +30,7 @@ export interface CatalogQuery {
 
 export interface CatalogPage {
   products: Product[];
-  pagination: BackendPagination;
+  pagination: ReturnType<typeof parseBackendPagination>;
 }
 
 export interface CatalogCategory {
@@ -68,12 +77,25 @@ const mapVariant = (variant: BackendProductVariant): ProductVariant => ({
   isDefault: variant.isDefault,
 });
 
+const compareVariants = (first: ProductVariant, second: ProductVariant) => {
+  const defaultDifference = Number(second.isDefault) - Number(first.isDefault);
+  if (defaultDifference !== 0) return defaultDifference;
+
+  const availabilityDifference = Number(second.available) - Number(first.available);
+  if (availabilityDifference !== 0) return availabilityDifference;
+
+  return first.name.localeCompare(second.name, "fa");
+};
+
 export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
   const fallbackImage = {
     url: representativeProductImage,
     alt: `تصویر نمایشی ${product.name}`,
   };
-  const variants = product.variants.map(mapVariant);
+  const verifiedImages = product.images
+    .filter((image) => image.verified)
+    .map((image) => ({ url: image.url, alt: image.alt || product.name }));
+  const variants = product.variants.map(mapVariant).sort(compareVariants);
 
   return {
     id: product.id,
@@ -101,9 +123,7 @@ export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
     requiresCooling: product.requiresCooling,
     shippingScope: product.shippingScope,
     shippingNote: product.shippingNote,
-    images: product.images.length
-      ? product.images.map((image) => ({ url: image.url, alt: image.alt }))
-      : [fallbackImage],
+    images: verifiedImages.length ? verifiedImages : [fallbackImage],
     isFeatured: product.isFeatured,
     productCode: product.productCode,
     variants,
@@ -113,61 +133,68 @@ export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
     },
     available: product.available,
     contentVerified: product.contentVerified,
-    mediaVerified: product.mediaVerified && product.images.length > 0,
+    mediaVerified: product.mediaVerified && verifiedImages.length > 0,
     inventoryVerified: product.inventoryVerified,
     updatedAt: product.updatedAt || undefined,
   };
 };
 
-const toSearchParams = (query: CatalogQuery) => {
+const clampInteger = (
+  value: number | undefined,
+  minimum: number,
+  maximum: number,
+) => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.min(maximum, Math.max(minimum, Math.floor(value)));
+};
+
+export const toCatalogSearchParams = (query: CatalogQuery) => {
   const params = new URLSearchParams();
-  if (query.category && query.category !== "all") params.set("category", query.category);
-  if (query.search?.trim()) params.set("search", query.search.trim());
+  const category = query.category?.trim().slice(0, 180);
+  const search = query.search?.trim().slice(0, MAX_SEARCH_LENGTH);
+  const page = clampInteger(query.page, 1, MAX_PAGE);
+  const perPage = clampInteger(query.perPage, 1, MAX_PER_PAGE);
+
+  if (category && category !== "all") params.set("category", category);
+  if (search) params.set("search", search);
   if (query.featured !== undefined) params.set("featured", String(query.featured));
   if (query.requiresCooling !== undefined) {
     params.set("requiresCooling", String(query.requiresCooling));
   }
   if (query.inStock !== undefined) params.set("inStock", String(query.inStock));
   if (query.sort) params.set("sort", query.sort);
-  if (query.page) params.set("page", String(query.page));
-  if (query.perPage) params.set("perPage", String(query.perPage));
+  if (page) params.set("page", String(page));
+  if (perPage) params.set("perPage", String(perPage));
   return params;
 };
 
 export const fetchCatalogProducts = async (
   query: CatalogQuery = {},
 ): Promise<CatalogPage> => {
-  const params = toSearchParams(query);
+  const params = toCatalogSearchParams(query);
   const suffix = params.size ? `?${params.toString()}` : "";
-  const response = await apiRequest<BackendProduct[]>(`/api/catalog/products${suffix}`);
-  const pagination = response.meta.pagination as BackendPagination | undefined;
+  const response = await apiRequest<unknown>(`/api/catalog/products${suffix}`);
+  const products = parseBackendProducts(response.data);
+  const pagination = parseBackendPagination(response.meta.pagination);
 
   return {
-    products: response.data.map(mapBackendProduct),
-    pagination:
-      pagination ||
-      ({
-        page: 1,
-        perPage: response.data.length,
-        total: response.data.length,
-        totalPages: 1,
-        from: response.data.length ? 1 : null,
-        to: response.data.length || null,
-        hasMore: false,
-      } satisfies BackendPagination),
+    products: products.map(mapBackendProduct),
+    pagination,
   };
 };
 
 export const fetchCatalogProduct = async (slug: string): Promise<Product> => {
-  const response = await apiRequest<BackendProduct>(
+  const response = await apiRequest<unknown>(
     `/api/catalog/products/${encodeURIComponent(slug)}`,
   );
-  return mapBackendProduct(response.data);
+  return mapBackendProduct(parseBackendProduct(response.data));
 };
 
 export const fetchCatalogCategories = async (): Promise<CatalogCategory[]> => {
-  const response = await apiRequest<BackendCategory[]>("/api/catalog/categories");
-  return response.data.map((category) => ({
+  const response = await apiRequest<unknown>("/api/catalog/categories");
+  const categories: BackendCategory[] = parseBackendCategories(response.data);
+
+  return categories.map((category) => ({
     id: category.id,
     name: category.name,
     slug: category.slug,

@@ -18,6 +18,7 @@ import {
   getProductSalePrice,
   getProductStock,
   getPublicProductBadges,
+  getPublicProductSummary,
   getStockPresentation,
   isProductInventoryVerified,
   isProductMediaVerified,
@@ -50,12 +51,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const mediaVerified = isProductMediaVerified(product);
   const stockPresentation = getStockPresentation(stock, inventoryVerified);
   const publicBadges = getPublicProductBadges(product);
+  const publicSummary = getPublicProductSummary(product);
   const cartItem = items.find(
     (item) => item.id === product.id && !item.selectedVariant,
   );
-  const isOutOfStock = inventoryVerified && stock <= 0;
+  const isOutOfStock = stock <= 0;
   const isCartAtStockLimit = Boolean(
-    inventoryVerified && cartItem && cartItem.quantity >= stock,
+    cartItem && stock > 0 && cartItem.quantity >= stock,
   );
 
   const handleAdd = () => {
@@ -64,7 +66,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       return;
     }
     if (isOutOfStock) {
-      toast.error("این محصول براساس موجودی تأییدشده ناموجود است");
+      toast.error(
+        inventoryVerified
+          ? "این محصول براساس موجودی تأییدشده ناموجود است"
+          : "موجودی قابل سفارش این محصول هنوز از سرور دریافت نشده است",
+      );
       return;
     }
     if (isCartAtStockLimit) {
@@ -94,7 +100,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-border/65 bg-card/75 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-primary/25 hover:shadow-hover focus-within:border-primary/40 focus-within:shadow-hover">
       <Link
-        to={`/products/${product.slug}`}
+        to={`/products/${encodeURIComponent(product.slug)}`}
         className="relative block aspect-[1.12/1] overflow-hidden bg-muted"
         aria-label={`مشاهده جزئیات ${product.name}`}
       >
@@ -157,7 +163,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
         <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
           <Link
-            to={`/products?category=${product.categorySlug}`}
+            to={`/products?category=${encodeURIComponent(product.categorySlug)}`}
             className="inline-flex min-h-8 items-center rounded-full border border-primary/12 bg-primary/8 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-primary transition hover:bg-primary/12"
           >
             {product.category}
@@ -167,14 +173,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </span>
         </div>
 
-        <Link to={`/products/${product.slug}`} className="rounded-xl">
+        <Link to={`/products/${encodeURIComponent(product.slug)}`} className="rounded-xl">
           <h2 className="line-clamp-2 text-xl font-black leading-8 text-foreground transition-colors group-hover:text-primary">
             {product.name}
           </h2>
         </Link>
 
         <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">
-          {product.shortDescription}
+          {publicSummary}
         </p>
 
         <div className="mt-5 grid gap-2">
@@ -234,7 +240,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               </span>
             ) : (
               <Link
-                to={`/products/${product.slug}`}
+                to={`/products/${encodeURIComponent(product.slug)}`}
                 className="btn-primary inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black"
               >
                 انتخاب نوع

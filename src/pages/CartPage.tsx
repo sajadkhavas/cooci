@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -19,7 +18,7 @@ import { CheckoutSteps } from "@/components/cart/CheckoutSteps";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
-import { useCatalogProducts } from "@/hooks/useCatalog";
+import { useCartCatalogReconciliation } from "@/hooks/useCartCatalogReconciliation";
 import {
   getCartItemStock,
   getCartRegularUnitPrice,
@@ -46,12 +45,13 @@ const CartPage = () => {
     totalItems,
     uniqueItems,
   } = useCart();
-  const { products: catalogProducts } = useCatalogProducts();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (catalogProducts.length > 0) syncWithCatalog(catalogProducts);
-  }, [catalogProducts, syncWithCatalog]);
+  const {
+    isLoading: cartCatalogLoading,
+    isReconciled: cartCatalogReconciled,
+    error: cartCatalogError,
+    refetch: refetchCartCatalog,
+  } = useCartCatalogReconciliation(items, syncWithCatalog);
 
   const handleRemove = (id: string, variantId: string | undefined, name: string) => {
     removeItem(id, variantId);
@@ -67,6 +67,10 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
+    if (cartCatalogLoading || !cartCatalogReconciled || cartCatalogError) {
+      toast.error("ابتدا تطبیق سبد با کاتالوگ سرور را کامل کنید");
+      return;
+    }
     if (!isReadyForCheckout) {
       toast.error("ابتدا مشکلات موجودی یا محصولات نامعتبر سبد را برطرف کنید");
       return;
@@ -122,11 +126,31 @@ const CartPage = () => {
           ) : (
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="space-y-4 lg:col-span-2">
+                {cartCatalogLoading && (
+                  <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary" role="status">
+                    در حال تطبیق تک‌تک محصولات سبد با کاتالوگ سرور…
+                  </div>
+                )}
+
+                {cartCatalogError && (
+                  <div className="rounded-2xl border border-destructive/25 bg-destructive/5 p-4 text-destructive" role="alert">
+                    <p className="font-bold">به‌روزرسانی سبد ناموفق بود</p>
+                    <p className="mt-1 text-sm leading-7">{cartCatalogError.message}</p>
+                    <button
+                      type="button"
+                      onClick={() => void refetchCartCatalog()}
+                      className="mt-3 rounded-xl border border-destructive/30 px-4 py-2 text-sm font-bold"
+                    >
+                      تلاش دوباره
+                    </button>
+                  </div>
+                )}
+
                 {hasCoolingItems && (
                   <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
                     <Snowflake size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
                     <p className="text-sm leading-7">
-                      سبد شما شامل محصول یخچالی است؛ ارسال این سفارش فقط برای تهران و کرج امکان‌پذیر خواهد بود.
+                      سبد شما شامل محصول یخچالی است؛ ارسال سرد فقط برای تهران، کرج و اندیشه امکان‌پذیر خواهد بود.
                     </p>
                   </div>
                 )}
@@ -347,15 +371,23 @@ const CartPage = () => {
                   <button
                     type="button"
                     onClick={handleCheckout}
-                    disabled={!isReadyForCheckout}
+                    disabled={
+                      !isReadyForCheckout ||
+                      cartCatalogLoading ||
+                      !cartCatalogReconciled ||
+                      Boolean(cartCatalogError)
+                    }
                     className="w-full rounded-xl bg-primary py-3.5 font-bold text-primary-foreground shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                   >
                     ادامه و ثبت اطلاعات ارسال
                   </button>
 
-                  {!isReadyForCheckout && (
+                  {(!isReadyForCheckout ||
+                    cartCatalogLoading ||
+                    !cartCatalogReconciled ||
+                    cartCatalogError) && (
                     <p className="text-center text-xs leading-6 text-destructive">
-                      برای ادامه، وضعیت موجودی همه محصولات باید معتبر باشد.
+                      برای ادامه، قیمت و موجودی همه محصولات باید با کاتالوگ سرور تطبیق داده شود.
                     </p>
                   )}
 

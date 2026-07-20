@@ -9,7 +9,17 @@ interface ProductVerificationFlags {
   inventoryVerified?: boolean;
   contentVerified?: boolean;
   mediaVerified?: boolean;
+  updatedAt?: string;
 }
+
+type ProductVariant = NonNullable<Product["variants"]>[number];
+type ProductVariantPricing = ProductVariant & {
+  stock?: number;
+  regularPriceToman?: number;
+  salePriceToman?: number;
+  available?: boolean;
+  isDefault?: boolean;
+};
 
 const PERSIAN_NORMALIZATION_MAP: Record<string, string> = {
   ي: "ی",
@@ -27,6 +37,16 @@ const FACTUAL_BADGE_PATTERNS = [
 
 const getVerificationFlags = (product: Product) =>
   product as Product & ProductVerificationFlags;
+
+const isFinitePositive = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value > 0;
+
+const getComparableUpdatedAt = (product: Product) => {
+  const updatedAt = getVerificationFlags(product).updatedAt;
+  if (!updatedAt) return 0;
+  const timestamp = Date.parse(updatedAt);
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
 
 export const isProductInventoryVerified = (product: Product) =>
   getVerificationFlags(product).inventoryVerified === true;
@@ -52,6 +72,14 @@ export const getPublicProductDescription = (product: Product) => {
     : "قیمت این انتخاب نیازمند استعلام است.";
 
   return `${product.name} در دسته ${product.category} قرار دارد. ${priceSentence} جزئیات ترکیبات، آلرژن، وزن نهایی، ماندگاری و زمان آماده‌سازی باید پیش از تأیید سفارش از منبع معتبر بررسی شوند.`;
+};
+
+export const getPublicProductSummary = (product: Product) => {
+  if (isProductContentVerified(product) && product.shortDescription.trim()) {
+    return product.shortDescription;
+  }
+
+  return `${product.name}؛ قیمت و موجودی نهایی هنگام ثبت سفارش دوباره توسط سرور بررسی می‌شود.`;
 };
 
 export const getPublicIngredients = (product: Product) =>
@@ -83,19 +111,49 @@ export const normalizeCatalogText = (value: string) =>
     .replace(/[\u064B-\u065F\u0670]/g, "")
     .replace(/\s+/g, " ");
 
+export const getVariantCurrentPrice = (variant?: ProductVariant) =>
+  variant && isFinitePositive(variant.price) ? variant.price : undefined;
+
+export const getVariantRegularPrice = (variant?: ProductVariant) => {
+  if (!variant) return undefined;
+  const pricing = variant as ProductVariantPricing;
+  return isFinitePositive(pricing.regularPriceToman)
+    ? pricing.regularPriceToman
+    : getVariantCurrentPrice(variant);
+};
+
+export const getVariantSalePrice = (variant?: ProductVariant) => {
+  if (!variant) return undefined;
+  const pricing = variant as ProductVariantPricing;
+  const regularPrice = getVariantRegularPrice(variant);
+  const salePrice = pricing.salePriceToman;
+
+  if (
+    !isFinitePositive(regularPrice) ||
+    !isFinitePositive(salePrice) ||
+    salePrice >= regularPrice
+  ) {
+    return undefined;
+  }
+
+  return salePrice;
+};
+
+export const getVariantDisplayPrice = (variant?: ProductVariant) =>
+  getVariantSalePrice(variant) ?? getVariantCurrentPrice(variant);
+
 export const getVariantPrices = (product: Product) =>
   product.variants
-    ?.map((variant) => variant.price)
-    .filter(
-      (price): price is number =>
-        typeof price === "number" && Number.isFinite(price),
-    ) ?? [];
+    ?.map((variant) => getVariantDisplayPrice(variant))
+    .filter((price): price is number => isFinitePositive(price)) ?? [];
 
 export const getProductRegularPrice = (product: Product) => {
-  if (typeof product.priceToman === "number") return product.priceToman;
-  if (typeof product.price === "number") return product.price;
+  if (isFinitePositive(product.priceToman)) return product.priceToman;
+  if (isFinitePositive(product.price)) return product.price;
 
-  const variantPrices = getVariantPrices(product);
+  const variantPrices = product.variants
+    ?.map((variant) => getVariantRegularPrice(variant))
+    .filter((price): price is number => isFinitePositive(price)) ?? [];
   return variantPrices.length ? Math.min(...variantPrices) : undefined;
 };
 
@@ -104,9 +162,8 @@ export const getProductSalePrice = (product: Product) => {
   const salePrice = product.salePriceToman;
 
   if (
-    typeof regularPrice !== "number" ||
-    typeof salePrice !== "number" ||
-    salePrice <= 0 ||
+    !isFinitePositive(regularPrice) ||
+    !isFinitePositive(salePrice) ||
     salePrice >= regularPrice
   ) {
     return undefined;
@@ -116,7 +173,8 @@ export const getProductSalePrice = (product: Product) => {
 };
 
 export const getProductDisplayPrice = (product: Product) =>
-  getProductSalePrice(product) ?? getProductRegularPrice(product);
+  getProductSalePrice(product) ??
+  (isFinitePositive(product.price) ? product.price : getProductRegularPrice(product));
 
 export const getProductPriceRange = (product: Product) => {
   const variantPrices = getVariantPrices(product);
@@ -140,19 +198,27 @@ export const getDiscountPercent = (product: Product) => {
   return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
 };
 
+export const getVariantDiscountPercent = (variant?: ProductVariant) => {
+  const regularPrice = getVariantRegularPrice(variant);
+  const salePrice = getVariantSalePrice(variant);
+  if (!regularPrice || !salePrice) return 0;
+  return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+};
+
 export const getProductStock = (
   product: Product,
   variantId?: string | null,
 ) => {
   const variant = product.variants?.find((item) => item.id === variantId);
-  const variantStock =
-    variant && "stock" in variant
-      ? (variant as typeof variant & { stock?: number }).stock
-      : undefined;
+  const variantStock = (variant as ProductVariantPricing | undefined)?.stock;
 
-  if (typeof variantStock === "number") return Math.max(0, variantStock);
-  if (typeof product.stock === "number") return Math.max(0, product.stock);
-  return 1;
+  if (typeof variantStock === "number" && Number.isFinite(variantStock)) {
+    return Math.max(0, Math.floor(variantStock));
+  }
+  if (typeof product.stock === "number" && Number.isFinite(product.stock)) {
+    return Math.max(0, Math.floor(product.stock));
+  }
+  return 0;
 };
 
 export const isProductInStock = (
@@ -216,6 +282,24 @@ interface FilterCatalogOptions {
   sort: CatalogSort;
 }
 
+const comparePrices = (
+  first: Product,
+  second: Product,
+  direction: "asc" | "desc",
+) => {
+  const firstPrice = getProductDisplayPrice(first);
+  const secondPrice = getProductDisplayPrice(second);
+
+  if (firstPrice === undefined && secondPrice === undefined) {
+    return first.name.localeCompare(second.name, "fa");
+  }
+  if (firstPrice === undefined) return 1;
+  if (secondPrice === undefined) return -1;
+
+  const difference = firstPrice - secondPrice;
+  return direction === "asc" ? difference : -difference;
+};
+
 export const filterCatalogProducts = ({
   products,
   category,
@@ -274,25 +358,26 @@ export const filterCatalogProducts = ({
 
   switch (sort) {
     case "newest":
-      return [...result].reverse();
+      return [...result].sort((first, second) => {
+        const dateDifference =
+          getComparableUpdatedAt(second) - getComparableUpdatedAt(first);
+        return dateDifference || first.name.localeCompare(second.name, "fa");
+      });
     case "price-asc":
-      return [...result].sort(
-        (a, b) =>
-          (getProductDisplayPrice(a) ?? Number.POSITIVE_INFINITY) -
-          (getProductDisplayPrice(b) ?? Number.POSITIVE_INFINITY),
+      return [...result].sort((first, second) =>
+        comparePrices(first, second, "asc"),
       );
     case "price-desc":
-      return [...result].sort(
-        (a, b) =>
-          (getProductDisplayPrice(b) ?? Number.NEGATIVE_INFINITY) -
-          (getProductDisplayPrice(a) ?? Number.NEGATIVE_INFINITY),
+      return [...result].sort((first, second) =>
+        comparePrices(first, second, "desc"),
       );
     case "featured":
     default:
-      return [...result].sort((a, b) => {
-        const featuredDifference = Number(b.isFeatured) - Number(a.isFeatured);
+      return [...result].sort((first, second) => {
+        const featuredDifference =
+          Number(second.isFeatured) - Number(first.isFeatured);
         if (featuredDifference !== 0) return featuredDifference;
-        return a.name.localeCompare(b.name, "fa");
+        return first.name.localeCompare(second.name, "fa");
       });
   }
 };
@@ -302,17 +387,18 @@ export const paginateCatalog = <T,>(
   page: number,
   pageSize = CATALOG_PAGE_SIZE,
 ) => {
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-  const safePage = Math.min(Math.max(1, page), totalPages);
-  const startIndex = (safePage - 1) * pageSize;
+  const safePageSize = Math.min(100, Math.max(1, Math.floor(pageSize)));
+  const totalPages = Math.max(1, Math.ceil(items.length / safePageSize));
+  const safePage = Math.min(Math.max(1, Math.floor(page)), totalPages);
+  const startIndex = (safePage - 1) * safePageSize;
 
   return {
     page: safePage,
-    pageSize,
+    pageSize: safePageSize,
     totalPages,
     totalItems: items.length,
     startIndex,
-    endIndex: Math.min(startIndex + pageSize, items.length),
-    items: items.slice(startIndex, startIndex + pageSize),
+    endIndex: Math.min(startIndex + safePageSize, items.length),
+    items: items.slice(startIndex, startIndex + safePageSize),
   };
 };
