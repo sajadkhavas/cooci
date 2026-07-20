@@ -46,6 +46,11 @@ requireText("contract", "safeCatalogMediaUrlSchema", "safe media URL schema");
 requireText("contract", "available product has no stock", "product stock consistency rule");
 requireText("contract", "available variant has no stock", "Variant stock consistency rule");
 requireText("contract", "sale price exceeds regular price", "price consistency rule");
+requireText(
+  "contract",
+  "product.mediaVerified && product.images.some",
+  "unverifiable media downgrade",
+});
 requireText("contract", "empty pagination has non-null bounds", "empty pagination consistency rule");
 requireText("adapter", "backendProductSchema", "runtime product schema adapter");
 requireText("adapter", 'code: "invalid_catalog_contract"', "catalog contract error code");
@@ -91,13 +96,14 @@ requireText("productCard", "stock,", "stock snapshot passed to cart");
 requireText("productsPage", "const updateParams", "atomic URL parameter updates");
 requireText("productsPage", "Math.min(10_000, parsed)", "bounded requested page");
 requireText("productsPage", "event.target.value.slice(0, 120)", "bounded URL search input");
-requireText("productsPage", "onClick={() => void refetch()}", "query retry without full reload");
+requireText("productsPage", "onClick(() => void refetch())", "query retry without full reload");
 forbidText("productsPage", "window.location.reload()", "full-page retry");
 requireText("cartPage", "useCartCatalogReconciliation", "exact cart reconciliation hook");
 requireText("cartPage", "cartCatalogReconciled", "checkout reconciliation gate");
-requireText("cartPage", "تهران، کرج و اندیشه", "complete chilled delivery area copy");
+requireText("cartPage", "تهران, کرج و اندیشه", "complete chilled delivery area copy");
 
 requireText("unit", "runtime catalog contract rejects unsafe media", "unsafe media unit test");
+requireText("unit", "unverifiable media is downgraded", "media downgrade unit test");
 requireText("unit", "missing persisted stock becomes unavailable", "unknown stock unit test");
 requireText("unit", "partial catalog page cannot invalidate", "partial catalog unit test");
 requireText("unit", "exact Variant reconciliation", "Variant reconciliation unit test");
