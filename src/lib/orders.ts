@@ -14,7 +14,7 @@ export interface LocalOrder { id: string; number?: string; createdAt: string; up
 const mapPaymentAttempt = (attempt: BackendPaymentAttempt): PaymentAttempt => ({ id: attempt.id, provider: attempt.provider, status: attempt.status, statusLabel: attempt.statusLabel, createdAt: attempt.createdAt || new Date().toISOString(), updatedAt: attempt.verifiedAt || attempt.createdAt || new Date().toISOString(), authority: attempt.authority || undefined, refId: attempt.referenceId || undefined, redirectUrl: attempt.redirectUrl || undefined, error: attempt.failure?.message || undefined });
 export const mapBackendOrder = (order: BackendOrder): LocalOrder => {
   const paymentAttempts = order.payments.map(mapPaymentAttempt);
-  const latestAttempt = paymentAttempts.at(-1);
+  const latestAttempt = paymentAttempts[paymentAttempts.length - 1];
   const verifiedAttempt = [...paymentAttempts].reverse().find((attempt) => attempt.status === "verified");
   const createdAt = order.placedAt || order.createdAt || new Date().toISOString();
   return {
