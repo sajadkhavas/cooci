@@ -4,6 +4,12 @@ export interface ApiUrlPolicy {
 
 const INVALID_API_BASE = "آدرس API وینیمی معتبر نیست.";
 
+const containsUnsafePathCharacters = (value: string) =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return character === "\\" || code <= 31 || code === 127;
+  });
+
 export const normalizeApiBaseUrl = (
   rawValue: string,
   policy: ApiUrlPolicy,
@@ -39,7 +45,7 @@ export const resolveApiRequestUrl = (baseUrl: string, path: string): string => {
   if (
     !path.startsWith("/") ||
     path.startsWith("//") ||
-    /[\\\u0000-\u001f\u007f]/.test(path)
+    containsUnsafePathCharacters(path)
   ) {
     throw new Error("مسیر درخواست API معتبر نیست.");
   }
