@@ -86,6 +86,80 @@ test("catalog renders backend staging products and search narrows results", asyn
   assertNoPageErrors();
 });
 
+test("diet and category filters update atomically without restoring stale URL state", async ({ page, request }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+  const response = await request.get(`${apiOrigin}/api/catalog/categories`, {
+    headers: {
+      Origin: "http://127.0.0.1:4173",
+      Referer: "http://127.0.0.1:4173/",
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const category = payload.data.find(
+    (item) => item.slug !== "diet" && !item.name.includes("رژیمی") && !item.name.includes("بدون قند"),
+  );
+  expect(category).toBeTruthy();
+
+  await page.goto("/products?diet=true");
+  await page.getByRole("button", { name: category.name, exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("category")).toBe(category.slug);
+  await expect.poll(() => new URL(page.url()).searchParams.get("diet")).toBeNull();
+  assertNoPageErrors();
+});
+
+test("product detail sends the server Variant stock snapshot into the reconciled cart", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+
+  await page.goto("/products/staging-chocolate-cookie");
+  await expect(page.getByRole("heading", { name: "کوکی شکلاتی تست" })).toBeVisible();
+  const addButton = page.getByRole("button", { name: "افزودن به سبد خرید" });
+  await expect(addButton).toBeEnabled();
+  await addButton.click();
+  await page.getByRole("link", { name: "مشاهده سبد خرید" }).click();
+
+  await expect(page).toHaveURL(/\/cart$/);
+  await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
+  await expect(page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" })).toBeEnabled();
+  assertNoPageErrors();
+});
+
+test("a tampered stale cart cannot bypass exact server reconciliation", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "winimi_cart_v2",
+      JSON.stringify({
+        version: 2,
+        updatedAt: new Date().toISOString(),
+        items: [
+          {
+            id: "tampered-product",
+            slug: "phase3-product-does-not-exist",
+            name: "محصول دستکاری‌شده",
+            productCode: "TAMPERED-1",
+            priceToman: 1,
+            quantity: 999999,
+            stock: 999999,
+            requiresCooling: false,
+            image: "javascript:alert(1)",
+            availability: "available",
+          },
+        ],
+      }),
+    );
+  });
+
+  await page.goto("/cart");
+  await expect(page.getByRole("heading", { name: "سبد خرید" })).toBeVisible();
+  await expect(page.getByText("به‌روزرسانی سبد ناموفق بود")).toBeVisible();
+  await expect(page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" })).toBeDisabled();
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
+  expect(persisted.items[0].image).toBe("");
+  expect(persisted.items[0].quantity).toBeLessThanOrEqual(1000);
+  assertNoPageErrors();
+});
+
 test("protected account route completes real Sanctum OTP session and logout", async ({ page }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
 
