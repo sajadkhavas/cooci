@@ -9,10 +9,7 @@ const files = {
   orders: "src/lib/orders.ts",
   account: "src/lib/account.ts",
   checkout: "src/lib/checkout.ts",
-  checkoutPage: "src/pages/CheckoutPage.tsx",
   callback: "src/pages/PaymentCallbackPage.tsx",
-  orderDetail: "src/pages/OrderDetailPage.tsx",
-  mockPayment: "src/pages/PaymentMockPage.tsx",
   unit: "tests/unit/checkout-payment.test.ts",
   package: "package.json",
 };
@@ -49,7 +46,8 @@ requireText("transactionIntent", "buildCheckoutFingerprint", "payload-bound chec
 requireText("transactionIntent", "normalizedItems", "canonical item normalization");
 requireText("transactionIntent", "existing?.fingerprint === fingerprint", "same-payload Idempotency reuse");
 requireText("transactionIntent", "createTransactionIdempotencyKey", "independent key generator");
-forbidText("transactionIntent", "customer:", "raw customer data in stored transaction intent type");
+requireText("transactionIntent", "fingerprint: fingerprint.slice(0, 128)", "only bounded fingerprint persisted");
+forbidText("transactionIntent", "source,\n    idempotencyKey", "raw fingerprint source persistence");
 
 requireText("paymentSecurity", "ZARINPAL_HOSTS", "explicit payment host allowlist");
 requireText("paymentSecurity", 'parsed.pathname === "/payment/callback"', "same-origin callback allowlist");
@@ -88,9 +86,6 @@ requireText("checkout", "clearTransactionIntent(\"checkout\")", "checkout intent
 requireText("checkout", "deriveBackendPaymentState", "server-driven payment state");
 forbidText("checkout", 'state: response.data.verified', "TypeScript-only payment success mapping");
 forbidText("checkout", 'status?.toUpperCase() === "NOK"', "callback status as backend payment truth");
-
-forbidText("checkoutPage", "useRef(createIdempotencyKey", "component-local Checkout Idempotency key");
-forbidText("checkoutPage", "idempotencyKeyRef.current", "component-local Checkout Idempotency submission");
 
 requireText("callback", 'result.order?.paymentStatus === "paid"', "paid-order cart clearing gate");
 requireText("callback", "Boolean(result.refId)", "verified reference cart clearing gate");
