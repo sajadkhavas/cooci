@@ -1,0 +1,125 @@
+:root {
+  --brand-pastel: 76 60% 74%;
+  --brand-pastel-soft: 75 62% 89%;
+  --brand-deep: 84 65% 14%;
+  --brand-deep-soft: 82 45% 28%;
+
+  --background: 72 55% 97%;
+  --foreground: var(--brand-deep);
+  --card: 72 60% 99%;
+  --card-foreground: var(--brand-deep);
+  --popover: 72 60% 99%;
+  --popover-foreground: var(--brand-deep);
+  --primary: var(--brand-pastel);
+  --primary-foreground: var(--brand-deep);
+  --secondary: 75 44% 91%;
+  --secondary-foreground: 84 52% 17%;
+  --muted: 75 27% 89%;
+  --muted-foreground: 84 17% 35%;
+  --accent: 82 58% 24%;
+  --accent-foreground: 72 70% 96%;
+  --border: 76 30% 80%;
+  --input: 76 30% 80%;
+  --ring: 82 58% 30%;
+  --cream: 72 55% 97%;
+  --cocoa: var(--brand-deep);
+  --cocoa-light: 76 54% 65%;
+  --pistachio: var(--brand-pastel);
+  --pistachio-light: var(--brand-pastel-soft);
+  --ink: var(--brand-deep);
+  --surface-glass: 72 70% 99% / 0.72;
+  --shadow-soft: 0 12px 40px -24px hsl(var(--brand-deep) / 0.2);
+  --shadow-card: 0 24px 70px -38px hsl(var(--brand-deep) / 0.3);
+  --shadow-hover: 0 36px 90px -42px hsl(var(--brand-deep) / 0.44);
+  --sidebar-background: 72 60% 99%;
+  --sidebar-foreground: var(--brand-deep);
+  --sidebar-primary: var(--brand-pastel);
+  --sidebar-primary-foreground: var(--brand-deep);
+  --sidebar-accent: 75 44% 91%;
+  --sidebar-accent-foreground: 84 52% 17%;
+  --sidebar-border: 76 30% 80%;
+  --sidebar-ring: 82 58% 30%;
+}
+
+.dark {
+  --background: 84 45% 7%;
+  --foreground: 72 45% 94%;
+  --card: 84 32% 11%;
+  --card-foreground: 72 45% 94%;
+  --popover: 84 32% 10%;
+  --popover-foreground: 72 45% 94%;
+  --primary: var(--brand-pastel);
+  --primary-foreground: var(--brand-deep);
+  --secondary: 84 20% 17%;
+  --secondary-foreground: 72 45% 94%;
+  --muted: 84 16% 20%;
+  --muted-foreground: 72 15% 69%;
+  --accent: var(--brand-pastel);
+  --accent-foreground: var(--brand-deep);
+  --border: 84 14% 23%;
+  --input: 84 14% 23%;
+  --ring: var(--brand-pastel);
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 12% 10%, hsl(var(--brand-pastel) / 0.2), transparent 24rem),
+    radial-gradient(circle at 88% 26%, hsl(var(--accent) / 0.09), transparent 28rem),
+    linear-gradient(180deg, hsl(var(--background)), hsl(74 44% 94%));
+}
+
+.text-primary,
+.hover\:text-primary:hover {
+  color: hsl(var(--brand-deep-soft)) !important;
+}
+
+.dark .text-primary,
+.dark .hover\:text-primary:hover {
+  color: hsl(var(--brand-pastel)) !important;
+}
+
+header a[aria-label*="صفحه اصلی"] > span:first-child,
+footer a[href="/"][class*="inline-flex"] > span:first-child {
+  overflow: hidden;
+  border-radius: 9999px !important;
+  background-color: #D0E596 !important;
+  background-image: url("/brand/winimi-logo.svg") !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  color: transparent !important;
+  box-shadow: 0 16px 36px -18px hsl(var(--brand-deep) / 0.45) !important;
+}
+
+header a[aria-label*="صفحه اصلی"] > span:first-child > *,
+footer a[href="/"][class*="inline-flex"] > span:first-child > * {
+  opacity: 0 !important;
+}
+
+header [role="dialog"] .text-white,
+footer .text-white {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+footer .whitespace-nowrap[class*="text-white"] {
+  color: hsl(var(--primary-foreground) / 0.06) !important;
+}
+
+header [role="dialog"] [class*="border-white"],
+footer [class*="border-white"] {
+  border-color: hsl(var(--primary-foreground) / 0.14) !important;
+}
+
+header [role="dialog"] [class*="bg-white"],
+footer [class*="bg-white"] {
+  background-color: hsl(var(--primary-foreground) / 0.055) !important;
+}
+
+header [role="dialog"] [class*="bg-black"] {
+  background-color: hsl(var(--primary-foreground) / 0.08) !important;
+}
+
+::selection {
+  background: #D0E596;
+  color: #27390C;
+}
