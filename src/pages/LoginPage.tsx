@@ -13,11 +13,30 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useAuth } from "@/context/AuthContext";
-import { isValidIranianMobile, normalizeMobile } from "@/lib/auth";
+import {
+  isValidIranianMobile,
+  normalizeMobile,
+  normalizeOtpCode,
+} from "@/lib/auth";
+import { ApiError } from "@/lib/api";
+import { sanitizeInternalReturnPath } from "@/lib/security/navigation";
 
 interface LoginLocationState {
-  from?: string;
+  from?: unknown;
 }
+
+const clampSeconds = (value: number, maximum: number) =>
+  Math.min(maximum, Math.max(0, Math.ceil(value)));
+
+const describeLoginError = (error: unknown, fallback: string) => {
+  if (error instanceof ApiError && error.code === "rate_limited") {
+    const retry = error.retryAfterSeconds;
+    return retry !== undefined
+      ? `${error.message} حدود ${retry.toLocaleString("fa-IR")} ثانیه دیگر تلاش کنید.`
+      : error.message;
+  }
+  return error instanceof Error ? error.message : fallback;
+};
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -34,7 +53,8 @@ const LoginPage = () => {
   const [code, setCode] = useState("");
   const [challengeId, setChallengeId] = useState("");
   const [devCode, setDevCode] = useState<string | undefined>();
-  const [countdown, setCountdown] = useState(0);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [expiryCountdown, setExpiryCountdown] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const mobileInputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +62,7 @@ const LoginPage = () => {
 
   const destination = useMemo(() => {
     const state = location.state as LoginLocationState | null;
-    return state?.from?.startsWith("/") ? state.from : "/account";
+    return sanitizeInternalReturnPath(state?.from);
   }, [location.state]);
 
   useEffect(() => {
@@ -52,13 +72,13 @@ const LoginPage = () => {
   }, [authLoading, destination, isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (countdown <= 0) return undefined;
-    const timer = window.setTimeout(
-      () => setCountdown((current) => current - 1),
-      1000,
-    );
+    if (resendCountdown <= 0 && expiryCountdown <= 0) return undefined;
+    const timer = window.setTimeout(() => {
+      setResendCountdown((current) => Math.max(0, current - 1));
+      setExpiryCountdown((current) => Math.max(0, current - 1));
+    }, 1_000);
     return () => window.clearTimeout(timer);
-  }, [countdown]);
+  }, [expiryCountdown, resendCountdown]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -76,6 +96,7 @@ const LoginPage = () => {
   };
 
   const requestCode = async () => {
+    if (submitting) return;
     const normalized = normalizeMobile(mobile);
     setMobile(normalized);
     setError(undefined);
@@ -91,16 +112,18 @@ const LoginPage = () => {
       const result = await sendOtp(normalized);
       setChallengeId(result.challengeId);
       setDevCode(result.devCode);
-      setCountdown(result.retryAfter || 60);
+      setResendCountdown(clampSeconds(result.retryAfter || 60, 3_600));
+      setExpiryCountdown(clampSeconds(result.expiresIn || 120, 3_600));
       setStep("code");
       setCode("");
       toast.success("کد تأیید ارسال شد");
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "ارسال کد تأیید ناموفق بود.",
-      );
+      if (requestError instanceof ApiError && requestError.retryAfterSeconds) {
+        setResendCountdown(
+          clampSeconds(requestError.retryAfterSeconds, 3_600),
+        );
+      }
+      setError(describeLoginError(requestError, "ارسال کد تأیید ناموفق بود."));
       focusCurrentInput();
     } finally {
       setSubmitting(false);
@@ -108,12 +131,18 @@ const LoginPage = () => {
   };
 
   const verifyCode = async () => {
-    const normalizedCode = normalizeMobile(code).slice(0, 6);
+    if (submitting) return;
+    const normalizedCode = normalizeOtpCode(code);
     setCode(normalizedCode);
     setError(undefined);
 
     if (!/^\d{4,6}$/.test(normalizedCode)) {
       setError("کد تأیید ۴ تا ۶ رقمی را کامل وارد کنید.");
+      focusCurrentInput();
+      return;
+    }
+    if (!challengeId || expiryCountdown <= 0) {
+      setError("کد تأیید منقضی شده است؛ کد جدید دریافت کنید.");
       focusCurrentInput();
       return;
     }
@@ -128,11 +157,7 @@ const LoginPage = () => {
       toast.success("ورود با موفقیت انجام شد");
       navigate(destination, { replace: true });
     } catch (verifyError) {
-      setError(
-        verifyError instanceof Error
-          ? verifyError.message
-          : "تأیید کد ناموفق بود.",
-      );
+      setError(describeLoginError(verifyError, "تأیید کد ناموفق بود."));
       focusCurrentInput();
     } finally {
       setSubmitting(false);
@@ -144,7 +169,8 @@ const LoginPage = () => {
     setCode("");
     setChallengeId("");
     setDevCode(undefined);
-    setCountdown(0);
+    setResendCountdown(0);
+    setExpiryCountdown(0);
     setError(undefined);
   };
 
@@ -170,6 +196,7 @@ const LoginPage = () => {
   const errorId = error ? "login-form-error" : undefined;
   const inputClass =
     "input-field min-h-12 bg-background px-11 py-3.5 disabled:opacity-60";
+  const challengeExpired = step === "code" && expiryCountdown <= 0;
 
   return (
     <>
@@ -255,7 +282,10 @@ const LoginPage = () => {
                       >
                         شماره موبایل
                       </label>
-                      <p id="login-mobile-help" className="mb-2 text-xs leading-6 text-muted-foreground">
+                      <p
+                        id="login-mobile-help"
+                        className="mb-2 text-xs leading-6 text-muted-foreground"
+                      >
                         شماره باید با 09 شروع شود و ۱۱ رقم باشد.
                       </p>
                       <div className="relative">
@@ -292,7 +322,7 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg transition-shadow hover:shadow-xl"
+                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg transition-shadow hover:shadow-xl disabled:opacity-50"
                     >
                       {submitting ? (
                         <Loader2
@@ -317,7 +347,18 @@ const LoginPage = () => {
                   >
                     <div className="rounded-xl bg-secondary/70 p-4 text-sm leading-7">
                       کد تأیید برای <strong dir="ltr">{mobile}</strong> ارسال شد.
+                      {!challengeExpired && (
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          اعتبار کد: {expiryCountdown.toLocaleString("fa-IR")} ثانیه
+                        </span>
+                      )}
                     </div>
+
+                    {challengeExpired && (
+                      <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-destructive" role="alert">
+                        این کد منقضی شده است. کد جدید دریافت کنید.
+                      </div>
+                    )}
 
                     {devCode && (
                       <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-center text-amber-950">
@@ -338,7 +379,10 @@ const LoginPage = () => {
                       >
                         کد تأیید
                       </label>
-                      <p id="login-code-help" className="mb-2 text-xs leading-6 text-muted-foreground">
+                      <p
+                        id="login-code-help"
+                        className="mb-2 text-xs leading-6 text-muted-foreground"
+                      >
                         کد ۴ تا ۶ رقمی ارسال‌شده را وارد کنید.
                       </p>
                       <div className="relative">
@@ -355,9 +399,7 @@ const LoginPage = () => {
                           maxLength={6}
                           value={code}
                           onChange={(event) => {
-                            setCode(
-                              normalizeMobile(event.target.value).slice(0, 6),
-                            );
+                            setCode(normalizeOtpCode(event.target.value));
                             if (error) setError(undefined);
                           }}
                           className={`${inputClass} text-center text-xl font-black tracking-[0.2em] sm:text-2xl sm:tracking-[0.35em]`}
@@ -376,8 +418,8 @@ const LoginPage = () => {
 
                     <button
                       type="submit"
-                      disabled={submitting}
-                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg"
+                      disabled={submitting || challengeExpired}
+                      className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg disabled:opacity-50"
                     >
                       {submitting ? (
                         <Loader2
@@ -400,12 +442,12 @@ const LoginPage = () => {
                         <ArrowRight size={15} aria-hidden="true" />
                         تغییر شماره
                       </button>
-                      {countdown > 0 ? (
+                      {resendCountdown > 0 ? (
                         <span
                           className="text-center text-muted-foreground sm:text-left"
-                          aria-label={`${countdown} ثانیه تا امکان ارسال مجدد`}
+                          aria-label={`${resendCountdown} ثانیه تا امکان ارسال مجدد`}
                         >
-                          ارسال مجدد تا {countdown.toLocaleString("fa-IR")} ثانیه
+                          ارسال مجدد تا {resendCountdown.toLocaleString("fa-IR")} ثانیه
                         </span>
                       ) : (
                         <button

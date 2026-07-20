@@ -8,9 +8,7 @@ const attachPageErrorGuard = (page) => {
   return () => expect(errors, `Unhandled browser errors: ${errors.join(" | ")}`).toEqual([]);
 };
 
-const loginWithTestingOtp = async (page) => {
-  await page.goto("/account");
-  await expect(page).toHaveURL(/\/account\/login$/);
+const completeTestingOtp = async (page) => {
   await page.locator("#login-mobile").fill("09000000000");
   await page.getByRole("button", { name: "ارسال کد تأیید" }).click();
   await expect(page.getByText("کد آزمایشی توسعه")).toBeVisible();
@@ -20,9 +18,35 @@ const loginWithTestingOtp = async (page) => {
 
   await page.locator("#login-code").fill(code);
   await page.locator("#login-code").press("Enter");
+};
+
+const loginWithTestingOtp = async (page) => {
+  await page.goto("/account");
+  await expect(page).toHaveURL(/\/account\/login$/);
+  await completeTestingOtp(page);
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByRole("heading", { name: "مشتری تست پذیرش" })).toBeVisible();
 };
+
+const expireServerSessionWithoutUpdatingReact = async (page) =>
+  page.evaluate(async (origin) => {
+    const tokenCookie = document.cookie
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith("XSRF-TOKEN="));
+    const xsrf = tokenCookie
+      ? decodeURIComponent(tokenCookie.slice("XSRF-TOKEN=".length))
+      : "";
+    const response = await fetch(`${origin}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-XSRF-TOKEN": xsrf,
+      },
+    });
+    return response.status;
+  }, apiOrigin);
 
 test("frozen contract and Phase 18 gates are visible to the integrated client", async ({ request }) => {
   const response = await request.get(`${apiOrigin}/api/system/contracts`, {
@@ -90,6 +114,43 @@ test("protected account route completes real Sanctum OTP session and logout", as
     return response.status;
   }, apiOrigin);
   expect(afterLogout).toBe(401);
+  assertNoPageErrors();
+});
+
+test("protocol-relative login return state is replaced with a safe internal destination", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+
+  await page.goto("/account/login");
+  await page.evaluate(() => {
+    window.history.replaceState(
+      { ...window.history.state, usr: { from: "//evil.example/phish" } },
+      "",
+      "/account/login",
+    );
+  });
+  await page.reload();
+  await expect(page.locator("#login-mobile")).toBeVisible();
+
+  const sanitizedDestination = await page.evaluate(
+    () => window.history.state?.usr?.from,
+  );
+  expect(sanitizedDestination).toBe("/account");
+
+  await completeTestingOtp(page);
+  await expect(page).toHaveURL(/\/account$/);
+  expect(new URL(page.url()).origin).toBe("http://127.0.0.1:4173");
+  assertNoPageErrors();
+});
+
+test("a protected API 401 invalidates stale React auth state and returns to login", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+
+  await loginWithTestingOtp(page);
+  expect(await expireServerSessionWithoutUpdatingReact(page)).toBe(200);
+
+  await page.getByRole("button", { name: "ویرایش پروفایل" }).click();
+  await page.getByRole("button", { name: "ذخیره تغییرات" }).click();
+  await expect(page).toHaveURL(/\/account\/login$/);
   assertNoPageErrors();
 });
 

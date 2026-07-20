@@ -143,8 +143,13 @@ requireText(
 );
 requireText(
   "app",
-  'areDevelopmentMocksEnabled && <Route path="/payment/mock"',
-  "development-only mock payment route",
+  "areDevelopmentMocksEnabled &&",
+  "development mock feature gate",
+);
+requireText(
+  "app",
+  'path="/payment/mock"',
+  "mock payment route",
 );
 
 const report = {

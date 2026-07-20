@@ -28,9 +28,9 @@ env:
 
 jobs:
   validate:
-    name: Audit integration, brand, transaction safety, UI, content, accessibility, types and build
+    name: Audit integration, auth/API security, UI, accessibility, tests, types and build
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -57,12 +57,17 @@ jobs:
       - name: Frontend full-audit Phase 1
         run: npm run audit:phase1
 
-      - name: Upload Phase 1 diagnostics
+      - name: Frontend full-audit Phase 2
+        run: npm run audit:phase2
+
+      - name: Upload full-audit diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-phase1-audit
-          path: frontend-phase1-audit.json
+          name: frontend-full-audit-diagnostics
+          path: |
+            frontend-phase1-audit.json
+            frontend-phase2-audit.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -77,6 +82,21 @@ jobs:
 
       - name: Full modern UI audit
         run: npm run audit:modern-ui
+
+      - name: Unit tests
+        id: unit_tests
+        run: |
+          set -o pipefail
+          npm run test:unit 2>&1 | tee unit-tests.log
+
+      - name: Upload unit-test diagnostics
+        if: failure() && steps.unit_tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-diagnostics
+          path: unit-tests.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Lint
         id: lint

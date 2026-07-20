@@ -19,6 +19,7 @@ import {
   type OtpRequestResult,
   type VerifyOtpInput,
 } from "@/lib/auth";
+import { AUTH_SESSION_EXPIRED_EVENT } from "@/lib/api";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -62,6 +63,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const expireSession = () => {
+      setUser(null);
+      setError(null);
+      setIsLoading(false);
+    };
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, expireSession);
+    return () =>
+      window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, expireSession);
+  }, []);
 
   const sendOtp = useCallback((mobile: string) => requestOtp(mobile), []);
 
