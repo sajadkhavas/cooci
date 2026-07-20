@@ -12,7 +12,7 @@ The storefront, backend, administration and production server are completed befo
 
 No production dynamic flow may depend on static demo data, browser-only orders or mock authentication after Phase 17.
 
-## Phase 17 completion
+## Phase 17 — Full frontend/backend integration
 
 Status: `frontend_integrated=ready`
 
