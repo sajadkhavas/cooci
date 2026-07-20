@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  categories as staticCategories,
-  products as staticProducts,
-  type Product,
-} from "@/data/products";
+import type { Product } from "@/data/products";
 import {
   areDevelopmentMocksEnabled,
   isBackendEnabled,
@@ -13,16 +9,16 @@ import {
   fetchCatalogCategories,
   fetchCatalogProduct,
   fetchCatalogProducts,
-  type CatalogCategory,
   type CatalogQuery,
 } from "@/lib/catalog-api";
 import { filterCatalogProducts, paginateCatalog } from "@/lib/catalog";
+import { loadDevelopmentCatalog } from "@/lib/development-catalog";
 
 const disabledError = new Error(
   "اتصال کاتالوگ به API فعال نیست و داده نمایشی توسعه نیز اجازه داده نشده است.",
 );
 
-const createMockCatalog = (query: CatalogQuery) => {
+const createMockCatalog = (products: Product[], query: CatalogQuery) => {
   const shipping =
     query.requiresCooling === true
       ? "chilled"
@@ -30,7 +26,7 @@ const createMockCatalog = (query: CatalogQuery) => {
         ? "nationwide"
         : "all";
   const filtered = filterCatalogProducts({
-    products: staticProducts,
+    products,
     category: query.category || "all",
     query: query.search || "",
     shipping,
@@ -56,6 +52,16 @@ const createMockCatalog = (query: CatalogQuery) => {
   };
 };
 
+const useDevelopmentCatalog = () =>
+  useQuery({
+    queryKey: ["development-catalog"],
+    queryFn: loadDevelopmentCatalog,
+    enabled: areDevelopmentMocksEnabled && !isBackendEnabled,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    retry: 0,
+  });
+
 export const useCatalogProducts = (query: CatalogQuery = {}) => {
   const backendQuery = useQuery({
     queryKey: ["catalog", "products", query],
@@ -63,7 +69,14 @@ export const useCatalogProducts = (query: CatalogQuery = {}) => {
     enabled: isBackendEnabled,
     staleTime: 60_000,
   });
-  const mockCatalog = useMemo(() => createMockCatalog(query), [query]);
+  const developmentQuery = useDevelopmentCatalog();
+  const mockCatalog = useMemo(
+    () =>
+      developmentQuery.data
+        ? createMockCatalog(developmentQuery.data.products, query)
+        : undefined,
+    [developmentQuery.data, query],
+  );
   const catalog = isBackendEnabled
     ? backendQuery.data
     : areDevelopmentMocksEnabled
@@ -73,15 +86,23 @@ export const useCatalogProducts = (query: CatalogQuery = {}) => {
   return {
     products: catalog?.products ?? [],
     pagination: catalog?.pagination,
-    isLoading: isBackendEnabled ? backendQuery.isLoading : false,
-    isFetching: isBackendEnabled ? backendQuery.isFetching : false,
+    isLoading: isBackendEnabled
+      ? backendQuery.isLoading
+      : areDevelopmentMocksEnabled
+        ? developmentQuery.isLoading
+        : false,
+    isFetching: isBackendEnabled
+      ? backendQuery.isFetching
+      : areDevelopmentMocksEnabled
+        ? developmentQuery.isFetching
+        : false,
     error: isBackendEnabled
       ? (backendQuery.error as Error | null)
       : areDevelopmentMocksEnabled
-        ? null
+        ? (developmentQuery.error as Error | null)
         : disabledError,
     isBackendCatalogEnabled: isBackendEnabled,
-    refetch: backendQuery.refetch,
+    refetch: isBackendEnabled ? backendQuery.refetch : developmentQuery.refetch,
   };
 };
 
@@ -92,29 +113,23 @@ export const useCatalogCategories = () => {
     enabled: isBackendEnabled,
     staleTime: 5 * 60_000,
   });
-  const mockCategories = useMemo<CatalogCategory[]>(
-    () =>
-      staticCategories
-        .filter((category) => category.slug !== "all")
-        .map((category) => ({
-          id: `mock-${category.slug}`,
-          name: category.name,
-          slug: category.slug,
-        })),
-    [],
-  );
+  const developmentQuery = useDevelopmentCatalog();
 
   return {
     categories: isBackendEnabled
       ? backendQuery.data ?? []
       : areDevelopmentMocksEnabled
-        ? mockCategories
+        ? developmentQuery.data?.categories ?? []
         : [],
-    isLoading: isBackendEnabled ? backendQuery.isLoading : false,
+    isLoading: isBackendEnabled
+      ? backendQuery.isLoading
+      : areDevelopmentMocksEnabled
+        ? developmentQuery.isLoading
+        : false,
     error: isBackendEnabled
       ? (backendQuery.error as Error | null)
       : areDevelopmentMocksEnabled
-        ? null
+        ? (developmentQuery.error as Error | null)
         : disabledError,
   };
 };
@@ -126,9 +141,10 @@ export const useCatalogProduct = (slug?: string) => {
     enabled: isBackendEnabled && Boolean(slug),
     staleTime: 60_000,
   });
+  const developmentQuery = useDevelopmentCatalog();
   const mockProduct = useMemo(
-    () => staticProducts.find((item) => item.slug === slug),
-    [slug],
+    () => developmentQuery.data?.products.find((item) => item.slug === slug),
+    [developmentQuery.data, slug],
   );
 
   return {
@@ -137,12 +153,20 @@ export const useCatalogProduct = (slug?: string) => {
       : areDevelopmentMocksEnabled
         ? mockProduct
         : undefined,
-    isLoading: isBackendEnabled ? backendQuery.isLoading : false,
-    isFetching: isBackendEnabled ? backendQuery.isFetching : false,
+    isLoading: isBackendEnabled
+      ? backendQuery.isLoading
+      : areDevelopmentMocksEnabled
+        ? developmentQuery.isLoading
+        : false,
+    isFetching: isBackendEnabled
+      ? backendQuery.isFetching
+      : areDevelopmentMocksEnabled
+        ? developmentQuery.isFetching
+        : false,
     error: isBackendEnabled
       ? (backendQuery.error as Error | null)
       : areDevelopmentMocksEnabled
-        ? null
+        ? (developmentQuery.error as Error | null)
         : disabledError,
     isBackendCatalogEnabled: isBackendEnabled,
   };
