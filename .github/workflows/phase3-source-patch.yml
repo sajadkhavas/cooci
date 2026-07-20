@@ -6,6 +6,12 @@ on:
       - agent/frontend-full-audit-phase-3-catalog-cart
     paths:
       - scripts/phase3-source-patch.py
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
+    paths:
+      - scripts/phase3-source-patch.py
 
 permissions:
   contents: write
@@ -16,6 +22,7 @@ concurrency:
 
 jobs:
   patch:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
