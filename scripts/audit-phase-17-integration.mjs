@@ -55,10 +55,13 @@ forbidText(orders, "winimi_orders_v2", "production-shaped browser orders");
 
 for (const endpoint of [
   "/api/delivery/options",
-  'apiRequest<BackendCheckoutResult>("/api/checkout"',
+  'apiRequest<unknown>("/api/checkout"',
   "/payments",
   "/api/payments/zarinpal/verify",
 ]) requireText(checkout, endpoint, "checkout/payment endpoint");
+requireText(checkout, "parseBackendCheckoutResult", "runtime checkout response contract");
+requireText(checkout, "parseBackendPaymentInitiationResult", "runtime payment initiation contract");
+requireText(checkout, "parseBackendPaymentVerificationResult", "runtime payment verification contract");
 requireText(checkoutGuard, "fetchCatalogProduct", "per-product cart reconciliation");
 requireText(checkoutGuard, "account/login", "authenticated checkout guard");
 requireText(checkoutPage, "deliveryOptions", "server delivery quote UI");
