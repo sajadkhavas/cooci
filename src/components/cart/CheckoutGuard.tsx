@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useQueries } from "@tanstack/react-query";
-import { AlertTriangle, RefreshCcw, ShoppingCart } from "lucide-react";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { AlertTriangle, RefreshCcw, ShoppingCart, Trash2 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
-import { products as staticProducts } from "@/data/products";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { areDevelopmentMocksEnabled, isBackendEnabled } from "@/lib/api";
 import { fetchCatalogProduct } from "@/lib/catalog-api";
+import { loadDevelopmentCatalog } from "@/lib/development-catalog";
 
 export const CheckoutGuard = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const { user, isLoading: authLoading } = useAuth();
-  const { items, isReadyForCheckout, syncWithCatalog } = useCart();
+  const {
+    items,
+    isReadyForCheckout,
+    removeItem,
+    syncWithCatalog,
+  } = useCart();
   const [catalogChecked, setCatalogChecked] = useState(false);
   const slugs = useMemo(
     () => [...new Set(items.map((item) => item.slug).filter(Boolean))].sort(),
@@ -27,27 +32,61 @@ export const CheckoutGuard = ({ children }: { children: ReactNode }) => {
       retry: 1,
     })),
   });
+  const developmentQuery = useQuery({
+    queryKey: ["development-catalog"],
+    queryFn: loadDevelopmentCatalog,
+    enabled:
+      areDevelopmentMocksEnabled &&
+      !isBackendEnabled &&
+      Boolean(user) &&
+      items.length > 0,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    retry: 0,
+  });
 
   const loadingCatalog = isBackendEnabled
     ? productQueries.some((query) => query.isLoading || query.isFetching)
-    : false;
+    : areDevelopmentMocksEnabled
+      ? developmentQuery.isLoading || developmentQuery.isFetching
+      : false;
   const catalogError = isBackendEnabled
     ? productQueries.find((query) => query.error)?.error
-    : undefined;
+    : areDevelopmentMocksEnabled
+      ? developmentQuery.error
+      : undefined;
   const backendProducts = productQueries
     .map((query) => query.data)
     .filter((product): product is NonNullable<typeof product> => Boolean(product));
-  const mockProducts = areDevelopmentMocksEnabled
-    ? staticProducts.filter((product) => slugs.includes(product.slug))
+  const mockProducts = developmentQuery.data
+    ? developmentQuery.data.products.filter((product) => slugs.includes(product.slug))
     : [];
   const reconciledProducts = isBackendEnabled ? backendProducts : mockProducts;
+  const missingMockSlugs =
+    areDevelopmentMocksEnabled && !isBackendEnabled && !loadingCatalog && !catalogError
+      ? slugs.filter(
+          (slug) => !mockProducts.some((product) => product.slug === slug),
+        )
+      : [];
+  const invalidMockItems = items.filter((item) =>
+    missingMockSlugs.includes(item.slug),
+  );
 
   useEffect(() => {
     setCatalogChecked(false);
   }, [slugsKey]);
 
   useEffect(() => {
-    if (authLoading || !user || items.length === 0 || loadingCatalog || catalogError) return;
+    if (
+      authLoading ||
+      !user ||
+      items.length === 0 ||
+      loadingCatalog ||
+      catalogError ||
+      missingMockSlugs.length > 0
+    ) {
+      return;
+    }
     if (reconciledProducts.length !== slugs.length) return;
     syncWithCatalog(reconciledProducts);
     setCatalogChecked(true);
@@ -56,6 +95,7 @@ export const CheckoutGuard = ({ children }: { children: ReactNode }) => {
     catalogError,
     items.length,
     loadingCatalog,
+    missingMockSlugs.length,
     reconciledProducts,
     slugs.length,
     syncWithCatalog,
@@ -106,15 +146,50 @@ export const CheckoutGuard = ({ children }: { children: ReactNode }) => {
           <p className="mb-7 leading-8 text-muted-foreground">
             {catalogError instanceof Error
               ? catalogError.message
-              : "قیمت و موجودی سبد از سرور دریافت نشد."}
+              : "قیمت و موجودی سبد از منبع کاتالوگ دریافت نشد."}
           </p>
           <button
             type="button"
-            onClick={() => productQueries.forEach((query) => void query.refetch())}
+            onClick={() => {
+              if (isBackendEnabled) {
+                productQueries.forEach((query) => void query.refetch());
+                return;
+              }
+              void developmentQuery.refetch();
+            }}
             className="btn-primary inline-flex items-center gap-2 rounded-xl px-7 py-3"
           >
             <RefreshCcw size={18} aria-hidden="true" />
             تلاش دوباره
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (missingMockSlugs.length > 0) {
+    return (
+      <section className="section-padding">
+        <div className="container-custom max-w-2xl rounded-3xl border border-amber-300 bg-amber-50 p-10 text-center text-amber-950" role="alert">
+          <AlertTriangle className="mx-auto mb-4" size={52} aria-hidden="true" />
+          <h1 className="heading-2 mb-3">سبد آزمایشی قدیمی است</h1>
+          <p className="mx-auto mb-3 max-w-lg leading-8">
+            یک یا چند محصول ذخیره‌شده دیگر در کاتالوگ توسعه وجود ندارند.
+          </p>
+          <p className="mb-7 text-sm" dir="ltr">
+            {missingMockSlugs.join(", ")}
+          </p>
+          <button
+            type="button"
+            onClick={() =>
+              invalidMockItems.forEach((item) =>
+                removeItem(item.id, item.selectedVariant?.id),
+              )
+            }
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-amber-950 px-7 py-3 font-black text-amber-50"
+          >
+            <Trash2 size={18} aria-hidden="true" />
+            حذف آیتم‌های نامعتبر
           </button>
         </div>
       </section>
