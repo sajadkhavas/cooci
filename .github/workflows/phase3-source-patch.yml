@@ -1,0 +1,42 @@
+name: Phase 3 One-Shot Source Patch
+
+on:
+  push:
+    branches:
+      - agent/frontend-full-audit-phase-3-catalog-cart
+    paths:
+      - scripts/phase3-source-patch.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase3-source-patch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/frontend-full-audit-phase-3-catalog-cart
+          fetch-depth: 0
+
+      - name: Apply asserted source transformations
+        run: python3 scripts/phase3-source-patch.py
+
+      - name: Validate patch whitespace
+        run: git diff --check
+
+      - name: Commit patched pages
+        run: |
+          git config user.name "winimi-audit-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/pages/ProductDetailPage.tsx src/components/ProductCard.tsx src/pages/ProductsPage.tsx src/pages/CartPage.tsx
+          git diff --cached --quiet && { echo "No changes produced"; exit 1; }
+          git commit -m "Apply Phase 3 catalog and cart page fixes"
+          git push origin HEAD:agent/frontend-full-audit-phase-3-catalog-cart
