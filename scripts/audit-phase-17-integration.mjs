@@ -43,7 +43,7 @@ requireText(catalog, "fetchCatalogProducts", "backend catalog list");
 requireText(catalog, "fetchCatalogProduct", "backend product detail");
 requireText(catalog, "fetchCatalogCategories", "backend categories");
 requireText(catalog, "areDevelopmentMocksEnabled", "development-only catalog fallback");
-requireText(auth, 'apiRequest<{ user: BackendCustomer }>', "enveloped session auth");
+requireText(auth, 'apiData<{ user: BackendUser }>', "enveloped session auth");
 requireText(auth, "debugCode", "backend OTP debug mapping");
 requireText(orders, "winimi_dev_orders_v3", "development-only order key");
 requireText(orders, "assertMockStorage", "production order-storage guard");
