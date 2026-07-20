@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 
 const files = {
   checkout: "src/lib/checkout.ts",
@@ -14,12 +15,12 @@ const files = {
 const errors = [];
 const sources = {};
 
-for (const [name, path] of Object.entries(files)) {
-  if (!fs.existsSync(path)) {
-    errors.push(`Missing Phase 1 file: ${path}`);
+for (const [name, filePath] of Object.entries(files)) {
+  if (!fs.existsSync(filePath)) {
+    errors.push(`Missing Phase 1 file: ${filePath}`);
     continue;
   }
-  sources[name] = fs.readFileSync(path, "utf8");
+  sources[name] = fs.readFileSync(filePath, "utf8");
 }
 
 const requireText = (file, text, label = text) => {
@@ -33,6 +34,12 @@ const forbidText = (file, text, label = text) => {
     errors.push(`${files[file]}: contains forbidden ${label}`);
   }
 };
+
+const walk = (directory) =>
+  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(directory, entry.name);
+    return entry.isDirectory() ? walk(entryPath) : [entryPath];
+  });
 
 requireText(
   "checkout",
@@ -57,12 +64,12 @@ forbidText(
 
 forbidText(
   "catalogHook",
-  'products as staticProducts',
+  "products as staticProducts",
   "eager static product import",
 );
 forbidText(
   "catalogHook",
-  'categories as staticCategories',
+  "categories as staticCategories",
   "eager static category import",
 );
 forbidText(
@@ -72,7 +79,7 @@ forbidText(
 );
 requireText(
   "developmentCatalog",
-  'if (!import.meta.env.DEV) return emptyCatalog',
+  "if (!import.meta.env.DEV) return emptyCatalog",
   "production development-catalog guard",
 );
 requireText(
@@ -90,6 +97,16 @@ requireText(
   "حذف آیتم‌های نامعتبر",
   "stale mock cart recovery action",
 );
+
+const eagerCatalogImportPattern =
+  /import\s+(?!type\b)[\s\S]*?\sfrom\s+["']@\/data\/products["'];?/g;
+for (const sourcePath of walk("src").filter((filePath) => /\.[cm]?[jt]sx?$/.test(filePath))) {
+  const source = fs.readFileSync(sourcePath, "utf8");
+  if (eagerCatalogImportPattern.test(source)) {
+    errors.push(`${sourcePath}: eagerly imports development catalog values`);
+  }
+  eagerCatalogImportPattern.lastIndex = 0;
+}
 
 requireText(
   "nginx",
@@ -123,7 +140,7 @@ requireText(
 );
 requireText(
   "app",
-  "areDevelopmentMocksEnabled && <Route path=\"/payment/mock\"",
+  'areDevelopmentMocksEnabled && <Route path="/payment/mock"',
   "development-only mock payment route",
 );
 
