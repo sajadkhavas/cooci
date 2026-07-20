@@ -34,7 +34,22 @@ jobs:
           fetch-depth: 0
 
       - name: Apply asserted source transformations
-        run: python3 scripts/phase3-source-patch.py
+        id: patch
+        run: |
+          set +e
+          python3 scripts/phase3-source-patch.py > phase3-source-patch.log 2>&1
+          status=$?
+          cat phase3-source-patch.log
+          exit $status
+
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-source-patch-diagnostics
+          path: phase3-source-patch.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Validate patch whitespace
         run: git diff --check
