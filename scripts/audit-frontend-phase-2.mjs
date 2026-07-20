@@ -51,7 +51,6 @@ requireText("auth", "normalizeOtpCode", "OTP-specific normalization");
 requireText("auth", "import.meta.env.DEV ? challenge.debugCode", "development-only debug code");
 requireText("auth", "error.status === 401", "status-based unauthenticated bootstrap");
 requireText("auth", "suppressAuthExpiryEvent: true", "safe auth bootstrap/logout behavior");
-requireText("auth", "0098", "international Iranian mobile support through normalization module");
 
 requireText("authContext", "AUTH_SESSION_EXPIRED_EVENT", "global session expiry listener");
 requireText("login", "sanitizeInternalReturnPath", "defense-in-depth return path sanitizer");
@@ -65,8 +64,9 @@ requireText("app", "<LoginRoute>", "login route security wrapper");
 requireText("navigation", 'candidate.startsWith("//")', "protocol-relative redirect rejection");
 requireText("navigation", 'parsed.pathname === "/account/login"', "login-loop rejection");
 requireText("normalization", "normalizeIranianMobile", "mobile normalization");
+requireText("normalization", "replace(/^0098", "0098 mobile normalization");
 requireText("normalization", "normalizeOtpCode", "OTP normalization");
-requireText("apiUrl", "parsed.protocol !== \"https:\"", "production HTTPS enforcement");
+requireText("apiUrl", 'parsed.protocol !== "https:"', "production HTTPS enforcement");
 requireText("apiUrl", "resolved.origin !== base.origin", "API origin escape prevention");
 
 requireText("unit", "return paths stay inside", "return path unit test");
