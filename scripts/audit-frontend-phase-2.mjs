@@ -11,6 +11,7 @@ const files = {
   normalization: "src/lib/security/normalization.ts",
   apiUrl: "src/lib/security/api-url.ts",
   unit: "tests/unit/security.test.ts",
+  e2e: "e2e/phase18.spec.mjs",
   package: "package.json",
 };
 
@@ -72,6 +73,8 @@ requireText("apiUrl", "resolved.origin !== base.origin", "API origin escape prev
 requireText("unit", "return paths stay inside", "return path unit test");
 requireText("unit", "Persian and Arabic digits", "digit normalization unit test");
 requireText("unit", "production API origins require HTTPS", "API base unit test");
+requireText("e2e", "protocol-relative login return state", "hostile return-state browser test");
+requireText("e2e", "protected API 401 invalidates stale React auth state", "expired-session browser test");
 requireText("package", '"test:unit"', "unit test command");
 requireText("package", '"audit:phase2"', "Phase 2 audit command");
 
