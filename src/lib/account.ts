@@ -6,11 +6,16 @@ import type {
   BackendOrder,
 } from "@/lib/backend-contract";
 import {
+  cancelOwnedMockOrder,
   getOrderById,
   getOrdersByMobile,
   mapBackendOrder,
   type LocalOrder,
 } from "@/lib/orders";
+import {
+  parseBackendOrder,
+  parseBackendOrders,
+} from "@/lib/order-schema";
 
 export interface AccountOrdersResult {
   orders: LocalOrder[];
@@ -23,25 +28,48 @@ export interface AccountOrdersResult {
   };
 }
 
+const normalizePagination = (value: unknown) => {
+  if (!value || typeof value !== "object") return undefined;
+  const pagination = value as Record<string, unknown>;
+  const page = Number(pagination.page);
+  const totalPages = Number(pagination.totalPages);
+  const total = Number(pagination.total);
+  const hasMore = pagination.hasMore;
+  if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(totalPages) ||
+    totalPages < 1 ||
+    page > totalPages ||
+    !Number.isInteger(total) ||
+    total < 0 ||
+    typeof hasMore !== "boolean"
+  ) {
+    throw new ApiError({
+      message: "ساختار صفحه‌بندی سفارش‌ها معتبر نیست.",
+      status: 502,
+      code: "invalid_order_contract",
+    });
+  }
+  return { page, totalPages, total, hasMore };
+};
+
 export const loadAccountOrders = async (
   user: AuthUser,
   page = 1,
 ): Promise<AccountOrdersResult> => {
   if (getAuthMode() === "backend") {
-    const response = await apiRequest<BackendOrder[]>(
-      `/api/account/orders?page=${page}&perPage=30`,
+    const safePage = Number.isFinite(page)
+      ? Math.max(1, Math.min(10_000, Math.trunc(page)))
+      : 1;
+    const response = await apiRequest<unknown>(
+      `/api/account/orders?page=${safePage}&perPage=30`,
     );
+    const backendOrders = parseBackendOrders(response.data);
     return {
-      orders: response.data.map(mapBackendOrder),
+      orders: backendOrders.map(mapBackendOrder),
       source: "backend",
-      pagination: response.meta.pagination
-        ? {
-            page: response.meta.pagination.page,
-            totalPages: response.meta.pagination.totalPages,
-            total: response.meta.pagination.total,
-            hasMore: response.meta.pagination.hasMore,
-          }
-        : undefined,
+      pagination: normalizePagination(response.meta.pagination),
     };
   }
 
@@ -62,10 +90,10 @@ export const loadOwnedOrder = async (
 ): Promise<LocalOrder | null> => {
   if (getAuthMode() === "backend") {
     try {
-      const response = await apiRequest<{ order: BackendOrder }>(
+      const response = await apiRequest<{ order: unknown }>(
         `/api/account/orders/${encodeURIComponent(orderId)}`,
       );
-      return mapBackendOrder(response.data.order);
+      return mapBackendOrder(parseBackendOrder(response.data.order));
     } catch (error) {
       if (error instanceof ApiError && error.code === "resource_not_found") {
         return null;
@@ -80,12 +108,22 @@ export const loadOwnedOrder = async (
   return order;
 };
 
-export const cancelOwnedOrder = async (orderId: string): Promise<LocalOrder> => {
-  const response = await apiRequest<{ order: BackendOrder }>(
-    `/api/account/orders/${encodeURIComponent(orderId)}/cancel`,
-    { method: "POST" },
-  );
-  return mapBackendOrder(response.data.order);
+export const cancelOwnedOrder = async (
+  user: AuthUser,
+  orderId: string,
+): Promise<LocalOrder> => {
+  if (getAuthMode() === "backend") {
+    const response = await apiRequest<{ order: unknown }>(
+      `/api/account/orders/${encodeURIComponent(orderId)}/cancel`,
+      { method: "POST" },
+    );
+    return mapBackendOrder(parseBackendOrder(response.data.order));
+  }
+
+  if (!areDevelopmentMocksEnabled) {
+    throw new Error("لغو سفارش مرورگر در production مجاز نیست.");
+  }
+  return cancelOwnedMockOrder(orderId, user.mobile);
 };
 
 export const loadAccountAddresses = async (): Promise<BackendAddress[]> =>
