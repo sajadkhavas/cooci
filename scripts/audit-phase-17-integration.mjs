@@ -15,6 +15,7 @@ const forbidText = (source, needle, label) => {
   if (source.includes(needle)) failures.push(`Forbidden ${label}: ${needle}`);
 };
 
+const roadmap = read("docs/FULL_LAUNCH_ROADMAP.md");
 const api = read("src/lib/api.ts");
 const catalog = read("src/hooks/useCatalog.ts");
 const auth = read("src/lib/auth.ts");
@@ -29,6 +30,9 @@ const inquiry = read("src/components/forms/InquiryForm.tsx");
 const managedContent = read("src/components/content/ManagedContentPage.tsx");
 const trust = read("src/components/trust/EnamadTrustSlot.tsx");
 const app = read("src/App.tsx");
+
+requireText(roadmap, "frontend_integrated=ready", "Phase 17 readiness marker");
+requireText(roadmap, "2026-07-20-phase-16", "frozen backend contract reference");
 
 for (const contractNeedle of [
   'EXPECTED_API_CONTRACT_VERSION = "2026-07-20-phase-16"',
@@ -93,4 +97,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log("Phase 17 integration audit passed: backend API, session, catalog, checkout, payment, account, content, forms and production mock boundaries are connected.");
+console.log("Phase 17 integration audit passed: readiness marker, backend API, session, catalog, checkout, payment, account, content, forms and production mock boundaries are connected.");
