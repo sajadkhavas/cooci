@@ -177,10 +177,9 @@ test("real Laravel checkout verifies testing payment and clears cart only after 
   await page.getByLabel("نشانی کامل").fill("تهران، خیابان تست، پلاک ۱۰");
   await page.getByLabel("کد پستی").fill("1234567890");
 
-  const standardDelivery = page.getByRole("button", { name: /ارسال معمولی/ });
-  await expect(standardDelivery).toBeEnabled();
-  await standardDelivery.click();
-  await page.getByRole("button", { name: "ثبت سفارش و ادامه پرداخت" }).click();
+  const submitOrder = page.getByRole("button", { name: "ثبت سفارش و ادامه پرداخت" });
+  await expect(submitOrder).toBeEnabled();
+  await submitOrder.click();
 
   await expect(page).toHaveURL(/\/payment\/callback\?/);
   await expect(page.getByRole("heading", { name: "پرداخت از سمت سرور تأیید شد" })).toBeVisible();
