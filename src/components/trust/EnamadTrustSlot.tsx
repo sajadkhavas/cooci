@@ -6,7 +6,7 @@ import { loadStoreSettings } from "@/lib/content";
 
 const extractOfficialBadge = (code: string | null) => {
   if (!code) return null;
-  const matches = code.match(/https:\/\/trustseal\.enamad\.ir\/[^\"'\s<>]+/g) ?? [];
+  const matches = code.match(/https:\/\/trustseal\.enamad\.ir\/[^"'\s<>]+/g) ?? [];
   const urls = matches.map((value) => value.replaceAll("&amp;", "&"));
   const imageUrl = urls.find((value) => value.includes("logo.aspx"));
   const verificationUrl = urls.find((value) => !value.includes("logo.aspx"));
