@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { NetworkStatus } from "@/components/network/NetworkStatus";
 import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
+import { TrustStrip } from "@/components/trust/TrustStrip";
 
 export const SiteLayout = () => {
   const location = useLocation();
@@ -29,6 +30,7 @@ export const SiteLayout = () => {
           <Outlet />
         </div>
       </main>
+      <TrustStrip />
       <Footer />
       <FloatingWhatsApp />
       <PwaUpdatePrompt />

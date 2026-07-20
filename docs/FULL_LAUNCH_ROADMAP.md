@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-19-phase-13.5`
+Roadmap lock: `2026-07-20-phase-17`
 
 ## Required final state
 
@@ -12,70 +12,54 @@ The storefront, backend, administration and production server are completed befo
 
 No production dynamic flow may depend on static demo data, browser-only orders or mock authentication after Phase 17.
 
-## Current frontend audit
+## Phase 17 — Full frontend/backend integration
 
-### Ready
+Status: `frontend_integrated=ready`
 
-- complete responsive route structure
-- modern editorial design system
-- cart UX and checkout forms
-- OTP/login UI
-- account and order UI
-- payment callback and development mock screens
-- accessibility/content/performance audits
-- route splitting, PWA and hosting headers
+The storefront implementation is connected to the frozen backend contract `2026-07-20-phase-16` and its production build runs with `VITE_USE_BACKEND=true` and `VITE_ALLOW_DEV_MOCKS=false`.
 
-### Integration gaps that must be removed
+### Resolved integration gaps
 
-1. `src/hooks/useCatalog.ts` always returns static products and reports the backend as disabled.
-2. category navigation is sourced from `src/data/products` instead of the catalog API.
-3. `src/lib/auth.ts` expects direct response objects while Laravel returns the standard `{ success, data, meta }` envelope.
-4. state-changing auth calls do not yet bootstrap Sanctum CSRF through `/sanctum/csrf-cookie`.
-5. backend OTP debug code is named `debugCode`, while the frontend development type currently expects `devCode`.
-6. `src/lib/orders.ts` stores production-shaped orders in `localStorage` and account screens read those local records.
-7. `src/lib/checkout.ts` still contains browser-authoritative delivery fees/totals and expects payment initiation in the checkout response.
-8. the Phase 13 backend creates an awaiting-payment order first; Phase 14 will expose payment initiation separately.
-9. backend catalog pagination/filtering is not used; the frontend filters and paginates a full static array.
-10. contact, corporate, gift, reviews, blog, gallery, city and trust content are not yet connected to bakery-specific backend sources.
-11. the repository README is still the generated Lovable placeholder.
-12. production server/deployment environment and full end-to-end API tests are not yet defined.
+- one typed API client parses the standard `{ success, data, message, meta }` envelope
+- Sanctum CSRF, credentialed cookies, XSRF header and 419 retry are centralized
+- backend categories, products, product details, filters, sorting and pagination replace the production static catalog source
+- OTP, session bootstrap, profile and customer-owned addresses use backend endpoints
+- cart Variants, current price and stock are reconciled from the backend before Checkout
+- delivery methods, fees, packaging and preparation estimates are read from server responses
+- Checkout sends only address/recipient data, Variant IDs and quantities; the server recalculates all totals
+- order list, detail, cancellation, timeline, tracking and verified-purchase reviews use customer-owned endpoints
+- payment initiation is separate from Checkout and retry remains attached to the same order
+- callback query parameters never mark an order paid; only backend verification can clear the cart
+- posts, pages, FAQs, gallery, cities, published reviews and inquiry forms use bakery-specific backend endpoints
+- the eNAMAD slot reads public server settings and only accepts HTTPS URLs on `trustseal.enamad.ir`
+- browser-only authentication, orders and payment simulation are limited to explicit Vite development mode
+- production-shaped localStorage orders and the obsolete browser session compatibility layer are removed
 
-## Locked phases
+### Phase 17 validation gate
 
-### Phase 14 — Provider-ready payment backend
+The exact integration branch passed:
 
-Backend-only phase. The storefront remains unchanged while the payment engine, testing provider and disabled-by-default Zarinpal adapter are completed without live credentials.
+- full-launch roadmap audit
+- Phase 17 API/security integration audit
+- frontend route audit
+- accessibility regression audit
+- content integrity audit
+- modern UI audit
+- ESLint
+- TypeScript typecheck
+- production build
+- performance budget audit
 
-### Phase 15 — Complete store operations backend
+This readiness marker covers implementation and production-mode build validation. Browser automation, live cross-domain acceptance and deployed-environment smoke tests remain intentionally assigned to Phases 18 and 19.
 
-Backend-only phase. Addresses, delivery rules, fees, fulfillment actions, content, reviews, forms, notification outbox, SMS adapter and eNAMAD placeholder are completed.
-
-### Phase 16 — Backend completion and contract freeze
-
-Backend-only phase. Every endpoint and response schema is frozen, tested and reported as `backend_complete=ready` before frontend connection begins.
-
-### Phase 17 — Full frontend/backend integration
-
-The storefront is connected to the frozen API:
-
-- shared API client and standard envelope parsing
-- Sanctum CSRF/session handling
-- backend categories, catalog, product details, filters and pagination
-- real OTP, account, profile and addresses
-- server-reconciled cart and Variant availability
-- server-authoritative checkout
-- order list/detail/cancellation
-- payment initiation/retry/callback UI
-- content, reviews and inquiry forms
-- development-only mock paths isolated from production
-- static catalog fallback and localStorage orders removed from production
+## Locked remaining phases
 
 ### Phase 18 — End-to-end completion
 
 - automated integration and browser-flow tests
 - mobile/desktop acceptance
 - expired session, retry, reconnect and stock-conflict states
-- final content, legal and trust pages
+- final live content/legal/trust acceptance
 - SEO and structured data review
 - accessibility and performance budgets
 - admin/storefront acceptance checklist
@@ -97,18 +81,15 @@ No feature development is allowed. Only:
 2. insert the eNAMAD badge code
 3. insert the SMS API key/template and verify OTP/order messages
 
-## Frontend completion gate
+## Frontend integration invariants
 
-The frontend may report `frontend_integrated=ready` only when:
-
-- `VITE_USE_BACKEND=true` is validated against the deployed API
 - static products are not a production source
 - browser storage is not the source of truth for orders or authentication
 - every API response passes through one typed envelope parser
-- CSRF/session lifecycle works across `winimibakery.com` and `api.winimibakery.com`
 - checkout totals and availability are displayed from server responses
-- payment query parameters never mark an order paid without backend verification
+- payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints
+- no payment, SMS or eNAMAD secret is stored in frontend code or `VITE_*`
 
 ## External-only boundary
 

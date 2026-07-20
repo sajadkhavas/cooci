@@ -1,12 +1,11 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-const BACKEND_ENABLED = import.meta.env.VITE_USE_BACKEND === "true";
-const CONFIGURED_AUTH_MODE = import.meta.env.VITE_AUTH_MODE || "disabled";
-
-const AUTH_SESSION_KEY = "winimi_auth_session_v2";
-const MOCK_OTP_KEY = "winimi_mock_otp_v1";
-const MOCK_PROFILE_KEY = "winimi_mock_profiles_v1";
-const REQUEST_TIMEOUT_MS = 15_000;
-const MOCK_SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+import {
+  ApiError,
+  apiData,
+  areDevelopmentMocksEnabled,
+  getFrontendDataMode,
+  type ApiRequestOptions,
+} from "@/lib/api";
+import type { BackendOtpChallenge, BackendUser } from "@/lib/backend-contract";
 
 export type AuthMode = "backend" | "mock" | "disabled";
 
@@ -14,13 +13,15 @@ export interface AuthUser {
   id: string;
   mobile: string;
   fullName?: string;
+  email?: string;
+  mobileVerified: boolean;
+  marketingConsent: boolean;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthSession {
   user: AuthUser;
-  authenticatedAt: number;
-  expiresAt?: number;
 }
 
 export interface OtpRequestResult {
@@ -36,22 +37,75 @@ export interface VerifyOtpInput {
   code: string;
 }
 
-interface MockOtpChallenge {
+interface MockChallenge {
   challengeId: string;
   mobile: string;
   code: string;
   expiresAt: number;
-  attempts: number;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
+const MOCK_SESSION_KEY = "winimi_dev_auth_session_v1";
+const MOCK_PROFILES_KEY = "winimi_dev_auth_profiles_v1";
+const MOCK_CHALLENGE_KEY = "winimi_dev_auth_challenge_v1";
 
-const randomToken = () => {
+const mapUser = (user: BackendUser): AuthUser => ({
+  id: user.id,
+  mobile: user.mobile,
+  fullName: user.fullName || undefined,
+  email: user.email || undefined,
+  mobileVerified: user.mobileVerified,
+  marketingConsent: user.marketingConsent,
+  createdAt: user.createdAt || undefined,
+  updatedAt: user.updatedAt || undefined,
+});
+
+const assertMockAllowed = () => {
+  if (!areDevelopmentMocksEnabled) {
+    throw new Error("حالت آزمایشی ورود فقط در محیط توسعه قابل استفاده است.");
+  }
+};
+
+const randomId = () => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID().replaceAll("-", "");
   }
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+};
+
+const readMockProfiles = (): Record<string, AuthUser> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const value = window.localStorage.getItem(MOCK_PROFILES_KEY);
+    return value ? (JSON.parse(value) as Record<string, AuthUser>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeMockProfiles = (profiles: Record<string, AuthUser>) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MOCK_PROFILES_KEY, JSON.stringify(profiles));
+};
+
+const readMockSession = (): AuthSession | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.sessionStorage.getItem(MOCK_SESSION_KEY);
+    if (!value) return null;
+    const parsed = JSON.parse(value) as AuthSession;
+    return parsed?.user?.mobile ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeMockSession = (session: AuthSession | null) => {
+  if (typeof window === "undefined") return;
+  if (session) {
+    window.sessionStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session));
+  } else {
+    window.sessionStorage.removeItem(MOCK_SESSION_KEY);
+  }
 };
 
 export const normalizeMobile = (value: string) =>
@@ -59,288 +113,166 @@ export const normalizeMobile = (value: string) =>
     .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
     .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
     .replace(/\D/g, "")
+    .replace(/^98(?=9\d{9}$)/, "0")
     .slice(0, 11);
 
-export const isValidIranianMobile = (value: string) => /^09\d{9}$/.test(normalizeMobile(value));
+export const isValidIranianMobile = (value: string) => /^09\d{9}$/.test(value);
 
-export const getAuthMode = (): AuthMode => {
-  if (BACKEND_ENABLED) return "backend";
-  if (CONFIGURED_AUTH_MODE === "mock") return "mock";
-  return "disabled";
-};
+export const getAuthMode = (): AuthMode => getFrontendDataMode();
 
-const requestJson = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
-  if (!API_BASE_URL) throw new Error("آدرس API احراز هویت تنظیم نشده است.");
-
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      signal: controller.signal,
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
-    });
-    const payload = (await response.json().catch(() => null)) as
-      | (T & { message?: string })
-      | null;
-
-    if (!response.ok) {
-      throw new Error(payload?.message || "درخواست احراز هویت ناموفق بود.");
-    }
-    if (!payload) throw new Error("پاسخ معتبر از سرور دریافت نشد.");
-    return payload;
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("زمان پاسخ‌گویی سرویس ورود تمام شد؛ دوباره تلاش کنید.");
-    }
-    throw error;
-  } finally {
-    window.clearTimeout(timeout);
-  }
-};
-
-export const authenticatedRequest = requestJson;
-
-const sanitizeUser = (value: unknown): AuthUser | null => {
-  if (!isRecord(value) || typeof value.mobile !== "string") return null;
-  const mobile = normalizeMobile(value.mobile);
-  if (!isValidIranianMobile(mobile)) return null;
-
-  return {
-    id: typeof value.id === "string" ? value.id : `user-${mobile}`,
-    mobile,
-    fullName: typeof value.fullName === "string" ? value.fullName.trim() : undefined,
-    createdAt: typeof value.createdAt === "string" ? value.createdAt : undefined,
-  };
-};
-
-export const readCachedSession = (): AuthSession | null => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) return null;
-    const user = sanitizeUser(parsed.user);
-    if (!user || typeof parsed.authenticatedAt !== "number") return null;
-    if (typeof parsed.expiresAt === "number" && Date.now() >= parsed.expiresAt) {
-      window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-      return null;
-    }
-    return {
-      user,
-      authenticatedAt: parsed.authenticatedAt,
-      expiresAt: typeof parsed.expiresAt === "number" ? parsed.expiresAt : undefined,
-    };
-  } catch {
-    return null;
-  }
-};
-
-export const cacheSession = (session: AuthSession | null) => {
-  if (typeof window === "undefined") return;
-  try {
-    if (!session) window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-    else window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-  } catch {
-    // The server cookie remains the source of truth in backend mode.
-  }
-};
-
-const readMockProfiles = (): Record<string, AuthUser> => {
-  try {
-    const raw = window.localStorage.getItem(MOCK_PROFILE_KEY);
-    if (!raw) return {};
-    const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) return {};
-    return Object.fromEntries(
-      Object.entries(parsed)
-        .map(([mobile, value]) => [mobile, sanitizeUser(value)] as const)
-        .filter((entry): entry is [string, AuthUser] => Boolean(entry[1])),
-    );
-  } catch {
-    return {};
-  }
-};
-
-const saveMockProfile = (user: AuthUser) => {
-  const profiles = readMockProfiles();
-  profiles[user.mobile] = user;
-  window.localStorage.setItem(MOCK_PROFILE_KEY, JSON.stringify(profiles));
-};
-
-const readMockChallenge = (): MockOtpChallenge | null => {
-  try {
-    const raw = window.sessionStorage.getItem(MOCK_OTP_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as MockOtpChallenge;
-    if (!parsed || Date.now() >= parsed.expiresAt) {
-      window.sessionStorage.removeItem(MOCK_OTP_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-};
+export const authenticatedRequest = <T>(
+  path: string,
+  options: ApiRequestOptions = {},
+) => apiData<T>(path, options);
 
 export const bootstrapAuth = async (): Promise<AuthSession | null> => {
   const mode = getAuthMode();
-  if (mode === "disabled") {
-    cacheSession(null);
-    return null;
+  if (mode === "disabled") return null;
+  if (mode === "mock") {
+    assertMockAllowed();
+    return readMockSession();
   }
-
-  if (mode === "mock") return readCachedSession();
 
   try {
-    const payload = await requestJson<{ user: AuthUser }>("/api/auth/me", {
-      method: "GET",
-    });
-    const user = sanitizeUser(payload.user);
-    if (!user) throw new Error("پروفایل دریافت‌شده معتبر نیست.");
-    const session = { user, authenticatedAt: Date.now() };
-    cacheSession(session);
-    return session;
-  } catch {
-    cacheSession(null);
-    return null;
+    const payload = await apiData<{ user: BackendUser }>("/api/auth/me");
+    return { user: mapUser(payload.user) };
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "authentication_required") {
+      return null;
+    }
+    throw error;
   }
 };
 
-export const requestOtp = async (mobileValue: string): Promise<OtpRequestResult> => {
-  const mobile = normalizeMobile(mobileValue);
-  if (!isValidIranianMobile(mobile)) throw new Error("شماره موبایل معتبر نیست.");
-  const mode = getAuthMode();
-
-  if (mode === "backend") {
-    return requestJson<OtpRequestResult>("/api/auth/otp/request", {
-      method: "POST",
-      body: JSON.stringify({ mobile }),
-    });
+export const requestOtp = async (rawMobile: string): Promise<OtpRequestResult> => {
+  const mobile = normalizeMobile(rawMobile);
+  if (!isValidIranianMobile(mobile)) {
+    throw new Error("شماره موبایل را به‌صورت 09xxxxxxxxx وارد کنید.");
   }
 
-  if (mode === "mock") {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const challenge: MockOtpChallenge = {
-      challengeId: `OTP-${randomToken().slice(0, 18)}`,
-      mobile,
-      code,
-      expiresAt: Date.now() + 120_000,
-      attempts: 0,
-    };
-    window.sessionStorage.setItem(MOCK_OTP_KEY, JSON.stringify(challenge));
+  const mode = getAuthMode();
+  if (mode === "disabled") {
+    throw new Error("ورود کاربران در حال حاضر فعال نیست.");
+  }
+  if (mode === "backend") {
+    const challenge = await apiData<BackendOtpChallenge>("/api/auth/otp/request", {
+      method: "POST",
+      body: { mobile },
+    });
     return {
       challengeId: challenge.challengeId,
-      expiresIn: 120,
-      retryAfter: 60,
-      devCode: code,
+      expiresIn: challenge.expiresIn,
+      retryAfter: challenge.retryAfter,
+      devCode: challenge.debugCode,
     };
   }
 
-  throw new Error("ورود کاربران هنوز به بک‌اند متصل نشده است.");
+  assertMockAllowed();
+  const challenge: MockChallenge = {
+    challengeId: `DEV-${randomId().slice(0, 22)}`,
+    mobile,
+    code: String(Math.floor(100000 + Math.random() * 900000)),
+    expiresAt: Date.now() + 2 * 60_000,
+  };
+  window.sessionStorage.setItem(MOCK_CHALLENGE_KEY, JSON.stringify(challenge));
+  return {
+    challengeId: challenge.challengeId,
+    expiresIn: 120,
+    retryAfter: 60,
+    devCode: challenge.code,
+  };
 };
 
-export const verifyOtp = async ({
-  mobile: mobileValue,
-  challengeId,
-  code,
-}: VerifyOtpInput): Promise<AuthSession> => {
-  const mobile = normalizeMobile(mobileValue);
-  const normalizedCode = normalizeMobile(code).slice(0, 6);
-  if (!isValidIranianMobile(mobile)) throw new Error("شماره موبایل معتبر نیست.");
-  if (!/^\d{4,6}$/.test(normalizedCode)) throw new Error("کد تأیید معتبر نیست.");
+export const verifyOtp = async (input: VerifyOtpInput): Promise<AuthSession> => {
+  const mobile = normalizeMobile(input.mobile);
+  const code = normalizeMobile(input.code);
   const mode = getAuthMode();
 
+  if (mode === "disabled") throw new Error("ورود کاربران فعال نیست.");
   if (mode === "backend") {
-    const payload = await requestJson<{ user: AuthUser }>("/api/auth/otp/verify", {
+    const payload = await apiData<{ user: BackendUser }>("/api/auth/otp/verify", {
       method: "POST",
-      body: JSON.stringify({ mobile, challengeId, code: normalizedCode }),
+      body: {
+        mobile,
+        challengeId: input.challengeId,
+        code,
+      },
     });
-    const user = sanitizeUser(payload.user);
-    if (!user) throw new Error("اطلاعات حساب معتبر نیست.");
-    const session = { user, authenticatedAt: Date.now() };
-    cacheSession(session);
-    return session;
+    return { user: mapUser(payload.user) };
   }
 
-  if (mode === "mock") {
-    const challenge = readMockChallenge();
-    if (!challenge || challenge.challengeId !== challengeId || challenge.mobile !== mobile) {
-      throw new Error("درخواست کد منقضی یا نامعتبر است.");
-    }
-    if (challenge.attempts >= 5) {
-      window.sessionStorage.removeItem(MOCK_OTP_KEY);
-      throw new Error("تعداد تلاش مجاز تمام شد؛ کد جدید دریافت کنید.");
-    }
-    if (challenge.code !== normalizedCode) {
-      window.sessionStorage.setItem(
-        MOCK_OTP_KEY,
-        JSON.stringify({ ...challenge, attempts: challenge.attempts + 1 }),
-      );
-      throw new Error("کد واردشده صحیح نیست.");
-    }
-
-    window.sessionStorage.removeItem(MOCK_OTP_KEY);
-    const profiles = readMockProfiles();
-    const user = profiles[mobile] ?? {
-      id: `mock-${mobile}`,
-      mobile,
-      createdAt: new Date().toISOString(),
-    };
-    saveMockProfile(user);
-    const session = {
-      user,
-      authenticatedAt: Date.now(),
-      expiresAt: Date.now() + MOCK_SESSION_DURATION_MS,
-    };
-    cacheSession(session);
-    return session;
+  assertMockAllowed();
+  const raw = window.sessionStorage.getItem(MOCK_CHALLENGE_KEY);
+  const challenge = raw ? (JSON.parse(raw) as MockChallenge) : null;
+  if (
+    !challenge ||
+    challenge.challengeId !== input.challengeId ||
+    challenge.mobile !== mobile ||
+    challenge.code !== code ||
+    challenge.expiresAt < Date.now()
+  ) {
+    throw new Error("کد ورود معتبر نیست یا منقضی شده است.");
   }
 
-  throw new Error("ورود کاربران فعال نیست.");
+  const profiles = readMockProfiles();
+  const now = new Date().toISOString();
+  const user: AuthUser = profiles[mobile] || {
+    id: `dev-${randomId().slice(0, 20)}`,
+    mobile,
+    mobileVerified: true,
+    marketingConsent: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+  profiles[mobile] = user;
+  writeMockProfiles(profiles);
+  const session = { user };
+  writeMockSession(session);
+  window.sessionStorage.removeItem(MOCK_CHALLENGE_KEY);
+  return session;
 };
 
-export const logoutAuth = async () => {
-  if (getAuthMode() === "backend") {
-    try {
-      await requestJson<{ success: boolean }>("/api/auth/logout", { method: "POST" });
-    } finally {
-      cacheSession(null);
-    }
+export const logoutAuth = async (): Promise<void> => {
+  const mode = getAuthMode();
+  if (mode === "backend") {
+    await apiData<null>("/api/auth/logout", { method: "POST" });
     return;
   }
-  cacheSession(null);
+  if (mode === "mock") {
+    assertMockAllowed();
+    writeMockSession(null);
+  }
 };
 
-export const updateAuthProfile = async (fullNameValue: string): Promise<AuthUser> => {
-  const fullName = fullNameValue.trim();
-  if (fullName.length < 2 || fullName.length > 100) {
-    throw new Error("نام باید بین ۲ تا ۱۰۰ کاراکتر باشد.");
+export const updateAuthProfile = async (
+  fullName: string,
+): Promise<AuthUser> => {
+  const normalizedName = fullName.trim();
+  if (normalizedName.length < 2) {
+    throw new Error("نام و نام خانوادگی باید حداقل ۲ کاراکتر باشد.");
   }
-  const session = readCachedSession();
-  if (!session) throw new Error("نشست کاربری معتبر نیست.");
 
-  if (getAuthMode() === "backend") {
-    const payload = await requestJson<{ user: AuthUser }>("/api/account/profile", {
+  const mode = getAuthMode();
+  if (mode === "backend") {
+    const payload = await apiData<{ user: BackendUser }>("/api/account/profile", {
       method: "PATCH",
-      body: JSON.stringify({ fullName }),
+      body: { fullName: normalizedName },
     });
-    const user = sanitizeUser(payload.user);
-    if (!user) throw new Error("پروفایل به‌روزشده معتبر نیست.");
-    cacheSession({ ...session, user });
-    return user;
+    return mapUser(payload.user);
   }
+  if (mode === "disabled") throw new Error("حساب کاربری فعال نیست.");
 
-  const user = { ...session.user, fullName };
-  saveMockProfile(user);
-  cacheSession({ ...session, user });
+  assertMockAllowed();
+  const session = readMockSession();
+  if (!session) throw new Error("نشست آزمایشی پیدا نشد.");
+  const user = {
+    ...session.user,
+    fullName: normalizedName,
+    updatedAt: new Date().toISOString(),
+  };
+  const profiles = readMockProfiles();
+  profiles[user.mobile] = user;
+  writeMockProfiles(profiles);
+  writeMockSession({ user });
   return user;
 };

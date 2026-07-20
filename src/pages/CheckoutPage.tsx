@@ -1,228 +1,219 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  LockKeyhole,
-  MapPin,
-  Snowflake,
-  Truck,
-} from "lucide-react";
-import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle2, Loader2, LockKeyhole, MapPin, Snowflake, Truck } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { z } from "zod";
 import { CheckoutSteps } from "@/components/cart/CheckoutSteps";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { loadAccountAddresses } from "@/lib/account";
+import type { BackendAddress, BackendDeliveryOptions } from "@/lib/backend-contract";
 import {
   createCheckoutSession,
   createIdempotencyKey,
-  getDeliveryFee,
   getPaymentMode,
-  isChilledDeliveryCity,
   loadCheckoutDraft,
+  loadDeliveryOptions,
   normalizeEnglishDigits,
   saveCheckoutDraft,
-  validateDeliveryMethod,
+  type CheckoutCustomerInput,
 } from "@/lib/checkout";
 import type { DeliveryMethod } from "@/lib/orders";
 
-const schema = z
-  .object({
-    fullName: z.string().trim().min(2, "نام کامل الزامی است").max(100),
-    mobile: z
-      .string()
-      .trim()
-      .refine(
-        (value) => /^09\d{9}$/.test(normalizeEnglishDigits(value)),
-        "شماره موبایل معتبر نیست (09xxxxxxxxx)",
-      ),
-    province: z.string().trim().max(50),
-    city: z.string().trim().max(50),
-    address: z.string().trim().max(500),
-    postalCode: z
-      .string()
-      .trim()
-      .refine(
-        (value) =>
-          value.length === 0 || /^\d{10}$/.test(normalizeEnglishDigits(value)),
-        "کد پستی باید ۱۰ رقم باشد",
-      ),
-    notes: z.string().trim().max(500, "یادداشت حداکثر ۵۰۰ کاراکتر است"),
-    deliveryMethod: z.enum(["standard", "chilled", "pickup"]),
-  })
-  .superRefine((data, context) => {
-    if (data.deliveryMethod === "pickup") return;
+interface ManualRecipient extends CheckoutCustomerInput {}
 
-    if (data.province.length < 2) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["province"],
-        message: "استان الزامی است",
-      });
-    }
-    if (data.city.length < 2) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["city"],
-        message: "شهر الزامی است",
-      });
-    }
-    if (data.address.length < 10) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["address"],
-        message: "آدرس حداقل ۱۰ کاراکتر باشد",
-      });
-    }
-  });
-
-type FormValues = z.infer<typeof schema>;
-
-const fieldOrder: (keyof FormValues)[] = [
-  "fullName",
-  "mobile",
-  "province",
-  "city",
-  "address",
-  "postalCode",
-  "notes",
-  "deliveryMethod",
-];
+const emptyRecipient = (fullName: string, mobile: string): ManualRecipient => ({
+  fullName,
+  mobile,
+  province: "",
+  city: "",
+  address: "",
+  postalCode: "",
+  notes: "",
+});
 
 const CheckoutPage = () => {
-  const {
-    items,
-    subtotal,
-    packagingFee,
-    hasCoolingItems,
-    isReadyForCheckout,
-  } = useCart();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { items, subtotal, hasCoolingItems, isReadyForCheckout } = useCart();
   const draft = useMemo(() => loadCheckoutDraft(), []);
-  const initialDelivery: DeliveryMethod =
-    draft?.deliveryMethod ?? (hasCoolingItems ? "chilled" : "standard");
   const paymentMode = getPaymentMode();
-  const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const idempotencyKeyRef = useRef(createIdempotencyKey("CHK"));
+  const [addressMode, setAddressMode] = useState<"saved" | "manual">(
+    draft?.addressId ? "saved" : "manual",
+  );
+  const [selectedAddressId, setSelectedAddressId] = useState(draft?.addressId || "");
+  const [recipient, setRecipient] = useState<ManualRecipient>(() => ({
+    ...emptyRecipient(user?.fullName || "", user?.mobile || ""),
+    ...draft?.customer,
+  }));
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>(
+    draft?.deliveryMethod || (hasCoolingItems ? "chilled" : "standard"),
+  );
   const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    setFocus,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      fullName: draft?.customer.fullName ?? "",
-      mobile: draft?.customer.mobile ?? "",
-      province: draft?.customer.province ?? "",
-      city: draft?.customer.city ?? "",
-      address: draft?.customer.address ?? "",
-      postalCode: draft?.customer.postalCode ?? "",
-      notes: draft?.customer.notes ?? "",
-      deliveryMethod: initialDelivery,
-    },
+  const addressesQuery = useQuery({
+    queryKey: ["account", "addresses", "checkout"],
+    queryFn: loadAccountAddresses,
+    enabled: paymentMode === "backend",
+    staleTime: 30_000,
+  });
+  const addresses = addressesQuery.data ?? [];
+  const selectedAddress = addresses.find((address) => address.id === selectedAddressId);
+
+  useEffect(() => {
+    if (addresses.length === 0 || selectedAddressId) return;
+    const preferred = addresses.find((address) => address.isDefault) || addresses[0];
+    setSelectedAddressId(preferred.id);
+    setAddressMode("saved");
+  }, [addresses, selectedAddressId]);
+
+  const destination = useMemo(() => {
+    if (addressMode === "saved" && selectedAddress) {
+      return { province: selectedAddress.province, city: selectedAddress.city };
+    }
+    return { province: recipient.province, city: recipient.city };
+  }, [addressMode, recipient.city, recipient.province, selectedAddress]);
+  const deferredProvince = useDeferredValue(destination.province);
+  const deferredCity = useDeferredValue(destination.city);
+
+  const deliveryQuery = useQuery({
+    queryKey: [
+      "delivery-options",
+      deferredProvince,
+      deferredCity,
+      subtotal,
+      hasCoolingItems,
+    ],
+    queryFn: () =>
+      loadDeliveryOptions({
+        province: deferredProvince,
+        city: deferredCity,
+        subtotalToman: subtotal,
+        requiresCooling: hasCoolingItems,
+      }),
+    enabled: paymentMode === "backend",
+    staleTime: 15_000,
   });
 
-  const city = watch("city");
-  const deliveryMethod = watch("deliveryMethod");
-  const canUseStandard = !hasCoolingItems;
-  const canUseChilled = isChilledDeliveryCity(city);
-  const deliveryFee = getDeliveryFee(deliveryMethod);
-  const total = subtotal + packagingFee + deliveryFee;
-  const deliveryError = useMemo(
-    () =>
-      validateDeliveryMethod({
-        method: deliveryMethod,
-        city,
-        hasCoolingItems,
-      }),
-    [city, deliveryMethod, hasCoolingItems],
-  );
+  const developmentOptions: BackendDeliveryOptions = {
+    zone: null,
+    methods: [
+      { method: "standard", label: "ارسال استاندارد", enabled: !hasCoolingItems, feeToman: 0 },
+      { method: "chilled", label: "ارسال سرد", enabled: true, feeToman: 0 },
+      { method: "pickup", label: "تحویل حضوری", enabled: true, feeToman: 0 },
+    ],
+  };
+  const deliveryOptions = paymentMode === "mock" ? developmentOptions : deliveryQuery.data;
+  const methods = deliveryOptions?.methods ?? [];
+  const selectedMethod = methods.find((method) => method.method === deliveryMethod);
+  const packagingFee = deliveryOptions?.zone?.packagingFeeToman ?? 0;
+  const deliveryFee = selectedMethod?.feeToman ?? 0;
+  const estimatedTotal = subtotal + packagingFee + deliveryFee;
 
   useEffect(() => {
-    const subscription = watch((values) => {
-      saveCheckoutDraft({
-        customer: {
-          fullName: values.fullName,
-          mobile: values.mobile,
-          province: values.province,
-          city: values.city,
-          address: values.address,
-          postalCode: values.postalCode,
-          notes: values.notes,
-        },
-        deliveryMethod: values.deliveryMethod ?? initialDelivery,
-      });
-    });
-    return () => subscription.unsubscribe();
-  }, [initialDelivery, watch]);
+    if (methods.length === 0) return;
+    if (selectedMethod?.enabled) return;
+    const preferred = methods.find(
+      (method) => method.enabled && (hasCoolingItems ? method.method === "chilled" : method.method === "standard"),
+    );
+    const fallback = preferred || methods.find((method) => method.enabled);
+    if (fallback) setDeliveryMethod(fallback.method);
+  }, [hasCoolingItems, methods, selectedMethod?.enabled]);
 
   useEffect(() => {
-    if (hasCoolingItems && deliveryMethod === "standard") {
-      setValue("deliveryMethod", "chilled", { shouldValidate: true });
-    }
-  }, [deliveryMethod, hasCoolingItems, setValue]);
-
-  const selectDelivery = (method: DeliveryMethod) => {
-    setValue("deliveryMethod", method, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
+    saveCheckoutDraft({
+      addressId: addressMode === "saved" ? selectedAddressId || undefined : undefined,
+      customer: recipient,
+      deliveryMethod,
     });
+  }, [addressMode, deliveryMethod, recipient, selectedAddressId]);
+
+  const updateRecipient = (field: keyof ManualRecipient, value: string) => {
+    setRecipient((current) => ({ ...current, [field]: value }));
   };
 
-  const onSubmit = async (data: FormValues) => {
-    if (!isReadyForCheckout) {
-      toast.error("قیمت یا موجودی سبد معتبر نیست؛ ابتدا سبد را اصلاح کنید.");
+  const validateRecipient = (): string | null => {
+    if (deliveryMethod === "pickup") return null;
+    if (addressMode === "saved") {
+      return selectedAddress ? null : "یک آدرس ذخیره‌شده معتبر انتخاب کنید.";
+    }
+    if (recipient.fullName.trim().length < 2) return "نام کامل گیرنده را وارد کنید.";
+    if (!/^09\d{9}$/.test(normalizeEnglishDigits(recipient.mobile))) return "شماره موبایل گیرنده معتبر نیست.";
+    if (recipient.province.trim().length < 2) return "استان را وارد کنید.";
+    if (recipient.city.trim().length < 2) return "شهر را وارد کنید.";
+    if (recipient.address.trim().length < 10) return "نشانی کامل باید حداقل ۱۰ کاراکتر باشد.";
+    if (recipient.postalCode && !/^\d{10}$/.test(normalizeEnglishDigits(recipient.postalCode))) {
+      return "کد پستی باید ۱۰ رقم باشد.";
+    }
+    return null;
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user || !isReadyForCheckout) {
+      toast.error("نشست یا موجودی سبد معتبر نیست.");
       return;
     }
-
-    const methodError = validateDeliveryMethod({
-      method: data.deliveryMethod,
-      city: data.city,
-      hasCoolingItems,
-    });
-    if (methodError) {
-      toast.error(methodError);
+    const recipientError = validateRecipient();
+    if (recipientError) {
+      toast.error(recipientError);
       return;
     }
-
-    if (paymentMode === "disabled") {
-      toast.error("پرداخت آنلاین هنوز به بک‌اند متصل نشده است.");
+    if (!selectedMethod?.enabled) {
+      toast.error("روش تحویل انتخاب‌شده از طرف سرور فعال نیست.");
       return;
     }
 
     setSubmitting(true);
-    const normalizedMobile = normalizeEnglishDigits(data.mobile);
-    const normalizedPostalCode = data.postalCode
-      ? normalizeEnglishDigits(data.postalCode)
-      : undefined;
-    const finalDeliveryFee = getDeliveryFee(data.deliveryMethod);
+    const normalizedRecipient: CheckoutCustomerInput = {
+      fullName:
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.recipientName
+          : recipient.fullName || user.fullName || "مشتری وینیمی",
+      mobile:
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.mobile
+          : normalizeEnglishDigits(recipient.mobile || user.mobile),
+      province:
+        deliveryMethod === "pickup"
+          ? ""
+          : addressMode === "saved" && selectedAddress
+            ? selectedAddress.province
+            : recipient.province,
+      city:
+        deliveryMethod === "pickup"
+          ? ""
+          : addressMode === "saved" && selectedAddress
+            ? selectedAddress.city
+            : recipient.city,
+      address:
+        deliveryMethod === "pickup"
+          ? ""
+          : addressMode === "saved" && selectedAddress
+            ? selectedAddress.address
+            : recipient.address,
+      postalCode:
+        deliveryMethod === "pickup"
+          ? undefined
+          : addressMode === "saved" && selectedAddress
+            ? selectedAddress.postalCode || undefined
+            : recipient.postalCode
+              ? normalizeEnglishDigits(recipient.postalCode)
+              : undefined,
+      notes: recipient.notes.trim() || undefined,
+    };
+
     const result = await createCheckoutSession({
-      customer: {
-        fullName: data.fullName,
-        mobile: normalizedMobile,
-        province:
-          data.deliveryMethod === "pickup" ? "تحویل حضوری" : data.province,
-        city: data.deliveryMethod === "pickup" ? "تحویل حضوری" : data.city,
-        address:
-          data.deliveryMethod === "pickup"
-            ? "تحویل حضوری با هماهنگی"
-            : data.address,
-        postalCode: normalizedPostalCode || undefined,
-        notes: data.notes || undefined,
-      },
-      deliveryMethod: data.deliveryMethod,
+      addressId:
+        deliveryMethod !== "pickup" && addressMode === "saved"
+          ? selectedAddressId
+          : undefined,
+      customer: normalizedRecipient,
+      deliveryMethod,
       items,
-      subtotal,
-      packagingFee,
-      deliveryFee: finalDeliveryFee,
-      total: subtotal + packagingFee + finalDeliveryFee,
       idempotencyKey: idempotencyKeyRef.current,
     });
 
@@ -230,423 +221,148 @@ const CheckoutPage = () => {
       window.location.assign(result.paymentUrl);
       return;
     }
+    if (result.success && result.order) {
+      toast.success(
+        result.paymentAvailable === false
+          ? "سفارش ثبت شد؛ پرداخت هنوز از سمت سرور فعال نیست."
+          : "سفارش ثبت شد.",
+      );
+      navigate(`/account/orders/${encodeURIComponent(result.order.id)}`, { replace: true });
+      return;
+    }
 
-    toast.error(result.error || "ساخت سفارش یا انتقال به درگاه ناموفق بود.");
+    toast.error(result.error || "ثبت سفارش ناموفق بود.");
     setSubmitting(false);
   };
 
-  const onInvalid = (formErrors: typeof errors) => {
-    const firstInvalidField = fieldOrder.find((field) => formErrors[field]);
-    if (firstInvalidField) setFocus(firstInvalidField);
-    toast.error("لطفاً فیلدهای مشخص‌شده را بررسی کنید.");
-  };
-
-  const inputClass = "input-field min-h-12 bg-background text-right";
-  const errorClass = "mt-1.5 text-xs leading-6 text-destructive";
+  const fieldClass = "input-field min-h-12 w-full bg-background";
 
   return (
     <>
       <SEO title="تکمیل سفارش و پرداخت" noIndex />
-      <section className="section-padding bg-gradient-to-b from-secondary/20 to-background">
+      <section className="bg-gradient-to-b from-secondary/20 to-background section-padding">
         <div className="container-custom">
           <CheckoutSteps current="delivery" />
-
           <div className="mb-8 text-right">
-            <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-              تکمیل اطلاعات سفارش
-            </h1>
-            <p className="mt-3 leading-7 text-muted-foreground">
-              سبد خرید تا زمان تأیید نهایی پرداخت حفظ می‌شود. فیلدهای ستاره‌دار الزامی هستند.
+            <h1 className="text-3xl font-black text-foreground md:text-4xl">تکمیل سفارش</h1>
+            <p className="mt-3 leading-8 text-muted-foreground">
+              قیمت، موجودی، محدوده ارسال و مبلغ نهایی هنگام ثبت سفارش دوباره توسط سرور محاسبه می‌شوند.
             </p>
           </div>
 
           {paymentMode === "mock" && (
-            <div
-              className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900"
-              role="alert"
-            >
-              <AlertTriangle
-                size={20}
-                className="mt-0.5 shrink-0"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="font-bold">حالت آزمایشی پرداخت فعال است</p>
-                <p className="mt-1 text-sm leading-7">
-                  هیچ تراکنش بانکی واقعی انجام نمی‌شود؛ این حالت فقط برای توسعه است.
-                </p>
-              </div>
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="alert">
+              <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+              حالت آزمایشی فقط در محیط توسعه فعال است و تراکنش بانکی واقعی انجام نمی‌دهد.
             </div>
           )}
-
           {paymentMode === "disabled" && (
-            <div
-              className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive"
-              role="alert"
-            >
-              <LockKeyhole
-                size={20}
-                className="mt-0.5 shrink-0"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="font-bold">پرداخت واقعی غیرفعال است</p>
-                <p className="mt-1 text-sm leading-7">
-                  API امن Laravel باید فعال شود. هیچ Merchant ID یا راز پرداختی در فرانت نگهداری نمی‌شود.
-                </p>
-              </div>
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert">
+              <LockKeyhole size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+              ثبت سفارش به اتصال بک‌اند نیاز دارد.
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit(onSubmit, onInvalid)}
-            className="grid min-w-0 gap-8 lg:grid-cols-3"
-            noValidate
-            aria-busy={submitting}
-          >
+          <form onSubmit={submit} className="grid min-w-0 gap-8 lg:grid-cols-3" aria-busy={submitting}>
             <div className="min-w-0 space-y-6 lg:col-span-2">
-              <section className="space-y-5 rounded-3xl border border-border bg-card p-4 text-right shadow-soft sm:p-5 md:p-7">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2
-                    className="text-primary"
-                    size={22}
-                    aria-hidden="true"
-                  />
-                  <h2 className="text-xl font-bold">اطلاعات تماس و گیرنده</h2>
+              <section className="rounded-3xl border border-border bg-card p-5 shadow-soft md:p-7">
+                <div className="mb-5 flex items-center gap-3">
+                  <MapPin className="text-primary" size={22} aria-hidden="true" />
+                  <h2 className="text-xl font-black">گیرنده و مقصد</h2>
                 </div>
 
-                <div className="grid min-w-0 gap-4 md:grid-cols-2">
-                  <div className="min-w-0">
-                    <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium">
-                      نام و نام خانوادگی <span aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="fullName"
-                      {...register("fullName")}
-                      className={inputClass}
-                      autoComplete="name"
-                      required
-                      aria-invalid={Boolean(errors.fullName)}
-                      aria-describedby={errors.fullName ? "fullName-error" : undefined}
-                    />
-                    {errors.fullName && (
-                      <p id="fullName-error" className={errorClass} role="alert">
-                        {errors.fullName.message}
-                      </p>
-                    )}
+                {addressesQuery.isLoading ? (
+                  <div className="py-7 text-center" role="status"><Loader2 className="mx-auto mb-2 animate-spin text-primary" aria-hidden="true" />در حال دریافت آدرس‌ها…</div>
+                ) : addresses.length > 0 ? (
+                  <div className="mb-5 grid gap-3 sm:grid-cols-2">
+                    {addresses.map((address: BackendAddress) => (
+                      <button
+                        key={address.id}
+                        type="button"
+                        onClick={() => {
+                          setAddressMode("saved");
+                          setSelectedAddressId(address.id);
+                        }}
+                        aria-pressed={addressMode === "saved" && selectedAddressId === address.id}
+                        className={`rounded-2xl border p-4 text-right transition ${addressMode === "saved" && selectedAddressId === address.id ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"}`}
+                      >
+                        <span className="font-black">{address.title}</span>
+                        {address.isDefault && <span className="mr-2 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">پیش‌فرض</span>}
+                        <span className="mt-2 block text-sm text-muted-foreground">{address.recipientName} · {address.province}، {address.city}</span>
+                        <span className="mt-1 line-clamp-2 block text-xs leading-6 text-muted-foreground">{address.address}</span>
+                      </button>
+                    ))}
                   </div>
+                ) : null}
 
-                  <div className="min-w-0">
-                    <label htmlFor="mobile" className="mb-1.5 block text-sm font-medium">
-                      شماره موبایل <span aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="mobile"
-                      {...register("mobile")}
-                      className={`${inputClass} text-left`}
-                      placeholder="09xxxxxxxxx"
-                      inputMode="numeric"
-                      dir="ltr"
-                      autoComplete="tel"
-                      required
-                      aria-invalid={Boolean(errors.mobile)}
-                      aria-describedby={errors.mobile ? "mobile-error" : undefined}
-                    />
-                    {errors.mobile && (
-                      <p id="mobile-error" className={errorClass} role="alert">
-                        {errors.mobile.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <label htmlFor="province" className="mb-1.5 block text-sm font-medium">
-                      استان {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
-                    </label>
-                    <input
-                      id="province"
-                      {...register("province")}
-                      className={inputClass}
-                      disabled={deliveryMethod === "pickup"}
-                      autoComplete="address-level1"
-                      aria-invalid={Boolean(errors.province)}
-                      aria-describedby={errors.province ? "province-error" : undefined}
-                    />
-                    {errors.province && (
-                      <p id="province-error" className={errorClass} role="alert">
-                        {errors.province.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <label htmlFor="city" className="mb-1.5 block text-sm font-medium">
-                      شهر {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
-                    </label>
-                    <input
-                      id="city"
-                      {...register("city")}
-                      className={inputClass}
-                      disabled={deliveryMethod === "pickup"}
-                      autoComplete="address-level2"
-                      aria-invalid={Boolean(errors.city)}
-                      aria-describedby={errors.city ? "city-error" : undefined}
-                    />
-                    {errors.city && (
-                      <p id="city-error" className={errorClass} role="alert">
-                        {errors.city.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 md:col-span-2">
-                    <label htmlFor="address" className="mb-1.5 block text-sm font-medium">
-                      آدرس کامل {deliveryMethod !== "pickup" && <span aria-hidden="true">*</span>}
-                    </label>
-                    <textarea
-                      id="address"
-                      {...register("address")}
-                      className={inputClass}
-                      rows={4}
-                      disabled={deliveryMethod === "pickup"}
-                      autoComplete="street-address"
-                      aria-invalid={Boolean(errors.address)}
-                      aria-describedby={errors.address ? "address-error" : undefined}
-                    />
-                    {errors.address && (
-                      <p id="address-error" className={errorClass} role="alert">
-                        {errors.address.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <label htmlFor="postalCode" className="mb-1.5 block text-sm font-medium">
-                      کد پستی
-                    </label>
-                    <input
-                      id="postalCode"
-                      {...register("postalCode")}
-                      className={`${inputClass} text-left`}
-                      inputMode="numeric"
-                      dir="ltr"
-                      disabled={deliveryMethod === "pickup"}
-                      autoComplete="postal-code"
-                      aria-invalid={Boolean(errors.postalCode)}
-                      aria-describedby={errors.postalCode ? "postalCode-error" : undefined}
-                    />
-                    {errors.postalCode && (
-                      <p id="postalCode-error" className={errorClass} role="alert">
-                        {errors.postalCode.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <label htmlFor="notes" className="mb-1.5 block text-sm font-medium">
-                      یادداشت سفارش
-                    </label>
-                    <input
-                      id="notes"
-                      {...register("notes")}
-                      className={inputClass}
-                      aria-invalid={Boolean(errors.notes)}
-                      aria-describedby={errors.notes ? "notes-error" : undefined}
-                    />
-                    {errors.notes && (
-                      <p id="notes-error" className={errorClass} role="alert">
-                        {errors.notes.message}
-                      </p>
-                    )}
-                  </div>
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {addresses.length > 0 && (
+                    <button type="button" onClick={() => setAddressMode("saved")} className={`rounded-full px-4 py-2 text-sm font-bold ${addressMode === "saved" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>آدرس ذخیره‌شده</button>
+                  )}
+                  <button type="button" onClick={() => setAddressMode("manual")} className={`rounded-full px-4 py-2 text-sm font-bold ${addressMode === "manual" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>گیرنده یا آدرس جدید</button>
+                  <Link to="/account" className="rounded-full border border-border px-4 py-2 text-sm font-bold text-primary">مدیریت آدرس‌ها</Link>
                 </div>
+
+                {addressMode === "manual" && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label><span className="mb-1.5 block text-sm font-bold">نام گیرنده</span><input value={recipient.fullName} onChange={(event) => updateRecipient("fullName", event.target.value)} className={fieldClass} autoComplete="name" /></label>
+                    <label><span className="mb-1.5 block text-sm font-bold">موبایل گیرنده</span><input value={recipient.mobile} onChange={(event) => updateRecipient("mobile", event.target.value)} className={`${fieldClass} text-left`} dir="ltr" inputMode="tel" autoComplete="tel" /></label>
+                    <label><span className="mb-1.5 block text-sm font-bold">استان</span><input value={recipient.province} onChange={(event) => updateRecipient("province", event.target.value)} className={fieldClass} /></label>
+                    <label><span className="mb-1.5 block text-sm font-bold">شهر</span><input value={recipient.city} onChange={(event) => updateRecipient("city", event.target.value)} className={fieldClass} /></label>
+                    <label className="md:col-span-2"><span className="mb-1.5 block text-sm font-bold">نشانی کامل</span><textarea value={recipient.address} onChange={(event) => updateRecipient("address", event.target.value)} className="input-field min-h-28 w-full resize-y bg-background" /></label>
+                    <label><span className="mb-1.5 block text-sm font-bold">کد پستی</span><input value={recipient.postalCode || ""} onChange={(event) => updateRecipient("postalCode", event.target.value)} className={`${fieldClass} text-left`} dir="ltr" inputMode="numeric" /></label>
+                  </div>
+                )}
+
+                <label className="mt-4 block"><span className="mb-1.5 block text-sm font-bold">یادداشت سفارش</span><textarea value={recipient.notes || ""} onChange={(event) => updateRecipient("notes", event.target.value)} className="input-field min-h-24 w-full resize-y bg-background" maxLength={1000} /></label>
               </section>
 
-              <fieldset
-                className="space-y-3 rounded-3xl border border-border bg-card p-4 text-right shadow-soft sm:p-5 md:p-7"
-                aria-describedby={deliveryError ? "delivery-error" : "delivery-help"}
-              >
-                <legend className="px-1 text-xl font-bold">روش تحویل</legend>
-                <p id="delivery-help" className="text-sm leading-7 text-muted-foreground">
-                  روش قابل‌انتخاب بر اساس نوع محصولات و شهر مقصد تعیین می‌شود.
-                </p>
-
-                <label
-                  className={`flex min-w-0 items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
-                    deliveryMethod === "standard"
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  } ${canUseStandard ? "cursor-pointer" : "cursor-not-allowed opacity-55"}`}
-                >
-                  <input
-                    type="radio"
-                    {...register("deliveryMethod")}
-                    value="standard"
-                    checked={deliveryMethod === "standard"}
-                    disabled={!canUseStandard}
-                    onChange={() => selectDelivery("standard")}
-                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
-                  />
-                  <Truck size={21} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
-                      <strong>ارسال پستی سراسری</strong>
-                      <strong className="text-primary">
-                        {formatToman(getDeliveryFee("standard"))}
-                      </strong>
-                    </span>
-                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
-                      برای محصولات خشک و بدون نیاز به زنجیره سرد.
-                    </span>
-                  </span>
-                </label>
-
-                <label
-                  className={`flex min-w-0 items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
-                    deliveryMethod === "chilled"
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  } ${canUseChilled ? "cursor-pointer" : "cursor-not-allowed opacity-55"}`}
-                >
-                  <input
-                    type="radio"
-                    {...register("deliveryMethod")}
-                    value="chilled"
-                    checked={deliveryMethod === "chilled"}
-                    disabled={!canUseChilled}
-                    onChange={() => selectDelivery("chilled")}
-                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
-                  />
-                  <Snowflake size={21} className="mt-0.5 shrink-0 text-sky-700" aria-hidden="true" />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
-                      <strong>ارسال یخچالی تهران و کرج</strong>
-                      <strong className="text-primary">
-                        {formatToman(getDeliveryFee("chilled"))}
-                      </strong>
-                    </span>
-                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
-                      پس از واردکردن تهران یا کرج در فیلد شهر فعال می‌شود.
-                    </span>
-                  </span>
-                </label>
-
-                <label
-                  className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
-                    deliveryMethod === "pickup"
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    {...register("deliveryMethod")}
-                    value="pickup"
-                    checked={deliveryMethod === "pickup"}
-                    onChange={() => selectDelivery("pickup")}
-                    className="mt-1 h-5 w-5 shrink-0 accent-primary"
-                  />
-                  <MapPin size={21} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
-                      <strong>تحویل حضوری با هماهنگی</strong>
-                      <strong className="text-emerald-700">رایگان</strong>
-                    </span>
-                    <span className="mt-1 block text-sm leading-7 text-muted-foreground">
-                      زمان و محل تحویل پس از ثبت سفارش هماهنگ می‌شود.
-                    </span>
-                  </span>
-                </label>
-
-                {deliveryError && (
-                  <p
-                    id="delivery-error"
-                    className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm leading-7 text-destructive"
-                    role="alert"
-                  >
-                    {deliveryError}
-                  </p>
-                )}
-              </fieldset>
-            </div>
-
-            <aside className="min-w-0 lg:col-span-1" aria-label="خلاصه سفارش">
-              <div className="space-y-4 rounded-3xl border border-border bg-card p-5 text-right shadow-card sm:p-6 lg:sticky lg:top-24">
-                <h2 className="border-b border-border pb-4 text-xl font-bold">
-                  خلاصه سفارش
-                </h2>
-                <ul className="max-h-64 space-y-3 overflow-y-auto overscroll-contain pl-1">
-                  {items.map((item) => {
-                    const price = item.selectedVariant?.priceToman ?? item.priceToman;
+              <section className="rounded-3xl border border-border bg-card p-5 shadow-soft md:p-7">
+                <div className="mb-5 flex items-center gap-3">
+                  <Truck className="text-primary" size={22} aria-hidden="true" />
+                  <h2 className="text-xl font-black">روش تحویل فعال برای این مقصد</h2>
+                </div>
+                {deliveryQuery.isFetching && paymentMode === "backend" && <p className="mb-4 text-sm text-muted-foreground" role="status">در حال محاسبه روش‌ها و هزینه از سرور…</p>}
+                {deliveryQuery.error && <div className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive" role="alert">{deliveryQuery.error instanceof Error ? deliveryQuery.error.message : "دریافت گزینه‌های تحویل ناموفق بود."}</div>}
+                <div className="grid gap-3 md:grid-cols-3">
+                  {methods.map((method) => {
+                    const Icon = method.method === "chilled" ? Snowflake : method.method === "pickup" ? MapPin : Truck;
                     return (
-                      <li
-                        key={`${item.id}-${item.selectedVariant?.id ?? ""}`}
-                        className="flex min-w-0 justify-between gap-3 text-sm"
+                      <button
+                        key={method.method}
+                        type="button"
+                        disabled={!method.enabled}
+                        onClick={() => setDeliveryMethod(method.method)}
+                        aria-pressed={deliveryMethod === method.method}
+                        className={`rounded-2xl border p-4 text-right transition disabled:cursor-not-allowed disabled:opacity-45 ${deliveryMethod === method.method ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"}`}
                       >
-                        <div className="min-w-0">
-                          <p className="line-clamp-2 font-medium">{item.name}</p>
-                          <p className="text-xs leading-6 text-muted-foreground">
-                            {item.selectedVariant?.name
-                              ? `${item.selectedVariant.name} · `
-                              : ""}
-                            {item.quantity.toLocaleString("fa-IR")} عدد
-                          </p>
-                        </div>
-                        <strong className="shrink-0 text-left">
-                          {formatToman(price * item.quantity)}
-                        </strong>
-                      </li>
+                        <Icon className="mb-3 text-primary" size={22} aria-hidden="true" />
+                        <span className="block font-black">{method.label}</span>
+                        <span className="mt-2 block text-sm text-muted-foreground">{method.enabled ? formatToman(method.feeToman) : "برای این مقصد غیرفعال"}</span>
+                      </button>
                     );
                   })}
-                </ul>
-
-                <div className="space-y-3 border-t border-border pt-4 text-sm">
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">مبلغ محصولات</span>
-                    <strong>{formatToman(subtotal)}</strong>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">بسته‌بندی</span>
-                    <strong>{formatToman(packagingFee)}</strong>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">هزینه تحویل</span>
-                    <strong>{formatToman(deliveryFee)}</strong>
-                  </div>
-                  <div
-                    className="flex flex-col gap-1 border-t border-border pt-4 text-lg sm:flex-row sm:justify-between sm:gap-3"
-                    aria-live="polite"
-                    aria-atomic="true"
-                  >
-                    <strong>مبلغ قابل پرداخت</strong>
-                    <strong className="text-primary">{formatToman(total)}</strong>
-                  </div>
                 </div>
+                {methods.length === 0 && !deliveryQuery.isFetching && <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">هیچ روش تحویلی از سرور دریافت نشد.</p>}
+                {deliveryOptions?.zone && <div className="mt-4 rounded-xl bg-secondary/60 p-4 text-sm leading-7 text-muted-foreground">منطقه: <strong className="text-foreground">{deliveryOptions.zone.name}</strong> · زمان آماده‌سازی تخمینی: {deliveryOptions.zone.preparation.minDays.toLocaleString("fa-IR")} تا {deliveryOptions.zone.preparation.maxDays.toLocaleString("fa-IR")} روز</div>}
+              </section>
+            </div>
 
-                <button
-                  type="submit"
-                  disabled={
-                    submitting ||
-                    Boolean(deliveryError) ||
-                    paymentMode === "disabled"
-                  }
-                  className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 font-bold shadow-lg"
-                >
-                  <LockKeyhole size={18} aria-hidden="true" />
-                  {submitting
-                    ? "در حال ساخت سفارش امن…"
-                    : "ثبت سفارش و انتقال به درگاه"}
-                </button>
-                <p className="text-center text-xs leading-6 text-muted-foreground">
-                  مبلغ و موجودی در بک‌اند دوباره محاسبه می‌شود.
-                </p>
-                <Link
-                  to="/cart"
-                  className="touch-target flex items-center justify-center rounded-lg text-center text-sm font-bold text-primary hover:underline"
-                >
-                  بازگشت و ویرایش سبد
-                </Link>
+            <aside className="h-fit rounded-3xl border border-border bg-card p-5 shadow-card lg:sticky lg:top-28 md:p-6">
+              <CheckCircle2 className="mb-3 text-primary" size={24} aria-hidden="true" />
+              <h2 className="mb-5 text-xl font-black">برآورد سرور</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">محصولات</span><strong>{formatToman(subtotal)}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">بسته‌بندی</span><strong>{formatToman(packagingFee)}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">تحویل</span><strong>{formatToman(deliveryFee)}</strong></div>
+                <div className="flex justify-between gap-3 border-t border-border pt-4 text-lg"><span className="font-black">جمع تخمینی</span><strong className="text-primary">{formatToman(estimatedTotal)}</strong></div>
               </div>
+              <p className="mt-4 text-xs leading-6 text-muted-foreground">عدد قطعی از پاسخ ثبت سفارش می‌آید؛ هیچ مبلغی از مرورگر برای بک‌اند معتبر نیست.</p>
+              <button type="submit" disabled={submitting || paymentMode === "disabled" || !selectedMethod?.enabled || deliveryQuery.isFetching} className="btn-primary mt-6 flex min-h-13 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-black disabled:cursor-not-allowed disabled:opacity-50">
+                {submitting && <Loader2 size={18} className="animate-spin" aria-hidden="true" />}
+                {submitting ? "در حال ثبت امن سفارش…" : "ثبت سفارش و ادامه پرداخت"}
+              </button>
+              <Link to="/cart" className="mt-3 block text-center text-sm font-bold text-muted-foreground hover:text-primary">بازگشت به سبد</Link>
             </aside>
           </form>
         </div>
