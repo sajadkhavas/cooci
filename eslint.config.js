@@ -28,6 +28,16 @@ export default tseslint.config(
     },
   },
   {
+    files: ["tests/**/*.{ts,tsx}"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
     files: ["src/components/ui/**/*.{ts,tsx}", "src/context/CartContext.tsx"],
     rules: {
       "react-refresh/only-export-components": "off",
