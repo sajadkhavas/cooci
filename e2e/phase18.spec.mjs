@@ -28,6 +28,16 @@ const loginWithTestingOtp = async (page) => {
   await expect(page.getByRole("heading", { name: "مشتری تست پذیرش" })).toBeVisible();
 };
 
+const addStagingCookieToCart = async (page) => {
+  await page.goto("/products/staging-chocolate-cookie");
+  await expect(page.getByRole("heading", { name: "کوکی شکلاتی تست" })).toBeVisible();
+  const addButton = page.getByRole("button", { name: "افزودن به سبد خرید" });
+  await expect(addButton).toBeEnabled();
+  await addButton.click();
+  await page.locator("#main-content").getByRole("link", { name: "مشاهده سبد خرید" }).click();
+  await expect(page).toHaveURL(/\/cart$/);
+};
+
 const expireServerSessionWithoutUpdatingReact = async (page) =>
   page.evaluate(async (origin) => {
     const tokenCookie = document.cookie
@@ -111,14 +121,7 @@ test("diet and category filters update atomically without restoring stale URL st
 test("product detail sends the server Variant stock snapshot into the reconciled cart", async ({ page }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
 
-  await page.goto("/products/staging-chocolate-cookie");
-  await expect(page.getByRole("heading", { name: "کوکی شکلاتی تست" })).toBeVisible();
-  const addButton = page.getByRole("button", { name: "افزودن به سبد خرید" });
-  await expect(addButton).toBeEnabled();
-  await addButton.click();
-  await page.locator("#main-content").getByRole("link", { name: "مشاهده سبد خرید" }).click();
-
-  await expect(page).toHaveURL(/\/cart$/);
+  await addStagingCookieToCart(page);
   await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
   await expect(page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" })).toBeEnabled();
   assertNoPageErrors();
@@ -156,6 +159,58 @@ test("a tampered stale cart cannot bypass exact server reconciliation", async ({
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
   expect(stored.items[0].image).toBe("");
   expect(stored.items[0].quantity).toBeLessThanOrEqual(1000);
+  assertNoPageErrors();
+});
+
+test("real Laravel checkout verifies testing payment and clears cart only after server success", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+
+  await loginWithTestingOtp(page);
+  await addStagingCookieToCart(page);
+  await page.getByRole("button", { name: "ادامه و ثبت اطلاعات ارسال" }).click();
+  await expect(page).toHaveURL(/\/checkout$/);
+
+  await page.getByLabel("نام گیرنده").fill("مشتری تست پذیرش");
+  await page.getByLabel("موبایل گیرنده").fill("09000000000");
+  await page.getByLabel("استان").fill("تهران");
+  await page.getByLabel("شهر").fill("تهران");
+  await page.getByLabel("نشانی کامل").fill("تهران، خیابان تست، پلاک ۱۰");
+  await page.getByLabel("کد پستی").fill("1234567890");
+
+  const standardDelivery = page.getByRole("button", { name: /ارسال استاندارد/ });
+  await expect(standardDelivery).toBeEnabled();
+  await standardDelivery.click();
+  await page.getByRole("button", { name: "ثبت سفارش و ادامه پرداخت" }).click();
+
+  await expect(page).toHaveURL(/\/payment\/callback\?/);
+  await expect(page.getByRole("heading", { name: "پرداخت از سمت سرور تأیید شد" })).toBeVisible();
+  const verifiedCallbackUrl = page.url();
+  const orderLink = page.getByRole("link", { name: "مشاهده سفارش" });
+  await expect(orderLink).toBeVisible();
+
+  await page.goto(verifiedCallbackUrl);
+  await expect(page.getByRole("heading", { name: "پرداخت از سمت سرور تأیید شد" })).toBeVisible();
+
+  await page.goto("/cart");
+  await expect(page.getByRole("heading", { name: "سبد شما خالی است" })).toBeVisible();
+  assertNoPageErrors();
+});
+
+test("forged callback authority never clears an existing cart", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
+
+  await loginWithTestingOtp(page);
+  await addStagingCookieToCart(page);
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
+  expect(before.items.length).toBeGreaterThan(0);
+
+  await page.goto("/payment/callback?Status=OK&Authority=FORGED-AUTHORITY");
+  await expect(page.getByRole("heading", { name: "وضعیت پرداخت مشخص نیست" })).toBeVisible();
+
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem("winimi_cart_v2")));
+  expect(after.items.length).toBe(before.items.length);
+  await page.goto("/cart");
+  await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
   assertNoPageErrors();
 });
 
