@@ -16,10 +16,12 @@
     "audit:modern-ui": "node scripts/audit-modern-ui.mjs",
     "audit:launch": "node scripts/audit-full-launch-roadmap.mjs",
     "audit:integration": "node scripts/audit-phase-17-integration.mjs",
+    "audit:acceptance": "node scripts/audit-phase-18-acceptance.mjs",
     "audit:performance": "node scripts/audit-performance.mjs",
+    "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "check": "npm run audit:launch && npm run audit:integration && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run lint && npm run typecheck && npm run build",
+    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
