@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot trigger: this file is deleted immediately after the asserted patch commits.
 path = Path("e2e/phase18.spec.mjs")
 source = path.read_text(encoding="utf-8")
 old = '''  const standardDelivery = page.getByRole("button", { name: /ارسال معمولی/ });
