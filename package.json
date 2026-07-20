@@ -17,15 +17,16 @@
     "audit:brand": "node scripts/audit-brand-system.mjs",
     "audit:phase1": "node scripts/audit-frontend-phase-1.mjs",
     "audit:phase2": "node scripts/audit-frontend-phase-2.mjs",
+    "audit:phase3": "node scripts/audit-frontend-phase-3.mjs",
     "audit:launch": "node scripts/audit-full-launch-roadmap.mjs",
     "audit:integration": "node scripts/audit-phase-17-integration.mjs",
     "audit:acceptance": "node scripts/audit-phase-18-acceptance.mjs",
     "audit:performance": "node scripts/audit-performance.mjs",
-    "test:unit": "node --test --experimental-strip-types tests/unit/*.test.ts",
+    "test:unit": "node --experimental-strip-types --experimental-loader ./tests/unit/alias-loader.mjs --test tests/unit/*.test.ts",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
+    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:phase3 && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
