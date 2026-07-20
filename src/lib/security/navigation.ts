@@ -3,7 +3,10 @@ const DEFAULT_RETURN_PATH = "/account";
 const MAX_RETURN_PATH_LENGTH = 2_048;
 
 const containsUnsafePathCharacters = (value: string) =>
-  /[\\\u0000-\u001f\u007f]/.test(value);
+  [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return character === "\\" || code <= 31 || code === 127;
+  });
 
 export const sanitizeInternalReturnPath = (
   value: unknown,
