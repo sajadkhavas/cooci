@@ -13,6 +13,7 @@ const files = {
 };
 
 const errors = [];
+const eagerCatalogImports = [];
 const sources = {};
 
 for (const [name, filePath] of Object.entries(files)) {
@@ -103,6 +104,7 @@ const eagerCatalogImportPattern =
 for (const sourcePath of walk("src").filter((filePath) => /\.[cm]?[jt]sx?$/.test(filePath))) {
   const source = fs.readFileSync(sourcePath, "utf8");
   if (eagerCatalogImportPattern.test(source)) {
+    eagerCatalogImports.push(sourcePath);
     errors.push(`${sourcePath}: eagerly imports development catalog values`);
   }
   eagerCatalogImportPattern.lastIndex = 0;
@@ -143,6 +145,14 @@ requireText(
   'areDevelopmentMocksEnabled && <Route path="/payment/mock"',
   "development-only mock payment route",
 );
+
+const report = {
+  generatedAt: new Date().toISOString(),
+  passed: errors.length === 0,
+  eagerCatalogImports,
+  errors,
+};
+fs.writeFileSync("frontend-phase1-audit.json", `${JSON.stringify(report, null, 2)}\n`);
 
 if (errors.length) {
   console.error(`Frontend Phase 1 audit failed with ${errors.length} issue(s):`);
