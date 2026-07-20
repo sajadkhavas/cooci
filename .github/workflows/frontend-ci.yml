@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - "feature/**"
+      - "agent/**"
   pull_request:
     branches:
       - main
@@ -19,16 +20,17 @@ permissions:
 env:
   SITE_URL: https://winimibakery.com
   VITE_SITE_ORIGIN: https://winimibakery.com
-  VITE_USE_BACKEND: "false"
+  VITE_USE_BACKEND: "true"
   VITE_API_BASE_URL: https://api.winimibakery.com
+  VITE_ALLOW_DEV_MOCKS: "false"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
 
 jobs:
   validate:
-    name: Audit launch, modern UI, content, accessibility, performance, types and build
+    name: Audit Phase 17 integration, UI, content, accessibility, types and build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
 
     steps:
       - name: Checkout repository
@@ -41,127 +43,34 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        id: install
-        run: |
-          set -o pipefail
-          npm ci 2>&1 | tee npm-install.log
-
-      - name: Upload install diagnostics
-        if: failure() && steps.install.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-install-diagnostics
-          path: npm-install.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm ci
 
       - name: Full-launch roadmap audit
-        id: launch_audit
-        run: |
-          set -o pipefail
-          npm run audit:launch 2>&1 | tee launch-audit.log
+        run: npm run audit:launch
 
-      - name: Upload launch audit diagnostics
-        if: failure() && steps.launch_audit.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: launch-audit-diagnostics
-          path: launch-audit.log
-          if-no-files-found: error
-          retention-days: 3
+      - name: Phase 17 integration audit
+        run: npm run audit:integration
 
       - name: Frontend route and content audit
-        id: frontend_audit
-        run: |
-          set -o pipefail
-          npm run audit:frontend 2>&1 | tee frontend-audit.log
-
-      - name: Upload frontend audit diagnostics
-        if: failure() && steps.frontend_audit.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-audit-diagnostics
-          path: frontend-audit.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run audit:frontend
 
       - name: Accessibility regression audit
-        id: accessibility_audit
-        run: |
-          set -o pipefail
-          npm run audit:accessibility 2>&1 | tee accessibility-audit.log
-
-      - name: Upload accessibility diagnostics
-        if: failure() && steps.accessibility_audit.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: accessibility-audit-diagnostics
-          path: accessibility-audit.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run audit:accessibility
 
       - name: Content integrity audit
-        id: content_audit
-        run: |
-          set -o pipefail
-          npm run audit:content 2>&1 | tee content-audit.log
-
-      - name: Upload content audit diagnostics
-        if: failure() && steps.content_audit.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: content-audit-diagnostics
-          path: content-audit.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run audit:content
 
       - name: Full modern UI audit
-        id: modern_ui_audit
-        run: |
-          set -o pipefail
-          npm run audit:modern-ui 2>&1 | tee modern-ui-audit.log
-
-      - name: Upload modern UI diagnostics
-        if: failure() && steps.modern_ui_audit.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: modern-ui-audit-diagnostics
-          path: modern-ui-audit.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run audit:modern-ui
 
       - name: Lint
         run: npm run lint
 
       - name: Typecheck
-        id: typecheck
-        run: |
-          set -o pipefail
-          npm run typecheck 2>&1 | tee typecheck.log
-
-      - name: Upload typecheck diagnostics
-        if: failure() && steps.typecheck.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: typecheck-diagnostics
-          path: typecheck.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run typecheck
 
       - name: Production build and performance budget
-        id: production_build
-        run: |
-          set -o pipefail
-          npm run build 2>&1 | tee production-build.log
-
-      - name: Upload build diagnostics
-        if: failure() && steps.production_build.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-build-diagnostics
-          path: production-build.log
-          if-no-files-found: error
-          retention-days: 3
+        run: npm run build
 
       - name: Upload performance report
         if: always()
