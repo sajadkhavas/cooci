@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">نشان وینیمی بیکری</title>
-  <desc id="desc">آیکن ماسک‌پذیر سبز پاستیلی وینیمی بیکری با تصویر برش کیک</desc>
-  <rect width="256" height="256" fill="#D0E596"/>
-  <circle cx="128" cy="128" r="112" fill="#D0E596" stroke="#27390C" stroke-opacity=".12" stroke-width="2"/>
+  <title id="title">لوگوی وینیمی بیکری</title>
+  <desc id="desc">نشان دایره‌ای سبز پاستیلی وینیمی بیکری با تصویر برش کیک</desc>
+  <circle cx="128" cy="128" r="126" fill="#D0E596"/>
   <g fill="none" stroke="#27390C" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
     <path d="M88 83 128 61l39 13 1 42-73 12-7-45Z"/>
     <path d="m88 83 79-9"/>

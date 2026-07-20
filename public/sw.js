@@ -1,7 +1,7 @@
 const CACHE_PREFIX = "winimi";
-const SHELL_CACHE = `${CACHE_PREFIX}-shell-v1`;
-const ASSET_CACHE = `${CACHE_PREFIX}-assets-v1`;
-const IMAGE_CACHE = `${CACHE_PREFIX}-images-v1`;
+const SHELL_CACHE = `${CACHE_PREFIX}-shell-v2`;
+const ASSET_CACHE = `${CACHE_PREFIX}-assets-v2`;
+const IMAGE_CACHE = `${CACHE_PREFIX}-images-v2`;
 const MAX_IMAGE_ENTRIES = 48;
 
 const SHELL_FILES = [
@@ -9,6 +9,7 @@ const SHELL_FILES = [
   "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
+  "/brand/winimi-logo.svg",
   "/icons/winimi-192.svg",
   "/icons/winimi-512.svg",
 ];

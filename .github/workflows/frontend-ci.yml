@@ -28,7 +28,7 @@ env:
 
 jobs:
   validate:
-    name: Audit Phase 17 integration, UI, content, accessibility, types and build
+    name: Audit integration, brand, UI, content, accessibility, types and build
     runs-on: ubuntu-latest
     timeout-minutes: 18
 
@@ -50,6 +50,9 @@ jobs:
 
       - name: Phase 17 integration audit
         run: npm run audit:integration
+
+      - name: Winimi pastel brand audit
+        run: npm run audit:brand
 
       - name: Frontend route and content audit
         run: npm run audit:frontend
