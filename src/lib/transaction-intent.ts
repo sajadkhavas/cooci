@@ -1,5 +1,3 @@
-import { createIdempotencyKey } from "@/lib/api";
-
 export type TransactionIntentKind = "checkout" | "payment";
 
 interface StorageLike {
@@ -42,6 +40,29 @@ const hashFingerprintSource = (source: string) => {
     hash = Math.imul(hash, 0x01000193);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
+};
+
+const randomHex = (length: number) => {
+  const bytes = new Uint8Array(Math.ceil(length / 2));
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+  return [...bytes]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, length);
+};
+
+export const createTransactionIdempotencyKey = (prefix: string) => {
+  const safePrefix = prefix
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, "")
+    .slice(0, 12) || "TXN";
+  return `${safePrefix}-${Date.now().toString(36)}-${randomHex(24)}`;
 };
 
 export const buildCheckoutFingerprint = ({
@@ -142,19 +163,22 @@ export const getOrCreateTransactionIntent = (
     keyFactory?: (prefix: string) => string;
   } = {},
 ) => {
-  const storage = options.storage === undefined
-    ? getSessionStorage()
-    : options.storage;
+  const storage =
+    options.storage === undefined ? getSessionStorage() : options.storage;
   const now = options.now ?? Date.now();
-  const existing = parseIntent(storage?.getItem(storageKey(kind)) ?? null, kind, now);
+  const existing = parseIntent(
+    storage?.getItem(storageKey(kind)) ?? null,
+    kind,
+    now,
+  );
 
   if (existing?.fingerprint === fingerprint) {
     return existing.idempotencyKey;
   }
 
-  const idempotencyKey = (options.keyFactory ?? createIdempotencyKey)(
-    kind === "checkout" ? "CHK" : "PAY",
-  );
+  const idempotencyKey = (
+    options.keyFactory ?? createTransactionIdempotencyKey
+  )(kind === "checkout" ? "CHK" : "PAY");
   if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
     throw new Error("Generated Idempotency key is invalid.");
   }
