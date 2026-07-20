@@ -56,7 +56,16 @@ requireText("catalogApi", "MAX_SEARCH_LENGTH = 120", "bounded search query");
 requireText("catalogApi", "MAX_PER_PAGE = 100", "bounded page size");
 
 requireText("catalog", "return 0;", "unknown stock fallback to zero");
-forbidText("catalog", "return 1;", "fabricated unknown stock");
+forbidText(
+  "catalog",
+  'typeof product.stock === "number" ? product.stock : 1',
+  "fabricated product stock",
+);
+forbidText(
+  "catalog",
+  'typeof variantStock === "number" ? variantStock : 1',
+  "fabricated Variant stock",
+);
 requireText("catalog", "getVariantSalePrice", "Variant sale-price handling");
 requireText("catalog", "getComparableUpdatedAt", "deterministic newest sorting");
 requireText("productSelection", "getPreferredProductVariant", "available default Variant selection");
