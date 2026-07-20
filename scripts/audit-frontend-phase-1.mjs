@@ -99,15 +99,16 @@ requireText(
   "stale mock cart recovery action",
 );
 
-const eagerCatalogImportPattern =
-  /import\s+(?!type\b)[\s\S]*?\sfrom\s+["']@\/data\/products["'];?/g;
+const catalogImportPattern =
+  /^\s*import\s+([^;]+?)\s+from\s+["']@\/data\/products["'];/gm;
 for (const sourcePath of walk("src").filter((filePath) => /\.[cm]?[jt]sx?$/.test(filePath))) {
   const source = fs.readFileSync(sourcePath, "utf8");
-  if (eagerCatalogImportPattern.test(source)) {
+  for (const match of source.matchAll(catalogImportPattern)) {
+    const importClause = match[1].trim();
+    if (importClause.startsWith("type ")) continue;
     eagerCatalogImports.push(sourcePath);
     errors.push(`${sourcePath}: eagerly imports development catalog values`);
   }
-  eagerCatalogImportPattern.lastIndex = 0;
 }
 
 requireText(
