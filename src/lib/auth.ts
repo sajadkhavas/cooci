@@ -6,6 +6,11 @@ import {
   type ApiRequestOptions,
 } from "@/lib/api";
 import type { BackendOtpChallenge, BackendUser } from "@/lib/backend-contract";
+import {
+  isValidIranianMobileNumber,
+  normalizeIranianMobile,
+  normalizeOtpCode,
+} from "@/lib/security/normalization";
 
 export type AuthMode = "backend" | "mock" | "disabled";
 
@@ -72,51 +77,75 @@ const randomId = () => {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 };
 
+const randomOtpCode = () => {
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    const value = crypto.getRandomValues(new Uint32Array(1))[0] % 900_000;
+    return String(100_000 + value);
+  }
+  return String(Math.floor(100_000 + Math.random() * 900_000));
+};
+
+const readStorageJson = <T>(
+  storage: Storage,
+  key: string,
+  fallback: T,
+): T => {
+  try {
+    const value = storage.getItem(key);
+    return value ? (JSON.parse(value) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeStorageJson = (storage: Storage, key: string, value: unknown) => {
+  try {
+    storage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Development-only storage can be unavailable in restricted browsers.
+  }
+};
+
+const removeStorageValue = (storage: Storage, key: string) => {
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Development-only storage can be unavailable in restricted browsers.
+  }
+};
+
 const readMockProfiles = (): Record<string, AuthUser> => {
   if (typeof window === "undefined") return {};
-  try {
-    const value = window.localStorage.getItem(MOCK_PROFILES_KEY);
-    return value ? (JSON.parse(value) as Record<string, AuthUser>) : {};
-  } catch {
-    return {};
-  }
+  return readStorageJson(window.localStorage, MOCK_PROFILES_KEY, {});
 };
 
 const writeMockProfiles = (profiles: Record<string, AuthUser>) => {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(MOCK_PROFILES_KEY, JSON.stringify(profiles));
+  writeStorageJson(window.localStorage, MOCK_PROFILES_KEY, profiles);
 };
 
 const readMockSession = (): AuthSession | null => {
   if (typeof window === "undefined") return null;
-  try {
-    const value = window.sessionStorage.getItem(MOCK_SESSION_KEY);
-    if (!value) return null;
-    const parsed = JSON.parse(value) as AuthSession;
-    return parsed?.user?.mobile ? parsed : null;
-  } catch {
-    return null;
-  }
+  const session = readStorageJson<AuthSession | null>(
+    window.sessionStorage,
+    MOCK_SESSION_KEY,
+    null,
+  );
+  return session?.user?.mobile ? session : null;
 };
 
 const writeMockSession = (session: AuthSession | null) => {
   if (typeof window === "undefined") return;
   if (session) {
-    window.sessionStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session));
+    writeStorageJson(window.sessionStorage, MOCK_SESSION_KEY, session);
   } else {
-    window.sessionStorage.removeItem(MOCK_SESSION_KEY);
+    removeStorageValue(window.sessionStorage, MOCK_SESSION_KEY);
   }
 };
 
-export const normalizeMobile = (value: string) =>
-  value
-    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
-    .replace(/\D/g, "")
-    .replace(/^98(?=9\d{9}$)/, "0")
-    .slice(0, 11);
-
-export const isValidIranianMobile = (value: string) => /^09\d{9}$/.test(value);
+export const normalizeMobile = normalizeIranianMobile;
+export const isValidIranianMobile = isValidIranianMobileNumber;
+export { normalizeOtpCode };
 
 export const getAuthMode = (): AuthMode => getFrontendDataMode();
 
@@ -134,12 +163,12 @@ export const bootstrapAuth = async (): Promise<AuthSession | null> => {
   }
 
   try {
-    const payload = await apiData<{ user: BackendUser }>("/api/auth/me");
+    const payload = await apiData<{ user: BackendUser }>("/api/auth/me", {
+      suppressAuthExpiryEvent: true,
+    });
     return { user: mapUser(payload.user) };
   } catch (error) {
-    if (error instanceof ApiError && error.code === "authentication_required") {
-      return null;
-    }
+    if (error instanceof ApiError && error.status === 401) return null;
     throw error;
   }
 };
@@ -161,9 +190,9 @@ export const requestOtp = async (rawMobile: string): Promise<OtpRequestResult> =
     });
     return {
       challengeId: challenge.challengeId,
-      expiresIn: challenge.expiresIn,
-      retryAfter: challenge.retryAfter,
-      devCode: challenge.debugCode,
+      expiresIn: Math.max(0, challenge.expiresIn),
+      retryAfter: Math.max(0, challenge.retryAfter),
+      devCode: import.meta.env.DEV ? challenge.debugCode : undefined,
     };
   }
 
@@ -171,10 +200,10 @@ export const requestOtp = async (rawMobile: string): Promise<OtpRequestResult> =
   const challenge: MockChallenge = {
     challengeId: `DEV-${randomId().slice(0, 22)}`,
     mobile,
-    code: String(Math.floor(100000 + Math.random() * 900000)),
+    code: randomOtpCode(),
     expiresAt: Date.now() + 2 * 60_000,
   };
-  window.sessionStorage.setItem(MOCK_CHALLENGE_KEY, JSON.stringify(challenge));
+  writeStorageJson(window.sessionStorage, MOCK_CHALLENGE_KEY, challenge);
   return {
     challengeId: challenge.challengeId,
     expiresIn: 120,
@@ -185,32 +214,43 @@ export const requestOtp = async (rawMobile: string): Promise<OtpRequestResult> =
 
 export const verifyOtp = async (input: VerifyOtpInput): Promise<AuthSession> => {
   const mobile = normalizeMobile(input.mobile);
-  const code = normalizeMobile(input.code);
+  const challengeId = input.challengeId.trim();
+  const code = normalizeOtpCode(input.code);
   const mode = getAuthMode();
+
+  if (!isValidIranianMobile(mobile)) {
+    throw new Error("شماره موبایل ورود معتبر نیست.");
+  }
+  if (!challengeId || challengeId.length > 160) {
+    throw new Error("شناسه درخواست کد معتبر نیست؛ کد را دوباره ارسال کنید.");
+  }
+  if (!/^\d{4,6}$/.test(code)) {
+    throw new Error("کد تأیید ۴ تا ۶ رقمی را کامل وارد کنید.");
+  }
 
   if (mode === "disabled") throw new Error("ورود کاربران فعال نیست.");
   if (mode === "backend") {
     const payload = await apiData<{ user: BackendUser }>("/api/auth/otp/verify", {
       method: "POST",
-      body: {
-        mobile,
-        challengeId: input.challengeId,
-        code,
-      },
+      body: { mobile, challengeId, code },
     });
     return { user: mapUser(payload.user) };
   }
 
   assertMockAllowed();
-  const raw = window.sessionStorage.getItem(MOCK_CHALLENGE_KEY);
-  const challenge = raw ? (JSON.parse(raw) as MockChallenge) : null;
+  const challenge = readStorageJson<MockChallenge | null>(
+    window.sessionStorage,
+    MOCK_CHALLENGE_KEY,
+    null,
+  );
   if (
     !challenge ||
-    challenge.challengeId !== input.challengeId ||
+    challenge.challengeId !== challengeId ||
     challenge.mobile !== mobile ||
     challenge.code !== code ||
     challenge.expiresAt < Date.now()
   ) {
+    removeStorageValue(window.sessionStorage, MOCK_CHALLENGE_KEY);
     throw new Error("کد ورود معتبر نیست یا منقضی شده است.");
   }
 
@@ -228,19 +268,28 @@ export const verifyOtp = async (input: VerifyOtpInput): Promise<AuthSession> => 
   writeMockProfiles(profiles);
   const session = { user };
   writeMockSession(session);
-  window.sessionStorage.removeItem(MOCK_CHALLENGE_KEY);
+  removeStorageValue(window.sessionStorage, MOCK_CHALLENGE_KEY);
   return session;
 };
 
 export const logoutAuth = async (): Promise<void> => {
   const mode = getAuthMode();
   if (mode === "backend") {
-    await apiData<null>("/api/auth/logout", { method: "POST" });
+    try {
+      await apiData<null>("/api/auth/logout", {
+        method: "POST",
+        suppressAuthExpiryEvent: true,
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) return;
+      throw error;
+    }
     return;
   }
   if (mode === "mock") {
     assertMockAllowed();
     writeMockSession(null);
+    removeStorageValue(window.sessionStorage, MOCK_CHALLENGE_KEY);
   }
 };
 
@@ -248,8 +297,8 @@ export const updateAuthProfile = async (
   fullName: string,
 ): Promise<AuthUser> => {
   const normalizedName = fullName.trim();
-  if (normalizedName.length < 2) {
-    throw new Error("نام و نام خانوادگی باید حداقل ۲ کاراکتر باشد.");
+  if (normalizedName.length < 2 || normalizedName.length > 120) {
+    throw new Error("نام و نام خانوادگی باید بین ۲ تا ۱۲۰ کاراکتر باشد.");
   }
 
   const mode = getAuthMode();
