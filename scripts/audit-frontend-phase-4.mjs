@@ -9,8 +9,10 @@ const files = {
   orders: "src/lib/orders.ts",
   account: "src/lib/account.ts",
   checkout: "src/lib/checkout.ts",
+  httpQuery: "src/lib/http-query.ts",
   callback: "src/pages/PaymentCallbackPage.tsx",
   unit: "tests/unit/checkout-payment.test.ts",
+  queryUnit: "tests/unit/http-query.test.ts",
   package: "package.json",
 };
 
@@ -84,8 +86,14 @@ requireText("checkout", "resolveSafePaymentRedirect", "safe payment redirect res
 requireText("checkout", "validateCheckoutItems", "checkout item validation");
 requireText("checkout", "clearTransactionIntent(\"checkout\")", "checkout intent cleared after definitive order");
 requireText("checkout", "deriveBackendPaymentState", "server-driven payment state");
+requireText("checkout", "encodeBooleanQuery(requiresCooling)", "Laravel-compatible delivery boolean query");
+forbidText("checkout", "requiresCooling: String(requiresCooling)", "invalid textual boolean query serialization");
 forbidText("checkout", 'state: response.data.verified', "TypeScript-only payment success mapping");
 forbidText("checkout", 'status?.toUpperCase() === "NOK"', "callback status as backend payment truth");
+
+requireText("httpQuery", 'value ? "1" : "0"', "boolean query encoder");
+requireText("queryUnit", 'assert.equal(encodeBooleanQuery(true), "1")', "true query serialization test");
+requireText("queryUnit", 'assert.equal(encodeBooleanQuery(false), "0")', "false query serialization test");
 
 requireText("callback", 'result.order?.paymentStatus === "paid"', "paid-order cart clearing gate");
 requireText("callback", "Boolean(result.refId)", "verified reference cart clearing gate");
@@ -114,5 +122,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 4 audit passed: payload-bound Idempotency, runtime order/payment contracts, safe gateway redirects, deterministic attempts and verified-only cart clearing are locked.",
+  "Frontend Phase 4 audit passed: payload-bound Idempotency, Laravel-compatible delivery queries, runtime order/payment contracts, safe gateway redirects, deterministic attempts and verified-only cart clearing are locked.",
 );
