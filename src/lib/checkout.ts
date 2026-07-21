@@ -1,4 +1,5 @@
 import type { CartItem } from "@/lib/cart";
+import { encodeBooleanQuery } from "@/lib/http-query";
 import {
   apiRequest,
   areDevelopmentMocksEnabled,
@@ -220,7 +221,7 @@ export const loadDeliveryOptions = async ({
 }): Promise<BackendDeliveryOptions> => {
   const params = new URLSearchParams({
     subtotalToman: String(Math.max(0, Math.round(subtotalToman))),
-    requiresCooling: String(requiresCooling),
+    requiresCooling: encodeBooleanQuery(requiresCooling),
   });
   if (province?.trim()) params.set("province", province.trim().slice(0, 160));
   if (city?.trim()) params.set("city", city.trim().slice(0, 160));
