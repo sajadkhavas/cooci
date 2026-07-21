@@ -8,6 +8,7 @@ const files = {
   contentApi: "src/lib/content.ts",
   seoSecurity: "src/lib/security/seo.ts",
   seoComponent: "src/components/SEO.tsx",
+  breadcrumbs: "src/components/Breadcrumbs.tsx",
   enamadSecurity: "src/lib/security/enamad.ts",
   enamadSlot: "src/components/trust/EnamadTrustSlot.tsx",
   inquiryHelpers: "src/lib/inquiry-form.ts",
@@ -94,6 +95,11 @@ requireText("seoComponent", "const canonicalPath = url || location.pathname", "q
 forbidText("seoComponent", "location.search", "query parameters in canonical URL");
 forbidText("seoComponent", "JSON.stringify(finalSchema)", "unescaped JSON-LD insertion");
 
+requireText("breadcrumbs", "resolveCanonicalUrl", "same-origin breadcrumb item URLs");
+requireText("breadcrumbs", "serializeJsonLd", "escaped breadcrumb JSON-LD");
+requireText("breadcrumbs", 'aria-current={isLast ? "page" : undefined}', "current breadcrumb semantics");
+forbidText("breadcrumbs", "JSON.stringify(schema)", "unescaped breadcrumb JSON-LD");
+
 requireText("enamadSecurity", 'const ENAMAD_HOST = "trustseal.enamad.ir"', "exact eNAMAD host");
 requireText("enamadSecurity", 'url.protocol === "https:"', "eNAMAD HTTPS boundary");
 requireText("enamadSecurity", "!url.username", "eNAMAD credential rejection");
@@ -136,5 +142,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 5 audit passed: single route-managed canonical metadata, runtime content contracts, safe media URLs, escaped JSON-LD, exact eNAMAD extraction and bounded persisted inquiries are locked.",
+  "Frontend Phase 5 audit passed: single route-managed canonical metadata, runtime content contracts, escaped page and breadcrumb JSON-LD, safe media URLs, exact eNAMAD extraction and bounded persisted inquiries are locked.",
 );
