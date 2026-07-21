@@ -41,6 +41,9 @@ const requiredFiles = [
   "dist/offline.html",
   "dist/_headers",
   "dist/_redirects",
+  "dist/icons/winimi-192.png",
+  "dist/icons/winimi-512.png",
+  "dist/icons/winimi-apple-touch.png",
   "dist/icons/winimi-192.svg",
   "dist/icons/winimi-512.svg",
 ];
@@ -88,6 +91,9 @@ if (javascript.length < budgets.minimumJavaScriptChunks) {
 const indexHtml = readFileSync("dist/index.html", "utf8");
 if (!indexHtml.includes('rel="manifest"')) {
   failures.push("Built index.html does not link to the web app manifest.");
+}
+if (!indexHtml.includes('/icons/winimi-apple-touch.png')) {
+  failures.push("Built index.html does not use the dedicated Apple touch icon.");
 }
 
 const entryMatch = indexHtml.match(/<script[^>]+src="([^"]+\.js)"/);
@@ -143,9 +149,87 @@ for (const image of images.filter((item) => item.bytes > 700 * KIB)) {
   warnings.push(`${image.file} is ${formatBytes(image.bytes)} and should be converted to WebP or AVIF when final media is supplied.`);
 }
 
+let serviceWorkerVersion = null;
+if (existsSync("dist/sw.js")) {
+  const serviceWorker = readFileSync("dist/sw.js", "utf8");
+  const versionMatch = serviceWorker.match(/const BUILD_VERSION = "([a-f0-9]{16})";/);
+  serviceWorkerVersion = versionMatch?.[1] ?? null;
+
+  if (!serviceWorkerVersion) {
+    failures.push("Generated service worker does not contain a 16-character artifact fingerprint.");
+  }
+  if (serviceWorker.includes("__WINIMI_BUILD_VERSION__")) {
+    failures.push("Generated service worker still contains its build-version placeholder.");
+  }
+  for (const requiredPolicy of [
+    "`${CACHE_PREFIX}-shell-${BUILD_VERSION}`",
+    "`${CACHE_PREFIX}-assets-${BUILD_VERSION}`",
+    "`${CACHE_PREFIX}-images-${BUILD_VERSION}`",
+    'cache: "no-store"',
+    '"/account"',
+    '"/checkout"',
+    '"/payment"',
+    "if (isSensitiveNavigation(url.pathname))",
+    'request.headers.has("range")',
+    "url.origin !== self.location.origin",
+  ]) {
+    if (!serviceWorker.includes(requiredPolicy)) {
+      failures.push(`Generated service worker is missing policy: ${requiredPolicy}`);
+    }
+  }
+  if (serviceWorker.includes("caches.match(request)")) {
+    failures.push("Generated service worker performs a cross-version global cache lookup.");
+  }
+}
+
+let manifestSummary = null;
+if (existsSync("dist/manifest.webmanifest")) {
+  try {
+    const manifest = JSON.parse(readFileSync("dist/manifest.webmanifest", "utf8"));
+    const icons = Array.isArray(manifest.icons) ? manifest.icons : [];
+    manifestSummary = {
+      id: manifest.id,
+      scope: manifest.scope,
+      startUrl: manifest.start_url,
+      iconCount: icons.length,
+    };
+
+    if (manifest.id !== "/" || manifest.scope !== "/") {
+      failures.push("Built manifest must keep root id and scope.");
+    }
+    if (!icons.some((icon) => icon.src === "/icons/winimi-192.png" && icon.type === "image/png")) {
+      failures.push("Built manifest is missing its 192x192 PNG icon.");
+    }
+    if (!icons.some((icon) => icon.src === "/icons/winimi-512.png" && icon.type === "image/png")) {
+      failures.push("Built manifest is missing its 512x512 PNG icon.");
+    }
+    if (!icons.some((icon) => icon.src === "/icons/winimi-512.png" && String(icon.purpose).includes("maskable"))) {
+      failures.push("Built manifest is missing its maskable PNG icon.");
+    }
+  } catch (error) {
+    failures.push(`Built manifest is invalid JSON: ${error.message}`);
+  }
+}
+
+if (existsSync("dist/_headers")) {
+  const headers = readFileSync("dist/_headers", "utf8");
+  for (const requiredHeader of [
+    "/assets/*\n  Cache-Control: public, max-age=31536000, immutable",
+    "/sw.js\n  Cache-Control: no-cache, no-store, must-revalidate",
+    "/\n  Cache-Control: no-cache, no-store, must-revalidate",
+    "/index.html\n  Cache-Control: no-cache, no-store, must-revalidate",
+  ]) {
+    if (!headers.includes(requiredHeader)) {
+      failures.push(`Built cache policy is missing: ${requiredHeader.split("\n")[0]}`);
+    }
+  }
+}
+
 const report = {
   generatedAt: new Date().toISOString(),
   budgets,
+  serviceWorkerVersion,
+  manifest: manifestSummary,
   summary: {
     javascriptChunks: javascript.length,
     entry: entry ?? null,
@@ -174,6 +258,7 @@ console.log(`Total JavaScript gzip: ${formatBytes(totalJavaScriptGzip)}`);
 console.log(
   `Largest image: ${largestImage ? `${largestImage.file} (${formatBytes(largestImage.bytes)})` : "none"}`,
 );
+console.log(`Service worker build: ${serviceWorkerVersion ?? "invalid"}`);
 
 warnings.forEach((warning) => console.warn(`Warning: ${warning}`));
 
