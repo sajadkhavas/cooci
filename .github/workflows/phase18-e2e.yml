@@ -179,11 +179,30 @@ jobs:
           cat frontend-server.log
           exit 1
 
-      - name: Run desktop, mobile and PWA acceptance
+      - name: Run desktop and mobile Laravel acceptance
         id: browser_tests
         run: |
           set -o pipefail
-          npm run test:e2e 2>&1 | tee phase18-browser.log
+          npm run test:e2e -- phase18.spec.mjs 2>&1 | tee phase18-browser.log
+
+      - name: Run production PWA acceptance
+        id: pwa_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase7-pwa.spec.mjs 2>&1 | tee phase7-pwa.log
+
+      - name: Upload compact browser logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase18-browser-logs
+          path: |
+            phase18-browser.log
+            phase7-pwa.log
+            production-build.log
+            performance-report.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload Phase 18 diagnostics
         if: always()
@@ -192,6 +211,7 @@ jobs:
           name: phase18-browser-acceptance
           path: |
             phase18-browser.log
+            phase7-pwa.log
             production-build.log
             performance-report.json
             backend-ready.json
