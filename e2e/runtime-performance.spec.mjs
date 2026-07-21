@@ -97,12 +97,12 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
     .boundingBox();
   expect(navigationBox).not.toBeNull();
   expect(whatsappBox).not.toBeNull();
-  expect(navigationBox?.bottom ?? Infinity).toBeLessThanOrEqual(
-    (viewport?.height ?? 0) + 1,
-  );
-  expect(whatsappBox?.bottom ?? Infinity).toBeLessThanOrEqual(
-    (navigationBox?.y ?? 0) + 2,
-  );
+  const navigationBottom =
+    (navigationBox?.y ?? Infinity) + (navigationBox?.height ?? 0);
+  const whatsappBottom =
+    (whatsappBox?.y ?? Infinity) + (whatsappBox?.height ?? 0);
+  expect(navigationBottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
+  expect(whatsappBottom).toBeLessThanOrEqual((navigationBox?.y ?? 0) + 2);
 
   await navigation.getByRole("link", { name: "فروشگاه" }).click();
   await expect(page).toHaveURL(/\/products$/);
