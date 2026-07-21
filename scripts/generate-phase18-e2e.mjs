@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 const sourcePath = resolve(process.cwd(), "e2e/phase18.spec.mjs");
-const outputPath = resolve(process.cwd(), "e2e/phase18.generated.spec.mjs");
+const outputPath = resolve(process.cwd(), "e2e/generated/phase18.spec.mjs");
 
 let source = readFileSync(sourcePath, "utf8");
 
@@ -49,5 +49,6 @@ replaceExactly(
   "canonical storefront origin",
 );
 
+mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, source, "utf8");
 console.log(`Generated ${outputPath} from the UTF-8 Phase 18 acceptance source.`);
