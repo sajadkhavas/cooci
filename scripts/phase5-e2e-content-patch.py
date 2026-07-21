@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot trigger: removed immediately after the asserted patch is committed.
 path = Path("e2e/phase18.spec.mjs")
 source = path.read_text(encoding="utf-8")
 anchor = '''test("public content, city page, callback state and not-found route remain navigable", async ({ page }) => {'''
