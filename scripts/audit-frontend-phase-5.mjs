@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const files = {
   threatModel: "docs/FRONTEND_FULL_AUDIT_PHASE_5.md",
+  shell: "index.html",
   contentContract: "src/lib/content-contract-schema.ts",
   contentSchema: "src/lib/content-schema.ts",
   contentApi: "src/lib/content.ts",
@@ -42,6 +43,8 @@ const forbidText = (file, text, label = text) => {
 requireText("threatModel", "Every store-settings, page, FAQ, gallery, post, city, review and inquiry response is untrusted runtime data", "runtime content trust boundary");
 requireText("threatModel", "JSON-LD must be serialized as inert script text", "JSON-LD breakout boundary");
 requireText("threatModel", "eNAMAD code is data, not executable markup", "trust seal execution boundary");
+
+forbidText("shell", 'rel="canonical"', "static SPA-shell canonical competing with route metadata");
 
 requireText("contentContract", "storeSettingsSchema", "store settings schema");
 requireText("contentContract", "contentPageSchema", "managed page schema");
@@ -133,5 +136,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 5 audit passed: runtime content contracts, safe canonical/media URLs, escaped JSON-LD, exact eNAMAD extraction and bounded persisted inquiries are locked.",
+  "Frontend Phase 5 audit passed: single route-managed canonical metadata, runtime content contracts, safe media URLs, escaped JSON-LD, exact eNAMAD extraction and bounded persisted inquiries are locked.",
 );
