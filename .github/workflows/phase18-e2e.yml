@@ -185,7 +185,7 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase18.spec.mjs 2>&1 | tee phase18-browser.log
 
-      - name: Run production PWA acceptance
+      - name: Run desktop, mobile and PWA acceptance — PWA segment
         id: pwa_tests
         run: |
           set -o pipefail
