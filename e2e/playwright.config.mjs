@@ -4,6 +4,9 @@ import { defineConfig, devices } from "@playwright/test";
 const baseURL = process.env.PHASE18_FRONTEND_URL || "http://127.0.0.1:4173";
 const allowLocalSelfSignedCertificate =
   process.env.CI === "true" && baseURL === "https://127.0.0.1:4443";
+const localCertificateLaunchArgs = allowLocalSelfSignedCertificate
+  ? ["--ignore-certificate-errors"]
+  : [];
 
 export default defineConfig({
   testDir: ".",
@@ -21,6 +24,7 @@ export default defineConfig({
     locale: "fa-IR",
     timezoneId: "Asia/Tehran",
     ignoreHTTPSErrors: allowLocalSelfSignedCertificate,
+    launchOptions: { args: localCertificateLaunchArgs },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
