@@ -54,6 +54,7 @@ requireText("header", 'event.key === "Escape"', "Escape dismissal");
 requireText("header", 'event.key !== "Tab"', "focus trap");
 requireText("header", 'role="dialog"', "mobile dialog role");
 requireText("header", 'aria-modal="true"', "modal semantics");
+requireText("header", "aria-label={link.name}", "stable mobile navigation names");
 requireText("header", "document.body.style.overflow = previousOverflow", "body-scroll restoration");
 forbidText("header", 'match: "categories"', "all-category cookie current state");
 forbidText("header", "const isNavLinkActive", "duplicated legacy route matcher");
@@ -81,6 +82,8 @@ requireText("loading", 'aria-hidden="true"', "decorative skeleton hiding");
 requireText("loading", 'className="sr-only">در حال بارگذاری صفحه', "single loading announcement");
 requireText("siteLayout", 'href="#main-content"', "skip link");
 requireText("siteLayout", 'id="main-content"', "main focus target");
+requireText("siteLayout", "key={location.pathname}", "pathname-only page transition key");
+forbidText("siteLayout", "location.pathname}${location.search", "query-driven page remount");
 
 requireText("unit", "cookie navigation is active only for the exact cookie category", "category route unit test");
 requireText("unit", "route-prefix matching respects path segment boundaries", "prefix collision unit test");
