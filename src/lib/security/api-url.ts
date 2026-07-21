@@ -1,19 +1,14 @@
 export interface ApiUrlPolicy {
   development: boolean;
-  allowInsecureLoopback?: boolean;
 }
 
 const INVALID_API_BASE = "آدرس API وینیمی معتبر نیست.";
-const LOOPBACK_HOSTNAMES = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 const containsUnsafePathCharacters = (value: string) =>
   [...value].some((character) => {
     const code = character.charCodeAt(0);
     return character === "\\" || code <= 31 || code === 127;
   });
-
-const isLoopbackHostname = (hostname: string) =>
-  LOOPBACK_HOSTNAMES.has(hostname.toLowerCase());
 
 export const normalizeApiBaseUrl = (
   rawValue: string,
@@ -39,16 +34,7 @@ export const normalizeApiBaseUrl = (
     throw new Error(INVALID_API_BASE);
   }
 
-  const insecureLoopbackAllowed =
-    policy.allowInsecureLoopback === true &&
-    parsed.protocol === "http:" &&
-    isLoopbackHostname(parsed.hostname);
-
-  if (
-    !policy.development &&
-    parsed.protocol !== "https:" &&
-    !insecureLoopbackAllowed
-  ) {
+  if (!policy.development && parsed.protocol !== "https:") {
     throw new Error("آدرس API در محیط Production باید HTTPS باشد.");
   }
 
