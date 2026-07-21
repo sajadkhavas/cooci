@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot trigger: removed immediately after the asserted patch is committed.
 path = Path("src/lib/checkout.ts")
 source = path.read_text(encoding="utf-8")
 
