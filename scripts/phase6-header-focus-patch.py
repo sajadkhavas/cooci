@@ -1,162 +1,80 @@
 from pathlib import Path
+import subprocess
 
-path = Path("src/components/layout/Header.tsx")
-source = path.read_text(encoding="utf-8")
+header_path = Path("src/components/layout/Header.tsx")
+footer_path = Path("src/components/layout/Footer.tsx")
+header = header_path.read_text(encoding="utf-8")
+footer = footer_path.read_text(encoding="utf-8")
 
-if 'isNavigationTargetActive(location.pathname, link)' in source:
-    print("Phase 6 Header patch is already applied.")
-    raise SystemExit(0)
+if 'isNavigationTargetActive(location.pathname, link)' not in header:
+    raise RuntimeError("Core Header patch must be applied before the shared patch")
 
-def replace_exact(old: str, new: str, label: str, expected: int = 1) -> None:
-    global source
-    count = source.count(old)
-    print(f"{label}: expected={expected} found={count}")
-    if count != expected:
-        raise RuntimeError(f"{label}: expected {expected} occurrence(s), found {count}")
-    source = source.replace(old, new)
-
-replace_exact(
-    'import { useCart } from "@/context/CartContext";\n',
-    'import { useCart } from "@/context/CartContext";\nimport {\n  isNavigationTargetActive,\n  type NavigationMatch,\n} from "@/lib/accessibility/navigation";\n',
-    "navigation helper import",
-)
-replace_exact(
-    '''type NavMatch = "home" | "products" | "categories" | "prefix";
-
-interface NavLink {
-  name: string;
-  href: string;
-  match: NavMatch;
-}''',
-    '''interface NavLink {
-  name: string;
-  href: string;
-  match: NavigationMatch;
-}''',
-    "navigation type",
-)
-replace_exact('''    match: "categories",
-  },''', '''    match: "exact",
-  },''', "cookie exact match")
-replace_exact(
-    '''const isNavLinkActive = (pathname: string, link: NavLink) => {
-  if (link.match === "home") return pathname === "/";
-  if (link.match === "products") {
-    return (
-      pathname === "/products" ||
-      (pathname.startsWith("/products/") &&
-        !pathname.startsWith("/products/category/"))
-    );
-  }
-  if (link.match === "categories") {
-    return pathname.startsWith("/products/category/");
-  }
-  return pathname === link.href || pathname.startsWith(`${link.href}/`);
-};
-
-''',
-    "",
-    "legacy active matcher",
-)
-replace_exact(
-    '  const drawerRef = useRef<HTMLDivElement>(null);\n',
-    '''  const drawerRef = useRef<HTMLDivElement>(null);
-  const restoreMenuFocusRef = useRef(true);
-  const previousLocationRef = useRef(
-    `${location.pathname}${location.search}`,
-  );
-''',
-    "focus restoration refs",
-)
-replace_exact(
-    '''  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname, location.search]);''',
-    '''  useEffect(() => {
-    const locationKey = `${location.pathname}${location.search}`;
-    if (previousLocationRef.current === locationKey) return;
-    previousLocationRef.current = locationKey;
-    if (!isOpen) return;
-    restoreMenuFocusRef.current = false;
-    setIsOpen(false);
-  }, [isOpen, location.pathname, location.search]);''',
-    "route close effect",
-)
-replace_exact(
-    '''        setIsOpen(false);
-        return;''',
-    '''        restoreMenuFocusRef.current = true;
-        setIsOpen(false);
-        return;''',
-    "escape focus restoration",
-)
-replace_exact(
-    '      window.requestAnimationFrame(() => menuButtonRef.current?.focus());',
-    '''      if (restoreMenuFocusRef.current) {
-        window.requestAnimationFrame(() => menuButtonRef.current?.focus());
-      }''',
-    "conditional focus restoration",
-)
-replace_exact(
-    'const active = isNavLinkActive(location.pathname, link);',
-    'const active = isNavigationTargetActive(location.pathname, link);',
-    "route matcher usage",
-    expected=2,
-)
-replace_exact(
-    'onClick={() => setIsOpen(true)}',
-    '''onClick={() => {
-                restoreMenuFocusRef.current = true;
-                setIsOpen(true);
-              }}''',
-    "menu open intent",
-)
-replace_exact(
-    '''onClick={() => setIsOpen(false)}
-            aria-label="بستن منوی اصلی"''',
-    '''onClick={() => {
-              restoreMenuFocusRef.current = true;
-              setIsOpen(false);
-            }}
-            aria-label="بستن منوی اصلی"''',
-    "backdrop close intent",
-)
-replace_exact(
-    '''onClick={() => setIsOpen(false)}
-                className="touch-target flex items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/15"''',
-    '''onClick={() => {
-                  restoreMenuFocusRef.current = true;
-                  setIsOpen(false);
-                }}
-                className="touch-target flex items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/15"''',
-    "close button intent",
-)
-replace_exact(
-    '''              <Link
-                to={isAuthenticated ? "/account" : "/account/login"}
-                className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-xl"''',
-    '''              <Link
-                to={isAuthenticated ? "/account" : "/account/login"}
+header_old = '''              <Link
+                to="/products"
+                className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-black text-accent-foreground"'''
+header_new = '''              <Link
+                to="/products"
                 onClick={() => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
                 }}
-                className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-xl"''',
-    "account navigation intent",
-)
-replace_exact(
-    '''                      to={link.href}
-                      aria-current={active ? "page" : undefined}
-                      className={`group flex min-h-14''',
-    '''                      to={link.href}
-                      onClick={() => {
-                        restoreMenuFocusRef.current = false;
-                        setIsOpen(false);
-                      }}
-                      aria-current={active ? "page" : undefined}
-                      className={`group flex min-h-14''',
-    "mobile route navigation intent",
-)
+                className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-black text-accent-foreground"'''
 
-path.write_text(source, encoding="utf-8")
-print("Phase 6 Header route and focus patch applied.")
+footer_import_anchor = '''} from "@/config/brand";
+'''
+footer_import_new = '''} from "@/config/brand";
+import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
+'''
+footer_old = '  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });'
+footer_new = '''  const scrollToTop = () =>
+    window.scrollTo({
+      top: 0,
+      behavior: getProgrammaticScrollBehavior(),
+    });'''
+
+changes = False
+if header_old in header:
+    if header.count(header_old) != 1:
+        raise RuntimeError("Expected one mobile store CTA")
+    header = header.replace(header_old, header_new, 1)
+    changes = True
+elif 'restoreMenuFocusRef.current = false;\n                  setIsOpen(false);\n                }}\n                className="flex min-h-13' not in header:
+    raise RuntimeError("Mobile store CTA is neither legacy nor patched")
+
+if 'getProgrammaticScrollBehavior' not in footer:
+    if footer.count(footer_import_anchor) != 1:
+        raise RuntimeError("Expected one Footer brand import anchor")
+    footer = footer.replace(footer_import_anchor, footer_import_new, 1)
+    changes = True
+if footer_old in footer:
+    if footer.count(footer_old) != 1:
+        raise RuntimeError("Expected one legacy Footer scroll function")
+    footer = footer.replace(footer_old, footer_new, 1)
+    changes = True
+elif 'behavior: getProgrammaticScrollBehavior()' not in footer:
+    raise RuntimeError("Footer scroll function is neither legacy nor patched")
+
+if not changes:
+    print("Phase 6 shared navigation and motion patch is already applied.")
+    raise SystemExit(0)
+
+header_path.write_text(header, encoding="utf-8")
+footer_path.write_text(footer, encoding="utf-8")
+subprocess.run(["git", "diff", "--check"], check=True)
+subprocess.run(["git", "config", "user.name", "winimi-audit-bot"], check=True)
+subprocess.run(["git", "config", "user.email", "actions@users.noreply.github.com"], check=True)
+subprocess.run(["git", "add", str(header_path), str(footer_path)], check=True)
+subprocess.run(
+    ["git", "commit", "-m", "Phase 6: respect navigation focus and reduced motion"],
+    check=True,
+)
+subprocess.run(
+    [
+        "git",
+        "push",
+        "origin",
+        "HEAD:agent/frontend-full-audit-phase-6-components-accessibility",
+    ],
+    check=True,
+)
+print("Phase 6 shared navigation and motion patch committed.")
