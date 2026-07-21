@@ -106,6 +106,13 @@ jobs:
           set -o pipefail
           php artisan test --filter=EndToEndAcceptanceTest 2>&1 | tee ../phase9-backend-acceptance.log
 
+      - name: Reset Laravel browser fixtures after backend tests
+        working-directory: backend
+        run: |
+          php artisan optimize:clear
+          php artisan migrate:fresh --force
+          php artisan db:seed --class='Database\Seeders\WinimiStagingSeeder' --force
+
       - name: Start Laravel API
         working-directory: backend
         run: |
