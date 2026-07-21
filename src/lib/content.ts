@@ -1,6 +1,5 @@
 import { apiRequest } from "@/lib/api";
 import type {
-  BackendContentPage,
   BackendInquiryInput,
   BackendPostDetail,
   BackendPostSummary,
@@ -8,34 +7,27 @@ import type {
   BackendReviewSummary,
   BackendStoreSettings,
 } from "@/lib/backend-contract";
+import {
+  parseCityPage,
+  parseContentPage,
+  parseFaqs,
+  parseGallery,
+  parseInquiryResult,
+  parsePagination,
+  parsePost,
+  parsePosts,
+  parseReviews,
+  parseReviewSummary,
+  parseStoreSettings,
+  type ParsedCityPage,
+  type ParsedFaq,
+  type ParsedGalleryItem,
+  type ParsedInquiryResult,
+} from "@/lib/content-schema";
 
-export interface StoreFaq {
-  id: number;
-  category: string;
-  question: string;
-  answer: string;
-}
-
-export interface StoreGalleryItem {
-  id: number;
-  title: string;
-  caption: string | null;
-  imageUrl: string;
-  linkUrl: string | null;
-}
-
-export interface StoreCityPage {
-  id: string;
-  city: string;
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  seo: {
-    title: string | null;
-    description: string | null;
-  };
-}
+export type StoreFaq = ParsedFaq;
+export type StoreGalleryItem = ParsedGalleryItem;
+export type StoreCityPage = ParsedCityPage;
 
 export interface StorePostsResult {
   posts: BackendPostSummary[];
@@ -58,27 +50,32 @@ export interface ProductReviewsResult {
   };
 }
 
-export const loadStoreSettings = async (): Promise<BackendStoreSettings> =>
-  (await apiRequest<BackendStoreSettings>("/api/store/settings")).data;
+export const loadStoreSettings = async (): Promise<BackendStoreSettings> => {
+  const response = await apiRequest<unknown>("/api/store/settings");
+  return parseStoreSettings(response.data);
+};
 
-export const loadContentPage = async (slug: string) =>
-  (
-    await apiRequest<BackendContentPage>(
-      `/api/store/pages/${encodeURIComponent(slug)}`,
-    )
-  ).data.page;
+export const loadContentPage = async (slug: string) => {
+  const response = await apiRequest<unknown>(
+    `/api/store/pages/${encodeURIComponent(slug)}`,
+  );
+  return parseContentPage(response.data);
+};
 
 export const loadFaqs = async (category?: string): Promise<StoreFaq[]> => {
   const params = new URLSearchParams();
-  if (category?.trim()) params.set("category", category.trim());
+  if (category?.trim()) params.set("category", category.trim().slice(0, 100));
   const query = params.toString();
-  return (
-    await apiRequest<StoreFaq[]>(`/api/store/faqs${query ? `?${query}` : ""}`)
-  ).data;
+  const response = await apiRequest<unknown>(
+    `/api/store/faqs${query ? `?${query}` : ""}`,
+  );
+  return parseFaqs(response.data);
 };
 
-export const loadGallery = async (): Promise<StoreGalleryItem[]> =>
-  (await apiRequest<StoreGalleryItem[]>("/api/store/gallery")).data;
+export const loadGallery = async (): Promise<StoreGalleryItem[]> => {
+  const response = await apiRequest<unknown>("/api/store/gallery");
+  return parseGallery(response.data);
+};
 
 export const loadPosts = async ({
   page = 1,
@@ -92,17 +89,20 @@ export const loadPosts = async ({
   search?: string;
 } = {}): Promise<StorePostsResult> => {
   const params = new URLSearchParams({
-    page: String(page),
-    perPage: String(perPage),
+    page: String(Math.max(1, Math.trunc(page))),
+    perPage: String(Math.min(48, Math.max(1, Math.trunc(perPage)))),
   });
-  if (category?.trim()) params.set("category", category.trim());
-  if (search?.trim()) params.set("search", search.trim());
-  const response = await apiRequest<BackendPostSummary[]>(
+  if (category?.trim()) params.set("category", category.trim().slice(0, 120));
+  if (search?.trim()) params.set("search", search.trim().slice(0, 100));
+  const response = await apiRequest<unknown>(
     `/api/store/posts?${params.toString()}`,
   );
-  const pagination = response.meta.pagination;
+  const posts = parsePosts(response.data);
+  const pagination = response.meta.pagination
+    ? parsePagination(response.meta.pagination)
+    : undefined;
   return {
-    posts: response.data,
+    posts,
     pagination: pagination
       ? {
           page: pagination.page,
@@ -114,36 +114,40 @@ export const loadPosts = async ({
   };
 };
 
-export const loadPost = async (slug: string): Promise<BackendPostDetail> =>
-  (
-    await apiRequest<{ post: BackendPostDetail }>(
-      `/api/store/posts/${encodeURIComponent(slug)}`,
-    )
-  ).data.post;
+export const loadPost = async (slug: string): Promise<BackendPostDetail> => {
+  const response = await apiRequest<unknown>(
+    `/api/store/posts/${encodeURIComponent(slug)}`,
+  );
+  return parsePost(response.data);
+};
 
-export const loadCityPage = async (slug: string): Promise<StoreCityPage> =>
-  (
-    await apiRequest<{ city: StoreCityPage }>(
-      `/api/store/cities/${encodeURIComponent(slug)}`,
-    )
-  ).data.city;
+export const loadCityPage = async (slug: string): Promise<StoreCityPage> => {
+  const response = await apiRequest<unknown>(
+    `/api/store/cities/${encodeURIComponent(slug)}`,
+  );
+  return parseCityPage(response.data);
+};
 
 export const loadProductReviews = async (
   slug: string,
   page = 1,
   perPage = 10,
 ): Promise<ProductReviewsResult> => {
-  const response = await apiRequest<BackendReview[]>(
-    `/api/catalog/products/${encodeURIComponent(slug)}/reviews?page=${page}&perPage=${perPage}`,
+  const safePage = Math.max(1, Math.trunc(page));
+  const safePerPage = Math.min(50, Math.max(1, Math.trunc(perPage)));
+  const response = await apiRequest<unknown>(
+    `/api/catalog/products/${encodeURIComponent(slug)}/reviews?page=${safePage}&perPage=${safePerPage}`,
   );
+  const reviews = parseReviews(response.data);
   const summaryCandidate = response.meta.summary;
-  const summary =
-    summaryCandidate && typeof summaryCandidate === "object"
-      ? (summaryCandidate as BackendReviewSummary)
-      : { count: 0, averageRating: 0 };
-  const pagination = response.meta.pagination;
+  const summary = summaryCandidate
+    ? parseReviewSummary(summaryCandidate)
+    : { count: 0, averageRating: 0 };
+  const pagination = response.meta.pagination
+    ? parsePagination(response.meta.pagination)
+    : undefined;
   return {
-    reviews: response.data,
+    reviews,
     summary,
     pagination: pagination
       ? {
@@ -156,12 +160,12 @@ export const loadProductReviews = async (
   };
 };
 
-export const submitInquiry = async (input: BackendInquiryInput) =>
-  (
-    await apiRequest<{
-      inquiry: { id: string; type: string; status: string };
-    }>("/api/inquiries", {
-      method: "POST",
-      body: input,
-    })
-  ).data.inquiry;
+export const submitInquiry = async (
+  input: BackendInquiryInput,
+): Promise<ParsedInquiryResult> => {
+  const response = await apiRequest<unknown>("/api/inquiries", {
+    method: "POST",
+    body: input,
+  });
+  return parseInquiryResult(response.data);
+};
