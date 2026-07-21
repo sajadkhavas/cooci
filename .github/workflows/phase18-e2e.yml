@@ -122,13 +122,26 @@ jobs:
 
       - name: Validate real delivery-options contract
         run: |
-          curl --fail --silent --get http://127.0.0.1:8000/api/delivery/options \
+          set +e
+          DELIVERY_STATUS=$(curl --silent --show-error --get \
+            --output delivery-options.json \
+            --write-out '%{http_code}' \
+            --header 'Accept: application/json' \
+            http://127.0.0.1:8000/api/delivery/options \
             --data-urlencode 'province=تهران' \
             --data-urlencode 'city=تهران' \
             --data-urlencode 'subtotalToman=350000' \
-            --data-urlencode 'requiresCooling=false' \
-            > delivery-options.json
-          cat delivery-options.json
+            --data-urlencode 'requiresCooling=false')
+          CURL_EXIT=$?
+          set -e
+          printf '%s\n' "$DELIVERY_STATUS" > delivery-status.txt
+          echo "curl_exit=$CURL_EXIT http_status=$DELIVERY_STATUS"
+          cat delivery-options.json || true
+          if [ "$CURL_EXIT" -ne 0 ] || [ "$DELIVERY_STATUS" != "200" ]; then
+            echo '--- Laravel exception log ---'
+            tail -n 300 backend/storage/logs/laravel.log || true
+            exit 1
+          fi
           node --experimental-strip-types --experimental-loader ./tests/unit/alias-loader.mjs --input-type=module -e '
             import fs from "node:fs";
             import { backendDeliveryOptionsSchema } from "./src/lib/order-contract-schema.ts";
@@ -174,8 +187,10 @@ jobs:
           path: |
             phase18-browser.log
             backend-ready.json
+            delivery-status.txt
             delivery-options.json
             backend-server.log
+            backend/storage/logs/laravel.log
             frontend-server.log
             e2e/playwright-report
             e2e/test-results
