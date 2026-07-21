@@ -13,6 +13,7 @@ Phase 7 audits production bundling, route splitting, PWA installation, offline b
 - Cross-origin API requests, non-GET requests and range requests must not be intercepted by the storefront worker.
 - Install icons must include broadly supported PNG sizes and a dedicated Apple touch icon.
 - Production source maps and unexpectedly large entry, route, CSS or image artifacts must fail CI.
+- Browser acceptance must keep certificate exceptions limited to the exact ephemeral loopback HTTPS origin used by CI; production origins must never inherit them.
 
 ## Completion gates
 
@@ -24,3 +25,4 @@ Phase 7 audits production bundling, route splitting, PWA installation, offline b
 6. Manifest, Android icons, maskable icon and Apple touch icon pass deterministic validation.
 7. Root HTML, service worker and manifest caching rules prevent stale releases while hashed assets remain immutable.
 8. Performance and PWA reports are uploaded by CI and Phase 7 cannot merge unless all earlier audits, tests, types and the production build pass.
+9. Chromium certificate trust exceptions are conditional on the exact CI loopback origin and are covered by a deterministic audit.
