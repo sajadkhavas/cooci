@@ -5,6 +5,7 @@ const files = {
   brand: "src/config/brand.ts",
   seo: "src/components/SEO.tsx",
   contentClient: "src/lib/content.ts",
+  contentSchema: "src/lib/content-schema.ts",
   reviewsPage: "src/pages/ReviewsPage.tsx",
   blogList: "src/pages/BlogListPage.tsx",
   blogDetail: "src/pages/BlogDetailPage.tsx",
@@ -17,6 +18,7 @@ const files = {
   productDetail: "src/pages/ProductDetailPage.tsx",
   catalog: "src/lib/catalog.ts",
   trust: "src/components/trust/EnamadTrustSlot.tsx",
+  trustSecurity: "src/lib/security/enamad.ts",
   footer: "src/components/layout/Footer.tsx",
 };
 const sources = Object.fromEntries(Object.entries(files).map(([name, path]) => [name, readFileSync(path, "utf8")]));
@@ -30,6 +32,8 @@ const forbidText = (sourceName, text, description = text) => {
 for (const endpoint of ["/api/store/settings", "/api/store/pages/", "/api/store/posts", "/api/store/faqs", "/api/store/gallery", "/api/store/cities/", "/api/inquiries"]) {
   requireText("contentClient", endpoint, `backend content endpoint ${endpoint}`);
 }
+requireText("contentClient", "apiRequest<unknown>", "runtime public-content response boundary");
+requireText("contentSchema", 'code: "invalid_content_contract"', "runtime public-content parser");
 requireText("reviewsPage", "loadProductReviews", "published verified-purchase reviews from backend");
 requireText("reviewsPage", "خرید تأییدشده", "verified-purchase disclosure");
 forbidText("reviewsPage", "نظرات واقعی مشتریان", "unverified real-review claim");
@@ -39,8 +43,10 @@ requireText("about", "ManagedContentPage", "managed about content");
 requireText("quality", "ManagedContentPage", "managed quality content");
 requireText("corporate", "InquiryForm", "persisted corporate inquiry");
 requireText("inquiry", "submitInquiry", "persisted public inquiry");
-requireText("trust", "trustseal.enamad.ir", "official eNAMAD host allowlist");
+requireText("trust", "extractOfficialEnamadBadge", "isolated eNAMAD parser usage");
+requireText("trustSecurity", 'const ENAMAD_HOST = "trustseal.enamad.ir"', "official eNAMAD host allowlist");
 forbidText("trust", "dangerouslySetInnerHTML", "raw badge HTML execution");
+forbidText("trustSecurity", "dangerouslySetInnerHTML", "raw trust-policy HTML execution");
 
 for (const claim of [
   "بیش از ۵ سال تجربه",
@@ -58,6 +64,7 @@ for (const claim of ["openingHours", "priceRange", '"@type": "Bakery"']) forbidT
 requireText("seo", "sanitizeSchema", "schema sanitization");
 requireText("seo", "delete cloned.aggregateRating", "rating sanitization");
 requireText("seo", "delete offers.availability", "inventory schema sanitization");
+requireText("seo", "serializeJsonLd", "safe JSON-LD serialization");
 for (const sourceName of ["productCard", "productDetail"]) {
   requireText(sourceName, "getPublicProductBadges", "filtered public product badges");
   requireText(sourceName, "getStockPresentation", "inventory presentation policy");
