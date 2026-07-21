@@ -285,8 +285,9 @@ test("persisted inquiry, query-free canonical and disabled eNAMAD trust slot rem
   const assertNoPageErrors = attachPageErrorGuard(page);
 
   await page.goto("/products?q=staging-cookie&diet=true");
-  const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-  expect(canonical).toBe("http://127.0.0.1:4173/products");
+  const canonicals = page.locator('link[rel="canonical"]');
+  await expect(canonicals).toHaveCount(1);
+  await expect(canonicals).toHaveAttribute("href", "http://127.0.0.1:4173/products");
 
   await page.goto("/contact");
   await expect(page.getByRole("heading", { name: "تماس با ما" })).toBeVisible();
