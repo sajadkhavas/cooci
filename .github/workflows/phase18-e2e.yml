@@ -131,7 +131,7 @@ jobs:
             --data-urlencode 'province=تهران' \
             --data-urlencode 'city=تهران' \
             --data-urlencode 'subtotalToman=350000' \
-            --data-urlencode 'requiresCooling=false')
+            --data-urlencode 'requiresCooling=0')
           CURL_EXIT=$?
           set -e
           printf '%s\n' "$DELIVERY_STATUS" > delivery-status.txt
