@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot trigger: removed immediately after the asserted patch is committed.
 path = Path("e2e/phase18.spec.mjs")
 source = path.read_text(encoding="utf-8")
 old = '''  const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
