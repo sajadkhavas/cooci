@@ -57,7 +57,7 @@ jobs:
   browser-acceptance:
     name: Desktop and mobile Chromium against Laravel production build
     runs-on: ubuntu-latest
-    timeout-minutes: 34
+    timeout-minutes: 38
 
     steps:
       - name: Checkout storefront
@@ -96,6 +96,22 @@ jobs:
           php artisan migrate:fresh --force
           php artisan db:seed --class='Database\Seeders\WinimiStagingSeeder' --force
           php scripts/audit-phase-18-acceptance.php
+
+      - name: Phase 9 coordinated adversarial audit
+        run: node scripts/audit-phase9-coordinated.mjs backend
+
+      - name: Run backend adversarial acceptance
+        working-directory: backend
+        run: |
+          set -o pipefail
+          php artisan test --filter=EndToEndAcceptanceTest 2>&1 | tee ../phase9-backend-acceptance.log
+
+      - name: Reset Laravel browser fixtures after backend tests
+        working-directory: backend
+        run: |
+          php artisan optimize:clear
+          php artisan migrate:fresh --force
+          php artisan db:seed --class='Database\Seeders\WinimiStagingSeeder' --force
 
       - name: Start Laravel API
         working-directory: backend
@@ -244,6 +260,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase7-pwa.spec.mjs 2>&1 | tee phase7-pwa.log
 
+      - name: Run final adversarial acceptance — Phase 9
+        id: phase9_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase9-adversarial.spec.mjs 2>&1 | tee phase9-adversarial.log
+
       - name: Upload compact browser logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -252,6 +274,9 @@ jobs:
           path: |
             phase18-browser.log
             phase7-pwa.log
+            phase9-adversarial.log
+            phase9-backend-acceptance.log
+            phase9-coordinated-audit.json
             production-build.log
             performance-report.json
             api-proxy.log
@@ -268,6 +293,9 @@ jobs:
           path: |
             phase18-browser.log
             phase7-pwa.log
+            phase9-adversarial.log
+            phase9-backend-acceptance.log
+            phase9-coordinated-audit.json
             production-build.log
             performance-report.json
             backend-ready.json
