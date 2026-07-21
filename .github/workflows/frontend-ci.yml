@@ -28,9 +28,9 @@ env:
 
 jobs:
   validate:
-    name: Audit transactions, content/SEO, components/accessibility, build/PWA/performance, auth, catalog/cart, tests and types
+    name: Audit security, transactions, accessibility, build, PWA, deployment readiness, tests and types
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 32
 
     steps:
       - name: Checkout repository
@@ -75,6 +75,12 @@ jobs:
       - name: Frontend full-audit Phase 7
         run: npm run audit:phase7
 
+      - name: Frontend full-audit Phase 8
+        run: npm run audit:phase8
+
+      - name: Production environment schema audit
+        run: npm run env:production:validate
+
       - name: Upload full-audit diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -88,6 +94,8 @@ jobs:
             frontend-phase5-audit.json
             frontend-phase6-audit.json
             frontend-phase7-audit.json
+            frontend-phase8-audit.json
+            production-env-audit.json
           if-no-files-found: warn
           retention-days: 14
 

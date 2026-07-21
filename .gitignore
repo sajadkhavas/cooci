@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 e2e/generated/
+.release/
+release-output.json
+release-a-output.json
+release-b-output.json
+deploy/nginx/winimi-frontend.conf
 
 # Editor directories and files
 .vscode/*
