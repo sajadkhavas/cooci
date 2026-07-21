@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot trigger: removed immediately after the asserted patch is committed.
 path = Path("src/components/layout/Header.tsx")
 source = path.read_text(encoding="utf-8")
 
