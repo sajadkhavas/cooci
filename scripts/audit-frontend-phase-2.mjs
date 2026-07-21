@@ -49,9 +49,19 @@ requireText("api", "error.status === 419", "single CSRF refresh retry");
 forbidText("api", "`${API_BASE_URL}${path}`", "raw API URL concatenation");
 
 requireText("auth", "normalizeOtpCode", "OTP-specific normalization");
-requireText("auth", "import.meta.env.DEV ? challenge.debugCode", "development-only debug code");
+requireText(
+  "auth",
+  "import.meta.env.DEV || exposeLoopbackAcceptanceOtpCode",
+  "development or exact-loopback acceptance debug code",
+);
+requireText(
+  "auth",
+  'import.meta.env.VITE_E2E_ACCEPTANCE === "true"',
+  "explicit acceptance diagnostics flag",
+);
 requireText("auth", "error.status === 401", "status-based unauthenticated bootstrap");
 requireText("auth", "suppressAuthExpiryEvent: true", "safe auth bootstrap/logout behavior");
+forbidText("auth", "devCode: challenge.debugCode,", "unconditional OTP debug code");
 
 requireText("authContext", "AUTH_SESSION_EXPIRED_EVENT", "global session expiry listener");
 requireText("login", "sanitizeInternalReturnPath", "defense-in-depth return path sanitizer");
@@ -92,5 +102,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 2 audit passed: API origin/path validation, network and rate-limit errors, CSRF retry, session expiry, same-origin login redirects and OTP normalization are locked.",
+  "Frontend Phase 2 audit passed: API origin/path validation, network and rate-limit errors, CSRF retry, session expiry, same-origin login redirects, OTP normalization and exact-loopback diagnostics are locked.",
 );
