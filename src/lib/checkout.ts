@@ -1,4 +1,5 @@
 import type { CartItem } from "@/lib/cart";
+import { encodeBooleanQuery } from "@/lib/http-query";
 import {
   apiRequest,
   areDevelopmentMocksEnabled,
@@ -6,13 +7,11 @@ import {
   getFrontendDataMode,
 } from "@/lib/api";
 import type {
-  BackendCheckoutResult,
   BackendDeliveryOptions,
-  BackendPaymentInitiationResult,
-  BackendPaymentVerificationResult,
 } from "@/lib/backend-contract";
 import {
   addPaymentAttempt,
+  canRetryLocalOrderPayment,
   generateOrderId,
   generatePaymentAttemptId,
   getOrderById,
@@ -26,9 +25,28 @@ import {
   type OrderCustomer,
   type PaymentAttempt,
 } from "@/lib/orders";
+import {
+  parseBackendCheckoutResult,
+  parseBackendDeliveryOptions,
+  parseBackendPaymentInitiationResult,
+  parseBackendPaymentVerificationResult,
+} from "@/lib/order-schema";
+import {
+  deriveBackendPaymentState,
+  isVerifiedBackendPayment,
+  resolveSafePaymentRedirect,
+} from "@/lib/payment-security";
+import {
+  buildCheckoutFingerprint,
+  buildPaymentFingerprint,
+  clearTransactionIntent,
+  getOrCreateTransactionIntent,
+} from "@/lib/transaction-intent";
 
 const CONFIGURED_PAYMENT_MODE = import.meta.env.VITE_PAYMENT_MODE || "disabled";
 const CHECKOUT_DRAFT_KEY = "winimi_checkout_draft_v1";
+const MAX_CHECKOUT_DRAFT_LENGTH = 20_000;
+const CHECKOUT_DRAFT_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 export type PaymentMode = "backend" | "mock" | "disabled";
 export type PaymentResultState = "success" | "failed" | "cancelled" | "unknown";
@@ -44,7 +62,7 @@ export interface CheckoutRequest {
   customer?: CheckoutCustomerInput;
   deliveryMethod: DeliveryMethod;
   items: CartItem[];
-  idempotencyKey: string;
+  idempotencyKey?: string;
 }
 export interface CheckoutSessionResult {
   success: boolean;
@@ -59,6 +77,7 @@ export interface PaymentVerificationResult {
   state: PaymentResultState;
   order?: LocalOrder;
   refId?: string;
+  verifiedByServer?: boolean;
   error?: string;
 }
 
@@ -69,6 +88,49 @@ const randomToken = () =>
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
+
+const getFrontendOrigin = () => {
+  if (typeof window !== "undefined") return window.location.origin;
+  return import.meta.env.VITE_SITE_ORIGIN || "https://winimibakery.com";
+};
+
+const cleanText = (value: unknown, maximum: number) =>
+  typeof value === "string" ? value.trim().slice(0, maximum) : "";
+
+const sanitizeCheckoutDraft = (value: unknown): CheckoutDraft | null => {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<CheckoutDraft>;
+  if (
+    !["standard", "chilled", "pickup"].includes(
+      candidate.deliveryMethod || "",
+    )
+  ) {
+    return null;
+  }
+  const savedAt = Date.parse(candidate.savedAt || "");
+  if (
+    !Number.isFinite(savedAt) ||
+    savedAt > Date.now() + 60_000 ||
+    Date.now() - savedAt > CHECKOUT_DRAFT_MAX_AGE_MS
+  ) {
+    return null;
+  }
+  const customer = candidate.customer || {};
+  return {
+    deliveryMethod: candidate.deliveryMethod as DeliveryMethod,
+    addressId: cleanText(candidate.addressId, 180) || undefined,
+    customer: {
+      fullName: cleanText(customer.fullName, 160) || undefined,
+      mobile: cleanText(customer.mobile, 32) || undefined,
+      province: cleanText(customer.province, 160) || undefined,
+      city: cleanText(customer.city, 160) || undefined,
+      address: cleanText(customer.address, 2_000) || undefined,
+      postalCode: cleanText(customer.postalCode, 32) || undefined,
+      notes: cleanText(customer.notes, 2_000) || undefined,
+    },
+    savedAt: new Date(savedAt).toISOString(),
+  };
+};
 
 export { createIdempotencyKey };
 
@@ -111,7 +173,8 @@ export const loadCheckoutDraft = (): CheckoutDraft | null => {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(CHECKOUT_DRAFT_KEY);
-    return raw ? (JSON.parse(raw) as CheckoutDraft) : null;
+    if (!raw || raw.length > MAX_CHECKOUT_DRAFT_LENGTH) return null;
+    return sanitizeCheckoutDraft(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -122,9 +185,14 @@ export const saveCheckoutDraft = (
 ) => {
   if (typeof window === "undefined") return;
   try {
+    const sanitized = sanitizeCheckoutDraft({
+      ...draft,
+      savedAt: new Date().toISOString(),
+    });
+    if (!sanitized) return;
     window.localStorage.setItem(
       CHECKOUT_DRAFT_KEY,
-      JSON.stringify({ ...draft, savedAt: new Date().toISOString() }),
+      JSON.stringify(sanitized),
     );
   } catch {
     // This draft is a non-authoritative convenience copy.
@@ -153,52 +221,79 @@ export const loadDeliveryOptions = async ({
 }): Promise<BackendDeliveryOptions> => {
   const params = new URLSearchParams({
     subtotalToman: String(Math.max(0, Math.round(subtotalToman))),
-    requiresCooling: String(requiresCooling),
+    requiresCooling: encodeBooleanQuery(requiresCooling),
   });
-  if (province?.trim()) params.set("province", province.trim());
-  if (city?.trim()) params.set("city", city.trim());
-  return (
-    await apiRequest<BackendDeliveryOptions>(
-      `/api/delivery/options?${params.toString()}`,
-    )
-  ).data;
+  if (province?.trim()) params.set("province", province.trim().slice(0, 160));
+  if (city?.trim()) params.set("city", city.trim().slice(0, 160));
+  const response = await apiRequest<unknown>(
+    `/api/delivery/options?${params.toString()}`,
+  );
+  return parseBackendDeliveryOptions(response.data);
 };
 
 const initiateBackendPayment = async (
   orderId: string,
 ): Promise<CheckoutSessionResult> => {
-  const response = await apiRequest<BackendPaymentInitiationResult>(
+  const fingerprint = buildPaymentFingerprint(orderId);
+  const idempotencyKey = getOrCreateTransactionIntent("payment", fingerprint);
+  const response = await apiRequest<unknown>(
     `/api/orders/${encodeURIComponent(orderId)}/payments`,
     {
       method: "POST",
-      idempotencyKey: createIdempotencyKey("PAY"),
+      idempotencyKey,
       body: {},
     },
   );
-  const order = mapBackendOrder(response.data.order);
-  const paymentUrl = response.data.payment.redirectUrl || undefined;
+  const data = parseBackendPaymentInitiationResult(response.data);
+  const order = mapBackendOrder(data.order);
+  const rawRedirect = data.payment.redirectUrl;
+  const paymentUrl = resolveSafePaymentRedirect(rawRedirect, {
+    frontendOrigin: getFrontendOrigin(),
+    allowDevelopmentRoutes: import.meta.env.DEV,
+  });
+
+  clearTransactionIntent("payment");
 
   return {
     success: true,
     order,
     paymentAvailable: true,
     paymentStarted: Boolean(paymentUrl),
-    attemptId: response.data.payment.id,
-    paymentUrl,
-    error: paymentUrl
-      ? undefined
-      : "درگاه آدرس انتقال معتبر برنگرداند.",
+    attemptId: data.payment.id,
+    paymentUrl: paymentUrl || undefined,
+    error:
+      rawRedirect && !paymentUrl
+        ? "آدرس انتقال درگاه با سیاست امنیتی وینیمی سازگار نیست."
+        : paymentUrl
+          ? undefined
+          : "درگاه آدرس انتقال معتبر برنگرداند.",
   };
+};
+
+const validateCheckoutItems = (items: CartItem[]) => {
+  if (!items.length || items.length > 100) {
+    throw new Error("سبد خرید برای ثبت سفارش معتبر نیست.");
+  }
+  const variantIds = new Set<string>();
+  for (const item of items) {
+    const variantId = item.selectedVariant?.id?.trim();
+    if (!variantId) {
+      throw new Error(`Variant قابل سفارش برای «${item.name}» مشخص نیست.`);
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1_000) {
+      throw new Error(`تعداد «${item.name}» معتبر نیست.`);
+    }
+    if (variantIds.has(variantId)) {
+      throw new Error("یک Variant بیش از یک بار در سبد ثبت شده است.");
+    }
+    variantIds.add(variantId);
+  }
 };
 
 const createBackendCheckout = async (
   request: CheckoutRequest,
 ): Promise<CheckoutSessionResult> => {
-  const invalidItem = request.items.find((item) => !item.selectedVariant?.id);
-  if (invalidItem) {
-    throw new Error(`Variant قابل سفارش برای «${invalidItem.name}» مشخص نیست.`);
-  }
-
+  validateCheckoutItems(request.items);
   const addressPayload = request.addressId
     ? {
         addressId: request.addressId,
@@ -207,7 +302,7 @@ const createBackendCheckout = async (
           : {}),
       }
     : { customer: request.customer };
-  const response = await apiRequest<BackendCheckoutResult>("/api/checkout", {
+  const response = await apiRequest<unknown>("/api/checkout", {
     method: "POST",
     idempotencyKey: request.idempotencyKey,
     body: {
@@ -219,9 +314,11 @@ const createBackendCheckout = async (
       })),
     },
   });
-  const order = mapBackendOrder(response.data.order);
+  const data = parseBackendCheckoutResult(response.data);
+  const order = mapBackendOrder(data.order);
+  clearTransactionIntent("checkout");
 
-  if (!response.data.payment.available) {
+  if (!data.payment.available) {
     return {
       success: true,
       order,
@@ -257,6 +354,7 @@ const createMockPaymentAttempt = (order: LocalOrder): CheckoutSessionResult => {
   const attempt: PaymentAttempt = {
     id: attemptId,
     provider: "mock",
+    attemptNumber: order.paymentAttempts.length + 1,
     status: "initiated",
     createdAt: now,
     updatedAt: now,
@@ -269,18 +367,27 @@ const createMockPaymentAttempt = (order: LocalOrder): CheckoutSessionResult => {
     attempt: attemptId,
     token: mockToken,
   });
+  const paymentUrl = resolveSafePaymentRedirect(
+    `/payment/mock?${params.toString()}`,
+    {
+      frontendOrigin: getFrontendOrigin(),
+      allowDevelopmentRoutes: true,
+    },
+  );
   return {
-    success: true,
+    success: Boolean(paymentUrl),
     order: getOrderById(order.id) ?? order,
     paymentAvailable: true,
-    paymentStarted: true,
+    paymentStarted: Boolean(paymentUrl),
     attemptId,
-    paymentUrl: `/payment/mock?${params.toString()}`,
+    paymentUrl: paymentUrl || undefined,
+    error: paymentUrl ? undefined : "آدرس پرداخت آزمایشی معتبر نیست.",
   };
 };
 
 const createLocalMockOrder = (request: CheckoutRequest): LocalOrder => {
   if (!request.customer) throw new Error("گیرنده آزمایشی مشخص نیست.");
+  validateCheckoutItems(request.items);
   const now = new Date().toISOString();
   const subtotal = request.items.reduce(
     (sum, item) =>
@@ -314,9 +421,20 @@ export const createCheckoutSession = async (
 ): Promise<CheckoutSessionResult> => {
   try {
     const mode = getPaymentMode();
-    if (mode === "backend") return await createBackendCheckout(request);
+    const fingerprint = buildCheckoutFingerprint(request);
+    const idempotencyKey = getOrCreateTransactionIntent(
+      "checkout",
+      fingerprint,
+    );
+    const securedRequest = { ...request, idempotencyKey };
+
+    if (mode === "backend") return await createBackendCheckout(securedRequest);
     if (mode === "mock") {
-      return createMockPaymentAttempt(createLocalMockOrder(request));
+      const result = createMockPaymentAttempt(
+        createLocalMockOrder(securedRequest),
+      );
+      clearTransactionIntent("checkout");
+      return result;
     }
     return { success: false, error: "ثبت سفارش در حال حاضر فعال نیست." };
   } catch (error) {
@@ -334,13 +452,15 @@ export const retryOrderPayment = async (
   orderId: string,
 ): Promise<CheckoutSessionResult> => {
   try {
+    const safeOrderId = orderId.trim().slice(0, 180);
+    if (!safeOrderId) return { success: false, error: "شماره سفارش معتبر نیست." };
     const mode = getPaymentMode();
-    if (mode === "backend") return await initiateBackendPayment(orderId);
+    if (mode === "backend") return await initiateBackendPayment(safeOrderId);
     if (mode === "mock") {
-      const order = getOrderById(orderId);
+      const order = getOrderById(safeOrderId);
       if (!order) return { success: false, error: "سفارش پیدا نشد." };
-      if (order.paymentStatus === "paid") {
-        return { success: false, error: "این سفارش قبلاً پرداخت شده است." };
+      if (!canRetryLocalOrderPayment(order)) {
+        return { success: false, error: "این سفارش قابل پرداخت مجدد نیست." };
       }
       return createMockPaymentAttempt(order);
     }
@@ -373,7 +493,9 @@ export const completeMockPayment = ({
     !order ||
     !attempt ||
     attempt.provider !== "mock" ||
-    attempt.mockToken !== token
+    attempt.mockToken !== token ||
+    !["initiated", "pending"].includes(attempt.status) ||
+    !canRetryLocalOrderPayment(order)
   ) {
     return { state: "unknown", error: "اطلاعات تلاش پرداخت معتبر نیست." };
   }
@@ -389,9 +511,16 @@ export const completeMockPayment = ({
       status: "paid",
       paymentStatus: "paid",
       refId,
+      canCancel: false,
       lastPaymentError: undefined,
     }));
-    return { state: "success", order: updated, refId };
+    return {
+      state: updated ? "success" : "unknown",
+      order: updated,
+      refId,
+      verifiedByServer: false,
+      error: updated ? undefined : "ثبت نتیجه پرداخت آزمایشی ناموفق بود.",
+    };
   }
   updatePaymentAttempt(orderId, attemptId, {
     status: "cancelled",
@@ -425,29 +554,39 @@ export const verifyPaymentResult = async ({
   try {
     const mode = getPaymentMode();
     if (mode === "backend") {
-      if (!authority) {
+      const safeAuthority = authority?.trim().slice(0, 255);
+      if (!safeAuthority) {
         return {
           state: "unknown",
           error: "شناسه پرداخت در آدرس بازگشت وجود ندارد.",
         };
       }
-      const response = await apiRequest<BackendPaymentVerificationResult>(
+      const response = await apiRequest<unknown>(
         "/api/payments/zarinpal/verify",
         {
           method: "POST",
-          body: { authority, status: status || "NOK" },
+          body: {
+            authority: safeAuthority,
+            status: status?.trim().slice(0, 16) || "NOK",
+          },
         },
       );
-      const order = mapBackendOrder(response.data.order);
+      const data = parseBackendPaymentVerificationResult(response.data);
+      const verified = isVerifiedBackendPayment(data);
+      const state = deriveBackendPaymentState(data);
+      const order = mapBackendOrder(data.order);
       return {
-        state: response.data.verified
-          ? "success"
-          : status?.toUpperCase() === "NOK"
-            ? "cancelled"
-            : "failed",
+        state,
         order,
-        refId: response.data.payment.referenceId || undefined,
-        error: response.data.payment.failure?.message || undefined,
+        refId: verified ? data.payment.referenceId || undefined : undefined,
+        verifiedByServer: verified,
+        error:
+          state === "success"
+            ? undefined
+            : data.payment.failure?.message ||
+              (state === "unknown"
+                ? "پاسخ بررسی پرداخت از نظر داخلی سازگار نبود."
+                : undefined),
       };
     }
     if (mode === "mock") {
@@ -458,9 +597,9 @@ export const verifyPaymentResult = async ({
         };
       }
       return completeMockPayment({
-        orderId,
-        attemptId,
-        token: mockToken,
+        orderId: orderId.slice(0, 180),
+        attemptId: attemptId.slice(0, 180),
+        token: mockToken.slice(0, 255),
         outcome: status?.toUpperCase() === "OK" ? "success" : "cancelled",
       });
     }
