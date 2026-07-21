@@ -21,6 +21,7 @@ import {
   generateWhatsAppUrl,
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
+import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
 
 const footerLinks = {
   quickLinks: [
@@ -91,7 +92,11 @@ const FooterColumn = ({
 );
 
 export const Footer = () => {
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToTop = () =>
+    window.scrollTo({
+      top: 0,
+      behavior: getProgrammaticScrollBehavior(),
+    });
 
   return (
     <footer className="relative z-10 mt-12 overflow-hidden rounded-t-[3rem] bg-primary text-primary-foreground sm:mt-20 sm:rounded-t-[4.5rem]">

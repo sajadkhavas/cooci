@@ -4,13 +4,14 @@ import {
   generateWhatsAppUrl,
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
+import { matchesRoutePrefix } from "@/lib/accessibility/navigation";
 
 const hiddenPrefixes = ["/cart", "/checkout", "/payment"];
 
 export const FloatingWhatsApp = () => {
   const location = useLocation();
   const shouldHide = hiddenPrefixes.some((prefix) =>
-    location.pathname.startsWith(prefix),
+    matchesRoutePrefix(location.pathname, prefix),
   );
 
   if (shouldHide) return null;

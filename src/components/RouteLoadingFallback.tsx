@@ -1,11 +1,13 @@
 export const RouteLoadingFallback = () => (
   <section
     className="section-padding"
+    role="status"
     aria-busy="true"
     aria-live="polite"
-    aria-label="در حال بارگذاری صفحه"
+    aria-atomic="true"
   >
-    <div className="container-custom">
+    <span className="sr-only">در حال بارگذاری صفحه…</span>
+    <div className="container-custom" aria-hidden="true">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="h-5 w-48 animate-pulse rounded-full bg-muted" />
         <div className="h-12 w-3/4 max-w-2xl animate-pulse rounded-2xl bg-muted" />
