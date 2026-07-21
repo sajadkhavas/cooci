@@ -54,9 +54,9 @@ env:
 
 jobs:
   browser-acceptance:
-    name: Desktop and mobile Chromium against Laravel
+    name: Desktop and mobile Chromium against Laravel production build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 34
 
     steps:
       - name: Checkout storefront
@@ -157,9 +157,15 @@ jobs:
       - name: Phase 18 frontend architecture audit
         run: npm run audit:acceptance
 
-      - name: Start Vite storefront
+      - name: Build production storefront and generated PWA
+        id: production_build
         run: |
-          npm run dev -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
+          set -o pipefail
+          npm run build 2>&1 | tee production-build.log
+
+      - name: Start production storefront preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
           echo $! > frontend-server.pid
 
       - name: Wait for storefront
@@ -173,7 +179,7 @@ jobs:
           cat frontend-server.log
           exit 1
 
-      - name: Run desktop and mobile acceptance
+      - name: Run desktop, mobile and PWA acceptance
         id: browser_tests
         run: |
           set -o pipefail
@@ -186,6 +192,8 @@ jobs:
           name: phase18-browser-acceptance
           path: |
             phase18-browser.log
+            production-build.log
+            performance-report.json
             backend-ready.json
             delivery-status.txt
             delivery-options.json
