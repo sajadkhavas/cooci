@@ -14,6 +14,7 @@ Phase 7 audits production bundling, route splitting, PWA installation, offline b
 - Install icons must include broadly supported PNG sizes and a dedicated Apple touch icon.
 - Production source maps and unexpectedly large entry, route, CSS or image artifacts must fail CI.
 - Browser acceptance must keep certificate exceptions limited to the exact ephemeral loopback HTTPS origin used by CI; production origins must never inherit them.
+- Transactional offline acceptance must terminate the real loopback proxy connection instead of relying on browser-only offline emulation that may not affect Service Worker fetches.
 
 ## Completion gates
 
@@ -26,3 +27,4 @@ Phase 7 audits production bundling, route splitting, PWA installation, offline b
 7. Root HTML, service worker and manifest caching rules prevent stale releases while hashed assets remain immutable.
 8. Performance and PWA reports are uploaded by CI and Phase 7 cannot merge unless all earlier audits, tests, types and the production build pass.
 9. Chromium certificate trust exceptions are conditional on the exact CI loopback origin and are covered by a deterministic audit.
+10. The production PWA acceptance suite injects a real storefront network failure and verifies that transactional routes fail closed to the offline document.
