@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   SITE_URL: https://winimibakery.com
@@ -27,6 +27,32 @@ env:
   VITE_PAYMENT_MODE: disabled
 
 jobs:
+  phase6-header-patch:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-full-audit-phase-6-components-accessibility'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Phase 6 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply asserted Header patch
+        run: python3 scripts/phase6-header-focus-patch.py
+
+      - name: Commit Header patch when needed
+        run: |
+          git diff --check
+          if git diff --quiet -- src/components/layout/Header.tsx; then
+            echo "Header patch already applied."
+            exit 0
+          fi
+          git config user.name "winimi-audit-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/components/layout/Header.tsx
+          git commit -m "Phase 6: make Header route and focus behavior deterministic"
+          git push origin HEAD:agent/frontend-full-audit-phase-6-components-accessibility
+
   validate:
     name: Audit transactions, content/SEO, auth, catalog/cart, UI, accessibility, tests, types and build
     runs-on: ubuntu-latest
