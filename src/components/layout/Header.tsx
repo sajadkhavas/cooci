@@ -20,13 +20,15 @@ import {
 } from "@/config/brand";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-
-type NavMatch = "home" | "products" | "categories" | "prefix";
+import {
+  isNavigationTargetActive,
+  type NavigationMatch,
+} from "@/lib/accessibility/navigation";
 
 interface NavLink {
   name: string;
   href: string;
-  match: NavMatch;
+  match: NavigationMatch;
 }
 
 const navLinks: NavLink[] = [
@@ -35,27 +37,12 @@ const navLinks: NavLink[] = [
   {
     name: "کوکی‌ها",
     href: "/products/category/cookies",
-    match: "categories",
+    match: "exact",
   },
   { name: "هدیه", href: "/gift", match: "prefix" },
   { name: "راهنماها", href: "/blog", match: "prefix" },
   { name: "داستان ما", href: "/about", match: "prefix" },
 ];
-
-const isNavLinkActive = (pathname: string, link: NavLink) => {
-  if (link.match === "home") return pathname === "/";
-  if (link.match === "products") {
-    return (
-      pathname === "/products" ||
-      (pathname.startsWith("/products/") &&
-        !pathname.startsWith("/products/category/"))
-    );
-  }
-  if (link.match === "categories") {
-    return pathname.startsWith("/products/category/");
-  }
-  return pathname === link.href || pathname.startsWith(`${link.href}/`);
-};
 
 const focusableSelector = [
   "a[href]",
@@ -75,6 +62,10 @@ export const Header = () => {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const restoreMenuFocusRef = useRef(true);
+  const previousLocationRef = useRef(
+    `${location.pathname}${location.search}`,
+  );
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
@@ -84,8 +75,13 @@ export const Header = () => {
   }, []);
 
   useEffect(() => {
+    const locationKey = `${location.pathname}${location.search}`;
+    if (previousLocationRef.current === locationKey) return;
+    previousLocationRef.current = locationKey;
+    if (!isOpen) return;
+    restoreMenuFocusRef.current = false;
     setIsOpen(false);
-  }, [location.pathname, location.search]);
+  }, [isOpen, location.pathname, location.search]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -98,6 +94,7 @@ export const Header = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
+        restoreMenuFocusRef.current = true;
         setIsOpen(false);
         return;
       }
@@ -123,7 +120,9 @@ export const Header = () => {
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
-      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+      if (restoreMenuFocusRef.current) {
+        window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+      }
     };
   }, [isOpen]);
 
@@ -165,7 +164,7 @@ export const Header = () => {
             aria-label="منوی اصلی"
           >
             {navLinks.map((link) => {
-              const active = isNavLinkActive(location.pathname, link);
+              const active = isNavigationTargetActive(location.pathname, link);
               return (
                 <Link
                   key={link.href}
@@ -228,7 +227,10 @@ export const Header = () => {
             <button
               ref={menuButtonRef}
               type="button"
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                restoreMenuFocusRef.current = true;
+                setIsOpen(true);
+              }}
               className="touch-target flex items-center justify-center rounded-full border border-border/70 bg-card/65 text-foreground shadow-soft backdrop-blur-xl transition hover:bg-card xl:hidden"
               aria-label="باز کردن منوی اصلی"
               aria-expanded={isOpen}
@@ -252,7 +254,10 @@ export const Header = () => {
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default bg-foreground/45 backdrop-blur-md"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              restoreMenuFocusRef.current = true;
+              setIsOpen(false);
+            }}
             aria-label="بستن منوی اصلی"
           />
 
@@ -281,7 +286,10 @@ export const Header = () => {
               <button
                 ref={closeButtonRef}
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  restoreMenuFocusRef.current = true;
+                  setIsOpen(false);
+                }}
                 className="touch-target flex items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/15"
                 aria-label="بستن منوی اصلی"
               >
@@ -292,6 +300,10 @@ export const Header = () => {
             <div className="relative flex-1 p-5">
               <Link
                 to={isAuthenticated ? "/account" : "/account/login"}
+                onClick={() => {
+                  restoreMenuFocusRef.current = false;
+                  setIsOpen(false);
+                }}
                 className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-xl"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
@@ -312,11 +324,15 @@ export const Header = () => {
 
               <nav className="grid gap-2" aria-label="منوی موبایل">
                 {navLinks.map((link, index) => {
-                  const active = isNavLinkActive(location.pathname, link);
+                  const active = isNavigationTargetActive(location.pathname, link);
                   return (
                     <Link
                       key={link.href}
                       to={link.href}
+                      onClick={() => {
+                        restoreMenuFocusRef.current = false;
+                        setIsOpen(false);
+                      }}
                       aria-current={active ? "page" : undefined}
                       className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
