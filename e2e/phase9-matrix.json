@@ -1,0 +1,123 @@
+{
+  "version": "2026-07-21-phase-9",
+  "finalMarker": "frontend_security_and_deployment_audited=ready",
+  "scenarios": [
+    {
+      "id": "desktop-mobile-browser-matrix",
+      "frontendEvidence": [
+        "e2e/playwright.config.mjs::desktop-chromium",
+        "e2e/playwright.config.mjs::mobile-chromium",
+        "e2e/phase18.spec.mjs::real Laravel checkout verifies testing payment"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::test_customer_can_complete_otp_address_checkout_testing_payment_and_duplicate_callback_flow"
+      ]
+    },
+    {
+      "id": "offline-reconnect",
+      "frontendEvidence": [
+        "e2e/phase7-pwa.spec.mjs::__winimi_network_failure",
+        "e2e/phase7-pwa.spec.mjs::network restoration returns to the live application"
+      ],
+      "backendEvidence": []
+    },
+    {
+      "id": "expired-session",
+      "frontendEvidence": [
+        "e2e/phase18.spec.mjs::a protected API 401 invalidates stale React auth state",
+        "src/lib/api.ts::AUTH_SESSION_EXPIRED_EVENT"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::assertUnauthorized"
+      ]
+    },
+    {
+      "id": "rate-limit-retry",
+      "frontendEvidence": [
+        "e2e/phase9-adversarial.spec.mjs::rate-limited catalog fails visibly and recovers after retry",
+        "src/lib/api.ts::rate_limited"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::assertTooManyRequests"
+      ]
+    },
+    {
+      "id": "stale-tampered-cart",
+      "frontendEvidence": [
+        "e2e/phase18.spec.mjs::a tampered stale cart cannot bypass exact server reconciliation",
+        "src/components/cart/CheckoutGuard.tsx::missingMockSlugs"
+      ],
+      "backendEvidence": []
+    },
+    {
+      "id": "changed-stock",
+      "frontendEvidence": [
+        "src/context/CartContext.tsx::syncWithCatalog"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::assertSame(23",
+        "tests/Feature/EndToEndAcceptanceTest.php::InventoryReservationStatus::Consumed"
+      ]
+    },
+    {
+      "id": "changed-delivery-zone",
+      "frontendEvidence": [
+        "src/pages/CheckoutPage.tsx::deliveryOptions"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::phase18-chilled-rejected-0001",
+        "tests/Feature/EndToEndAcceptanceTest.php::assertUnprocessable"
+      ]
+    },
+    {
+      "id": "duplicate-submit-idempotency",
+      "frontendEvidence": [
+        "src/lib/checkout.ts::getOrCreateTransactionIntent",
+        "src/lib/checkout.ts::برای جلوگیری از سفارش تکراری"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::phase18-dry-checkout-0001",
+        "tests/Feature/EndToEndAcceptanceTest.php::assertConflict",
+        "tests/Feature/EndToEndAcceptanceTest.php::meta.replayed"
+      ]
+    },
+    {
+      "id": "payment-terminal-and-replay",
+      "frontendEvidence": [
+        "e2e/phase18.spec.mjs::forged callback authority never clears an existing cart",
+        "src/pages/PaymentCallbackPage.tsx::پرداخت لغو شد",
+        "src/pages/PaymentCallbackPage.tsx::پرداخت تأیید نشد",
+        "src/pages/PaymentCallbackPage.tsx::پرداخت از سمت سرور تأیید شد"
+      ],
+      "backendEvidence": [
+        "tests/Feature/EndToEndAcceptanceTest.php::meta.replayed",
+        "tests/Feature/EndToEndAcceptanceTest.php::assertSame(23"
+      ]
+    },
+    {
+      "id": "hostile-url-inputs",
+      "frontendEvidence": [
+        "e2e/phase18.spec.mjs::protocol-relative login return state",
+        "e2e/phase9-adversarial.spec.mjs::hostile encoded query values remain inert",
+        "src/lib/security/navigation.ts::candidate.startsWith(\"//\")"
+      ],
+      "backendEvidence": []
+    },
+    {
+      "id": "deployment-security-rollback",
+      "frontendEvidence": [
+        ".github/workflows/phase8-deployment.yml::Rollback to release A",
+        ".github/workflows/phase8-deployment.yml::Run HTTPS production smoke test",
+        "deploy/bin/smoke-test-frontend.sh::strict-transport-security"
+      ],
+      "backendEvidence": []
+    },
+    {
+      "id": "final-marker",
+      "frontendEvidence": [
+        "docs/FRONTEND_SECURITY_AND_DEPLOYMENT_AUDIT.md::frontend_security_and_deployment_audited=ready"
+      ],
+      "backendEvidence": []
+    }
+  ]
+}

@@ -24,7 +24,7 @@ const waitForServiceWorkerControl = async (page) => {
   });
 };
 
-test("production PWA is versioned and transactional routes fail closed on a real network failure", async ({
+test("production PWA fails closed on a real network failure and recovers after reconnect", async ({
   page,
   request,
 }, testInfo) => {
@@ -73,4 +73,12 @@ test("production PWA is versioned and transactional routes fail closed on a real
     page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
   ).toBeVisible();
   await expect(page.locator("#root")).toHaveCount(0);
+
+  // network restoration returns to the live application
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#root")).toHaveCount(1);
+  await expect(page.locator("#main-content")).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true);
 });

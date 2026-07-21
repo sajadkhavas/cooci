@@ -10,7 +10,11 @@ const localCertificateLaunchArgs = allowLocalSelfSignedCertificate
 
 export default defineConfig({
   testDir: ".",
-  testMatch: ["generated/phase18.spec.mjs", "phase7-pwa.spec.mjs"],
+  testMatch: [
+    "generated/phase18.spec.mjs",
+    "phase7-pwa.spec.mjs",
+    "phase9-adversarial.spec.mjs",
+  ],
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,
