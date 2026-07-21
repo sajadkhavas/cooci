@@ -1,6 +1,11 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 import { brandConfig } from "@/config/brand";
+import {
+  resolveCanonicalUrl,
+  resolvePublicMediaUrl,
+  serializeJsonLd,
+} from "@/lib/security/seo";
 
 interface SEOProps {
   title?: string;
@@ -14,14 +19,15 @@ interface SEOProps {
   noIndex?: boolean;
 }
 
-const SITE_ORIGIN =
+const configuredOrigin =
   (import.meta.env.VITE_SITE_ORIGIN as string | undefined) || brandConfig.website;
-
-const absoluteUrl = (value: string) => {
-  if (!value) return SITE_ORIGIN;
-  if (value.startsWith("http")) return value;
-  return `${SITE_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
-};
+const SITE_ORIGIN = (() => {
+  try {
+    return new URL(configuredOrigin).origin;
+  } catch {
+    return new URL(brandConfig.website).origin;
+  }
+})();
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 
@@ -44,7 +50,11 @@ const sanitizeSchema = (schema: object | undefined) => {
 
   if (schemaType === "Article") {
     const published = cloned.datePublished;
-    if (typeof published !== "string" || !ISO_DATE_PATTERN.test(published)) {
+    if (
+      typeof published !== "string" ||
+      !ISO_DATE_PATTERN.test(published) ||
+      !Number.isFinite(Date.parse(published))
+    ) {
       delete cloned.datePublished;
     }
   }
@@ -68,12 +78,16 @@ export const SEO = ({
     ? `${title} | ${brandConfig.brandName}`
     : brandConfig.defaultMeta.title;
   const siteDescription = description || brandConfig.defaultMeta.description;
-  const siteImage = absoluteUrl(image || brandConfig.defaultMeta.image);
-  const canonicalPath =
-    url || `${location.pathname}${location.search && !noIndex ? location.search : ""}`;
-  const siteUrl = absoluteUrl(canonicalPath);
+  const siteImage = resolvePublicMediaUrl(
+    image || brandConfig.defaultMeta.image,
+    SITE_ORIGIN,
+  );
+  const canonicalPath = url || location.pathname;
+  const siteUrl = resolveCanonicalUrl(canonicalPath, SITE_ORIGIN);
   const safePublishedTime =
-    publishedTime && ISO_DATE_PATTERN.test(publishedTime)
+    publishedTime &&
+    ISO_DATE_PATTERN.test(publishedTime) &&
+    Number.isFinite(Date.parse(publishedTime))
       ? publishedTime
       : undefined;
 
@@ -90,6 +104,7 @@ export const SEO = ({
   };
 
   const finalSchema = sanitizeSchema(schema) || defaultSchema;
+  const serializedSchema = serializeJsonLd(finalSchema);
 
   return (
     <Helmet>
@@ -119,7 +134,7 @@ export const SEO = ({
         <meta property="article:author" content={author} />
       )}
 
-      <script type="application/ld+json">{JSON.stringify(finalSchema)}</script>
+      <script type="application/ld+json">{serializedSchema}</script>
     </Helmet>
   );
 };
