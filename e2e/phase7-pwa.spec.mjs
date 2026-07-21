@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const NETWORK_FAILURE_QUERY = "__winimi_network_failure";
+
 const waitForServiceWorkerControl = async (page) => {
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -22,8 +24,7 @@ const waitForServiceWorkerControl = async (page) => {
   });
 };
 
-test("production PWA is versioned and transactional routes fail closed offline", async ({
-  context,
+test("production PWA is versioned and transactional routes fail closed on a real network failure", async ({
   page,
   request,
 }, testInfo) => {
@@ -61,16 +62,15 @@ test("production PWA is versioned and transactional routes fail closed offline",
 
   await page.goto("/");
   await waitForServiceWorkerControl(page);
-  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true);
 
-  try {
-    await context.setOffline(true);
-    await page.goto("/checkout", { waitUntil: "domcontentloaded" });
-    await expect(
-      page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
-    ).toBeVisible();
-    await expect(page.locator("#root")).toHaveCount(0);
-  } finally {
-    await context.setOffline(false);
-  }
+  await page.goto(`/checkout?${NETWORK_FAILURE_QUERY}=1`, {
+    waitUntil: "domcontentloaded",
+  });
+  await expect(
+    page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
+  ).toBeVisible();
+  await expect(page.locator("#root")).toHaveCount(0);
 });
