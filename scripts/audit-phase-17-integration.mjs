@@ -29,6 +29,7 @@ const callback = read("src/pages/PaymentCallbackPage.tsx");
 const inquiry = read("src/components/forms/InquiryForm.tsx");
 const managedContent = read("src/components/content/ManagedContentPage.tsx");
 const trust = read("src/components/trust/EnamadTrustSlot.tsx");
+const trustSecurity = read("src/lib/security/enamad.ts");
 const app = read("src/App.tsx");
 
 requireText(roadmap, "frontend_integrated=ready", "Phase 17 readiness marker");
@@ -83,10 +84,13 @@ for (const endpoint of [
   "/api/store/cities/",
   "/api/inquiries",
 ]) requireText(content, endpoint, "store content endpoint");
+requireText(content, "apiRequest<unknown>", "runtime content response boundary");
 requireText(inquiry, "submitInquiry", "persisted public inquiries");
 requireText(managedContent, "loadContentPage", "managed legal/trust pages");
-requireText(trust, "trustseal.enamad.ir", "official eNAMAD host restriction");
+requireText(trust, "extractOfficialEnamadBadge", "isolated trust parser usage");
+requireText(trustSecurity, 'const ENAMAD_HOST = "trustseal.enamad.ir"', "official eNAMAD host restriction");
 forbidText(trust, "dangerouslySetInnerHTML", "raw trust HTML execution");
+forbidText(trustSecurity, "dangerouslySetInnerHTML", "raw trust security HTML execution");
 requireText(app, "areDevelopmentMocksEnabled &&", "development-only mock payment route");
 
 for (const source of [api, auth, checkout, content]) {
@@ -100,4 +104,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log("Phase 17 integration audit passed: readiness marker, backend API, session, catalog, checkout, payment, account, content, forms and production mock boundaries are connected.");
+console.log("Phase 17 integration audit passed: readiness marker, backend API, session, catalog, checkout, payment, account, runtime content, forms and production mock boundaries are connected.");
