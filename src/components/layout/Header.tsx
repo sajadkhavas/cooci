@@ -360,6 +360,10 @@ export const Header = () => {
             <div className="mobile-sticky-bar relative grid gap-3 border-t border-white/10 bg-black/10 p-5">
               <Link
                 to="/products"
+                onClick={() => {
+                  restoreMenuFocusRef.current = false;
+                  setIsOpen(false);
+                }}
                 className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-black text-accent-foreground"
               >
                 <ShoppingBag size={19} aria-hidden="true" />
