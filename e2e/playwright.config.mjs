@@ -4,7 +4,7 @@ const baseURL = process.env.PHASE18_FRONTEND_URL || "http://127.0.0.1:4173";
 
 export default defineConfig({
   testDir: ".",
-  testMatch: "phase18.spec.mjs",
+  testMatch: ["phase18.spec.mjs", "phase7-pwa.spec.mjs"],
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,
