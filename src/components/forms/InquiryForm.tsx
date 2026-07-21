@@ -1,8 +1,13 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import type { BackendInquiryType } from "@/lib/backend-contract";
 import { submitInquiry } from "@/lib/content";
+import {
+  normalizeInquiryEmail,
+  normalizeInquiryMobile,
+  sanitizeInquiryMetadata,
+} from "@/lib/inquiry-form";
 
 interface InquiryFormProps {
   type: BackendInquiryType;
@@ -14,6 +19,8 @@ interface InquiryFormProps {
   metadata?: Record<string, unknown>;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const InquiryForm = ({
   type,
   title,
@@ -24,10 +31,8 @@ export const InquiryForm = ({
   metadata,
 }: InquiryFormProps) => {
   const { user } = useAuth();
-  const initialName = useMemo(() => user?.fullName || "", [user?.fullName]);
-  const initialMobile = useMemo(() => user?.mobile || "", [user?.mobile]);
-  const [fullName, setFullName] = useState(initialName);
-  const [mobile, setMobile] = useState(initialMobile);
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [mobile, setMobile] = useState(user?.mobile || "");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [message, setMessage] = useState("");
@@ -36,20 +41,44 @@ export const InquiryForm = ({
   const [error, setError] = useState<string>();
   const [reference, setReference] = useState<string>();
 
+  useEffect(() => {
+    if (user?.fullName) {
+      setFullName((current) => current || user.fullName);
+    }
+    if (user?.mobile) {
+      setMobile((current) => current || user.mobile);
+    }
+  }, [user?.fullName, user?.mobile]);
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitting) return;
     setError(undefined);
     setReference(undefined);
 
-    if (fullName.trim().length < 2) {
+    const normalizedName = fullName.trim().slice(0, 120);
+    const normalizedMobile = normalizeInquiryMobile(mobile).slice(0, 32);
+    const normalizedEmail = normalizeInquiryEmail(email);
+    const normalizedSubject = subject.trim().slice(0, 220);
+    const normalizedMessage = message.trim().slice(0, 5000);
+
+    if (normalizedName.length < 2) {
       setError("نام و نام خانوادگی را وارد کنید.");
       return;
     }
-    if (!mobile.trim() && !email.trim()) {
+    if (!normalizedMobile && !normalizedEmail) {
       setError("شماره موبایل یا ایمیل را وارد کنید.");
       return;
     }
-    if (message.trim().length < 10) {
+    if (normalizedMobile && !/^09\d{9}$/.test(normalizedMobile)) {
+      setError("شماره موبایل معتبر نیست.");
+      return;
+    }
+    if (normalizedEmail && !EMAIL_PATTERN.test(normalizedEmail)) {
+      setError("ایمیل معتبر نیست.");
+      return;
+    }
+    if (normalizedMessage.length < 10) {
       setError("توضیحات درخواست باید حداقل ۱۰ کاراکتر باشد.");
       return;
     }
@@ -58,13 +87,13 @@ export const InquiryForm = ({
     try {
       const inquiry = await submitInquiry({
         type,
-        fullName: fullName.trim(),
-        mobile: mobile.trim() || undefined,
-        email: email.trim() || undefined,
-        subject: subject.trim() || undefined,
-        message: message.trim(),
-        metadata,
-        website,
+        fullName: normalizedName,
+        mobile: normalizedMobile || undefined,
+        email: normalizedEmail || undefined,
+        subject: normalizedSubject || undefined,
+        message: normalizedMessage,
+        metadata: sanitizeInquiryMetadata(metadata),
+        website: website.slice(0, 1),
       });
       setReference(inquiry.id);
       setMessage("");

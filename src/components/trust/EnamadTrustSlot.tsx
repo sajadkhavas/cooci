@@ -3,26 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { isBackendEnabled } from "@/lib/api";
 import { loadStoreSettings } from "@/lib/content";
-
-const extractOfficialBadge = (code: string | null) => {
-  if (!code) return null;
-  const matches = code.match(/https:\/\/trustseal\.enamad\.ir\/[^"'\s<>]+/g) ?? [];
-  const urls = matches.map((value) => value.replaceAll("&amp;", "&"));
-  const imageUrl = urls.find((value) => value.includes("logo.aspx"));
-  const verificationUrl = urls.find((value) => !value.includes("logo.aspx"));
-  if (!imageUrl || !verificationUrl) return null;
-
-  try {
-    const image = new URL(imageUrl);
-    const verification = new URL(verificationUrl);
-    const official = (url: URL) =>
-      url.protocol === "https:" && url.hostname === "trustseal.enamad.ir";
-    if (!official(image) || !official(verification)) return null;
-    return { image: image.toString(), verification: verification.toString() };
-  } catch {
-    return null;
-  }
-};
+import { extractOfficialEnamadBadge } from "@/lib/security/enamad";
 
 export const EnamadTrustSlot = () => {
   const query = useQuery({
@@ -32,7 +13,10 @@ export const EnamadTrustSlot = () => {
     staleTime: 10 * 60_000,
   });
   const badge = useMemo(
-    () => extractOfficialBadge(query.data?.trust.enamad.badgeCode || null),
+    () =>
+      extractOfficialEnamadBadge(
+        query.data?.trust.enamad.badgeCode || null,
+      ),
     [query.data?.trust.enamad.badgeCode],
   );
 
@@ -58,8 +42,15 @@ export const EnamadTrustSlot = () => {
 
   return (
     <div className="inline-flex min-h-24 max-w-xs items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] p-4 text-xs leading-6 text-primary-foreground/55">
-      <ShieldCheck className="shrink-0 text-accent" size={24} aria-hidden="true" />
-      <span>جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش داده می‌شود.</span>
+      <ShieldCheck
+        className="shrink-0 text-accent"
+        size={24}
+        aria-hidden="true"
+      />
+      <span>
+        جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش
+        داده می‌شود.
+      </span>
     </div>
   );
 };
