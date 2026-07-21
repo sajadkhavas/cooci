@@ -26,15 +26,56 @@ const forbidText = (file, text, label = text) => {
 
 requireText(
   "workflow",
+  "SITE_URL: https://127.0.0.1:4443",
+  "HTTPS storefront production origin",
+);
+requireText(
+  "workflow",
+  "VITE_SITE_ORIGIN: https://127.0.0.1:4443",
+  "HTTPS storefront build origin",
+);
+requireText(
+  "workflow",
   "VITE_API_BASE_URL: https://127.0.0.1:8443",
   "HTTPS API URL for production browser acceptance",
 );
-requireText("workflow", "Start ephemeral HTTPS API proxy", "ephemeral TLS proxy step");
+requireText(
+  "workflow",
+  "PHASE18_FRONTEND_URL: https://127.0.0.1:4443",
+  "HTTPS Playwright base URL",
+);
+requireText(
+  "workflow",
+  "PHASE18_API_URL: https://127.0.0.1:8443",
+  "HTTPS browser API URL",
+);
+requireText("workflow", "SESSION_SECURE_COOKIE: \"true\"", "secure session cookie policy");
+requireText(
+  "workflow",
+  "SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4443,127.0.0.1:8443",
+  "same-site Sanctum test domains",
+);
+requireText("workflow", "Generate ephemeral loopback TLS certificate", "ephemeral certificate step");
 requireText("workflow", "openssl req -x509 -newkey rsa:2048 -nodes", "ephemeral certificate generation");
 requireText("workflow", "-days 1", "one-day certificate lifetime");
+requireText("workflow", "Start ephemeral HTTPS API proxy", "ephemeral API TLS proxy step");
+requireText("workflow", "HTTPS_PROXY_PORT=8443", "API HTTPS port");
 requireText("workflow", "HTTPS_PROXY_TARGET=http://127.0.0.1:8000", "loopback Laravel target");
-requireText("workflow", "curl --fail --silent --insecure https://127.0.0.1:8443/api/system/ready", "HTTPS proxy readiness check");
-forbidText("workflow", ".ci-tls/api-proxy.key\n            ", "private key artifact upload");
+requireText(
+  "workflow",
+  "curl --fail --silent --insecure https://127.0.0.1:8443/api/system/ready",
+  "HTTPS API proxy readiness check",
+);
+requireText("workflow", "Start ephemeral HTTPS storefront proxy", "ephemeral storefront TLS proxy step");
+requireText("workflow", "HTTPS_PROXY_PORT=4443", "storefront HTTPS port");
+requireText("workflow", "HTTPS_PROXY_TARGET=http://127.0.0.1:4173", "internal storefront target");
+requireText(
+  "workflow",
+  "curl --fail --silent --insecure https://127.0.0.1:4443/products",
+  "HTTPS storefront readiness check",
+);
+forbidText("workflow", ".ci-tls/loopback.key\n            production-build.log", "private key artifact upload");
+forbidText("workflow", ".ci-tls/loopback.crt\n            production-build.log", "certificate artifact upload");
 
 requireText("proxy", "https.createServer", "HTTPS listener");
 requireText("proxy", "http.request", "HTTP loopback upstream");
@@ -43,7 +84,11 @@ requireText("proxy", '"x-forwarded-proto": "https"', "forwarded HTTPS protocol")
 
 requireText("playwright", "allowLocalSelfSignedCertificate", "scoped self-signed certificate policy");
 requireText("playwright", 'process.env.CI === "true"', "CI-only certificate exception");
-requireText("playwright", 'baseURL.startsWith("http://127.0.0.1:")', "loopback-only certificate exception");
+requireText(
+  "playwright",
+  'baseURL === "https://127.0.0.1:4443"',
+  "exact loopback HTTPS certificate exception",
+);
 requireText("playwright", "ignoreHTTPSErrors: allowLocalSelfSignedCertificate", "conditional TLS exception");
 
 requireText("apiPolicy", 'if (!policy.development && parsed.protocol !== "https:")', "strict production HTTPS API rule");
@@ -56,5 +101,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Phase 7 HTTPS acceptance audit passed: production keeps strict HTTPS while CI uses an ephemeral loopback TLS proxy.",
+  "Phase 7 HTTPS acceptance audit passed: storefront and API share an HTTPS site for Sanctum while production retains strict HTTPS.",
 );
