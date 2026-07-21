@@ -13,7 +13,10 @@ const files = {
   index: "index.html",
   headers: "public/_headers",
   performance: "scripts/audit-performance.mjs",
+  pwaE2e: "e2e/phase7-pwa.spec.mjs",
+  playwright: "e2e/playwright.config.mjs",
   workflow: ".github/workflows/frontend-ci.yml",
+  acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
 };
 
 const errors = [];
@@ -187,9 +190,20 @@ requireText("performance", "entryGzip", "entry bundle budget");
 requireText("performance", "largestJavaScriptGzip", "route/vendor chunk budget");
 requireText("performance", "totalJavaScriptGzip", "total JavaScript budget");
 requireText("performance", "minimumJavaScriptChunks", "route splitting budget");
+
+requireText("pwaE2e", "waitForServiceWorkerControl", "service worker control wait");
+requireText("pwaE2e", 'await context.setOffline(true)', "browser offline transition");
+requireText("pwaE2e", 'await page.goto("/checkout"', "offline checkout navigation");
+requireText("pwaE2e", "اتصال اینترنت در دسترس نیست", "fail-closed offline document assertion");
+requireText("playwright", '"phase7-pwa.spec.mjs"', "Phase 7 browser suite inclusion");
+
 requireText("workflow", "Frontend full-audit Phase 7", "Phase 7 CI step");
 requireText("workflow", "frontend-phase7-audit.json", "Phase 7 diagnostics artifact");
 requireText("workflow", "frontend-performance-report", "performance report artifact");
+requireText("acceptanceWorkflow", "Build production storefront and generated PWA", "production acceptance build");
+requireText("acceptanceWorkflow", "npm run preview", "production preview server");
+requireText("acceptanceWorkflow", "Run desktop, mobile and PWA acceptance", "PWA browser acceptance step");
+forbidText("acceptanceWorkflow", "npm run dev -- --host", "development-server acceptance");
 
 const report = {
   generatedAt: new Date().toISOString(),
@@ -207,5 +221,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 7 audit passed: route splitting, production build boundaries, versioned PWA caches, sensitive offline navigation, install icons and performance gates are locked.",
+  "Frontend Phase 7 audit passed: route splitting, production build boundaries, versioned PWA caches, sensitive offline navigation, install icons, production browser acceptance and performance gates are locked.",
 );
