@@ -8,6 +8,7 @@ const files = {
   catalogHook: "src/hooks/useCatalog.ts",
   developmentCatalog: "src/lib/development-catalog.ts",
   nginx: "deploy/nginx/winimi-frontend.conf.example",
+  securityHeaders: "deploy/nginx/winimi-security-headers.conf",
   deployReadme: "deploy/README.md",
   app: "src/App.tsx",
 };
@@ -128,17 +129,27 @@ requireText(
 );
 requireText(
   "nginx",
-  "Content-Security-Policy-Report-Only",
-  "report-only CSP rollout",
+  "include __SECURITY_HEADERS_INCLUDE__;",
+  "shared security-header include",
 );
 requireText(
-  "nginx",
+  "securityHeaders",
+  'Content-Security-Policy "default-src',
+  "enforced CSP",
+);
+requireText(
+  "securityHeaders",
   "Strict-Transport-Security",
-  "reviewed HSTS template",
+  "enforced HSTS",
+);
+forbidText(
+  "securityHeaders",
+  "Content-Security-Policy-Report-Only",
+  "report-only CSP after production hardening",
 );
 requireText(
   "deployReadme",
-  "A self-hosted Nginx server does not read it",
+  "A self-hosted Nginx server does not read `public/_headers`",
   "public/_headers deployment boundary",
 );
 requireText(
@@ -167,5 +178,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 1 audit passed: checkout/payment failure separation, duplicate-order safety, lazy development catalog, stale-cart recovery and Nginx production boundary are locked.",
+  "Frontend Phase 1 audit passed: checkout/payment failure separation, duplicate-order safety, lazy development catalog, stale-cart recovery and enforced Nginx production boundary are locked.",
 );
