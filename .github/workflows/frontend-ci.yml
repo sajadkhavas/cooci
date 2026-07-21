@@ -28,13 +28,14 @@ env:
 
 jobs:
   phase6-header-patch:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-full-audit-phase-6-components-accessibility'
+    if: github.head_ref == 'agent/frontend-full-audit-phase-6-components-accessibility' || github.ref == 'refs/heads/agent/frontend-full-audit-phase-6-components-accessibility'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout Phase 6 branch
         uses: actions/checkout@v4
         with:
+          ref: agent/frontend-full-audit-phase-6-components-accessibility
           fetch-depth: 0
 
       - name: Apply asserted Header patch
