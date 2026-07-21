@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PHASE18_FRONTEND_URL || "http://127.0.0.1:4173";
 const allowLocalSelfSignedCertificate =
-  process.env.CI === "true" && baseURL.startsWith("http://127.0.0.1:");
+  process.env.CI === "true" && baseURL === "https://127.0.0.1:4443";
 
 export default defineConfig({
   testDir: ".",
