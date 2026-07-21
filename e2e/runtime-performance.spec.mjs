@@ -90,9 +90,24 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
     "/account/login",
   );
 
+  const viewport = page.viewportSize();
+  const navigationBox = await navigation.boundingBox();
+  const whatsappBox = await page
+    .getByRole("link", { name: /بازکردن پشتیبانی واتساپ/ })
+    .boundingBox();
+  expect(navigationBox).not.toBeNull();
+  expect(whatsappBox).not.toBeNull();
+  expect(navigationBox?.bottom ?? Infinity).toBeLessThanOrEqual(
+    (viewport?.height ?? 0) + 1,
+  );
+  expect(whatsappBox?.bottom ?? Infinity).toBeLessThanOrEqual(
+    (navigationBox?.y ?? 0) + 2,
+  );
+
   await navigation.getByRole("link", { name: "فروشگاه" }).click();
   await expect(page).toHaveURL(/\/products$/);
   await expect(page.getByRole("heading", { name: "محصولات وینیمی" })).toBeVisible();
+  await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
   await expect(
     navigation.getByRole("link", { name: "فروشگاه" }),
   ).toHaveAttribute("aria-current", "page");
@@ -131,6 +146,7 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
         await expect(
           page.getByRole("heading", { name: "محصولات وینیمی" }),
         ).toBeVisible();
+        await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
       }
 
       const raw = await profileScroll(page);
@@ -158,6 +174,10 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
       profiles.push(profile);
 
       expect(profile.maxScroll, `${route.path} must be scrollable`).toBeGreaterThan(0);
+      expect(
+        Math.abs(profile.maxScroll - (profile.scrollHeight - profile.viewport.height)),
+        `${route.path} must keep a stable document height during profiling`,
+      ).toBeLessThanOrEqual(4);
       expect(
         profile.frames,
         `${route.path} must produce enough frame samples`,
