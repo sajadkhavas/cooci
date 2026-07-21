@@ -11,6 +11,8 @@ The frontend is a deterministic static release served from:
 
 Only `current/dist` is web-accessible. Source files, Git metadata, `.env`, dependency folders, TLS keys and backend credentials never enter a frontend release.
 
+`public/_headers` is retained for compatible static hosts and local artifact checks. A self-hosted Nginx server does not read `public/_headers`; the rendered Nginx configuration below is the production source of truth.
+
 ## 1. Validate the public production environment
 
 ```bash
