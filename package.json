@@ -21,7 +21,7 @@
     "audit:phase4": "node scripts/audit-frontend-phase-4.mjs",
     "audit:phase5": "node scripts/audit-frontend-phase-5.mjs",
     "audit:phase6": "node scripts/audit-frontend-phase-6.mjs",
-    "audit:phase7": "node scripts/audit-frontend-phase-7.mjs && node scripts/audit-pwa-update-flow.mjs",
+    "audit:phase7": "node scripts/audit-frontend-phase-7.mjs && node scripts/audit-pwa-update-flow.mjs && node scripts/audit-phase7-https-acceptance.mjs",
     "audit:launch": "node scripts/audit-full-launch-roadmap.mjs",
     "audit:integration": "node scripts/audit-phase-17-integration.mjs",
     "audit:acceptance": "node scripts/audit-phase-18-acceptance.mjs",
