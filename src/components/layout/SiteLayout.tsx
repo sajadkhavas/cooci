@@ -26,7 +26,7 @@ export const SiteLayout = () => {
       </div>
       <Header />
       <main id="main-content" className="relative z-10 min-w-0 flex-1" tabIndex={-1}>
-        <div key={`${location.pathname}${location.search}`} className="page-enter">
+        <div key={location.pathname} className="page-enter">
           <Outlet />
         </div>
       </main>
