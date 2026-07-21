@@ -1,10 +1,16 @@
+import "../scripts/generate-phase18-e2e.mjs";
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PHASE18_FRONTEND_URL || "http://127.0.0.1:4173";
+const allowLocalSelfSignedCertificate =
+  process.env.CI === "true" && baseURL === "https://127.0.0.1:4443";
+const localCertificateLaunchArgs = allowLocalSelfSignedCertificate
+  ? ["--ignore-certificate-errors"]
+  : [];
 
 export default defineConfig({
   testDir: ".",
-  testMatch: "phase18.spec.mjs",
+  testMatch: ["generated/phase18.spec.mjs", "phase7-pwa.spec.mjs"],
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,
@@ -17,9 +23,11 @@ export default defineConfig({
     baseURL,
     locale: "fa-IR",
     timezoneId: "Asia/Tehran",
+    ignoreHTTPSErrors: allowLocalSelfSignedCertificate,
+    launchOptions: { args: localCertificateLaunchArgs },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: "off",
   },
   projects: [
     {

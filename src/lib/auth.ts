@@ -14,6 +14,11 @@ import {
 
 export type AuthMode = "backend" | "mock" | "disabled";
 
+const exposeLoopbackAcceptanceOtpCode =
+  import.meta.env.VITE_E2E_ACCEPTANCE === "true" &&
+  import.meta.env.VITE_SITE_ORIGIN === "https://127.0.0.1:4443" &&
+  import.meta.env.VITE_API_BASE_URL === "https://127.0.0.1:8443";
+
 export interface AuthUser {
   id: string;
   mobile: string;
@@ -192,7 +197,10 @@ export const requestOtp = async (rawMobile: string): Promise<OtpRequestResult> =
       challengeId: challenge.challengeId,
       expiresIn: Math.max(0, challenge.expiresIn),
       retryAfter: Math.max(0, challenge.retryAfter),
-      devCode: import.meta.env.DEV ? challenge.debugCode : undefined,
+      devCode:
+        import.meta.env.DEV || exposeLoopbackAcceptanceOtpCode
+          ? challenge.debugCode
+          : undefined,
     };
   }
 

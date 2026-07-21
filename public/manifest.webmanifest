@@ -14,6 +14,18 @@
   "categories": ["shopping", "food"],
   "icons": [
     {
+      "src": "/icons/winimi-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/winimi-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/icons/winimi-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
@@ -31,13 +43,13 @@
       "name": "محصولات",
       "short_name": "محصولات",
       "url": "/products?source=pwa-shortcut",
-      "icons": [{ "src": "/icons/winimi-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icons/winimi-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "سبد خرید",
       "short_name": "سبد",
       "url": "/cart?source=pwa-shortcut",
-      "icons": [{ "src": "/icons/winimi-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icons/winimi-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

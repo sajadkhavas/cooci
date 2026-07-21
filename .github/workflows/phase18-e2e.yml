@@ -17,24 +17,25 @@ permissions:
   contents: read
 
 env:
-  SITE_URL: http://127.0.0.1:4173
-  VITE_SITE_ORIGIN: http://127.0.0.1:4173
+  SITE_URL: https://127.0.0.1:4443
+  VITE_SITE_ORIGIN: https://127.0.0.1:4443
   VITE_USE_BACKEND: "true"
-  VITE_API_BASE_URL: http://127.0.0.1:8000
+  VITE_API_BASE_URL: https://127.0.0.1:8443
   VITE_ALLOW_DEV_MOCKS: "false"
+  VITE_E2E_ACCEPTANCE: "true"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
-  PHASE18_FRONTEND_URL: http://127.0.0.1:4173
-  PHASE18_API_URL: http://127.0.0.1:8000
+  PHASE18_FRONTEND_URL: https://127.0.0.1:4443
+  PHASE18_API_URL: https://127.0.0.1:8443
   APP_ENV: testing
   APP_DEBUG: "true"
-  APP_URL: http://127.0.0.1:8000
-  FRONTEND_URL: http://127.0.0.1:4173
-  FRONTEND_URLS: http://127.0.0.1:4173,http://localhost:4173
-  SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4173,127.0.0.1:8000,localhost:4173,localhost:8000
+  APP_URL: https://127.0.0.1:8443
+  FRONTEND_URL: https://127.0.0.1:4443
+  FRONTEND_URLS: https://127.0.0.1:4443
+  SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4443,127.0.0.1:8443
   SESSION_DRIVER: file
   SESSION_DOMAIN: ""
-  SESSION_SECURE_COOKIE: "false"
+  SESSION_SECURE_COOKIE: "true"
   SESSION_SAME_SITE: lax
   DB_CONNECTION: sqlite
   DB_DATABASE: database/database.sqlite
@@ -47,16 +48,16 @@ env:
   CHECKOUT_ENABLED: "true"
   PAYMENT_ENABLED: "true"
   PAYMENT_PROVIDER: testing
-  PAYMENT_CALLBACK_URL: http://127.0.0.1:4173/payment/callback
+  PAYMENT_CALLBACK_URL: https://127.0.0.1:4443/payment/callback
   ORDER_SMS_PROVIDER: disabled
   TELESCOPE_ENABLED: "false"
   PULSE_ENABLED: "false"
 
 jobs:
   browser-acceptance:
-    name: Desktop and mobile Chromium against Laravel
+    name: Desktop and mobile Chromium against Laravel production build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 34
 
     steps:
       - name: Checkout storefront
@@ -114,6 +115,37 @@ jobs:
           cat backend-server.log
           exit 1
 
+      - name: Generate ephemeral loopback TLS certificate
+        run: |
+          mkdir -p .ci-tls
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout .ci-tls/loopback.key \
+            -out .ci-tls/loopback.crt \
+            -days 1 \
+            -subj '/CN=127.0.0.1' \
+            -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
+
+      - name: Start ephemeral HTTPS API proxy
+        run: |
+          HTTPS_PROXY_KEY=.ci-tls/loopback.key \
+          HTTPS_PROXY_CERT=.ci-tls/loopback.crt \
+          HTTPS_PROXY_PORT=8443 \
+          HTTPS_PROXY_TARGET=http://127.0.0.1:8000 \
+            node scripts/https-loopback-proxy.mjs > api-proxy.log 2>&1 &
+          echo $! > api-proxy.pid
+
+      - name: Wait for HTTPS API proxy
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent --insecure https://127.0.0.1:8443/api/system/ready > api-proxy-ready.json; then
+              cat api-proxy-ready.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat api-proxy.log
+          exit 1
+
       - name: Install storefront and pinned browser runner
         run: |
           npm ci
@@ -157,12 +189,18 @@ jobs:
       - name: Phase 18 frontend architecture audit
         run: npm run audit:acceptance
 
-      - name: Start Vite storefront
+      - name: Build production storefront and generated PWA
+        id: production_build
         run: |
-          npm run dev -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
+          set -o pipefail
+          npm run build 2>&1 | tee production-build.log
+
+      - name: Start internal production storefront preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
           echo $! > frontend-server.pid
 
-      - name: Wait for storefront
+      - name: Wait for internal storefront preview
         run: |
           for attempt in {1..60}; do
             if curl --fail --silent http://127.0.0.1:4173/products > /dev/null; then
@@ -173,11 +211,54 @@ jobs:
           cat frontend-server.log
           exit 1
 
-      - name: Run desktop and mobile acceptance
+      - name: Start ephemeral HTTPS storefront proxy
+        run: |
+          HTTPS_PROXY_KEY=.ci-tls/loopback.key \
+          HTTPS_PROXY_CERT=.ci-tls/loopback.crt \
+          HTTPS_PROXY_PORT=4443 \
+          HTTPS_PROXY_TARGET=http://127.0.0.1:4173 \
+          HTTPS_PROXY_FAILURE_QUERY_PARAM=__winimi_network_failure \
+            node scripts/https-loopback-proxy.mjs > frontend-https-proxy.log 2>&1 &
+          echo $! > frontend-https-proxy.pid
+
+      - name: Wait for HTTPS storefront
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent --insecure https://127.0.0.1:4443/products > frontend-https-ready.html; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat frontend-https-proxy.log
+          exit 1
+
+      - name: Run desktop and mobile Laravel acceptance
         id: browser_tests
         run: |
           set -o pipefail
-          npm run test:e2e 2>&1 | tee phase18-browser.log
+          npm run test:e2e -- phase18.spec.mjs 2>&1 | tee phase18-browser.log
+
+      - name: Run desktop, mobile and PWA acceptance — PWA segment
+        id: pwa_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase7-pwa.spec.mjs 2>&1 | tee phase7-pwa.log
+
+      - name: Upload compact browser logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase18-browser-logs
+          path: |
+            phase18-browser.log
+            phase7-pwa.log
+            production-build.log
+            performance-report.json
+            api-proxy.log
+            api-proxy-ready.json
+            frontend-https-proxy.log
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload Phase 18 diagnostics
         if: always()
@@ -186,12 +267,18 @@ jobs:
           name: phase18-browser-acceptance
           path: |
             phase18-browser.log
+            phase7-pwa.log
+            production-build.log
+            performance-report.json
             backend-ready.json
+            api-proxy-ready.json
             delivery-status.txt
             delivery-options.json
             backend-server.log
+            api-proxy.log
             backend/storage/logs/laravel.log
             frontend-server.log
+            frontend-https-proxy.log
             e2e/playwright-report
             e2e/test-results
           if-no-files-found: warn

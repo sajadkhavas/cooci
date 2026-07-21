@@ -1,21 +1,46 @@
+const BUILD_VERSION = "__WINIMI_BUILD_VERSION__";
 const CACHE_PREFIX = "winimi";
-const SHELL_CACHE = `${CACHE_PREFIX}-shell-v2`;
-const ASSET_CACHE = `${CACHE_PREFIX}-assets-v2`;
-const IMAGE_CACHE = `${CACHE_PREFIX}-images-v2`;
+const SHELL_CACHE = `${CACHE_PREFIX}-shell-${BUILD_VERSION}`;
+const ASSET_CACHE = `${CACHE_PREFIX}-assets-${BUILD_VERSION}`;
+const IMAGE_CACHE = `${CACHE_PREFIX}-images-${BUILD_VERSION}`;
 const MAX_IMAGE_ENTRIES = 48;
+const NAVIGATION_TIMEOUT_MS = 6000;
 
 const SHELL_FILES = [
-  "/",
   "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
   "/brand/winimi-logo.svg",
-  "/icons/winimi-192.svg",
-  "/icons/winimi-512.svg",
+  "/icons/winimi-192.png",
+  "/icons/winimi-512.png",
+  "/icons/winimi-apple-touch.png",
 ];
 
+const SENSITIVE_NAVIGATION_PREFIXES = [
+  "/account",
+  "/checkout",
+  "/payment",
+];
+
+const isSensitiveNavigation = (pathname) =>
+  SENSITIVE_NAVIGATION_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+const matchCache = async (cacheName, request) => {
+  const cache = await caches.open(cacheName);
+  return cache.match(request);
+};
+
 const putIfCacheable = async (cacheName, request, response) => {
-  if (!response || !response.ok || response.type !== "basic") return response;
+  if (
+    !response ||
+    response.status !== 200 ||
+    response.type !== "basic"
+  ) {
+    return response;
+  }
+
   const cache = await caches.open(cacheName);
   await cache.put(request, response.clone());
   return response;
@@ -30,7 +55,7 @@ const trimCache = async (cacheName, maxEntries) => {
 };
 
 const cacheFirst = async (request, cacheName) => {
-  const cached = await caches.match(request);
+  const cached = await matchCache(cacheName, request);
   if (cached) return cached;
 
   const response = await fetch(request);
@@ -39,7 +64,7 @@ const cacheFirst = async (request, cacheName) => {
 };
 
 const staleWhileRevalidate = async (request, cacheName) => {
-  const cached = await caches.match(request);
+  const cached = await matchCache(cacheName, request);
   const networkPromise = fetch(request)
     .then((response) => putIfCacheable(cacheName, request, response))
     .then(async (response) => {
@@ -52,28 +77,59 @@ const staleWhileRevalidate = async (request, cacheName) => {
   return (await networkPromise) || Response.error();
 };
 
+const offlineResponse = async () =>
+  (await matchCache(SHELL_CACHE, "/offline.html")) || Response.error();
+
 const networkFirstNavigation = async (request) => {
+  const url = new URL(request.url);
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  const timeoutId = setTimeout(() => controller.abort(), NAVIGATION_TIMEOUT_MS);
 
   try {
-    const response = await fetch(request, { signal: controller.signal });
+    const response = await fetch(request, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
     clearTimeout(timeoutId);
-    await putIfCacheable(SHELL_CACHE, "/index.html", response);
+
+    const contentType = response.headers.get("content-type") || "";
+    if (
+      response.status === 200 &&
+      response.type === "basic" &&
+      contentType.includes("text/html")
+    ) {
+      await putIfCacheable(SHELL_CACHE, "/index.html", response);
+    }
+
     return response;
   } catch {
     clearTimeout(timeoutId);
+
+    if (isSensitiveNavigation(url.pathname)) {
+      return offlineResponse();
+    }
+
     return (
-      (await caches.match(request)) ||
-      (await caches.match("/index.html")) ||
-      (await caches.match("/offline.html")) ||
-      Response.error()
+      (await matchCache(SHELL_CACHE, request)) ||
+      (await matchCache(SHELL_CACHE, "/index.html")) ||
+      (await offlineResponse())
     );
   }
 };
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_FILES)));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      await Promise.all(
+        SHELL_FILES.map(async (path) => {
+          const response = await fetch(path, { cache: "reload" });
+          if (!response.ok) throw new Error(`Unable to precache ${path}`);
+          await cache.put(path, response);
+        }),
+      );
+    })(),
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -101,7 +157,7 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") return;
+  if (request.method !== "GET" || request.headers.has("range")) return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
