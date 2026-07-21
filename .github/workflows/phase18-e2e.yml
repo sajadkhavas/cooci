@@ -20,7 +20,7 @@ env:
   SITE_URL: http://127.0.0.1:4173
   VITE_SITE_ORIGIN: http://127.0.0.1:4173
   VITE_USE_BACKEND: "true"
-  VITE_API_BASE_URL: http://127.0.0.1:8000
+  VITE_API_BASE_URL: https://127.0.0.1:8443
   VITE_ALLOW_DEV_MOCKS: "false"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
@@ -31,7 +31,7 @@ env:
   APP_URL: http://127.0.0.1:8000
   FRONTEND_URL: http://127.0.0.1:4173
   FRONTEND_URLS: http://127.0.0.1:4173,http://localhost:4173
-  SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4173,127.0.0.1:8000,localhost:4173,localhost:8000
+  SANCTUM_STATEFUL_DOMAINS: 127.0.0.1:4173,127.0.0.1:8000,127.0.0.1:8443,localhost:4173,localhost:8000,localhost:8443
   SESSION_DRIVER: file
   SESSION_DOMAIN: ""
   SESSION_SECURE_COOKIE: "false"
@@ -112,6 +112,33 @@ jobs:
             sleep 1
           done
           cat backend-server.log
+          exit 1
+
+      - name: Start ephemeral HTTPS API proxy
+        run: |
+          mkdir -p .ci-tls
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout .ci-tls/api-proxy.key \
+            -out .ci-tls/api-proxy.crt \
+            -days 1 \
+            -subj '/CN=127.0.0.1' \
+            -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
+          HTTPS_PROXY_KEY=.ci-tls/api-proxy.key \
+          HTTPS_PROXY_CERT=.ci-tls/api-proxy.crt \
+          HTTPS_PROXY_TARGET=http://127.0.0.1:8000 \
+            node scripts/https-loopback-proxy.mjs > api-proxy.log 2>&1 &
+          echo $! > api-proxy.pid
+
+      - name: Wait for HTTPS API proxy
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent --insecure https://127.0.0.1:8443/api/system/ready > api-proxy-ready.json; then
+              cat api-proxy-ready.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat api-proxy.log
           exit 1
 
       - name: Install storefront and pinned browser runner
@@ -201,6 +228,8 @@ jobs:
             phase7-pwa.log
             production-build.log
             performance-report.json
+            api-proxy.log
+            api-proxy-ready.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -215,9 +244,11 @@ jobs:
             production-build.log
             performance-report.json
             backend-ready.json
+            api-proxy-ready.json
             delivery-status.txt
             delivery-options.json
             backend-server.log
+            api-proxy.log
             backend/storage/logs/laravel.log
             frontend-server.log
             e2e/playwright-report
