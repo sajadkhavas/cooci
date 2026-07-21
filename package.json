@@ -7,7 +7,7 @@
     "predev": "node scripts/generate-sitemap.mjs",
     "dev": "vite",
     "prebuild": "node scripts/generate-sitemap.mjs",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-service-worker.mjs",
     "postbuild": "node scripts/audit-performance.mjs",
     "build:dev": "vite build --mode development",
     "audit:frontend": "node scripts/audit-frontend.mjs",
@@ -21,6 +21,7 @@
     "audit:phase4": "node scripts/audit-frontend-phase-4.mjs",
     "audit:phase5": "node scripts/audit-frontend-phase-5.mjs",
     "audit:phase6": "node scripts/audit-frontend-phase-6.mjs",
+    "audit:phase7": "node scripts/audit-frontend-phase-7.mjs",
     "audit:launch": "node scripts/audit-full-launch-roadmap.mjs",
     "audit:integration": "node scripts/audit-phase-17-integration.mjs",
     "audit:acceptance": "node scripts/audit-phase-18-acceptance.mjs",
@@ -29,7 +30,7 @@
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:phase3 && npm run audit:phase4 && npm run audit:phase5 && npm run audit:phase6 && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
+    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:phase3 && npm run audit:phase4 && npm run audit:phase5 && npm run audit:phase6 && npm run audit:phase7 && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
