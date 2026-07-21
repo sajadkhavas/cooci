@@ -217,6 +217,7 @@ jobs:
           HTTPS_PROXY_CERT=.ci-tls/loopback.crt \
           HTTPS_PROXY_PORT=4443 \
           HTTPS_PROXY_TARGET=http://127.0.0.1:4173 \
+          HTTPS_PROXY_FAILURE_QUERY_PARAM=__winimi_network_failure \
             node scripts/https-loopback-proxy.mjs > frontend-https-proxy.log 2>&1 &
           echo $! > frontend-https-proxy.pid
 
