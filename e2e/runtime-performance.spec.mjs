@@ -9,7 +9,10 @@ const routes = [
 const percentile = (values, ratio) => {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * ratio) - 1));
+  const index = Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.ceil(sorted.length * ratio) - 1),
+  );
   return sorted[index];
 };
 
@@ -17,11 +20,16 @@ const profileScroll = async (page) =>
   page.evaluate(async () => {
     await document.fonts.ready;
     window.scrollTo({ top: 0, behavior: "auto" });
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
 
     const frameDeltas = [];
     const durationMs = 2_600;
-    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
     let previousFrame;
     const startedAt = performance.now();
 
@@ -55,6 +63,41 @@ const profileScroll = async (page) =>
     };
   });
 
+test("mobile bottom navigation is responsive, accessible and route-aware", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const navigation = page.getByRole("navigation", {
+    name: "ناوبری پایین موبایل",
+  });
+
+  if (testInfo.project.name === "desktop-chromium") {
+    await expect(navigation).toBeHidden();
+    return;
+  }
+
+  await expect(navigation).toBeVisible();
+  await expect(navigation.getByRole("link")).toHaveCount(5);
+  await expect(navigation.getByRole("link", { name: "خانه" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(
+    navigation.getByRole("link", { name: "فروشگاه" }),
+  ).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "حساب" })).toHaveAttribute(
+    "href",
+    "/account/login",
+  );
+
+  await navigation.getByRole("link", { name: "فروشگاه" }).click();
+  await expect(page).toHaveURL(/\/products$/);
+  await expect(page.getByRole("heading", { name: "محصولات وینیمی" })).toBeVisible();
+  await expect(
+    navigation.getByRole("link", { name: "فروشگاه" }),
+  ).toHaveAttribute("aria-current", "page");
+});
+
 test("profiles production scrolling on desktop and mobile", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
 
@@ -85,7 +128,9 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
       await page.goto(route.path, { waitUntil: "domcontentloaded" });
       await expect(page.locator(route.ready)).toBeVisible();
       if (route.path === "/products") {
-        await expect(page.getByRole("heading", { name: "محصولات وینیمی" })).toBeVisible();
+        await expect(
+          page.getByRole("heading", { name: "محصولات وینیمی" }),
+        ).toBeVisible();
       }
 
       const raw = await profileScroll(page);
@@ -99,7 +144,8 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
         frames: frameDeltas.length,
         averageFrameMs:
           frameDeltas.length > 0
-            ? frameDeltas.reduce((sum, value) => sum + value, 0) / frameDeltas.length
+            ? frameDeltas.reduce((sum, value) => sum + value, 0) /
+              frameDeltas.length
             : 0,
         p95FrameMs: percentile(frameDeltas, 0.95),
         maxFrameMs: Math.max(0, ...frameDeltas),
@@ -112,11 +158,19 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
       profiles.push(profile);
 
       expect(profile.maxScroll, `${route.path} must be scrollable`).toBeGreaterThan(0);
-      expect(profile.frames, `${route.path} must produce enough frame samples`).toBeGreaterThan(25);
-      expect(profile.p95FrameMs, `${route.path} baseline is catastrophically janky`).toBeLessThan(250);
+      expect(
+        profile.frames,
+        `${route.path} must produce enough frame samples`,
+      ).toBeGreaterThan(25);
+      expect(
+        profile.p95FrameMs,
+        `${route.path} runtime is catastrophically janky`,
+      ).toBeLessThan(250);
     }
   } finally {
-    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 }).catch(() => undefined);
+    await cdp
+      .send("Emulation.setCPUThrottlingRate", { rate: 1 })
+      .catch(() => undefined);
     await cdp.detach().catch(() => undefined);
   }
 
