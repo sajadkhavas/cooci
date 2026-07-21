@@ -329,6 +329,7 @@ export const Header = () => {
                     <Link
                       key={link.href}
                       to={link.href}
+                      aria-label={link.name}
                       onClick={() => {
                         restoreMenuFocusRef.current = false;
                         setIsOpen(false);
