@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { SERVICE_WORKER_UPDATE_EVENT } from "@/lib/registerServiceWorker";
 
 export const PwaUpdatePrompt = () => {
   const [registration, setRegistration] =
     useState<ServiceWorkerRegistration | null>(null);
+  const updateRequestedRef = useRef(false);
 
   useEffect(() => {
     const handleUpdate = (event: Event) => {
@@ -20,7 +21,9 @@ export const PwaUpdatePrompt = () => {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    const handleControllerChange = () => window.location.reload();
+    const handleControllerChange = () => {
+      if (updateRequestedRef.current) window.location.reload();
+    };
     navigator.serviceWorker.addEventListener(
       "controllerchange",
       handleControllerChange,
@@ -36,7 +39,11 @@ export const PwaUpdatePrompt = () => {
   if (!registration?.waiting) return null;
 
   const applyUpdate = () => {
-    registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+    const waitingWorker = registration.waiting;
+    if (!waitingWorker) return;
+
+    updateRequestedRef.current = true;
+    waitingWorker.postMessage({ type: "SKIP_WAITING" });
   };
 
   return (
