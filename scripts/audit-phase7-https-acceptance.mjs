@@ -2,9 +2,11 @@ import fs from "node:fs";
 
 const files = {
   workflow: ".github/workflows/phase18-e2e.yml",
+  frontendWorkflow: ".github/workflows/frontend-ci.yml",
   proxy: "scripts/https-loopback-proxy.mjs",
   playwright: "e2e/playwright.config.mjs",
   apiPolicy: "src/lib/security/api-url.ts",
+  auth: "src/lib/auth.ts",
 };
 
 const errors = [];
@@ -38,6 +40,11 @@ requireText(
   "workflow",
   "VITE_API_BASE_URL: https://127.0.0.1:8443",
   "HTTPS API URL for production browser acceptance",
+);
+requireText(
+  "workflow",
+  "VITE_E2E_ACCEPTANCE: \"true\"",
+  "explicit acceptance diagnostics mode",
 );
 requireText(
   "workflow",
@@ -76,6 +83,11 @@ requireText(
 );
 forbidText("workflow", ".ci-tls/loopback.key\n            production-build.log", "private key artifact upload");
 forbidText("workflow", ".ci-tls/loopback.crt\n            production-build.log", "certificate artifact upload");
+forbidText(
+  "frontendWorkflow",
+  "VITE_E2E_ACCEPTANCE",
+  "acceptance OTP diagnostics in normal production CI",
+);
 
 requireText("proxy", "https.createServer", "HTTPS listener");
 requireText("proxy", "http.request", "HTTP loopback upstream");
@@ -94,6 +106,32 @@ requireText("playwright", "ignoreHTTPSErrors: allowLocalSelfSignedCertificate", 
 requireText("apiPolicy", 'if (!policy.development && parsed.protocol !== "https:")', "strict production HTTPS API rule");
 forbidText("apiPolicy", "allowInsecureLoopback", "production HTTP loopback exception");
 
+requireText(
+  "auth",
+  'import.meta.env.VITE_E2E_ACCEPTANCE === "true"',
+  "explicit OTP acceptance flag",
+);
+requireText(
+  "auth",
+  'import.meta.env.VITE_SITE_ORIGIN === "https://127.0.0.1:4443"',
+  "exact acceptance storefront origin",
+);
+requireText(
+  "auth",
+  'import.meta.env.VITE_API_BASE_URL === "https://127.0.0.1:8443"',
+  "exact acceptance API origin",
+);
+requireText(
+  "auth",
+  "import.meta.env.DEV || exposeLoopbackAcceptanceOtpCode",
+  "OTP diagnostic exposure boundary",
+);
+forbidText(
+  "auth",
+  "devCode: challenge.debugCode,",
+  "unconditional backend OTP debug exposure",
+);
+
 if (errors.length) {
   console.error(`Phase 7 HTTPS acceptance audit failed with ${errors.length} issue(s):`);
   errors.forEach((error) => console.error(`- ${error}`));
@@ -101,5 +139,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Phase 7 HTTPS acceptance audit passed: storefront and API share an HTTPS site for Sanctum while production retains strict HTTPS.",
+  "Phase 7 HTTPS acceptance audit passed: storefront and API share an HTTPS site, and OTP diagnostics remain exact-loopback only.",
 );
