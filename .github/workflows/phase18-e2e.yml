@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "agent/phase-18-*"
+      - "agent/frontend-phase-9-5-*"
       - main
   pull_request:
     branches:
@@ -57,7 +58,7 @@ jobs:
   browser-acceptance:
     name: Desktop and mobile Chromium against Laravel production build
     runs-on: ubuntu-latest
-    timeout-minutes: 38
+    timeout-minutes: 42
 
     steps:
       - name: Checkout storefront
@@ -266,6 +267,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase9-adversarial.spec.mjs 2>&1 | tee phase9-adversarial.log
 
+      - name: Collect runtime scroll baseline — Phase 9.5
+        id: runtime_performance
+        run: |
+          set -o pipefail
+          npm run test:e2e -- runtime-performance.spec.mjs 2>&1 | tee runtime-performance.log
+
       - name: Upload compact browser logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -277,6 +284,8 @@ jobs:
             phase9-adversarial.log
             phase9-backend-acceptance.log
             phase9-coordinated-audit.json
+            runtime-performance.log
+            runtime-performance-*.json
             production-build.log
             performance-report.json
             api-proxy.log
@@ -296,6 +305,8 @@ jobs:
             phase9-adversarial.log
             phase9-backend-acceptance.log
             phase9-coordinated-audit.json
+            runtime-performance.log
+            runtime-performance-*.json
             production-build.log
             performance-report.json
             backend-ready.json

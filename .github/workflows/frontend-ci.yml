@@ -28,9 +28,9 @@ env:
 
 jobs:
   validate:
-    name: Audit security, transactions, accessibility, build, PWA, deployment and adversarial readiness
+    name: Audit security, accessibility, runtime, build, PWA and deployment readiness
     runs-on: ubuntu-latest
-    timeout-minutes: 34
+    timeout-minutes: 36
 
     steps:
       - name: Checkout repository
@@ -81,6 +81,9 @@ jobs:
       - name: Frontend full-audit Phase 9
         run: npm run audit:phase9
 
+      - name: Frontend runtime performance Phase 9.5
+        run: npm run audit:runtime
+
       - name: Production environment schema audit
         run: npm run env:production:validate
 
@@ -99,6 +102,7 @@ jobs:
             frontend-phase7-audit.json
             frontend-phase8-audit.json
             frontend-phase9-audit.json
+            runtime-performance-audit.json
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14

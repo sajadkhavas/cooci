@@ -3,7 +3,6 @@ import {
   type ReactNode,
   useEffect,
   useRef,
-  useState,
 } from "react";
 
 interface RevealProps {
@@ -20,21 +19,20 @@ export const Reveal = ({
   threshold = 0.12,
 }: RevealProps) => {
   const elementRef = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return undefined;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(true);
+      element.classList.add("is-visible");
       return undefined;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        setVisible(true);
+        element.classList.add("is-visible");
         observer.disconnect();
       },
       { threshold, rootMargin: "0px 0px -5% 0px" },
@@ -47,11 +45,7 @@ export const Reveal = ({
   const style = { "--reveal-delay": `${delay}ms` } as CSSProperties;
 
   return (
-    <div
-      ref={elementRef}
-      className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-      style={style}
-    >
+    <div ref={elementRef} className={`reveal ${className}`} style={style}>
       {children}
     </div>
   );

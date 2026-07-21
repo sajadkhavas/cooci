@@ -21,7 +21,7 @@ export const FloatingWhatsApp = () => {
       href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
       target="_blank"
       rel="noopener noreferrer"
-      className="touch-target fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-4 z-40 flex items-center justify-center gap-2 rounded-full bg-whatsapp px-3 text-white shadow-lg transition-transform hover:scale-[1.03] sm:left-6 sm:px-5"
+      className="touch-target fixed bottom-[calc(env(safe-area-inset-bottom,0px)+6.15rem)] left-4 z-40 flex items-center justify-center gap-2 rounded-full bg-whatsapp px-3 text-white shadow-lg transition-transform hover:scale-[1.03] sm:left-6 sm:px-5 md:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
       aria-label={`بازکردن پشتیبانی واتساپ ${brandConfig.brandName} در پنجره جدید`}
     >
       <svg
