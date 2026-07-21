@@ -102,6 +102,21 @@ requireText(
   "exact loopback HTTPS certificate exception",
 );
 requireText("playwright", "ignoreHTTPSErrors: allowLocalSelfSignedCertificate", "conditional TLS exception");
+requireText(
+  "playwright",
+  '? ["--ignore-certificate-errors"]',
+  "exact-loopback Chromium certificate exception",
+);
+requireText(
+  "playwright",
+  "launchOptions: { args: localCertificateLaunchArgs }",
+  "conditional Chromium launch arguments",
+);
+forbidText(
+  "playwright",
+  'args: ["--ignore-certificate-errors"]',
+  "unconditional Chromium certificate exception",
+);
 
 requireText("apiPolicy", 'if (!policy.development && parsed.protocol !== "https:")', "strict production HTTPS API rule");
 forbidText("apiPolicy", "allowInsecureLoopback", "production HTTP loopback exception");
@@ -139,5 +154,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Phase 7 HTTPS acceptance audit passed: storefront and API share an HTTPS site, and OTP diagnostics remain exact-loopback only.",
+  "Phase 7 HTTPS acceptance audit passed: storefront and API share an HTTPS site, Chromium trusts only the exact CI loopback certificate, and OTP diagnostics remain loopback-only.",
 );
