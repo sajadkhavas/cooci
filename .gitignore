@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-e2e/phase18.generated.spec.mjs
+e2e/generated/
 
 # Editor directories and files
 .vscode/*
