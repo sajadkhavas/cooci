@@ -61,10 +61,10 @@ export const CategoryShowcase = ({
           </div>
           {showAllLink && (
             <Link
-              to="/categories"
+              to="/products"
               className="group inline-flex items-center gap-2 self-start font-black text-primary lg:self-auto"
             >
-              همه دسته‌بندی‌ها
+              فروشگاه و همه دسته‌ها
               <ArrowUpLeft
                 size={18}
                 className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
