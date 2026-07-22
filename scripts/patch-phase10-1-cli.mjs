@@ -14,9 +14,10 @@ packageJson.scripts.postinstall =
 packageJson.dependencies["react-router"] = "7.18.1";
 packageJson.dependencies["@react-router/express"] = "7.18.1";
 packageJson.dependencies["@react-router/node"] = "7.18.1";
+packageJson.dependencies.isbot = "5.2.1";
 packageJson.devDependencies["@react-router/dev"] = "7.18.1";
 packageJson.devDependencies.vite = "7.3.6";
 writeFileSync("package.json", `${JSON.stringify(packageJson, null, 2)}\n`);
 console.log(
-  "React Router Framework Mode pinned to 7.18.1 with the Node runtime, Vite 7.3.6 and a build-time shim repair.",
+  "React Router Framework Mode pinned to 7.18.1 with Node, Vite 7.3.6, isbot and a build-time shim repair.",
 );
