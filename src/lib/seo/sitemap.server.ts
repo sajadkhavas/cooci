@@ -17,6 +17,7 @@ interface SitemapEntry {
 }
 
 const MAX_SITEMAP_PAGES = 100;
+const BACKEND_PUBLIC_PAGE_SIZE = 48;
 const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const escapeXml = (value: string) =>
@@ -56,7 +57,10 @@ const collectProductEntries = async (): Promise<SitemapEntry[]> => {
   let totalPages = 1;
 
   do {
-    const catalog = await fetchCatalogProducts({ page, perPage: 100 });
+    const catalog = await fetchCatalogProducts({
+      page,
+      perPage: BACKEND_PUBLIC_PAGE_SIZE,
+    });
     totalPages = Math.max(1, catalog.pagination.totalPages);
     if (totalPages > MAX_SITEMAP_PAGES) {
       throw new Error("Catalog sitemap pagination exceeds the safety limit.");
@@ -80,7 +84,10 @@ const collectPostEntries = async (): Promise<SitemapEntry[]> => {
   let totalPages = 1;
 
   do {
-    const result = await loadPosts({ page, perPage: 48 });
+    const result = await loadPosts({
+      page,
+      perPage: BACKEND_PUBLIC_PAGE_SIZE,
+    });
     totalPages = Math.max(1, result.pagination?.totalPages ?? 1);
     if (totalPages > MAX_SITEMAP_PAGES) {
       throw new Error("Blog sitemap pagination exceeds the safety limit.");
