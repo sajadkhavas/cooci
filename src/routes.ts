@@ -2,7 +2,7 @@ import { index, route, type RouteConfig } from "@react-router/dev/routes";
 
 export default [
   index("./pages/HomePage.tsx"),
-  route("products", "./pages/ProductsPage.tsx"),
+  route("products", "./routes/products-shop.tsx"),
   route("categories", "./routes/categories-redirect.tsx"),
   route("products/category/:slug", "./routes/category-shop.tsx"),
   route("products/:slug", "./pages/ProductDetailPage.tsx"),
