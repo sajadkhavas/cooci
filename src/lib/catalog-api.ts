@@ -13,6 +13,7 @@ import {
   parseBackendProducts,
 } from "@/lib/catalog-schema";
 import {
+  resolveOutOfRangeCatalogQuery,
   toCatalogSearchParams,
   type CatalogQuery,
 } from "@/lib/catalog-query";
@@ -136,6 +137,12 @@ export const fetchCatalogProducts = async (
   const params = toCatalogSearchParams(query);
   const suffix = params.size ? `?${params.toString()}` : "";
   const response = await apiRequest<unknown>(`/api/catalog/products${suffix}`);
+  const retryQuery = resolveOutOfRangeCatalogQuery(
+    query,
+    response.meta.pagination,
+  );
+  if (retryQuery) return fetchCatalogProducts(retryQuery);
+
   const products = parseBackendProducts(response.data);
   const pagination = parseBackendPagination(response.meta.pagination);
 
