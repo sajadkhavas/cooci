@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { toCatalogSearchParams } from "@/lib/catalog-query";
+import {
+  resolveOutOfRangeCatalogQuery,
+  toCatalogSearchParams,
+} from "@/lib/catalog-query";
 
 test("catalog boolean filters use Laravel-compatible one and zero values", () => {
   const params = toCatalogSearchParams({
@@ -29,4 +32,23 @@ test("catalog query values remain bounded and omit the all category", () => {
   assert.equal(params.get("page"), "10000");
   assert.equal(params.get("perPage"), "100");
   assert.equal(params.get("sort"), "newest");
+});
+
+test("out-of-range catalog pages retry at the last valid page", () => {
+  assert.deepEqual(
+    resolveOutOfRangeCatalogQuery(
+      { page: 10_000, search: "کوکی", sort: "featured" },
+      { page: 10_000, totalPages: 3 },
+    ),
+    { page: 3, search: "کوکی", sort: "featured" },
+  );
+
+  assert.equal(
+    resolveOutOfRangeCatalogQuery({ page: 2 }, { totalPages: 3 }),
+    undefined,
+  );
+  assert.equal(
+    resolveOutOfRangeCatalogQuery({ page: 10 }, { totalPages: "3" }),
+    undefined,
+  );
 });
