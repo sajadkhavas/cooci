@@ -1,7 +1,10 @@
 import type { HeadersArgs } from "react-router";
 import type { Product } from "@/data/products";
 import { ApiError } from "@/lib/api";
-import type { BackendPostDetail } from "@/lib/backend-contract";
+import type {
+  BackendPostDetail,
+  BackendPostSummary,
+} from "@/lib/backend-contract";
 import type {
   CatalogCategory,
   CatalogPage,
@@ -12,6 +15,7 @@ import type {
   StoreCityPage,
   StorePostsResult,
 } from "@/lib/content";
+import type { ContentTopicSummary } from "@/lib/seo/content-topics";
 
 export interface PublicSsrLoaderData {
   catalogs?: Record<string, CatalogPage>;
@@ -20,6 +24,9 @@ export interface PublicSsrLoaderData {
   productReviews?: ProductReviewsResult;
   posts?: StorePostsResult;
   post?: BackendPostDetail;
+  relatedPosts?: BackendPostSummary[];
+  contentTopics?: ContentTopicSummary[];
+  contentTopic?: ContentTopicSummary;
   city?: StoreCityPage;
 }
 
