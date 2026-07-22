@@ -71,6 +71,31 @@ const product = {
   updatedAt: now,
 };
 
+const post = {
+  id: "phase10-4-post",
+  slug: "phase10-4-crawl-guide",
+  title: "راهنمای تست Crawl وینیمی",
+  excerpt: "مقاله قطعی برای اعتبارسنجی Sitemap داینامیک.",
+  category: "راهنما",
+  tags: ["SEO"],
+  coverUrl: null,
+  author: "وینیمی",
+  publishedAt: now,
+};
+
+const city = {
+  id: "phase10-4-city",
+  city: "تهران تست",
+  slug: "phase10-4-city",
+  title: "سفارش تست وینیمی در تهران",
+  description: "صفحه شهری قطعی برای Sitemap داینامیک.",
+  content: "محتوای شهر تست Phase 10.4",
+  seo: {
+    title: "سفارش تست وینیمی در تهران",
+    description: "صفحه شهری قطعی برای Sitemap داینامیک.",
+  },
+};
+
 const pagination = {
   page: 1,
   perPage: 12,
@@ -79,6 +104,11 @@ const pagination = {
   from: 1,
   to: 1,
   hasMore: false,
+};
+
+const postPagination = {
+  ...pagination,
+  perPage: 48,
 };
 
 const envelope = (data, meta = {}) => ({
@@ -111,6 +141,14 @@ const server = http.createServer((request, response) => {
   }
   if (url.pathname === "/api/catalog/products/phase10-3-cookie") {
     response.end(JSON.stringify(envelope(product)));
+    return;
+  }
+  if (url.pathname === "/api/store/posts") {
+    response.end(JSON.stringify(envelope([post], { pagination: postPagination })));
+    return;
+  }
+  if (url.pathname === "/api/store/cities/phase10-4-city") {
+    response.end(JSON.stringify(envelope({ city })));
     return;
   }
 
