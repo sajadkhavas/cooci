@@ -108,7 +108,7 @@ jobs:
           EOF
           sudo nginx -t -c "$PWD/.ci-nginx/nginx.conf"
           sudo nginx -c "$PWD/.ci-nginx/nginx.conf"
-      - name: Run HTTPS SSR production smoke test
+      - name: Run HTTPS production smoke test — SSR
         env:
           SMOKE_INSECURE: "true"
         run: deploy/bin/smoke-test-frontend.sh https://127.0.0.1:8444
