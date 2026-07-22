@@ -7,6 +7,7 @@ const files = {
   finalAudit: "docs/FRONTEND_SECURITY_AND_DEPLOYMENT_AUDIT.md",
   matrix: "e2e/phase9-matrix.json",
   adversarialE2e: "e2e/phase9-adversarial.spec.mjs",
+  proxy: "scripts/https-loopback-proxy.mjs",
   pwaE2e: "e2e/phase7-pwa.spec.mjs",
   playwright: "e2e/playwright.config.mjs",
   coordinatedAudit: "scripts/audit-phase9-coordinated.mjs",
@@ -108,12 +109,19 @@ if (matrix) {
   }
 }
 
-requireText("adversarialE2e", "rate-limited catalog fails visibly and recovers after retry", "429 recovery browser test");
-requireText("adversarialE2e", "status: 429", "429 fault injection");
-requireText("adversarialE2e", '"retry-after": "60"', "Retry-After evidence");
+requireText(
+  "adversarialE2e",
+  "rate-limited server render fails closed and recovers on clean request",
+  "SSR 429 recovery browser test",
+);
+requireText("adversarialE2e", "expect(limitedResponse?.status()).toBe(503)", "fail-closed SSR status");
+requireText("adversarialE2e", 'headers()["retry-after"]', "Retry-After propagation evidence");
+requireText("adversarialE2e", 'headers()["x-robots-tag"]', "SSR noindex header evidence");
 requireText("adversarialE2e", "hostile encoded query values remain inert", "hostile URL browser test");
 requireText("adversarialE2e", "window.__phase9Xss", "XSS canary");
 requireText("adversarialE2e", "externalRequests", "external request canary");
+requireText("proxy", "HTTPS_PROXY_RATE_LIMIT_SEARCH_VALUE", "deterministic SSR rate-limit injection");
+requireText("proxy", "writeCatalogRateLimit", "structured 429 response");
 requireText(
   "pwaE2e",
   "network restoration returns to the live server-rendered application",
@@ -131,6 +139,7 @@ requireText("package", "npm run audit:phase9", "Phase 9 check gate");
 requireText("frontendWorkflow", "Frontend full-audit Phase 9", "Phase 9 frontend CI step");
 requireText("frontendWorkflow", "frontend-phase9-audit.json", "Phase 9 frontend diagnostic");
 requireText("acceptanceWorkflow", "Phase 9 coordinated adversarial audit", "coordinated backend audit step");
+requireText("acceptanceWorkflow", "HTTPS_PROXY_RATE_LIMIT_SEARCH_VALUE", "SSR rate-limit proxy configuration");
 requireText("acceptanceWorkflow", "Run final adversarial acceptance — Phase 9", "Phase 9 browser step");
 requireText("acceptanceWorkflow", "phase9-adversarial.log", "Phase 9 browser evidence artifact");
 requireText("acceptanceWorkflow", "phase9-coordinated-audit.json", "Phase 9 coordinated evidence artifact");
