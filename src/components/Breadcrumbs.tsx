@@ -14,12 +14,39 @@ interface BreadcrumbsProps {
   className?: string;
 }
 
+const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const normalizeBreadcrumbHref = (href?: string) => {
+  if (!href) return undefined;
+
+  try {
+    const parsed = new URL(href, brandConfig.website);
+    const category = parsed.searchParams.get("category");
+    if (
+      parsed.origin === new URL(brandConfig.website).origin &&
+      parsed.pathname === "/products" &&
+      category &&
+      SAFE_CATEGORY_SLUG.test(category)
+    ) {
+      return `/products/category/${encodeURIComponent(category)}`;
+    }
+  } catch {
+    return href;
+  }
+
+  return href;
+};
+
 export const Breadcrumbs = ({ items, className = "" }: BreadcrumbsProps) => {
   const nonce = useCspNonce();
+  const normalizedItems = items.map((item) => ({
+    ...item,
+    href: normalizeBreadcrumbHref(item.href),
+  }));
   const schema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
+    itemListElement: normalizedItems.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: item.name.slice(0, 255),
@@ -40,8 +67,8 @@ export const Breadcrumbs = ({ items, className = "" }: BreadcrumbsProps) => {
         aria-label="مسیر"
         className={`flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-sm text-muted-foreground ${className}`}
       >
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1;
+        {normalizedItems.map((item, index) => {
+          const isLast = index === normalizedItems.length - 1;
           const key = `${item.href || "current"}-${item.name}`;
           return (
             <span key={key} className="flex items-center gap-1.5">
