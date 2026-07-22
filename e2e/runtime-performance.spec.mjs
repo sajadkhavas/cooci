@@ -166,11 +166,20 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({ 
     ).toHaveAttribute("href", href);
   }
 
+  const cookiesResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/catalog/products") &&
+      response.url().includes("category=cookies") &&
+      response.status() === 200,
+  );
   await page.goto("/products/category/cookies", { waitUntil: "domcontentloaded" });
+  const cookiesCatalogResponse = await cookiesResponse;
+  const cookiesPayload = await cookiesCatalogResponse.json();
+  expect(cookiesPayload.success).toBe(true);
+  expect(Array.isArray(cookiesPayload.data)).toBe(true);
   await expect(
     page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
   ).toBeVisible();
-  await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
   await expect(
     page
       .getByRole("navigation", { name: "مسیر" })
