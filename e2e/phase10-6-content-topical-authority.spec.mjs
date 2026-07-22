@@ -56,7 +56,10 @@ test.describe("Phase 10.6 content and topical authority", () => {
       page.getByRole("heading", { name: "راهنماهای staging" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "مقاله تست پذیرش وینیمی" }),
+      page.getByRole("link", {
+        name: "مقاله تست پذیرش وینیمی",
+        exact: true,
+      }),
     ).toBeVisible();
   });
 
