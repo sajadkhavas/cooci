@@ -40,25 +40,11 @@ jobs:
         run: |
           node scripts/migrate-phase10-1-framework.mjs
           node scripts/migrate-phase10-1-build.mjs
+          node scripts/patch-phase10-1-cli.mjs
       - name: Resolve compatible dependency graph
-        run: npm install --no-audit --no-fund --save-dev vite@7.3.6
+        run: npm install --no-audit --no-fund
       - name: Generate route types
-        id: typegen
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npx react-router typegen 2>&1 | tee phase10-1-typegen-vite7.log
-      - name: Upload typegen diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-1-typegen-vite7
-          path: phase10-1-typegen-vite7.log
-          if-no-files-found: error
-          retention-days: 7
-      - name: Stop on typegen failure
-        if: steps.typegen.outcome == 'failure'
-        run: exit 1
+        run: npm run typegen
       - name: Typecheck
         run: npm run typecheck
       - name: Build SSR, client and PWA outputs
@@ -69,6 +55,7 @@ jobs:
         run: |
           rm -f scripts/migrate-phase10-1-framework.mjs
           rm -f scripts/migrate-phase10-1-build.mjs
+          rm -f scripts/patch-phase10-1-cli.mjs
           rm -f .github/workflows/phase10-1-framework-bootstrap.yml
           rm -f .github/workflows/phase10-1-typegen-diagnostics.yml
           git checkout origin/main -- .github/workflows/frontend-ci.yml
