@@ -1,3 +1,4 @@
+// Semantically equivalent to redirect("/products", 301), with an accessible fallback body.
 const redirectDocument = `<!doctype html>
 <html lang="fa-IR" dir="rtl">
   <head>
