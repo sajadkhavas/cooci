@@ -1,11 +1,13 @@
-import { useLocation } from "react-router";
+import { useLocation, useMatches } from "react-router";
 import { brandConfig } from "@/config/brand";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import { useCspNonce } from "@/lib/security/csp";
 import {
   resolveCanonicalUrl,
   resolvePublicMediaUrl,
   serializeJsonLd,
 } from "@/lib/security/seo";
+import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
 interface SEOProps {
   title?: string;
@@ -61,6 +63,25 @@ const sanitizeSchema = (schema: object | undefined) => {
   return cloned;
 };
 
+const getPaginationTotal = (
+  pathname: string,
+  matches: ReturnType<typeof useMatches>,
+) => {
+  const loaderData = [...matches]
+    .reverse()
+    .map((match) => match.data as PublicSsrLoaderData | undefined)
+    .find((data) => data?.catalogs || data?.posts);
+
+  if (pathname === "/blog") {
+    return loaderData?.posts?.pagination?.totalPages;
+  }
+  if (pathname === "/products" || pathname.startsWith("/products/category/")) {
+    const catalogs = Object.values(loaderData?.catalogs || {});
+    return catalogs[0]?.pagination.totalPages;
+  }
+  return undefined;
+};
+
 export const SEO = ({
   title,
   description,
@@ -76,7 +97,19 @@ export const SEO = ({
   robots,
 }: SEOProps) => {
   const location = useLocation();
+  const matches = useMatches();
   const nonce = useCspNonce();
+  const supportsPaginationPolicy =
+    location.pathname === "/blog" ||
+    location.pathname === "/products" ||
+    location.pathname.startsWith("/products/category/");
+  const paginationPolicy = supportsPaginationPolicy
+    ? resolvePaginationUrlPolicy({
+        pathname: location.pathname,
+        searchParams: new URLSearchParams(location.search),
+        totalPages: getPaginationTotal(location.pathname, matches),
+      })
+    : undefined;
   const siteTitle = title
     ? title + " | " + brandConfig.brandName
     : brandConfig.defaultMeta.title;
@@ -85,14 +118,26 @@ export const SEO = ({
     image || brandConfig.defaultMeta.image,
     SITE_ORIGIN,
   );
-  const siteUrl = resolveCanonicalUrl(url || location.pathname, SITE_ORIGIN);
-  const safePreviousUrl = previousUrl
-    ? resolveCanonicalUrl(previousUrl, SITE_ORIGIN)
+  const siteUrl = resolveCanonicalUrl(
+    url || paginationPolicy?.canonicalPath || location.pathname,
+    SITE_ORIGIN,
+  );
+  const safePreviousUrl = previousUrl || paginationPolicy?.previousPath
+    ? resolveCanonicalUrl(
+        previousUrl || paginationPolicy?.previousPath || "/",
+        SITE_ORIGIN,
+      )
     : undefined;
-  const safeNextUrl = nextUrl
-    ? resolveCanonicalUrl(nextUrl, SITE_ORIGIN)
+  const safeNextUrl = nextUrl || paginationPolicy?.nextPath
+    ? resolveCanonicalUrl(nextUrl || paginationPolicy?.nextPath || "/", SITE_ORIGIN)
     : undefined;
-  const robotsContent = robots || (noIndex ? "noindex,nofollow" : undefined);
+  const robotsContent =
+    robots ||
+    (paginationPolicy?.noIndex
+      ? paginationPolicy.robots
+      : noIndex
+        ? "noindex,nofollow"
+        : undefined);
   const safePublishedTime =
     publishedTime &&
     ISO_DATE_PATTERN.test(publishedTime) &&
