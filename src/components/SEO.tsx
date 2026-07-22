@@ -12,11 +12,14 @@ interface SEOProps {
   description?: string;
   image?: string;
   url?: string;
+  previousUrl?: string;
+  nextUrl?: string;
   type?: "website" | "article" | "product";
   publishedTime?: string;
   author?: string;
   schema?: object;
   noIndex?: boolean;
+  robots?: "index,follow" | "noindex,follow" | "noindex,nofollow";
 }
 
 const configuredOrigin =
@@ -63,11 +66,14 @@ export const SEO = ({
   description,
   image,
   url,
+  previousUrl,
+  nextUrl,
   type = "website",
   publishedTime,
   author,
   schema,
   noIndex = false,
+  robots,
 }: SEOProps) => {
   const location = useLocation();
   const nonce = useCspNonce();
@@ -80,6 +86,13 @@ export const SEO = ({
     SITE_ORIGIN,
   );
   const siteUrl = resolveCanonicalUrl(url || location.pathname, SITE_ORIGIN);
+  const safePreviousUrl = previousUrl
+    ? resolveCanonicalUrl(previousUrl, SITE_ORIGIN)
+    : undefined;
+  const safeNextUrl = nextUrl
+    ? resolveCanonicalUrl(nextUrl, SITE_ORIGIN)
+    : undefined;
+  const robotsContent = robots || (noIndex ? "noindex,nofollow" : undefined);
   const safePublishedTime =
     publishedTime &&
     ISO_DATE_PATTERN.test(publishedTime) &&
@@ -106,7 +119,9 @@ export const SEO = ({
       <title>{siteTitle}</title>
       <meta name="description" content={siteDescription} />
       <link rel="canonical" href={siteUrl} />
-      {noIndex && <meta name="robots" content="noindex,nofollow" />}
+      {safePreviousUrl && <link rel="prev" href={safePreviousUrl} />}
+      {safeNextUrl && <link rel="next" href={safeNextUrl} />}
+      {robotsContent && <meta name="robots" content={robotsContent} />}
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={siteDescription} />
       <meta property="og:image" content={siteImage} />
