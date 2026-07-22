@@ -4,6 +4,8 @@ const files = {
   routes: "src/routes.ts",
   loaders: "src/lib/public-loaders.server.ts",
   contract: "src/lib/public-ssr.ts",
+  catalogQuery: "src/lib/catalog-query.ts",
+  catalogQueryTest: "tests/unit/catalog-query.test.ts",
   catalogHook: "src/hooks/useCatalog.ts",
   shopRoute: "src/routes/products-shop.tsx",
   categoryRoute: "src/routes/category-shop.tsx",
@@ -51,6 +53,13 @@ requireText("contract", "catalogLoaderKey", "stable loader/query cache key");
 requireText("contract", "status: 404", "real missing-resource status");
 requireText("contract", "status: 503", "temporary upstream failure status");
 requireText("contract", '"X-Robots-Tag": "noindex, nofollow"', "error noindex header");
+
+requireText("catalogQuery", 'value ? "1" : "0"', "Laravel boolean encoding");
+requireText("catalogQuery", 'params.set("featured", laravelBoolean(query.featured))', "featured boolean serializer");
+requireText("catalogQuery", 'params.set("requiresCooling", laravelBoolean(query.requiresCooling))', "cooling boolean serializer");
+requireText("catalogQuery", 'params.set("inStock", laravelBoolean(query.inStock))', "stock boolean serializer");
+requireText("catalogQueryTest", 'assert.equal(params.get("featured"), "1")', "featured serializer regression test");
+requireText("catalogQueryTest", 'assert.equal(params.get("requiresCooling"), "0")', "cooling serializer regression test");
 
 requireText("catalogHook", "useLoaderData", "route loader hydration access");
 requireText("catalogHook", "initialData: isBackendEnabled ? initialCatalog", "catalog initial data");
