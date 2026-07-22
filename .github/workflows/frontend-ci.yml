@@ -90,6 +90,9 @@ jobs:
       - name: Frontend unified shop Phase 10.2
         run: npm run audit:phase10-2
 
+      - name: Frontend full server data rendering Phase 10.3
+        run: npm run audit:phase10-3
+
       - name: Production environment schema audit
         run: npm run env:production:validate
 
@@ -111,6 +114,7 @@ jobs:
             runtime-performance-audit.json
             frontend-phase10-1-audit.json
             frontend-phase10-2-audit.json
+            frontend-phase10-3-audit.json
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14
