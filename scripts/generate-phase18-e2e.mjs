@@ -48,6 +48,12 @@ replaceExactly(
   1,
   "canonical storefront origin",
 );
+replaceExactly(
+  'await expect(dialog.getByRole("link", { name: "کوکی‌ها", exact: true })).not.toHaveAttribute("aria-current");',
+  'await expect(dialog.getByRole("link", { name: "دسته‌بندی‌ها", exact: true })).not.toHaveAttribute("aria-current");',
+  1,
+  "Phase 10 category-index navigation expectation",
+);
 
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, source, "utf8");
