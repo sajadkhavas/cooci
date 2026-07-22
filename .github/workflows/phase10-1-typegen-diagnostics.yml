@@ -44,7 +44,22 @@ jobs:
       - name: Resolve compatible dependency graph
         run: npm install --no-audit --no-fund
       - name: Generate route types
-        run: npm run typegen
+        id: typegen
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run typegen 2>&1 | tee phase10-1-official-typegen.log
+      - name: Upload official CLI diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10-1-official-typegen
+          path: phase10-1-official-typegen.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Stop on typegen failure
+        if: steps.typegen.outcome == 'failure'
+        run: exit 1
       - name: Typecheck
         run: npm run typecheck
       - name: Build SSR, client and PWA outputs
