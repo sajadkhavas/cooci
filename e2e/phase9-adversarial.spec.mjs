@@ -10,57 +10,30 @@ const attachPageErrorGuard = (page) => {
     expect(errors, `Unhandled browser errors: ${errors.join(" | ")}`).toEqual([]);
 };
 
-test("rate-limited catalog fails visibly and recovers after retry", async ({
+test("rate-limited server render fails closed and recovers on clean request", async ({
   page,
 }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
-  let limited = true;
-  let rateLimitedRequests = 0;
+  const limitedResponse = await page.goto(
+    "/products?q=__phase9_rate_limit__",
+  );
 
-  await page.route("**/api/catalog/products**", async (route) => {
-    if (!limited) {
-      await route.continue();
-      return;
-    }
-
-    rateLimitedRequests += 1;
-    await route.fulfill({
-      status: 429,
-      headers: {
-        "access-control-allow-credentials": "true",
-        "access-control-allow-origin": frontendOrigin,
-        "content-type": "application/json; charset=utf-8",
-        "retry-after": "60",
-        "x-request-id": "phase9-rate-limit",
-      },
-      body: JSON.stringify({
-        success: false,
-        code: "rate_limited",
-        message: "درخواست‌های زیادی ارسال شده است. کمی صبر کنید.",
-        errors: {},
-        meta: {
-          requestId: "phase9-rate-limit",
-          apiVersion: "v1",
-          contractVersion: "2026-07-20-phase-16",
-        },
-      }),
-    });
-  });
-
-  await page.goto("/products");
+  expect(limitedResponse?.status()).toBe(503);
+  expect(limitedResponse?.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+  expect(limitedResponse?.headers()["retry-after"]).toBe("60");
   await expect(
-    page.getByRole("heading", { name: "دریافت محصولات با مشکل روبه‌رو شد" }),
+    page.getByRole("heading", { name: "دریافت اطلاعات موقتاً ممکن نیست" }),
   ).toBeVisible();
-  await expect(
-    page.getByText("درخواست‌های زیادی ارسال شده است. کمی صبر کنید."),
-  ).toBeVisible();
-  expect(rateLimitedRequests).toBeGreaterThan(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,nofollow",
+  );
 
-  limited = false;
-  await page.getByRole("button", { name: "تلاش دوباره" }).click();
-  await expect(page.getByText("کوکی شکلاتی تست")).toBeVisible();
+  const recoveredResponse = await page.goto("/products");
+  expect(recoveredResponse?.status()).toBe(200);
+  await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "دریافت محصولات با مشکل روبه‌رو شد" }),
+    page.getByRole("heading", { name: "دریافت اطلاعات موقتاً ممکن نیست" }),
   ).toHaveCount(0);
   assertNoPageErrors();
 });
