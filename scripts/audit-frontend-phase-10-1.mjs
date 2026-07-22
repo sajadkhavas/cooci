@@ -9,9 +9,11 @@ const files = {
   serverEntry: "src/entry.server.tsx",
   server: "server.runtime.mjs",
   cart: "src/context/CartContext.tsx",
+  networkStatus: "src/components/network/NetworkStatus.tsx",
   seo: "src/components/SEO.tsx",
   breadcrumb: "src/components/Breadcrumbs.tsx",
   patch: "scripts/patch-react-router-dev-module-sync.mjs",
+  nonceAudit: "scripts/assert-csp-nonces.mjs",
   deployWorkflow: ".github/workflows/phase8-deployment.yml",
   acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
   doc: "docs/FRONTEND_PHASE_10_1_SSR_FOUNDATION.md",
@@ -50,11 +52,7 @@ requireText(
   "renderToPipeableStream",
   "streaming React server renderer",
 );
-requireText(
-  "serverEntry",
-  "nonce,",
-  "React streamed-script nonce option",
-);
+requireText("serverEntry", "nonce,", "React streamed-script nonce option");
 requireText(
   "serverEntry",
   'request.headers.get("x-winimi-csp-nonce")',
@@ -68,11 +66,31 @@ requireText(
 );
 requireText("server", 'app.get("/__ssr_health"', "runtime health endpoint");
 requireText("cart", "isStorageHydrated", "hydration-safe persistence");
+requireText(
+  "networkStatus",
+  "useState(true)",
+  "server/client-stable initial network state",
+);
+requireText(
+  "networkStatus",
+  "setIsOnline(navigator.onLine)",
+  "post-hydration network synchronization",
+);
+forbidText(
+  "networkStatus",
+  "useState(getOnlineState)",
+  "browser-dependent initial render",
+);
 forbidText("seo", "react-helmet-async", "legacy Helmet runtime");
 requireText("seo", "useCspNonce", "nonce JSON-LD");
 requireText("breadcrumb", "useCspNonce", "breadcrumb nonce JSON-LD");
 requireText("patch", "module-sync-enabled", "bounded build-tool repair");
-requireText("deployWorkflow", "server-rendered homepage", "deployment source HTML gate");
+requireText("nonceAudit", "inline SSR scripts do not share", "complete nonce invariant");
+requireText(
+  "deployWorkflow",
+  "node scripts/assert-csp-nonces.mjs ssr-home.html",
+  "deployment nonce verification",
+);
 requireText(
   "acceptanceWorkflow",
   "Verify server-rendered source HTML before hydration",
@@ -97,5 +115,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 10.1 audit passed: streaming hydration scripts inherit the per-response CSP nonce; frontend_ssr_foundation=ready.",
+  "Frontend Phase 10.1 audit passed: streamed scripts share the response CSP nonce and browser capability state is hydration-stable; frontend_ssr_foundation=ready.",
 );
