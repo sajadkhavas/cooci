@@ -89,7 +89,7 @@ jobs:
           curl --fail --silent http://127.0.0.1:4178/ > ssr-home.html
           grep -q 'سفارش آنلاین کوکی،' ssr-home.html
           grep -q 'rel="canonical"' ssr-home.html
-          grep -Eq '<script[^>]+nonce="[A-Za-z0-9_-]+"' ssr-home.html
+          node scripts/assert-csp-nonces.mjs ssr-home.html
       - name: Generate ephemeral TLS certificate
         run: |
           mkdir -p .ci-tls
