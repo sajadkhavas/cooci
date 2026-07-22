@@ -171,7 +171,11 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({ 
     page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
   ).toBeVisible();
   await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "دسته‌بندی‌ها" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "مسیر" })
+      .getByRole("link", { name: "دسته‌بندی‌ها" }),
+  ).toBeVisible();
 
   const dietResponse = page.waitForResponse(
     (response) =>
