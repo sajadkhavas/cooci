@@ -1,4 +1,7 @@
-// Semantically equivalent to redirect("/products", 301), with an accessible fallback body.
+import { getLegacyRedirectTarget } from "@/lib/seo/url-policy";
+
+const target = getLegacyRedirectTarget("/categories") || "/products";
+
 const redirectDocument = `<!doctype html>
 <html lang="fa-IR" dir="rtl">
   <head>
@@ -11,7 +14,7 @@ const redirectDocument = `<!doctype html>
     <main>
       <h1>دسته‌بندی محصولات وینیمی</h1>
       <p>دسته‌بندی‌ها داخل صفحه فروشگاه قرار گرفته‌اند.</p>
-      <a href="/products">ورود به فروشگاه و دسته‌بندی‌ها</a>
+      <a href="${target}">ورود به فروشگاه و دسته‌بندی‌ها</a>
     </main>
   </body>
 </html>`;
@@ -20,9 +23,10 @@ export const loader = () =>
   new Response(redirectDocument, {
     status: 301,
     headers: {
-      Location: "/products",
+      Location: target,
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=86400",
+      "X-Robots-Tag": "noindex, follow",
     },
   });
 
