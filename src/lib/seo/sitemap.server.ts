@@ -1,3 +1,4 @@
+import process from "node:process";
 import { ApiError } from "@/lib/api";
 import {
   fetchCatalogCategories,
@@ -16,6 +17,7 @@ interface SitemapEntry {
 }
 
 const MAX_SITEMAP_PAGES = 100;
+const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const escapeXml = (value: string) =>
   value
@@ -34,6 +36,14 @@ const resolveCategoryRouteSlug = (catalogSlug: string) =>
   categoryContents.find(
     (category) => category.productCategorySlug === catalogSlug,
   )?.slug || catalogSlug;
+
+const configuredCitySlugs = () => {
+  const values = (process.env.WINIMI_PUBLIC_CITY_SLUGS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => SAFE_SLUG.test(value));
+  return values.length ? Array.from(new Set(values)) : [...PUBLIC_CITY_SLUGS];
+};
 
 const collectProductEntries = async (): Promise<SitemapEntry[]> => {
   const entries: SitemapEntry[] = [];
@@ -86,7 +96,7 @@ const collectPostEntries = async (): Promise<SitemapEntry[]> => {
 const collectCityEntries = async (): Promise<SitemapEntry[]> => {
   const entries: SitemapEntry[] = [];
 
-  for (const slug of PUBLIC_CITY_SLUGS) {
+  for (const slug of configuredCitySlugs()) {
     try {
       const city = await loadCityPage(slug);
       entries.push({ path: `/city/${encodeURIComponent(city.slug)}` });
