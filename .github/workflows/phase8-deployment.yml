@@ -24,6 +24,7 @@ env:
   VITE_ALLOW_DEV_MOCKS: "false"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
+  WINIMI_PUBLIC_CITY_SLUGS: phase10-4-city
   DEPLOY_ROOT: /tmp/winimi-frontend
 
 jobs:
@@ -48,6 +49,7 @@ jobs:
           npm run audit:phase8
           npm run audit:ssr
           npm run audit:phase10-3
+          npm run audit:phase10-4
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -116,6 +118,16 @@ jobs:
           grep -q 'کوکی تست انتشار SSR' ssr-home.html
           grep -q 'rel="canonical"' ssr-home.html
           node scripts/assert-csp-nonces.mjs ssr-home.html
+      - name: Verify dynamic sitemap and robots
+        run: |
+          curl --fail --silent http://127.0.0.1:4178/sitemap.xml > dynamic-sitemap.xml
+          curl --fail --silent http://127.0.0.1:4178/robots.txt > dynamic-robots.txt
+          grep -q '/products/phase10-3-cookie' dynamic-sitemap.xml
+          grep -q '/products/category/phase10-3-category' dynamic-sitemap.xml
+          grep -q '/blog/phase10-4-crawl-guide' dynamic-sitemap.xml
+          grep -q '/city/phase10-4-city' dynamic-sitemap.xml
+          grep -q 'Disallow: /account' dynamic-robots.txt
+          grep -q 'Sitemap: https://winimibakery.com/sitemap.xml' dynamic-robots.txt
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -145,6 +157,8 @@ jobs:
             release-output.json
             performance-report.json
             ssr-home.html
+            dynamic-sitemap.xml
+            dynamic-robots.txt
             ssr-runtime.log
             catalog-fixture.log
             api-fixture-proxy.log
