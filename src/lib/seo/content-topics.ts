@@ -1,7 +1,11 @@
 import type { BackendPostSummary } from "@/lib/backend-contract";
 
-const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/;
 const PATH_SEPARATOR_PATTERN = /[\\/]/;
+const hasControlCharacter = (value: string) =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
 
 export interface ContentTopicSummary {
   name: string;
@@ -16,7 +20,7 @@ export const normalizeContentTopic = (value: unknown) => {
   if (
     !normalized ||
     normalized.length > 120 ||
-    CONTROL_CHARACTER_PATTERN.test(normalized) ||
+    hasControlCharacter(normalized) ||
     PATH_SEPARATOR_PATTERN.test(normalized)
   ) {
     return undefined;
@@ -50,8 +54,14 @@ export const summarizeContentTopic = ({
 
   const latestPublishedAt = posts
     .map((post) => post.publishedAt)
-    .filter((value): value is string => publishedTimestamp(value) > Number.NEGATIVE_INFINITY)
-    .sort((first, second) => publishedTimestamp(second) - publishedTimestamp(first))[0];
+    .filter(
+      (value): value is string =>
+        publishedTimestamp(value) > Number.NEGATIVE_INFINITY,
+    )
+    .sort(
+      (first, second) =>
+        publishedTimestamp(second) - publishedTimestamp(first),
+    )[0];
 
   return {
     name: topic,
