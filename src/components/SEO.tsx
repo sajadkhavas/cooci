@@ -133,10 +133,10 @@ export const SEO = ({
     : undefined;
   const robotsContent =
     robots ||
-    (noIndex
-      ? "noindex,nofollow"
-      : paginationPolicy?.noIndex
-        ? paginationPolicy.robots
+    (paginationPolicy?.noIndex
+      ? paginationPolicy.robots
+      : noIndex
+        ? "noindex,nofollow"
         : undefined);
   const safePublishedTime =
     publishedTime &&
