@@ -148,6 +148,7 @@ jobs:
           HTTPS_PROXY_CERT=.ci-tls/loopback.crt \
           HTTPS_PROXY_PORT=8443 \
           HTTPS_PROXY_TARGET=http://127.0.0.1:8000 \
+          HTTPS_PROXY_RATE_LIMIT_SEARCH_VALUE=__phase9_rate_limit__ \
             node scripts/https-loopback-proxy.mjs > api-proxy.log 2>&1 &
           echo $! > api-proxy.pid
 
