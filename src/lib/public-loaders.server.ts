@@ -1,6 +1,7 @@
 import { data, redirect, type LoaderFunctionArgs } from "react-router";
 import { categoryContents, getCategoryContent } from "@/data/categoriesContent";
 import { ApiError, isBackendEnabled } from "@/lib/api";
+import type { BackendPostDetail } from "@/lib/backend-contract";
 import {
   fetchCatalogCategories,
   fetchCatalogProduct,
@@ -20,6 +21,14 @@ import {
   toPublicSsrResponse,
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
+import {
+  getContentTopicPath,
+  normalizeContentTopic,
+} from "@/lib/seo/content-topics";
+import {
+  collectPublishedContentTopics,
+  loadRelatedPublishedPosts,
+} from "@/lib/seo/content-topics.server";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
 const allowedSorts = new Set<CatalogQuery["sort"]>([
@@ -75,6 +84,13 @@ const crawlResponse = (
       : undefined,
   });
 
+const resourceNotFound = (message: string) =>
+  new ApiError({
+    message,
+    status: 404,
+    code: "resource_not_found",
+  });
+
 const loadOptionalProductReviews = async (
   slug: string,
 ): Promise<ProductReviewsResult | undefined> => {
@@ -83,6 +99,15 @@ const loadOptionalProductReviews = async (
   } catch (error) {
     reportOptionalPublicSsrFailure(error, "Product reviews");
     return undefined;
+  }
+};
+
+const loadOptionalRelatedPosts = async (post: BackendPostDetail) => {
+  try {
+    return await loadRelatedPublishedPosts(post, 3);
+  } catch (error) {
+    reportOptionalPublicSsrFailure(error, "Related blog posts");
+    return [];
   }
 };
 
@@ -127,11 +152,7 @@ export const loadShopPublicData = async ({
         (category) => category.slug === catalogSlug,
       );
       if (!editorialCategory && !backendCategory) {
-        throw new ApiError({
-          message: "Category not found.",
-          status: 404,
-          code: "resource_not_found",
-        });
+        throw resourceNotFound("Category not found.");
       }
     }
 
@@ -160,11 +181,9 @@ export const loadProductPublicData = async ({
 }: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
-  if (!slug) throw toPublicSsrResponse(new ApiError({
-    message: "Product not found.",
-    status: 404,
-    code: "resource_not_found",
-  }), "Product");
+  if (!slug) {
+    throw toPublicSsrResponse(resourceNotFound("Product not found."), "Product");
+  }
 
   try {
     const [product, catalog, productReviews] = await Promise.all([
@@ -190,16 +209,70 @@ export const loadBlogListPublicData = async ({
   const page = parsePositivePage(url.searchParams.get("page"));
 
   try {
-    const posts = await loadPosts({ page, perPage: 12 });
+    const [posts, contentTopics] = await Promise.all([
+      loadPosts({ page, perPage: 12 }),
+      collectPublishedContentTopics(),
+    ]);
     const policy = resolvePaginationUrlPolicy({
       pathname: url.pathname,
       searchParams: url.searchParams,
       totalPages: posts.pagination?.totalPages,
     });
     if (policy.redirectPath) return redirect(policy.redirectPath, 301);
-    return crawlResponse({ posts }, policy);
+    return crawlResponse({ posts, contentTopics }, policy);
   } catch (error) {
     throw toPublicSsrResponse(error, "Blog");
+  }
+};
+
+export const loadBlogTopicPublicData = async ({
+  request,
+  params,
+}: LoaderFunctionArgs) => {
+  if (!isBackendEnabled) return disabledData();
+  const topic = normalizeContentTopic(params.topic);
+  if (!topic) {
+    throw toPublicSsrResponse(
+      resourceNotFound("Content topic not found."),
+      "Content topic",
+    );
+  }
+  const topicPath = getContentTopicPath(topic);
+  if (!topicPath) {
+    throw toPublicSsrResponse(
+      resourceNotFound("Content topic not found."),
+      "Content topic",
+    );
+  }
+  const url = new URL(request.url);
+  const page = parsePositivePage(url.searchParams.get("page"));
+
+  try {
+    const [posts, contentTopics] = await Promise.all([
+      loadPosts({ category: topic, page, perPage: 12 }),
+      collectPublishedContentTopics(),
+    ]);
+    const contentTopic = contentTopics.find(
+      (candidate) => candidate.name === topic,
+    );
+    if (!contentTopic) throw resourceNotFound("Content topic not found.");
+
+    const policy = resolvePaginationUrlPolicy({
+      pathname: contentTopic.path,
+      searchParams: url.searchParams,
+      totalPages: posts.pagination?.totalPages,
+    });
+    if (policy.redirectPath) return redirect(policy.redirectPath, 301);
+    if (url.pathname !== contentTopic.path) {
+      return redirect(policy.canonicalPath, 301);
+    }
+
+    return crawlResponse(
+      { posts, contentTopics, contentTopic },
+      policy,
+    );
+  } catch (error) {
+    throw toPublicSsrResponse(error, "Content topic");
   }
 };
 
@@ -208,14 +281,17 @@ export const loadBlogDetailPublicData = async ({
 }: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
-  if (!slug) throw toPublicSsrResponse(new ApiError({
-    message: "Post not found.",
-    status: 404,
-    code: "resource_not_found",
-  }), "Blog post");
+  if (!slug) {
+    throw toPublicSsrResponse(
+      resourceNotFound("Post not found."),
+      "Blog post",
+    );
+  }
 
   try {
-    return { post: await loadPost(slug) };
+    const post = await loadPost(slug);
+    const relatedPosts = await loadOptionalRelatedPosts(post);
+    return { post, relatedPosts };
   } catch (error) {
     throw toPublicSsrResponse(error, "Blog post");
   }
@@ -226,11 +302,12 @@ export const loadCityPublicData = async ({
 }: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
-  if (!slug) throw toPublicSsrResponse(new ApiError({
-    message: "City page not found.",
-    status: 404,
-    code: "resource_not_found",
-  }), "City page");
+  if (!slug) {
+    throw toPublicSsrResponse(
+      resourceNotFound("City page not found."),
+      "City page",
+    );
+  }
   const catalogQuery: CatalogQuery = { featured: true, perPage: 6 };
 
   try {
