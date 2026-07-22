@@ -31,10 +31,31 @@ export const catalogLoaderKey = (query: CatalogQuery = {}) => {
   return JSON.stringify(normalized);
 };
 
+const reportPublicSsrFailure = (error: unknown, resourceLabel: string) => {
+  if (error instanceof ApiError) {
+    console.error("Winimi public SSR loader failed", {
+      resource: resourceLabel,
+      status: error.status,
+      code: error.code,
+      requestId: error.requestId,
+      retryAfterSeconds: error.retryAfterSeconds,
+      issues: error.errors?.issues,
+    });
+    return;
+  }
+
+  console.error("Winimi public SSR loader failed", {
+    resource: resourceLabel,
+    error: error instanceof Error ? error.message : String(error),
+  });
+};
+
 export const toPublicSsrResponse = (
   error: unknown,
   resourceLabel: string,
 ): Response => {
+  reportPublicSsrFailure(error, resourceLabel);
+
   if (error instanceof ApiError && error.status === 404) {
     return new Response("Not Found", {
       status: 404,
