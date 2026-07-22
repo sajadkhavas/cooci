@@ -1,6 +1,29 @@
-import { redirect } from "react-router";
+const redirectDocument = `<!doctype html>
+<html lang="fa-IR" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>انتقال به فروشگاه وینیمی</title>
+  </head>
+  <body>
+    <main>
+      <h1>دسته‌بندی محصولات وینیمی</h1>
+      <p>دسته‌بندی‌ها داخل صفحه فروشگاه قرار گرفته‌اند.</p>
+      <a href="/products">ورود به فروشگاه و دسته‌بندی‌ها</a>
+    </main>
+  </body>
+</html>`;
 
-export const loader = () => redirect("/products", 301);
+export const loader = () =>
+  new Response(redirectDocument, {
+    status: 301,
+    headers: {
+      Location: "/products",
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=86400",
+    },
+  });
 
 export default function CategoriesRedirectRoute() {
   return null;
