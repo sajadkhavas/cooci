@@ -23,6 +23,7 @@ node "$SCRIPT_ROOT/scripts/verify-frontend-release.mjs" "$RELEASE_SOURCE"
 RELEASE_ID=$(node -e 'const fs=require("fs");const p=process.argv[1];process.stdout.write(JSON.parse(fs.readFileSync(p,"utf8")).releaseId)' "$RELEASE_SOURCE/release-manifest.json")
 
 mkdir -p "$DEPLOY_ROOT/releases"
+chmod 0755 "$DEPLOY_ROOT" "$DEPLOY_ROOT/releases"
 TARGET="$DEPLOY_ROOT/releases/$RELEASE_ID"
 STAGING="$DEPLOY_ROOT/releases/.${RELEASE_ID}.staging.$$"
 PREVIOUS_TARGET=""
@@ -37,9 +38,11 @@ else
   mkdir -p "$STAGING"
   cp -a "$RELEASE_SOURCE/." "$STAGING/"
   node "$SCRIPT_ROOT/scripts/verify-frontend-release.mjs" "$STAGING"
+  chmod -R u=rwX,go=rX "$STAGING"
   mv "$STAGING" "$TARGET"
   trap - EXIT
 fi
+chmod -R u=rwX,go=rX "$TARGET"
 
 activate_release() {
   local target=$1
@@ -67,6 +70,7 @@ if ! restart_runtime || ! check_health; then
   exit 1
 fi
 printf '%s\n' "$RELEASE_ID" > "$DEPLOY_ROOT/active-release"
+chmod 0644 "$DEPLOY_ROOT/active-release"
 
 mapfile -t releases < <(find "$DEPLOY_ROOT/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' | sort -nr | awk '{print $2}')
 active=$(basename "$(readlink -f "$DEPLOY_ROOT/current")")
