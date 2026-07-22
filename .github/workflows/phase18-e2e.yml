@@ -206,6 +206,9 @@ jobs:
       - name: Phase 18 frontend architecture audit
         run: npm run audit:acceptance
 
+      - name: Phase 10.3 full server data rendering audit
+        run: npm run audit:phase10-3
+
       - name: Build production storefront and generated PWA
         id: production_build
         run: |
@@ -233,6 +236,7 @@ jobs:
           curl --fail --silent http://127.0.0.1:4173/ > ssr-source-home.html
           curl --fail --silent http://127.0.0.1:4173/categories > ssr-source-categories.html
           grep -q 'سفارش آنلاین کوکی،' ssr-source-home.html
+          grep -q 'کوکی شکلاتی تست' ssr-source-home.html
           grep -q 'دسته‌بندی محصولات وینیمی' ssr-source-categories.html
           grep -q 'rel="canonical"' ssr-source-home.html
           grep -Eq '<script[^>]+nonce="[A-Za-z0-9_-]+"' ssr-source-home.html
@@ -264,6 +268,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase18.spec.mjs 2>&1 | tee phase18-browser.log
 
+      - name: Run Phase 10.3 raw dynamic SSR acceptance
+        id: phase10_3_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase10-3-ssr-source.spec.mjs 2>&1 | tee phase10-3-ssr-source.log
+
       - name: Run desktop, mobile and PWA acceptance — PWA segment
         id: pwa_tests
         run: |
@@ -289,6 +299,7 @@ jobs:
           name: phase18-browser-logs
           path: |
             phase18-browser.log
+            phase10-3-ssr-source.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
@@ -310,6 +321,7 @@ jobs:
           name: phase18-browser-acceptance
           path: |
             phase18-browser.log
+            phase10-3-ssr-source.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
