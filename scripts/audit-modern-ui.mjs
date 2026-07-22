@@ -87,7 +87,8 @@ for (const requirement of [
   '"@type": "ItemList"',
   "<CategoryShowcase",
   "startingPoints",
-  "modern-section-title",
+  "rounded-[2.4rem]",
+  "text-gradient-modern",
 ]) {
   requireText("categories", requirement, `modern category-index contract: ${requirement}`);
 }
@@ -97,6 +98,7 @@ for (const requirement of [
   "productCount",
   "group-hover:scale-105",
   "rounded-[2rem]",
+  "modern-section-title",
 ]) {
   requireText("categoryShowcase", requirement, `modern category-card contract: ${requirement}`);
 }
