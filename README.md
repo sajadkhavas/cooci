@@ -13,8 +13,12 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 | Cart reconciliation, delivery quote and checkout | Backend integrated in Phase 17 |
 | Orders, cancellation, payment and callback verification | Backend integrated in Phase 17 |
 | Content, reviews, inquiry forms and trust slot | Backend integrated in Phase 17 |
-| End-to-end browser completion | Phase 18 |
-| Production deployment | Phase 19 |
+| End-to-end browser completion | Complete in Phase 18 |
+| Node SSR foundation | Complete in Phase 10.1 |
+| Unified crawlable shop categories | Complete in Phase 10.2 |
+| Full server data rendering for public SEO routes | Complete in Phase 10.3 |
+| Crawl/index, merchant, content, local and performance SEO | Phases 10.4–10.9 |
+| Production deployment | Phase 19 after Phase 10.9 |
 | External activation only | Phase 20 |
 
 ## Production integration boundary
@@ -23,6 +27,8 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - The frontend requires contract version `2026-07-20-phase-16`.
 - Customer authentication uses an HttpOnly cookie and Sanctum CSRF.
 - Production catalog, orders, content, reviews and forms come from the backend.
+- Public product, category, article and city data is loaded before the server sends indexable HTML.
+- Missing public resources preserve real 404 responses; unavailable authoritative data fails closed with 503.
 - Cart storage is only a convenience snapshot; Variants, price and stock are reconciled before checkout.
 - Delivery options are informational and checkout recalculates every total on the server.
 - Checkout creates an order first; payment initiation is a separate idempotent request.
@@ -57,7 +63,7 @@ For an isolated local simulator, use a Vite development build and explicitly set
 npm run check
 ```
 
-Validation includes the launch roadmap, Phase 17 integration contract, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
+Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.3, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
 
 ## Security boundary
 
@@ -71,10 +77,14 @@ https://www.winimibakery.com
 https://api.winimibakery.com
 ```
 
-## Locked remaining phases
+## Remaining delivery phases
 
-- Phase 17: full frontend/backend integration
-- Phase 18: automated end-to-end and browser-flow completion
+- Phase 10.4: crawl, index and URL architecture
+- Phase 10.5: product and merchant SEO
+- Phase 10.6: content and topical authority foundation
+- Phase 10.7: local SEO and brand entity
+- Phase 10.8: Core Web Vitals and media
+- Phase 10.9: SEO acceptance and release candidate
 - Phase 19: production server, DNS, HTTPS, queue, storage, monitoring and rollback
 - Phase 20: external activation only
 
