@@ -41,7 +41,10 @@ jobs:
           node scripts/migrate-phase10-1-build.mjs
           node scripts/patch-phase10-1-cli.mjs
       - name: Resolve compatible dependency graph including development CLI
-        run: npm install --include=dev --no-audit --no-fund
+        run: |
+          npm install --include=dev --no-audit --no-fund
+          node scripts/patch-react-router-dev-module-sync.mjs
+          test -f node_modules/@react-router/dev/module-sync-enabled/index.mjs
       - name: Generate route types
         id: typegen
         continue-on-error: true
