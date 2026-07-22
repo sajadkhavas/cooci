@@ -64,7 +64,7 @@ export const CategoryShowcase = ({
               to="/products"
               className="group inline-flex items-center gap-2 self-start font-black text-primary lg:self-auto"
             >
-              فروشگاه و همه دسته‌ها
+              مشاهده همه دسته‌بندی‌ها در فروشگاه
               <ArrowUpLeft
                 size={18}
                 className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
