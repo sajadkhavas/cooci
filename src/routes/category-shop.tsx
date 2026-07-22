@@ -13,5 +13,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
   return loadShopPublicData(args);
 };
 
+export { passPublicSsrHeaders as headers } from "@/lib/public-ssr";
 export { default as ErrorBoundary } from "@/routes/PublicRouteErrorBoundary";
 export { default } from "../pages/ProductsPage";
