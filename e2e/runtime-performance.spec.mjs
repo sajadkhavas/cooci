@@ -63,6 +63,13 @@ const profileScroll = async (page) =>
     };
   });
 
+const assertNoHorizontalOverflow = async (page) => {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(2);
+};
+
 test("mobile bottom navigation is responsive, accessible and route-aware", async ({
   page,
 }, testInfo) => {
@@ -111,6 +118,89 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
   await expect(
     navigation.getByRole("link", { name: "فروشگاه" }),
   ).toHaveAttribute("aria-current", "page");
+});
+
+test("homepage is product-led and exposes the category architecture", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /سفارش آنلاین کوکی، کیک و باکس هدیه/,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /اول دسته را پیدا کن/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /مشاهده همه دسته‌بندی‌ها/ })).toBeAttached();
+  await expect(page.getByRole("link", { name: /مشاهده دسته کوکی‌های خانگی/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /خرید بر اساس موقعیت/ })).toBeVisible();
+
+  await assertNoHorizontalOverflow(page);
+});
+
+test("category index is crawlable and editorial slugs map to Laravel", async ({ page }) => {
+  await page.goto("/categories", { waitUntil: "domcontentloaded" });
+
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /دسته‌بندی محصولات وینیمی/,
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "مسیر" })).toBeVisible();
+
+  const expectedDestinations = [
+    ["کوکی‌های خانگی", "/products/category/cookies"],
+    ["مینی کوکی", "/products/category/mini-cookies"],
+    ["رژیمی و بدون قند افزوده", "/products/category/diet-diabetic"],
+    ["کیک و دسر", "/products/category/cakes"],
+    ["چیزکیک", "/products/category/cheesecakes"],
+    ["رول و کروسان", "/products/category/pastry"],
+    ["باکس هدیه", "/products/category/gift-boxes"],
+  ];
+
+  for (const [name, href] of expectedDestinations) {
+    await expect(
+      page.getByRole("link", { name: new RegExp(`مشاهده دسته ${name}`) }),
+    ).toHaveAttribute("href", href);
+  }
+
+  const cookiesResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/catalog/products") &&
+      response.url().includes("category=cookies") &&
+      response.status() === 200,
+  );
+  await page.goto("/products/category/cookies", { waitUntil: "domcontentloaded" });
+  const cookiesCatalogResponse = await cookiesResponse;
+  const cookiesPayload = await cookiesCatalogResponse.json();
+  expect(cookiesPayload.success).toBe(true);
+  expect(Array.isArray(cookiesPayload.data)).toBe(true);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "مسیر" })
+      .getByRole("link", { name: "دسته‌بندی‌ها" }),
+  ).toBeVisible();
+
+  const dietResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/catalog/products") &&
+      response.url().includes("category=diet") &&
+      response.status() === 200,
+  );
+  await page.goto("/products/category/diet-diabetic", {
+    waitUntil: "domcontentloaded",
+  });
+  await dietResponse;
+  await expect(
+    page.getByRole("heading", { level: 1, name: /رژیمی و بدون قند افزوده/ }),
+  ).toBeVisible();
+
+  await assertNoHorizontalOverflow(page);
 });
 
 test("profiles production scrolling on desktop and mobile", async ({ page }, testInfo) => {

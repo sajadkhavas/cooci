@@ -20,16 +20,41 @@ const files = {
   trust: "src/components/trust/EnamadTrustSlot.tsx",
   trustSecurity: "src/lib/security/enamad.ts",
   footer: "src/components/layout/Footer.tsx",
+  header: "src/components/layout/Header.tsx",
+  app: "src/App.tsx",
+  home: "src/pages/HomePage.tsx",
+  categoriesPage: "src/pages/CategoriesPage.tsx",
+  categoryPage: "src/pages/CategoryPage.tsx",
+  categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
+  categoriesContent: "src/data/categoriesContent.ts",
+  sitemapGenerator: "scripts/generate-sitemap.mjs",
+  sitemap: "public/sitemap.xml",
+  runtimeE2e: "e2e/runtime-performance.spec.mjs",
+  phase10Documentation: "docs/FRONTEND_PHASE_10_0_HOME_CATEGORIES.md",
 };
-const sources = Object.fromEntries(Object.entries(files).map(([name, path]) => [name, readFileSync(path, "utf8")]));
+const sources = Object.fromEntries(
+  Object.entries(files).map(([name, path]) => [name, readFileSync(path, "utf8")]),
+);
 const requireText = (sourceName, text, description = text) => {
-  if (!sources[sourceName].includes(text)) errors.push(`${files[sourceName]}: missing ${description}.`);
+  if (!sources[sourceName].includes(text)) {
+    errors.push(`${files[sourceName]}: missing ${description}.`);
+  }
 };
 const forbidText = (sourceName, text, description = text) => {
-  if (sources[sourceName].includes(text)) errors.push(`${files[sourceName]}: contains forbidden ${description}.`);
+  if (sources[sourceName].includes(text)) {
+    errors.push(`${files[sourceName]}: contains forbidden ${description}.`);
+  }
 };
 
-for (const endpoint of ["/api/store/settings", "/api/store/pages/", "/api/store/posts", "/api/store/faqs", "/api/store/gallery", "/api/store/cities/", "/api/inquiries"]) {
+for (const endpoint of [
+  "/api/store/settings",
+  "/api/store/pages/",
+  "/api/store/posts",
+  "/api/store/faqs",
+  "/api/store/gallery",
+  "/api/store/cities/",
+  "/api/inquiries",
+]) {
   requireText("contentClient", endpoint, `backend content endpoint ${endpoint}`);
 }
 requireText("contentClient", "apiRequest<unknown>", "runtime public-content response boundary");
@@ -55,16 +80,27 @@ for (const claim of [
   "بدون پالم و مارگارین در هیچ محصولی",
   "امکان ارائه فاکتور رسمی برای شرکت‌ها",
 ]) {
-  for (const sourceName of ["brand", "about", "quality", "corporate", "footer"]) {
+  for (const sourceName of [
+    "brand",
+    "about",
+    "quality",
+    "corporate",
+    "footer",
+    "home",
+    "categoriesContent",
+  ]) {
     forbidText(sourceName, claim, `unverified claim: ${claim}`);
   }
 }
 
-for (const claim of ["openingHours", "priceRange", '"@type": "Bakery"']) forbidText("seo", claim, `unsupported structured-data field ${claim}`);
+for (const claim of ["openingHours", "priceRange", '"@type": "Bakery"']) {
+  forbidText("seo", claim, `unsupported structured-data field ${claim}`);
+}
 requireText("seo", "sanitizeSchema", "schema sanitization");
 requireText("seo", "delete cloned.aggregateRating", "rating sanitization");
 requireText("seo", "delete offers.availability", "inventory schema sanitization");
 requireText("seo", "serializeJsonLd", "safe JSON-LD serialization");
+
 for (const sourceName of ["productCard", "productDetail"]) {
   requireText(sourceName, "getPublicProductBadges", "filtered public product badges");
   requireText(sourceName, "getStockPresentation", "inventory presentation policy");
@@ -78,11 +114,65 @@ requireText("productDetail", "getPublicAllergens", "verified allergen policy");
 requireText("catalog", "isProductInventoryVerified", "inventory verification helper");
 requireText("catalog", "isProductContentVerified", "content verification helper");
 requireText("catalog", "isProductMediaVerified", "media verification helper");
-for (const validPath of ["/products/category/diet", "/products/category/cakes", "/products/category/gift"]) requireText("footer", validPath, `valid category link ${validPath}`);
+
+requireText("app", 'path="/categories"', "category index route");
+requireText("header", 'href: "/categories"', "header category index link");
+requireText("footer", 'href: "/categories"', "footer category index link");
+for (const validPath of [
+  "/products/category/cookies",
+  "/products/category/mini-cookies",
+  "/products/category/diet-diabetic",
+  "/products/category/cakes",
+  "/products/category/cheesecakes",
+  "/products/category/pastry",
+  "/products/category/gift-boxes",
+]) {
+  requireText("footer", validPath, `valid editorial category link ${validPath}`);
+  requireText("sitemap", validPath, `category sitemap URL ${validPath}`);
+}
+
+requireText(
+  "home",
+  "سفارش آنلاین کوکی،",
+  "product-led homepage H1",
+);
+requireText("home", "<CategoryShowcase", "homepage category discovery");
+requireText("home", "خرید بر اساس موقعیت", "occasion-led homepage section");
+forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
+forbidText("home", "وضعیت داده", "developer-facing homepage copy");
+
+requireText("categoriesPage", '"@type": "CollectionPage"', "category collection schema");
+requireText("categoriesPage", '"@type": "ItemList"', "category ItemList schema");
+requireText("categoryShowcase", "productCount", "backend category count support");
+requireText(
+  "categoryPage",
+  "content?.productCategorySlug || slug",
+  "editorial-to-backend category mapping",
+);
+requireText("categoryPage", "content?.catalogSearch", "subcategory search mapping");
+requireText("categoryPage", '"@type": "CollectionPage"', "category detail schema");
+requireText("sitemapGenerator", '{ path: "/categories"', "generated category index URL");
+requireText("runtimeE2e", "homepage is product-led and exposes the category architecture", "homepage browser acceptance");
+requireText("runtimeE2e", "editorial slugs map to Laravel", "category mapping browser acceptance");
+requireText(
+  "phase10Documentation",
+  "homepage_and_category_architecture=ready",
+  "Phase 10.0 marker",
+);
+
+for (const claim of [
+  "ارسال سراسری",
+  "بدون مواد نگهدارنده",
+  "تخفیف ویژه برای سفارش",
+]) {
+  forbidText("categoriesContent", claim, `unsupported static category claim: ${claim}`);
+}
 
 if (errors.length) {
   console.error(`Content integrity audit failed with ${errors.length} issue(s):`);
   errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
-console.log(`Content integrity audit passed: ${Object.keys(files).length} production content contracts verified.`);
+console.log(
+  `Content integrity audit passed: ${Object.keys(files).length} production content contracts verified, including Phase 10.0 homepage and category architecture.`,
+);
