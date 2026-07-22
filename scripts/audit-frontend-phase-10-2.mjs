@@ -3,6 +3,7 @@ import fs from "node:fs";
 const files = {
   routes: "src/routes.ts",
   redirect: "src/routes/categories-redirect.tsx",
+  categoryShop: "src/routes/category-shop.tsx",
   products: "src/pages/ProductsPage.tsx",
   home: "src/pages/HomePage.tsx",
   header: "src/components/layout/Header.tsx",
@@ -34,8 +35,13 @@ requireText(
 );
 requireText(
   "routes",
-  'route("products/category/:slug", "./pages/ProductsPage.tsx")',
-  "shared category shop module",
+  'route("products/category/:slug", "./routes/category-shop.tsx")',
+  "unique category route-module wrapper",
+);
+requireText(
+  "categoryShop",
+  'export { default, loader } from "../pages/ProductsPage"',
+  "shared ProductsPage implementation",
 );
 requireText("redirect", 'redirect("/products", 301)', "301 redirect");
 requireText("products", "export const loader", "legacy query redirect loader");
