@@ -71,6 +71,16 @@ const product = {
   updatedAt: now,
 };
 
+const approvedReview = {
+  id: "phase10-5-review",
+  rating: 5,
+  title: "تازه و دقیق",
+  body: "نظر تأییدشده قطعی برای تست Product merchant JSON-LD.",
+  verifiedPurchase: true,
+  customerName: "مشتری تست",
+  publishedAt: now,
+};
+
 const post = {
   id: "phase10-4-post",
   slug: "phase10-4-crawl-guide",
@@ -111,6 +121,11 @@ const postPagination = {
   perPage: 48,
 };
 
+const reviewPagination = {
+  ...pagination,
+  perPage: 10,
+};
+
 const envelope = (data, meta = {}) => ({
   success: true,
   data,
@@ -141,6 +156,13 @@ const server = http.createServer((request, response) => {
   }
   if (url.pathname === "/api/catalog/products/phase10-3-cookie") {
     response.end(JSON.stringify(envelope(product)));
+    return;
+  }
+  if (url.pathname === "/api/catalog/products/phase10-3-cookie/reviews") {
+    response.end(JSON.stringify(envelope([approvedReview], {
+      summary: { count: 1, averageRating: 5 },
+      pagination: reviewPagination,
+    })));
     return;
   }
   if (url.pathname === "/api/store/posts") {
