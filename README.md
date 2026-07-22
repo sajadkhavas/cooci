@@ -18,7 +18,8 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 | Unified crawlable shop categories | Complete in Phase 10.2 |
 | Full server data rendering for public SEO routes | Complete in Phase 10.3 |
 | Crawl, index and canonical URL architecture | Complete in Phase 10.4 |
-| Merchant, content, local and performance SEO | Phases 10.5–10.9 |
+| Product and merchant SEO | Complete in Phase 10.5 |
+| Content, local and performance SEO | Phases 10.6–10.9 |
 | Production deployment | Phase 19 after Phase 10.9 |
 | External activation only | Phase 20 |
 
@@ -33,6 +34,9 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - Sitemap products, categories, posts and configured cities are generated from authoritative Laravel responses at request time.
 - Filtered collection URLs are `noindex,follow`; private and transaction surfaces are `noindex,nofollow`.
 - Clean collection pagination is self-canonical and duplicate page URLs permanently redirect.
+- Product merchant JSON-LD is built from server-loaded Laravel price, stock, media and approved reviews.
+- Product Offers are omitted when inventory or price cannot be verified; shipping and return policy are never invented in the frontend.
+- Approved reviews rendered to customers are the only reviews eligible for Product rating markup.
 - Cart storage is only a convenience snapshot; Variants, price and stock are reconciled before checkout.
 - Delivery options are informational and checkout recalculates every total on the server.
 - Checkout creates an order first; payment initiation is a separate idempotent request.
@@ -67,7 +71,7 @@ For an isolated local simulator, use a Vite development build and explicitly set
 npm run check
 ```
 
-Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.4, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
+Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.5, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
 
 ## Security boundary
 
@@ -83,7 +87,6 @@ https://api.winimibakery.com
 
 ## Remaining delivery phases
 
-- Phase 10.5: product and merchant SEO
 - Phase 10.6: content and topical authority foundation
 - Phase 10.7: local SEO and brand entity
 - Phase 10.8: Core Web Vitals and media
