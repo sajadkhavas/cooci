@@ -212,21 +212,30 @@ jobs:
           set -o pipefail
           npm run build 2>&1 | tee production-build.log
 
-      - name: Start internal production storefront preview
+      - name: Start internal production SSR storefront
         run: |
-          npm run preview -- --host 127.0.0.1 --port 4173 > frontend-server.log 2>&1 &
+          HOST=127.0.0.1 PORT=4173 NODE_ENV=production NODE_TLS_REJECT_UNAUTHORIZED=0 WINIMI_API_ORIGIN=https://127.0.0.1:8443 npm run preview > frontend-server.log 2>&1 &
           echo $! > frontend-server.pid
 
-      - name: Wait for internal storefront preview
+      - name: Wait for internal SSR storefront
         run: |
           for attempt in {1..60}; do
-            if curl --fail --silent http://127.0.0.1:4173/products > /dev/null; then
+            if curl --fail --silent http://127.0.0.1:4173/__ssr_health > ssr-ready.json; then
               exit 0
             fi
             sleep 1
           done
           cat frontend-server.log
           exit 1
+
+      - name: Verify server-rendered source HTML before hydration
+        run: |
+          curl --fail --silent http://127.0.0.1:4173/ > ssr-source-home.html
+          curl --fail --silent http://127.0.0.1:4173/categories > ssr-source-categories.html
+          grep -q 'سفارش آنلاین کوکی،' ssr-source-home.html
+          grep -q 'دسته‌بندی محصولات وینیمی' ssr-source-categories.html
+          grep -q 'rel="canonical"' ssr-source-home.html
+          grep -Eq '<script[^>]+nonce="[A-Za-z0-9_-]+"' ssr-source-home.html
 
       - name: Start ephemeral HTTPS storefront proxy
         run: |
@@ -317,6 +326,9 @@ jobs:
             api-proxy.log
             backend/storage/logs/laravel.log
             frontend-server.log
+            ssr-ready.json
+            ssr-source-home.html
+            ssr-source-categories.html
             frontend-https-proxy.log
             e2e/playwright-report
             e2e/test-results
