@@ -10,7 +10,8 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   showcase: "src/components/catalog/CategoryShowcase.tsx",
-  sitemapGenerator: "scripts/generate-sitemap.mjs",
+  sitemap: "src/lib/seo/sitemap.server.ts",
+  urlPolicy: "src/lib/seo/url-policy.ts",
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   doc: "docs/FRONTEND_PHASE_10_2_UNIFIED_SHOP_CATEGORIES.md",
 };
@@ -69,7 +70,8 @@ requireText(
   "SAFE_CATEGORY_SLUG",
   "category path slug validation",
 );
-requireText("redirect", 'redirect("/products", 301)', "301 redirect");
+requireText("redirect", "getLegacyRedirectTarget", "central redirect registry");
+requireText("redirect", "status: 301", "301 redirect");
 requireText("products", "categoryNavigation", "category navigation inside shop");
 requireText("products", "getCategoryContent", "category-specific SEO content");
 requireText(
@@ -84,20 +86,20 @@ forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("header", 'href: "/categories"', "duplicate category header item");
 forbidText("footer", "/categories", "duplicate category footer item");
 requireText("showcase", 'to="/products"', "unified shop all-link");
-forbidText(
-  "sitemapGenerator",
-  '{ path: "/categories"',
-  "redirect-only sitemap entry",
-);
+requireText("sitemap", "fetchCatalogCategories", "dynamic category sitemap source");
+requireText("sitemap", "resolveCategoryRouteSlug", "editorial category sitemap mapping");
+requireText("urlPolicy", '["/categories", "/products"]', "redirect-only URL exclusion registry");
 requireText("runtimeE2e", "shop unifies categories and filters", "browser acceptance");
 requireText("doc", "unified_shop_categories=ready", "phase marker");
 
 for (const removed of [
   "src/pages/CategoriesPage.tsx",
   "src/pages/CategoryPage.tsx",
+  "public/sitemap.xml",
+  "scripts/generate-sitemap.mjs",
 ]) {
   if (fs.existsSync(removed)) {
-    errors.push(`${removed} must be removed after UI unification`);
+    errors.push(`${removed} must be removed after UI and crawl unification`);
   }
 }
 

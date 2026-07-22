@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-22-phase-10-3`
+Roadmap lock: `2026-07-22-phase-10-4`
 
 ## Required final state
 
@@ -107,9 +107,14 @@ Status: `full_public_ssr=ready`
 
 Authoritative Laravel catalog, product, article and city data is loaded before the first public HTML response. Missing public resources return 404 and unavailable authoritative data returns 503 instead of indexable empty content.
 
+### Phase 10.4 — Crawl, index and URL architecture — complete
+
+Status: `crawl_index_url_architecture=ready`
+
+Laravel-backed dynamic sitemap and robots resource routes replace static source-scanned files. Clean pagination is self-canonical with previous/next links, duplicate page URLs permanently redirect, filtered collection URLs return HTML and HTTP `noindex,follow`, and account/cart/checkout/payment surfaces return `noindex,nofollow`.
+
 ### Remaining frontend SEO phases
 
-- Phase 10.4 — Crawl, index and URL architecture
 - Phase 10.5 — Product and merchant SEO
 - Phase 10.6 — Content and topical authority foundation
 - Phase 10.7 — Local SEO and brand entity

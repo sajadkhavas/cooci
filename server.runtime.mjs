@@ -86,6 +86,7 @@ const sharedHeaders = (response, nonce) => {
 app.get("/__ssr_health", (_request, response) => {
   sharedHeaders(response, null);
   response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response.setHeader("X-Robots-Tag", "noindex, nofollow");
   response.json({ status: "ok", surface: "winimi-ssr" });
 });
 
@@ -133,6 +134,9 @@ app.use((request, response, next) => {
       ? "private, no-store, max-age=0"
       : "no-cache, must-revalidate",
   );
+  if (sensitive) {
+    response.setHeader("X-Robots-Tag", "noindex, nofollow");
+  }
   next();
 });
 

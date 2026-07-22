@@ -15,7 +15,7 @@ const PublicRouteErrorBoundary = () => {
       <SEO
         title="اختلال موقت"
         description="دریافت اطلاعات این صفحه موقتاً با مشکل روبه‌رو شده است."
-        noIndex
+        robots="noindex,nofollow"
       />
       <section className="section-padding flex min-h-[60vh] items-center justify-center">
         <div className="container-custom">

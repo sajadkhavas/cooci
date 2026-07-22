@@ -71,6 +71,29 @@ replaceExactly(
   1,
   "canonical storefront origin",
 );
+replaceExactly(
+  `  await page.goto("/products?q=staging-cookie&shipping=chilled&sort=price-desc");
+  const canonicals = page.locator('link[rel="canonical"]');
+  await expect(canonicals).toHaveCount(1);
+  await expect(canonicals).toHaveAttribute("href", \`\${frontendOrigin}/products\`);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,nofollow",
+  );`,
+  `  const filteredResponse = await page.goto(
+    "/products?q=staging-cookie&shipping=chilled&sort=price-desc",
+  );
+  expect(filteredResponse?.headers()["x-robots-tag"]).toBe("noindex,follow");
+  const canonicals = page.locator('link[rel="canonical"]');
+  await expect(canonicals).toHaveCount(1);
+  await expect(canonicals).toHaveAttribute("href", \`\${frontendOrigin}/products\`);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,follow",
+  );`,
+  1,
+  "filtered collection crawl policy",
+);
 
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, source, "utf8");

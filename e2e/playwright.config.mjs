@@ -15,6 +15,7 @@ export default defineConfig({
     "phase7-pwa.spec.mjs",
     "phase9-adversarial.spec.mjs",
     "phase10-3-ssr-source.spec.mjs",
+    "phase10-4-crawl-index.spec.mjs",
     "runtime-performance.spec.mjs",
   ],
   timeout: 45_000,

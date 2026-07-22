@@ -8,6 +8,7 @@ const files = {
   contentApi: "src/lib/content.ts",
   seoSecurity: "src/lib/security/seo.ts",
   seoComponent: "src/components/SEO.tsx",
+  urlPolicy: "src/lib/seo/url-policy.ts",
   breadcrumbs: "src/components/Breadcrumbs.tsx",
   enamadSecurity: "src/lib/security/enamad.ts",
   enamadSlot: "src/components/trust/EnamadTrustSlot.tsx",
@@ -103,13 +104,14 @@ requireText("seoSecurity", "u0026", "JSON-LD ampersand escape code");
 requireText("seoComponent", "resolveCanonicalUrl", "secure canonical usage");
 requireText("seoComponent", "resolvePublicMediaUrl", "secure media usage");
 requireText("seoComponent", "serializeJsonLd", "safe JSON-LD usage");
-requireText(
-  "seoComponent",
-  "resolveCanonicalUrl(url || location.pathname, SITE_ORIGIN)",
-  "query-free default canonical",
-);
+requireText("seoComponent", "resolvePaginationUrlPolicy", "central canonical pagination policy");
+requireText("seoComponent", "paginationPolicy?.canonicalPath", "policy-derived canonical path");
+requireText("seoComponent", 'rel="prev"', "policy-derived previous link");
+requireText("seoComponent", 'rel="next"', "policy-derived next link");
 requireText("seoComponent", "useCspNonce", "nonce-bound JSON-LD");
-forbidText("seoComponent", "location.search", "query parameters in canonical URL");
+requireText("urlPolicy", "hasNonPageParams", "query classification boundary");
+requireText("urlPolicy", 'robots: noIndex ? "noindex,follow"', "filtered URL index policy");
+forbidText("seoComponent", "url || location.pathname + location.search", "raw query canonical concatenation");
 forbidText("seoComponent", "JSON.stringify(finalSchema)", "unescaped JSON-LD insertion");
 
 requireText("breadcrumbs", "resolveCanonicalUrl", "same-origin breadcrumb item URLs");
@@ -162,5 +164,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 5 audit passed: route-managed SSR metadata, runtime content contracts, nonce-protected JSON-LD, safe media URLs, exact eNAMAD extraction and bounded persisted inquiries are locked.",
+  "Frontend Phase 5 audit passed: route-managed SSR metadata, policy-derived canonical pagination, runtime content contracts, nonce-protected JSON-LD, safe media URLs, exact eNAMAD extraction and bounded persisted inquiries are locked.",
 );
