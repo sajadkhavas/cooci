@@ -55,6 +55,11 @@ replace(
   '  \'route("categories", "./pages/CategoriesPage.tsx")\',\n',
   '  \'route("categories", "./routes/categories-redirect.tsx")\',\n',
 );
+replace(
+  "scripts/audit-content-integrity.mjs",
+  '  \'route("products/category/:slug", "./pages/ProductsPage.tsx")\',\n',
+  '  \'route("products/category/:slug", "./routes/category-shop.tsx")\',\n',
+);
 
 let runtimeE2e = read("e2e/runtime-performance.spec.mjs");
 const start = runtimeE2e.indexOf(
@@ -149,6 +154,7 @@ writeFileSync("package.json", `${JSON.stringify(packageJson, null, 2)}\n`, "utf8
 
 for (const required of [
   "src/routes/categories-redirect.tsx",
+  "src/routes/category-shop.tsx",
   "scripts/audit-frontend-phase-10-2.mjs",
   "docs/FRONTEND_PHASE_10_2_UNIFIED_SHOP_CATEGORIES.md",
 ]) {
