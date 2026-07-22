@@ -30,7 +30,8 @@ const inquiry = read("src/components/forms/InquiryForm.tsx");
 const managedContent = read("src/components/content/ManagedContentPage.tsx");
 const trust = read("src/components/trust/EnamadTrustSlot.tsx");
 const trustSecurity = read("src/lib/security/enamad.ts");
-const app = read("src/App.tsx");
+const routes = read("src/routes.ts");
+const paymentMockRoute = read("src/routes/payment-mock.tsx");
 
 requireText(roadmap, "frontend_integrated=ready", "Phase 17 readiness marker");
 requireText(roadmap, "2026-07-20-phase-16", "frozen backend contract reference");
@@ -42,7 +43,9 @@ for (const contractNeedle of [
   'headers.set("X-XSRF-TOKEN"',
   "parseEnvelope",
   'headers.set("X-Request-ID"',
-]) requireText(api, contractNeedle, "shared API contract");
+]) {
+  requireText(api, contractNeedle, "shared API contract");
+}
 
 requireText(catalog, "fetchCatalogProducts", "backend catalog list");
 requireText(catalog, "fetchCatalogProduct", "backend product detail");
@@ -59,10 +62,20 @@ for (const endpoint of [
   'apiRequest<unknown>("/api/checkout"',
   "/payments",
   "/api/payments/zarinpal/verify",
-]) requireText(checkout, endpoint, "checkout/payment endpoint");
+]) {
+  requireText(checkout, endpoint, "checkout/payment endpoint");
+}
 requireText(checkout, "parseBackendCheckoutResult", "runtime checkout response contract");
-requireText(checkout, "parseBackendPaymentInitiationResult", "runtime payment initiation contract");
-requireText(checkout, "parseBackendPaymentVerificationResult", "runtime payment verification contract");
+requireText(
+  checkout,
+  "parseBackendPaymentInitiationResult",
+  "runtime payment initiation contract",
+);
+requireText(
+  checkout,
+  "parseBackendPaymentVerificationResult",
+  "runtime payment verification contract",
+);
 requireText(checkoutGuard, "fetchCatalogProduct", "per-product cart reconciliation");
 requireText(checkoutGuard, "account/login", "authenticated checkout guard");
 requireText(checkoutPage, "deliveryOptions", "server delivery quote UI");
@@ -70,11 +83,9 @@ requireText(checkoutPage, "selectedAddressId", "saved address checkout");
 requireText(callback, 'result.state === "success"', "verified-only cart clearing");
 requireText(callback, "authority", "provider callback verification");
 
-for (const endpoint of [
-  "/api/account/addresses",
-  "/cancel",
-  "/reviews",
-]) requireText(account, endpoint, "account operation");
+for (const endpoint of ["/api/account/addresses", "/cancel", "/reviews"]) {
+  requireText(account, endpoint, "account operation");
+}
 for (const endpoint of [
   "/api/store/settings",
   "/api/store/pages/",
@@ -83,18 +94,43 @@ for (const endpoint of [
   "/api/store/posts",
   "/api/store/cities/",
   "/api/inquiries",
-]) requireText(content, endpoint, "store content endpoint");
+]) {
+  requireText(content, endpoint, "store content endpoint");
+}
 requireText(content, "apiRequest<unknown>", "runtime content response boundary");
 requireText(inquiry, "submitInquiry", "persisted public inquiries");
 requireText(managedContent, "loadContentPage", "managed legal/trust pages");
 requireText(trust, "extractOfficialEnamadBadge", "isolated trust parser usage");
-requireText(trustSecurity, 'const ENAMAD_HOST = "trustseal.enamad.ir"', "official eNAMAD host restriction");
+requireText(
+  trustSecurity,
+  'const ENAMAD_HOST = "trustseal.enamad.ir"',
+  "official eNAMAD host restriction",
+);
 forbidText(trust, "dangerouslySetInnerHTML", "raw trust HTML execution");
-forbidText(trustSecurity, "dangerouslySetInnerHTML", "raw trust security HTML execution");
-requireText(app, "areDevelopmentMocksEnabled &&", "development-only mock payment route");
+forbidText(
+  trustSecurity,
+  "dangerouslySetInnerHTML",
+  "raw trust security HTML execution",
+);
+
+requireText(
+  routes,
+  'route("payment/mock", "./routes/payment-mock.tsx")',
+  "isolated mock payment route module",
+);
+requireText(
+  paymentMockRoute,
+  'process.env.NODE_ENV === "production"',
+  "production mock payment denial",
+);
+requireText(paymentMockRoute, "throw new Response", "server-side mock route denial");
 
 for (const source of [api, auth, checkout, content]) {
-  for (const forbidden of ["ZARINPAL_MERCHANT_ID", "KAVENEGAR_API_KEY", "ENAMAD_BADGE_CODE"]) {
+  for (const forbidden of [
+    "ZARINPAL_MERCHANT_ID",
+    "KAVENEGAR_API_KEY",
+    "ENAMAD_BADGE_CODE",
+  ]) {
     forbidText(source, forbidden, "frontend secret");
   }
 }
@@ -104,4 +140,6 @@ if (failures.length) {
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log("Phase 17 integration audit passed: readiness marker, backend API, session, catalog, checkout, payment, account, runtime content, forms and production mock boundaries are connected.");
+console.log(
+  "Phase 17 integration audit passed: readiness marker, backend API, session, catalog, checkout, payment, account, runtime content, forms and SSR route-module production boundaries are connected.",
+);
