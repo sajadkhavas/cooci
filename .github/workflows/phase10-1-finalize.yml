@@ -37,6 +37,26 @@ jobs:
           node-version: 22.22.0
           cache: npm
 
+      - name: Align finalizer with the current Phase 18 workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/finalize-phase10-1.mjs")
+          source = path.read_text()
+          needle = '''  `            frontend-server.log
+            ssr-ready.json
+            ssr-source-home.html
+            ssr-source-categories.html
+            frontend-https-proxy.log
+`,
+  2,
+);'''
+          replacement = needle.replace("  2,\n);", "  1,\n);")
+          if source.count(needle) != 1:
+              raise SystemExit("Unable to locate the Phase 18 artifact replacement count")
+          path.write_text(source.replace(needle, replacement))
+          PY
+
       - name: Apply Phase 10.1 deployment and acceptance finalizer
         id: finalizer
         continue-on-error: true
