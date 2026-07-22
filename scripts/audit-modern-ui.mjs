@@ -11,6 +11,8 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   home: "src/pages/HomePage.tsx",
+  categories: "src/pages/CategoriesPage.tsx",
+  categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   productCard: "src/components/ProductCard.tsx",
   reveal: "src/components/motion/Reveal.tsx",
   progress: "src/components/layout/ScrollProgress.tsx",
@@ -54,11 +56,13 @@ for (const requirement of [
 ]) {
   requireText("header", requirement, `modern accessible navigation contract: ${requirement}`);
 }
+requireText("header", 'href: "/categories"', "category-first desktop/mobile navigation");
 
 for (const validPath of [
-  "/products/category/diet",
+  "/categories",
+  "/products/category/diet-diabetic",
   "/products/category/cakes",
-  "/products/category/gift",
+  "/products/category/gift-boxes",
 ]) {
   requireText("footer", validPath, `valid modern footer link ${validPath}`);
 }
@@ -67,11 +71,34 @@ requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
 for (const requirement of [
   "<Reveal",
   "marquee-track",
-  "discoveryCards",
+  "<CategoryShowcase",
+  "occasionCards",
   "modern-section-title",
-  "داده نهایی با بک‌اند",
+  "سفارش آنلاین کوکی،",
+  "خرید بر اساس موقعیت",
 ]) {
-  requireText("home", requirement, `modern homepage contract: ${requirement}`);
+  requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
+}
+forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
+forbidText("home", "وضعیت داده", "developer-facing homepage message");
+
+for (const requirement of [
+  '"@type": "CollectionPage"',
+  '"@type": "ItemList"',
+  "<CategoryShowcase",
+  "startingPoints",
+  "modern-section-title",
+]) {
+  requireText("categories", requirement, `modern category-index contract: ${requirement}`);
+}
+for (const requirement of [
+  "categoryVisuals",
+  "backendCategory?.image",
+  "productCount",
+  "group-hover:scale-105",
+  "rounded-[2rem]",
+]) {
+  requireText("categoryShowcase", requirement, `modern category-card contract: ${requirement}`);
 }
 
 for (const requirement of [
@@ -88,7 +115,7 @@ for (const requirement of [
 requireText("reveal", "IntersectionObserver", "dependency-free reveal observer");
 requireText("reveal", "prefers-reduced-motion", "reveal reduced-motion support");
 requireText("progress", 'aria-hidden="true"', "decorative progress accessibility");
-requireText("modernPages", "nav[aria-label=\"مراحل ثبت سفارش\"]", "modern checkout progress styling");
+requireText("modernPages", 'nav[aria-label="مراحل ثبت سفارش"]', "modern checkout progress styling");
 requireText("modernPages", "main details[open]", "modern FAQ/details styling");
 
 if (errors.length) {
@@ -98,5 +125,5 @@ if (errors.length) {
 }
 
 console.log(
-  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified.`,
+  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including the product-led homepage and category architecture.`,
 );
