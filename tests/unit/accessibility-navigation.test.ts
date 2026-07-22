@@ -9,7 +9,7 @@ import {
   prefersReducedMotion,
 } from "@/lib/accessibility/motion";
 
-test("cookie navigation is active only for the exact cookie category", () => {
+test("category links remain exact within the unified shop", () => {
   const cookies = {
     href: "/products/category/cookies",
     match: "exact" as const,
@@ -28,7 +28,7 @@ test("cookie navigation is active only for the exact cookie category", () => {
   );
 });
 
-test("store navigation includes product details but excludes category routes", () => {
+test("store navigation includes product details and category routes", () => {
   const store = { href: "/products", match: "products" as const };
   assert.equal(isNavigationTargetActive("/products", store), true);
   assert.equal(
@@ -37,8 +37,9 @@ test("store navigation includes product details but excludes category routes", (
   );
   assert.equal(
     isNavigationTargetActive("/products/category/cookies", store),
-    false,
+    true,
   );
+  assert.equal(isNavigationTargetActive("/products-other", store), false);
 });
 
 test("route-prefix matching respects path segment boundaries", () => {
