@@ -42,5 +42,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
   );
 };
 
+export { passPublicSsrHeaders as headers } from "@/lib/public-ssr";
 export { default as ErrorBoundary } from "@/routes/PublicRouteErrorBoundary";
 export default ProductsPage;
