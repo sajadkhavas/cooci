@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "react-router";
+import { data, redirect, type LoaderFunctionArgs } from "react-router";
 import { categoryContents, getCategoryContent } from "@/data/categoriesContent";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import {
@@ -13,6 +13,7 @@ import {
   toPublicSsrResponse,
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
+import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
 const allowedSorts = new Set<CatalogQuery["sort"]>([
   "featured",
@@ -54,6 +55,19 @@ const buildShopQuery = (request: Request, slug?: string): CatalogQuery => {
 
 const disabledData = (): PublicSsrLoaderData => ({});
 
+const crawlResponse = (
+  payload: PublicSsrLoaderData,
+  policy: ReturnType<typeof resolvePaginationUrlPolicy>,
+) =>
+  data(payload, {
+    headers: policy.noIndex
+      ? {
+          "Cache-Control": "no-cache, must-revalidate",
+          "X-Robots-Tag": policy.robots,
+        }
+      : undefined,
+  });
+
 export const loadHomePublicData = async (): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
   const query: CatalogQuery = {};
@@ -75,7 +89,7 @@ export const loadHomePublicData = async (): Promise<PublicSsrLoaderData> => {
 export const loadShopPublicData = async ({
   request,
   params,
-}: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
+}: LoaderFunctionArgs) => {
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug;
   const query = buildShopQuery(request, slug);
@@ -103,10 +117,21 @@ export const loadShopPublicData = async ({
       }
     }
 
-    return {
-      catalogs: { [catalogLoaderKey(query)]: catalog },
-      categories,
-    };
+    const requestUrl = new URL(request.url);
+    const policy = resolvePaginationUrlPolicy({
+      pathname: requestUrl.pathname,
+      searchParams: requestUrl.searchParams,
+      totalPages: catalog.pagination.totalPages,
+    });
+    if (policy.redirectPath) return redirect(policy.redirectPath, 301);
+
+    return crawlResponse(
+      {
+        catalogs: { [catalogLoaderKey(query)]: catalog },
+        categories,
+      },
+      policy,
+    );
   } catch (error) {
     throw toPublicSsrResponse(error, "Shop catalog");
   }
@@ -139,13 +164,20 @@ export const loadProductPublicData = async ({
 
 export const loadBlogListPublicData = async ({
   request,
-}: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
+}: LoaderFunctionArgs) => {
   if (!isBackendEnabled) return disabledData();
   const url = new URL(request.url);
   const page = parsePositivePage(url.searchParams.get("page"));
 
   try {
-    return { posts: await loadPosts({ page, perPage: 12 }) };
+    const posts = await loadPosts({ page, perPage: 12 });
+    const policy = resolvePaginationUrlPolicy({
+      pathname: url.pathname,
+      searchParams: url.searchParams,
+      totalPages: posts.pagination?.totalPages,
+    });
+    if (policy.redirectPath) return redirect(policy.redirectPath, 301);
+    return crawlResponse({ posts }, policy);
   } catch (error) {
     throw toPublicSsrResponse(error, "Blog");
   }
