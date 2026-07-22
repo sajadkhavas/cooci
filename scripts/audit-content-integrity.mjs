@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const errors = [];
 const files = {
@@ -27,11 +27,12 @@ const files = {
   home: "src/pages/HomePage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   categoriesContent: "src/data/categoriesContent.ts",
-  sitemapGenerator: "scripts/generate-sitemap.mjs",
-  sitemap: "public/sitemap.xml",
+  sitemap: "src/lib/seo/sitemap.server.ts",
+  urlPolicy: "src/lib/seo/url-policy.ts",
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   phase10Documentation: "docs/FRONTEND_PHASE_10_0_HOME_CATEGORIES.md",
   phase102Documentation: "docs/FRONTEND_PHASE_10_2_UNIFIED_SHOP_CATEGORIES.md",
+  phase104Documentation: "docs/FRONTEND_PHASE_10_4_CRAWL_INDEX_URL_ARCHITECTURE.md",
 };
 
 const sources = Object.fromEntries(
@@ -47,6 +48,16 @@ const forbidText = (sourceName, text, description = text) => {
     errors.push(`${files[sourceName]}: contains forbidden ${description}.`);
   }
 };
+
+for (const stalePath of [
+  "public/sitemap.xml",
+  "public/robots.txt",
+  "scripts/generate-sitemap.mjs",
+]) {
+  if (existsSync(stalePath)) {
+    errors.push(`${stalePath}: stale static crawl artifact is forbidden.`);
+  }
+}
 
 for (const endpoint of [
   "/api/store/settings",
@@ -106,6 +117,7 @@ requireText("seo", "sanitizeSchema", "schema sanitization");
 requireText("seo", "delete cloned.aggregateRating", "rating sanitization");
 requireText("seo", "delete offers.availability", "inventory schema sanitization");
 requireText("seo", "serializeJsonLd", "safe JSON-LD serialization");
+requireText("seo", "resolvePaginationUrlPolicy", "central canonical pagination policy");
 
 for (const sourceName of ["productCard", "productDetail"]) {
   requireText(sourceName, "getPublicProductBadges", "filtered public product badges");
@@ -131,7 +143,9 @@ requireText(
   'route("products/category/:slug", "./routes/category-shop.tsx")',
   "shared shop category route module",
 );
-requireText("categoriesRedirect", 'redirect("/products", 301)', "permanent /categories redirect");
+requireText("routes", 'route("sitemap.xml", "./routes/sitemap.ts")', "dynamic sitemap route");
+requireText("categoriesRedirect", "getLegacyRedirectTarget", "central permanent redirect registry");
+requireText("categoriesRedirect", "status: 301", "permanent /categories redirect");
 forbidText("header", 'href: "/categories"', "header category-index navigation");
 forbidText("footer", 'href: "/categories"', "footer category-index navigation");
 forbidText("footer", 'to="/categories"', "footer category-index CTA");
@@ -146,8 +160,13 @@ for (const validPath of [
   "/products/category/gift-boxes",
 ]) {
   requireText("footer", validPath, `valid editorial category link ${validPath}`);
-  requireText("sitemap", validPath, `category sitemap URL ${validPath}`);
 }
+requireText("sitemap", "fetchCatalogCategories", "authoritative category sitemap source");
+requireText("sitemap", "resolveCategoryRouteSlug", "editorial category sitemap mapping");
+requireText("sitemap", "fetchCatalogProducts", "authoritative product sitemap source");
+requireText("sitemap", "loadPosts", "authoritative blog sitemap source");
+requireText("urlPolicy", "LEGACY_EXACT_REDIRECTS", "central redirect registry");
+requireText("urlPolicy", '"noindex,follow"', "filtered page index policy");
 
 requireText("home", "سفارش آنلاین کوکی،", "product-led homepage H1");
 requireText("home", "<CategoryShowcase", "homepage category discovery");
@@ -169,7 +188,6 @@ requireText("productsPage", "content?.catalogSearch", "subcategory search mappin
 requireText("productsPage", "hasNonCanonicalFilters", "filtered-page robots policy");
 requireText("categoryShowcase", "productCount", "backend category count support");
 requireText("categoryShowcase", 'to="/products"', "all-shop destination");
-forbidText("sitemapGenerator", '{ path: "/categories"', "redirect-only URL in sitemap");
 requireText("runtimeE2e", "shop unifies categories and filters", "unified-shop browser acceptance");
 requireText(
   "phase10Documentation",
@@ -180,6 +198,11 @@ requireText(
   "phase102Documentation",
   "unified_shop_categories=ready",
   "Phase 10.2 marker",
+);
+requireText(
+  "phase104Documentation",
+  "crawl_index_url_architecture=ready",
+  "Phase 10.4 marker",
 );
 
 for (const claim of [
@@ -196,5 +219,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including unified shop categories and the permanent legacy redirect.`,
+  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, canonical collections and the permanent legacy redirect.`,
 );
