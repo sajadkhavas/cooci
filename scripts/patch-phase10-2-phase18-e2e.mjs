@@ -16,7 +16,7 @@ if (start < 0 || end < 0) {
 
 const replacement = `test("legacy diet URLs and category links resolve to clean unified-shop routes", async ({ page, request }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
-  const response = await request.get(\`${apiOrigin}/api/catalog/categories\`, {
+  const response = await request.get(\`\${apiOrigin}/api/catalog/categories\`, {
     headers: {
       Origin: "http://127.0.0.1:4173",
       Referer: "http://127.0.0.1:4173/",
