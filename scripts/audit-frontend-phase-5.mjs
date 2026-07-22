@@ -2,7 +2,7 @@ import fs from "node:fs";
 
 const files = {
   threatModel: "docs/FRONTEND_FULL_AUDIT_PHASE_5.md",
-  shell: "index.html",
+  root: "src/root.tsx",
   contentContract: "src/lib/content-contract-schema.ts",
   contentSchema: "src/lib/content-schema.ts",
   contentApi: "src/lib/content.ts",
@@ -20,7 +20,6 @@ const files = {
 
 const errors = [];
 const sources = {};
-
 for (const [name, path] of Object.entries(files)) {
   if (!fs.existsSync(path)) {
     errors.push(`Missing Phase 5 file: ${path}`);
@@ -28,24 +27,35 @@ for (const [name, path] of Object.entries(files)) {
   }
   sources[name] = fs.readFileSync(path, "utf8");
 }
-
 const requireText = (file, text, label = text) => {
-  if (!sources[file]?.includes(text)) {
-    errors.push(`${files[file]}: missing ${label}`);
-  }
+  if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
 };
-
 const forbidText = (file, text, label = text) => {
-  if (sources[file]?.includes(text)) {
-    errors.push(`${files[file]}: contains forbidden ${label}`);
-  }
+  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
 };
 
-requireText("threatModel", "Every store-settings, page, FAQ, gallery, post, city, review and inquiry response is untrusted runtime data", "runtime content trust boundary");
-requireText("threatModel", "JSON-LD must be serialized as inert script text", "JSON-LD breakout boundary");
-requireText("threatModel", "eNAMAD code is data, not executable markup", "trust seal execution boundary");
+requireText(
+  "threatModel",
+  "Every store-settings, page, FAQ, gallery, post, city, review and inquiry response is untrusted runtime data",
+  "runtime content trust boundary",
+);
+requireText(
+  "threatModel",
+  "JSON-LD must be serialized as inert script text",
+  "JSON-LD breakout boundary",
+);
+requireText(
+  "threatModel",
+  "eNAMAD code is data, not executable markup",
+  "trust seal execution boundary",
+);
 
-forbidText("shell", 'rel="canonical"', "static SPA-shell canonical competing with route metadata");
+forbidText(
+  "root",
+  'rel="canonical"',
+  "static root-document canonical competing with route metadata",
+);
+requireText("root", "<Meta />", "framework route metadata outlet");
 
 requireText("contentContract", "storeSettingsSchema", "store settings schema");
 requireText("contentContract", "contentPageSchema", "managed page schema");
@@ -85,19 +95,29 @@ requireText("seoSecurity", "parsed.origin !== origin.origin", "external canonica
 requireText("seoSecurity", "resolvePublicMediaUrl", "public media resolver");
 requireText("seoSecurity", 'parsed.protocol !== "https:"', "insecure external media rejection");
 requireText("seoSecurity", "serializeJsonLd", "JSON-LD serializer");
-requireText("seoSecurity", '.replaceAll("<", "\\\\u003c")', "JSON-LD less-than escaping");
-requireText("seoSecurity", '.replaceAll("&", "\\\\u0026")', "JSON-LD ampersand escaping");
+requireText("seoSecurity", '.replaceAll("<", "\\u003c")', "JSON-LD less-than escaping");
+requireText("seoSecurity", '.replaceAll("&", "\\u0026")', "JSON-LD ampersand escaping");
 
 requireText("seoComponent", "resolveCanonicalUrl", "secure canonical usage");
 requireText("seoComponent", "resolvePublicMediaUrl", "secure media usage");
 requireText("seoComponent", "serializeJsonLd", "safe JSON-LD usage");
-requireText("seoComponent", "const canonicalPath = url || location.pathname", "query-free default canonical");
+requireText(
+  "seoComponent",
+  "resolveCanonicalUrl(url || location.pathname, SITE_ORIGIN)",
+  "query-free default canonical",
+);
+requireText("seoComponent", "useCspNonce", "nonce-bound JSON-LD");
 forbidText("seoComponent", "location.search", "query parameters in canonical URL");
 forbidText("seoComponent", "JSON.stringify(finalSchema)", "unescaped JSON-LD insertion");
 
 requireText("breadcrumbs", "resolveCanonicalUrl", "same-origin breadcrumb item URLs");
 requireText("breadcrumbs", "serializeJsonLd", "escaped breadcrumb JSON-LD");
-requireText("breadcrumbs", 'aria-current={isLast ? "page" : undefined}', "current breadcrumb semantics");
+requireText("breadcrumbs", "useCspNonce", "nonce-bound breadcrumb JSON-LD");
+requireText(
+  "breadcrumbs",
+  'aria-current={isLast ? "page" : undefined}',
+  "current breadcrumb semantics",
+);
 forbidText("breadcrumbs", "JSON.stringify(schema)", "unescaped breadcrumb JSON-LD");
 
 requireText("enamadSecurity", 'const ENAMAD_HOST = "trustseal.enamad.ir"', "exact eNAMAD host");
@@ -134,13 +154,11 @@ const report = {
   errors,
 };
 fs.writeFileSync("frontend-phase5-audit.json", `${JSON.stringify(report, null, 2)}\n`);
-
 if (errors.length) {
   console.error(`Frontend Phase 5 audit failed with ${errors.length} issue(s):`);
   errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
-
 console.log(
-  "Frontend Phase 5 audit passed: single route-managed canonical metadata, runtime content contracts, escaped page and breadcrumb JSON-LD, safe media URLs, exact eNAMAD extraction and bounded persisted inquiries are locked.",
+  "Frontend Phase 5 audit passed: route-managed SSR metadata, runtime content contracts, nonce-protected JSON-LD, safe media URLs, exact eNAMAD extraction and bounded persisted inquiries are locked.",
 );
