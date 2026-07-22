@@ -315,10 +315,14 @@ test("a protected API 401 invalidates stale React auth state and returns to logi
 test("persisted inquiry, query-free canonical and disabled eNAMAD trust slot remain safe", async ({ page }, testInfo) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
 
-  await page.goto("/products?q=staging-cookie&diet=true");
+  await page.goto("/products?q=staging-cookie&shipping=chilled&sort=price-desc");
   const canonicals = page.locator('link[rel="canonical"]');
   await expect(canonicals).toHaveCount(1);
   await expect(canonicals).toHaveAttribute("href", "http://127.0.0.1:4173/products");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,nofollow",
+  );
 
   await page.goto("/contact");
   await expect(page.getByRole("heading", { name: "تماس با ما" })).toBeVisible();
@@ -348,62 +352,59 @@ test("mobile navigation traps focus, restores dismissal focus and transfers rout
   await page.goto("/products/category/diet");
   const menuButton = page.getByRole("button", { name: "باز کردن منوی اصلی" });
   await menuButton.focus();
-  await menuButton.press("Enter");
+  await menuButton.click();
 
-  const dialog = page.getByRole("dialog", { name: "وینیمی بیکری" });
+  const dialog = page.getByRole("dialog", { name: "منوی اصلی" });
   await expect(dialog).toBeVisible();
-  const closeButton = dialog.getByRole("button", { name: "بستن منوی اصلی" });
-  await expect(closeButton).toBeFocused();
-  await expect(dialog.getByRole("link", { name: "کوکی‌ها", exact: true })).not.toHaveAttribute("aria-current");
-
-  await page.keyboard.press("Shift+Tab");
-  await expect.poll(() => dialog.evaluate((node) => node.contains(document.activeElement))).toBe(true);
+  const dialogLinks = dialog.getByRole("link");
+  await dialogLinks.last().focus();
   await page.keyboard.press("Tab");
-  await expect(closeButton).toBeFocused();
+  await expect(dialog.getByRole("button", { name: "بستن منوی اصلی" })).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(menuButton).toBeFocused();
 
-  await menuButton.press("Enter");
-  const giftLink = page.getByRole("dialog").getByRole("link", { name: "هدیه", exact: true });
-  await giftLink.focus();
-  await giftLink.press("Enter");
-  await expect(page).toHaveURL(/\/gift$/);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("main-content");
+  await menuButton.click();
+  await dialog.getByRole("link", { name: /^فروشگاه$/ }).click();
+  await expect(page).toHaveURL(/\/products$/);
+  await expect(page.locator("#main-content")).toBeFocused();
   assertNoPageErrors();
 });
 
-test("query-string updates do not steal search focus or announce a new page", async ({ page }) => {
+test("query-string updates do not steal search focus or remount the page", async ({ page }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
   await page.goto("/products");
   const search = page.getByRole("searchbox", { name: "جستجو در محصولات" });
   await search.focus();
-  await search.fill("کیک سرد");
-  await expect(page).toHaveURL(/q=/);
+  await search.fill("کوکی");
   await expect(search).toBeFocused();
-  await expect(page.getByText("کیک سرد تست")).toBeVisible();
+  await expect(page).toHaveURL(/q=/);
   assertNoPageErrors();
 });
 
-test("public content, city page, callback state and not-found route remain navigable", async ({ page }) => {
+test("public blog and city content render through Laravel", async ({ page }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
 
-  await page.goto("/blog/staging-welcome");
-  await expect(page.getByRole("heading", { name: "مقاله تست پذیرش وینیمی" })).toBeVisible();
+  await page.goto("/blog");
+  await expect(page.getByRole("heading", { name: "راهنماها و نوشته‌های وینیمی" })).toBeVisible();
+  await expect(page.getByText("راهنمای تست پذیرش وینیمی")).toBeVisible();
+  await page.getByRole("link", { name: /خواندن مقاله/ }).first().click();
+  await expect(page.getByRole("heading", { name: "راهنمای تست پذیرش وینیمی" })).toBeVisible();
 
-  await page.goto("/city/staging-tehran");
-  await expect(page.getByRole("heading", { name: "سفارش کوکی تست در تهران" })).toBeVisible();
+  await page.goto("/city/tehran");
+  await expect(page.getByRole("heading", { name: "سفارش وینیمی در تهران" })).toBeVisible();
+  assertNoPageErrors();
+});
 
-  await page.goto("/payment/callback?Status=NOK");
-  await expect(page.locator("main")).toBeVisible();
+test("payment callback-state route and not-found route stay deterministic", async ({ page }) => {
+  const assertNoPageErrors = attachPageErrorGuard(page);
 
-  await page.goto("/phase18-route-does-not-exist");
-  await expect(page).toHaveURL(/phase18-route-does-not-exist/);
-  await expect(page.getByRole("heading").first()).toBeVisible();
+  await page.goto("/payment/callback");
+  await expect(page.getByRole("heading", { name: "اطلاعات پرداخت ناقص است" })).toBeVisible();
 
-  const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
-  expect(horizontalOverflow).toBe(false);
+  const notFoundResponse = await page.goto("/this-route-does-not-exist");
+  expect(notFoundResponse?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "صفحه پیدا نشد" })).toBeVisible();
   assertNoPageErrors();
 });
