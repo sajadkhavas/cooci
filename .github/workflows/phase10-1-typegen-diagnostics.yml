@@ -1,0 +1,49 @@
+name: Phase 10.1 Typegen Diagnostics
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase10-1-typegen-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'agent/frontend-phase-10-1-ssr-foundation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/frontend-phase-10-1-ssr-foundation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: npm
+      - name: Apply migration and install
+        run: |
+          node scripts/migrate-phase10-1-framework.mjs
+          node scripts/migrate-phase10-1-build.mjs
+          npm install --no-audit --no-fund
+      - name: Capture typegen output
+        id: typegen
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx react-router typegen 2>&1 | tee phase10-1-typegen.log
+      - name: Upload diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10-1-typegen-diagnostic
+          path: phase10-1-typegen.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail when typegen failed
+        if: steps.typegen.outcome == 'failure'
+        run: exit 1
