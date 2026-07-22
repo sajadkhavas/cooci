@@ -7,8 +7,13 @@ const files = {
   catalogQuery: "src/lib/catalog-query.ts",
   catalogQueryTest: "tests/unit/catalog-query.test.ts",
   catalogHook: "src/hooks/useCatalog.ts",
+  homeRoute: "src/routes/home.tsx",
   shopRoute: "src/routes/products-shop.tsx",
   categoryRoute: "src/routes/category-shop.tsx",
+  productRoute: "src/routes/product-detail.tsx",
+  blogListRoute: "src/routes/blog-list.tsx",
+  blogDetailRoute: "src/routes/blog-detail.tsx",
+  cityRoute: "src/routes/city.tsx",
   blogList: "src/pages/BlogListPage.tsx",
   blogDetail: "src/pages/BlogDetailPage.tsx",
   city: "src/pages/CityPage.tsx",
@@ -50,6 +55,8 @@ requireText("loaders", "loadCityPage(slug)", "server city fetch");
 requireText("loaders", "throw toPublicSsrResponse", "fail-closed public loader errors");
 
 requireText("contract", "catalogLoaderKey", "stable loader/query cache key");
+requireText("contract", "passPublicSsrHeaders", "route header passthrough");
+requireText("contract", 'source.get(name)', "selected loader/error header forwarding");
 requireText("contract", "status: 404", "real missing-resource status");
 requireText("contract", "status: 503", "temporary upstream failure status");
 requireText("contract", '"X-Robots-Tag": "noindex, nofollow"', "error noindex header");
@@ -70,6 +77,22 @@ requireText("categoryRoute", "return loadShopPublicData(args)", "category server
 requireText("blogList", "initialData: isBackendEnabled ? initialPosts", "blog listing initial data");
 requireText("blogDetail", "initialData: isBackendEnabled ? initialPost", "blog detail initial data");
 requireText("city", "initialData: isBackendEnabled ? initialCity", "city initial data");
+
+for (const routeFile of [
+  "homeRoute",
+  "shopRoute",
+  "categoryRoute",
+  "productRoute",
+  "blogListRoute",
+  "blogDetailRoute",
+  "cityRoute",
+]) {
+  requireText(
+    routeFile,
+    "passPublicSsrHeaders as headers",
+    "public SSR response header export",
+  );
+}
 
 requireText("playwright", '"phase10-3-ssr-source.spec.mjs"', "raw source acceptance inclusion");
 for (const path of [
