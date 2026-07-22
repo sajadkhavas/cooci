@@ -9,6 +9,8 @@ packageJson.scripts["build:dev"] =
   "react-router build --mode development && vite build --mode development --config vite.ssr-server.config.ts";
 packageJson.scripts.typecheck =
   "npm run typegen && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json";
+packageJson.scripts.postinstall =
+  "node scripts/patch-react-router-dev-module-sync.mjs";
 packageJson.dependencies["react-router"] = "7.18.1";
 packageJson.dependencies["@react-router/express"] = "7.18.1";
 packageJson.dependencies["@react-router/node"] = "7.18.1";
@@ -16,5 +18,5 @@ packageJson.devDependencies["@react-router/dev"] = "7.18.1";
 packageJson.devDependencies.vite = "7.3.6";
 writeFileSync("package.json", `${JSON.stringify(packageJson, null, 2)}\n`);
 console.log(
-  "React Router Framework Mode pinned to 7.18.1 with the Node runtime and Vite 7.3.6.",
+  "React Router Framework Mode pinned to 7.18.1 with the Node runtime, Vite 7.3.6 and a build-time shim repair.",
 );
