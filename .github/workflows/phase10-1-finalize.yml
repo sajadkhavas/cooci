@@ -133,12 +133,31 @@ jobs:
         run: exit 1
 
       - name: Commit finalized Phase 10.1 implementation
+        id: publish
+        continue-on-error: true
         run: |
-          rm -f scripts/finalize-phase10-1.mjs
-          rm -f .github/workflows/phase10-1-finalize.yml
-          rm -rf .release-finalizer build .react-router
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Frontend Phase 10.1: finalize SSR deployment and acceptance gates'
-          git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
+          set -o pipefail
+          {
+            rm -f scripts/finalize-phase10-1.mjs
+            rm -f .github/workflows/phase10-1-finalize.yml
+            rm -rf .release-finalizer build .react-router
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git status --short
+            git commit -m 'Frontend Phase 10.1: finalize SSR deployment and acceptance gates'
+            git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
+          } 2>&1 | tee phase10-1-publish.log
+
+      - name: Upload publish diagnostic
+        if: always() && steps.publish.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10-1-publish-diagnostic
+          path: phase10-1-publish.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Stop on publish failure
+        if: steps.publish.outcome == 'failure'
+        run: exit 1
