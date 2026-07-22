@@ -214,6 +214,9 @@ jobs:
       - name: Phase 10.4 crawl and URL architecture audit
         run: npm run audit:phase10-4
 
+      - name: Phase 10.5 product and merchant SEO audit
+        run: npm run audit:phase10-5
+
       - name: Build production storefront and generated PWA
         id: production_build
         run: |
@@ -285,6 +288,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase10-4-crawl-index.spec.mjs 2>&1 | tee phase10-4-crawl-index.log
 
+      - name: Run Phase 10.5 product and merchant SEO acceptance
+        id: phase10_5_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase10-5-product-merchant-seo.spec.mjs 2>&1 | tee phase10-5-product-merchant-seo.log
+
       - name: Run desktop, mobile and PWA acceptance — PWA segment
         id: pwa_tests
         run: |
@@ -312,6 +321,7 @@ jobs:
             phase18-browser.log
             phase10-3-ssr-source.log
             phase10-4-crawl-index.log
+            phase10-5-product-merchant-seo.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
@@ -335,6 +345,7 @@ jobs:
             phase18-browser.log
             phase10-3-ssr-source.log
             phase10-4-crawl-index.log
+            phase10-5-product-merchant-seo.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log

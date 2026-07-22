@@ -96,6 +96,9 @@ jobs:
       - name: Frontend crawl and URL architecture Phase 10.4
         run: npm run audit:phase10-4
 
+      - name: Frontend product and merchant SEO Phase 10.5
+        run: npm run audit:phase10-5
+
       - name: Production environment schema audit
         run: npm run env:production:validate
 
@@ -119,6 +122,7 @@ jobs:
             frontend-phase10-2-audit.json
             frontend-phase10-3-audit.json
             frontend-phase10-4-audit.json
+            frontend-phase10-5-audit.json
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14

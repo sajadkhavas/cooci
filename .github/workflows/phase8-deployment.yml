@@ -50,6 +50,7 @@ jobs:
           npm run audit:ssr
           npm run audit:phase10-3
           npm run audit:phase10-4
+          npm run audit:phase10-5
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -128,6 +129,19 @@ jobs:
           grep -q '/city/phase10-4-city' dynamic-sitemap.xml
           grep -q 'Disallow: /account' dynamic-robots.txt
           grep -q 'Sitemap: https://winimibakery.com/sitemap.xml' dynamic-robots.txt
+      - name: Verify server-rendered merchant Product schema
+        run: |
+          curl --fail --silent http://127.0.0.1:4178/products/phase10-3-cookie > ssr-product.html
+          grep -q '"@type":"Product"' ssr-product.html
+          grep -q '"sku":"PHASE-10-3-V1"' ssr-product.html
+          grep -q '"price":1800000' ssr-product.html
+          grep -q '"priceCurrency":"IRR"' ssr-product.html
+          grep -q '"availability":"https://schema.org/InStock"' ssr-product.html
+          grep -q '"aggregateRating"' ssr-product.html
+          grep -q 'نظر تأییدشده قطعی برای تست Product merchant JSON-LD' ssr-product.html
+          ! grep -q 'shippingDetails' ssr-product.html
+          ! grep -q 'hasMerchantReturnPolicy' ssr-product.html
+          node scripts/assert-csp-nonces.mjs ssr-product.html
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -157,6 +171,7 @@ jobs:
             release-output.json
             performance-report.json
             ssr-home.html
+            ssr-product.html
             dynamic-sitemap.xml
             dynamic-robots.txt
             ssr-runtime.log

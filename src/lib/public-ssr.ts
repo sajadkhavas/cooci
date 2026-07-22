@@ -7,12 +7,17 @@ import type {
   CatalogPage,
   CatalogQuery,
 } from "@/lib/catalog-api";
-import type { StoreCityPage, StorePostsResult } from "@/lib/content";
+import type {
+  ProductReviewsResult,
+  StoreCityPage,
+  StorePostsResult,
+} from "@/lib/content";
 
 export interface PublicSsrLoaderData {
   catalogs?: Record<string, CatalogPage>;
   categories?: CatalogCategory[];
   product?: Product;
+  productReviews?: ProductReviewsResult;
   posts?: StorePostsResult;
   post?: BackendPostDetail;
   city?: StoreCityPage;
@@ -64,6 +69,11 @@ const reportPublicSsrFailure = (error: unknown, resourceLabel: string) => {
     error: error instanceof Error ? error.message : String(error),
   });
 };
+
+export const reportOptionalPublicSsrFailure = (
+  error: unknown,
+  resourceLabel: string,
+) => reportPublicSsrFailure(error, resourceLabel);
 
 export const toPublicSsrResponse = (
   error: unknown,

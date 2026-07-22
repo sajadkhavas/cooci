@@ -134,7 +134,7 @@ export const loadProductReviews = async (
   perPage = 10,
 ): Promise<ProductReviewsResult> => {
   const safePage = Math.max(1, Math.trunc(page));
-  const safePerPage = Math.min(50, Math.max(1, Math.trunc(perPage)));
+  const safePerPage = Math.min(30, Math.max(1, Math.trunc(perPage)));
   const response = await apiRequest<unknown>(
     `/api/catalog/products/${encodeURIComponent(slug)}/reviews?page=${safePage}&perPage=${safePerPage}`,
   );

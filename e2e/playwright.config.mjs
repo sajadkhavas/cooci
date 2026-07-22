@@ -16,6 +16,7 @@ export default defineConfig({
     "phase9-adversarial.spec.mjs",
     "phase10-3-ssr-source.spec.mjs",
     "phase10-4-crawl-index.spec.mjs",
+    "phase10-5-product-merchant-seo.spec.mjs",
     "runtime-performance.spec.mjs",
   ],
   timeout: 45_000,

@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-22-phase-10-4`
+Roadmap lock: `2026-07-22-phase-10-5`
 
 ## Required final state
 
@@ -113,9 +113,14 @@ Status: `crawl_index_url_architecture=ready`
 
 Laravel-backed dynamic sitemap and robots resource routes replace static source-scanned files. Clean pagination is self-canonical with previous/next links, duplicate page URLs permanently redirect, filtered collection URLs return HTML and HTTP `noindex,follow`, and account/cart/checkout/payment surfaces return `noindex,nofollow`.
 
+### Phase 10.5 — Product and merchant SEO — complete
+
+Status: `product_merchant_seo=ready`
+
+Authoritative Product JSON-LD is rendered in the initial HTML from Laravel product, preferred Variant, verified price, inventory, media and approved reviews. Offers are omitted when price or inventory cannot be verified, visible reviews match rating markup, category breadcrumbs use crawlable routes, and the frontend never fabricates shipping or return policy. ProductGroup remains blocked until direct stable variant URLs exist.
+
 ### Remaining frontend SEO phases
 
-- Phase 10.5 — Product and merchant SEO
 - Phase 10.6 — Content and topical authority foundation
 - Phase 10.7 — Local SEO and brand entity
 - Phase 10.8 — Core Web Vitals and media
@@ -154,6 +159,7 @@ No feature development is allowed. Only:
 - browser storage is not the source of truth for orders or authentication
 - every API response passes through one typed envelope parser
 - public indexable data is present in server-rendered HTML
+- product price, inventory, media and review markup come from authoritative server-loaded data
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints
