@@ -96,7 +96,7 @@ test("catalog renders backend staging products and search narrows results", asyn
   assertNoPageErrors();
 });
 
-test("diet and category filters update atomically without restoring stale URL state", async ({ page, request }) => {
+test("legacy diet URLs and category links resolve to clean unified-shop routes", async ({ page, request }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
   const response = await request.get(`${apiOrigin}/api/catalog/categories`, {
     headers: {
@@ -107,14 +107,45 @@ test("diet and category filters update atomically without restoring stale URL st
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
   const category = payload.data.find(
-    (item) => item.slug !== "diet" && !item.name.includes("رژیمی") && !item.name.includes("بدون قند"),
+    (item) =>
+      item.slug !== "diet" &&
+      !item.name.includes("رژیمی") &&
+      !item.name.includes("بدون قند"),
   );
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
-  await page.getByRole("button", { name: category.name, exact: true }).click();
-  await expect.poll(() => new URL(page.url()).searchParams.get("category")).toBe(category.slug);
-  await expect.poll(() => new URL(page.url()).searchParams.get("diet")).toBeNull();
+  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /رژیمی و بدون قند افزوده/,
+    }),
+  ).toBeVisible();
+
+  const categoryNavigation = page.getByRole("navigation", {
+    name: "دسته‌بندی محصولات",
+  });
+  const categoryLink = categoryNavigation.getByRole("link", {
+    name: category.name,
+    exact: true,
+  });
+  await expect(categoryLink).toHaveAttribute(
+    "href",
+    `/products/category/${category.slug}`,
+  );
+  await categoryLink.click();
+
+  await expect(page).toHaveURL(
+    new RegExp(`/products/category/${category.slug}$`),
+  );
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("category"))
+    .toBeNull();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("diet"))
+    .toBeNull();
+  await expect(categoryNavigation).toBeVisible();
   assertNoPageErrors();
 });
 
