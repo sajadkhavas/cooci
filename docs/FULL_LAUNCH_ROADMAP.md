@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-20-phase-18`
+Roadmap lock: `2026-07-22-phase-10-3`
 
 ## Required final state
 
@@ -87,11 +87,43 @@ Laravel uses SQLite, deterministic `WinimiStagingSeeder`, testing OTP and testin
 - backend migrations, seed, config/route cache and PHPUnit
 - browser artifacts, traces, screenshots and logs retained on failure
 
-## Phase 19 — Production server deployment — next
+## Frontend SEO delivery sequence
+
+### Phase 10.1 — SSR foundation — complete
+
+Status: `frontend_ssr_foundation=ready`
+
+React Router Framework Mode, Node SSR, streaming HTML, client hydration, CSP nonces, release packaging, Nginx proxying and rollback are complete.
+
+### Phase 10.2 — Unified shop categories — complete
+
+Status: `unified_shop_categories=ready`
+
+The all-products shop and crawlable category routes share one canonical catalog experience with hardened legacy redirects.
+
+### Phase 10.3 — Full server data rendering — complete
+
+Status: `full_public_ssr=ready`
+
+Authoritative Laravel catalog, product, article and city data is loaded before the first public HTML response. Missing public resources return 404 and unavailable authoritative data returns 503 instead of indexable empty content.
+
+### Remaining frontend SEO phases
+
+- Phase 10.4 — Crawl, index and URL architecture
+- Phase 10.5 — Product and merchant SEO
+- Phase 10.6 — Content and topical authority foundation
+- Phase 10.7 — Local SEO and brand entity
+- Phase 10.8 — Core Web Vitals and media
+- Phase 10.9 — SEO acceptance and release candidate
+
+Production deployment begins only after Phase 10.9 is complete.
+
+## Phase 19 — Production server deployment — after Phase 10.9
 
 Both repositories will run on one Linux server while remaining separate release artifacts:
 
-- `winimibakery.com` serves the immutable Vite build
+- `winimibakery.com` runs the Node SSR storefront behind Nginx
+- immutable client assets are served directly by Nginx
 - `api.winimibakery.com` serves Laravel, Filament and media
 - Nginx provides two virtual hosts on the same machine
 - DNS, TLS, secure Cookie/CORS configuration
@@ -101,7 +133,7 @@ Both repositories will run on one Linux server while remaining separate release 
 - disabled-provider production smoke tests
 - `production_deployed=ready`
 
-See `docs/SINGLE_SERVER_TOPOLOGY.md`.
+See `docs/SINGLE_SERVER_TOPOLOGY.md` and the SSR deployment documents.
 
 ## Phase 20 — External activation only
 
@@ -116,6 +148,7 @@ No feature development is allowed. Only:
 - static products are not a production source
 - browser storage is not the source of truth for orders or authentication
 - every API response passes through one typed envelope parser
+- public indexable data is present in server-rendered HTML
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints
