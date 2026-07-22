@@ -34,11 +34,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { name: "خانه", href: "/", match: "home" },
   { name: "فروشگاه", href: "/products", match: "products" },
-  {
-    name: "کوکی‌ها",
-    href: "/products/category/cookies",
-    match: "exact",
-  },
+  { name: "دسته‌بندی‌ها", href: "/categories", match: "prefix" },
   { name: "هدیه", href: "/gift", match: "prefix" },
   { name: "راهنماها", href: "/blog", match: "prefix" },
   { name: "داستان ما", href: "/about", match: "prefix" },
@@ -245,7 +241,7 @@ export const Header = () => {
       {!scrolled && (
         <div className="pointer-events-none absolute left-1/2 top-[calc(100%+0.5rem)] hidden -translate-x-1/2 items-center gap-2 rounded-full border border-border/60 bg-card/65 px-4 py-2 text-[11px] font-bold text-muted-foreground shadow-soft backdrop-blur-xl lg:flex">
           <Sparkles size={14} className="text-gold" aria-hidden="true" />
-          تجربه مدرن، سریع و شفاف برای انتخاب شیرین‌تر
+          کوکی، کیک و هدیه؛ انتخاب بر اساس دسته و مناسبت
         </div>
       )}
 
@@ -360,7 +356,7 @@ export const Header = () => {
 
             <div className="mobile-sticky-bar relative grid gap-3 border-t border-white/10 bg-black/10 p-5">
               <Link
-                to="/products"
+                to="/categories"
                 onClick={() => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
@@ -368,7 +364,7 @@ export const Header = () => {
                 className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-black text-accent-foreground"
               >
                 <ShoppingBag size={19} aria-hidden="true" />
-                ورود به فروشگاه
+                انتخاب از دسته‌بندی‌ها
               </Link>
               <div className="grid grid-cols-2 gap-3">
                 <a
