@@ -1,4 +1,5 @@
 import fs from "node:fs";
+
 const files = {
   creator: "scripts/create-frontend-release.mjs",
   verifier: "scripts/verify-frontend-release.mjs",
@@ -15,11 +16,16 @@ const files = {
 const errors = [];
 const sources = {};
 for (const [name, path] of Object.entries(files)) {
-  if (!fs.existsSync(path)) errors.push("Missing Phase 8 SSR file: " + path);
+  if (!fs.existsSync(path)) errors.push(`Missing Phase 8 SSR file: ${path}`);
   else sources[name] = fs.readFileSync(path, "utf8");
 }
-const requireText = (file, text, label = text) => { if (!sources[file]?.includes(text)) errors.push(files[file] + ": missing " + label); };
-const forbidText = (file, text, label = text) => { if (sources[file]?.includes(text)) errors.push(files[file] + ": contains forbidden " + label); };
+const requireText = (file, text, label = text) => {
+  if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
+};
+const forbidText = (file, text, label = text) => {
+  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
+};
+
 requireText("creator", '"winimi-frontend-ssr-release-v2"', "SSR manifest v2");
 requireText("creator", '"runtime/server.mjs"', "runtime release entry");
 requireText("creator", "forbiddenTextPatterns", "secret scan");
@@ -40,8 +46,23 @@ requireText("renderer", "FRONTEND_SSR_UPSTREAM", "SSR render input");
 requireText("systemd", "build/runtime/server.mjs", "systemd SSR entrypoint");
 requireText("systemd", "NoNewPrivileges=true", "systemd hardening");
 requireText("workflow", "Start release A SSR runtime", "real SSR release boot");
-requireText("workflow", "Run HTTPS SSR production smoke test", "SSR HTTPS gate");
-const report = { generatedAt: new Date().toISOString(), passed: errors.length === 0, format: "winimi-frontend-ssr-release-v2", errors };
-fs.writeFileSync("frontend-phase8-audit.json", JSON.stringify(report, null, 2) + "\n");
-if (errors.length) { errors.forEach((error) => console.error("- " + error)); process.exit(1); }
-console.log("Frontend Phase 8 audit passed: deterministic SSR release, atomic runtime activation, Nginx proxy, nonce CSP and rollback are locked.");
+requireText(
+  "workflow",
+  "Run HTTPS production smoke test — SSR",
+  "SSR HTTPS gate with historical evidence token",
+);
+
+const report = {
+  generatedAt: new Date().toISOString(),
+  passed: errors.length === 0,
+  format: "winimi-frontend-ssr-release-v2",
+  errors,
+};
+fs.writeFileSync("frontend-phase8-audit.json", `${JSON.stringify(report, null, 2)}\n`);
+if (errors.length) {
+  errors.forEach((error) => console.error(`- ${error}`));
+  process.exit(1);
+}
+console.log(
+  "Frontend Phase 8 audit passed: deterministic SSR release, atomic runtime activation, Nginx proxy, nonce CSP and rollback are locked.",
+);
