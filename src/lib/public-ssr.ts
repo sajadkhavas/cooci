@@ -1,3 +1,4 @@
+import type { HeadersArgs } from "react-router";
 import type { Product } from "@/data/products";
 import { ApiError } from "@/lib/api";
 import type {
@@ -29,6 +30,23 @@ export const catalogLoaderKey = (query: CatalogQuery = {}) => {
       .sort(([first], [second]) => first.localeCompare(second)),
   );
   return JSON.stringify(normalized);
+};
+
+const hasHeaders = (headers: Headers) => !headers.keys().next().done;
+
+export const passPublicSsrHeaders = ({
+  errorHeaders,
+  loaderHeaders,
+}: HeadersArgs): Headers => {
+  const source = hasHeaders(errorHeaders) ? errorHeaders : loaderHeaders;
+  const responseHeaders = new Headers();
+
+  for (const name of ["Cache-Control", "X-Robots-Tag", "Retry-After"]) {
+    const value = source.get(name);
+    if (value) responseHeaders.set(name, value);
+  }
+
+  return responseHeaders;
 };
 
 const reportPublicSsrFailure = (error: unknown, resourceLabel: string) => {
