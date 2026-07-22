@@ -87,11 +87,43 @@ const post = {
   title: "راهنمای تست Crawl وینیمی",
   excerpt: "مقاله قطعی برای اعتبارسنجی Sitemap داینامیک.",
   category: "راهنما",
-  tags: ["SEO"],
+  tags: ["SEO", "Crawl"],
   coverUrl: null,
   author: "وینیمی",
   publishedAt: now,
 };
+
+const relatedPost = {
+  id: "phase10-6-related-post",
+  slug: "phase10-6-related-guide",
+  title: "راهنمای مرتبط تست معماری محتوا",
+  excerpt: "مقاله دوم قطعی برای Topic Hub و لینک‌سازی داخلی.",
+  category: "راهنما",
+  tags: ["SEO", "محتوا"],
+  coverUrl: null,
+  author: "وینیمی",
+  publishedAt: "2026-07-21T00:00:00+00:00",
+};
+
+const posts = [post, relatedPost];
+const postDetails = new Map([
+  [
+    post.slug,
+    {
+      ...post,
+      content: "محتوای قطعی مقاله اصلی برای تست BlogPosting و Related Content.",
+      viewCount: 4,
+    },
+  ],
+  [
+    relatedPost.slug,
+    {
+      ...relatedPost,
+      content: "محتوای قطعی مقاله مرتبط برای تست Topic Hub.",
+      viewCount: 2,
+    },
+  ],
+]);
 
 const city = {
   id: "phase10-4-city",
@@ -106,25 +138,27 @@ const city = {
   },
 };
 
-const pagination = {
-  page: 1,
-  perPage: 12,
-  total: 1,
-  totalPages: 1,
-  from: 1,
-  to: 1,
-  hasMore: false,
+const paginationFor = (items, page, perPage) => {
+  const total = items.length;
+  const totalPages = total ? Math.ceil(total / perPage) : 0;
+  const start = (page - 1) * perPage;
+  const visible = items.slice(start, start + perPage);
+  return {
+    visible,
+    pagination: {
+      page,
+      perPage,
+      total,
+      totalPages,
+      from: visible.length ? start + 1 : null,
+      to: visible.length ? start + visible.length : null,
+      hasMore: totalPages > page,
+    },
+  };
 };
 
-const postPagination = {
-  ...pagination,
-  perPage: 48,
-};
-
-const reviewPagination = {
-  ...pagination,
-  perPage: 10,
-};
+const productPagination = paginationFor([product], 1, 12).pagination;
+const reviewPagination = paginationFor([approvedReview], 1, 10).pagination;
 
 const envelope = (data, meta = {}) => ({
   success: true,
@@ -151,7 +185,9 @@ const server = http.createServer((request, response) => {
     return;
   }
   if (url.pathname === "/api/catalog/products") {
-    response.end(JSON.stringify(envelope([product], { pagination })));
+    response.end(
+      JSON.stringify(envelope([product], { pagination: productPagination })),
+    );
     return;
   }
   if (url.pathname === "/api/catalog/products/phase10-3-cookie") {
@@ -159,15 +195,39 @@ const server = http.createServer((request, response) => {
     return;
   }
   if (url.pathname === "/api/catalog/products/phase10-3-cookie/reviews") {
-    response.end(JSON.stringify(envelope([approvedReview], {
-      summary: { count: 1, averageRating: 5 },
-      pagination: reviewPagination,
-    })));
+    response.end(
+      JSON.stringify(
+        envelope([approvedReview], {
+          summary: { count: 1, averageRating: 5 },
+          pagination: reviewPagination,
+        }),
+      ),
+    );
     return;
   }
   if (url.pathname === "/api/store/posts") {
-    response.end(JSON.stringify(envelope([post], { pagination: postPagination })));
+    const categoryFilter = url.searchParams.get("category")?.trim() || "";
+    const filtered = categoryFilter
+      ? posts.filter((candidate) => candidate.category === categoryFilter)
+      : posts;
+    const page = Math.max(1, Number.parseInt(url.searchParams.get("page") || "1", 10));
+    const perPage = Math.min(
+      48,
+      Math.max(1, Number.parseInt(url.searchParams.get("perPage") || "12", 10)),
+    );
+    const result = paginationFor(filtered, page, perPage);
+    response.end(
+      JSON.stringify(envelope(result.visible, { pagination: result.pagination })),
+    );
     return;
+  }
+  if (url.pathname.startsWith("/api/store/posts/")) {
+    const slug = decodeURIComponent(url.pathname.slice("/api/store/posts/".length));
+    const detail = postDetails.get(slug);
+    if (detail) {
+      response.end(JSON.stringify(envelope({ post: detail })));
+      return;
+    }
   }
   if (url.pathname === "/api/store/cities/phase10-4-city") {
     response.end(JSON.stringify(envelope({ city })));
@@ -175,17 +235,19 @@ const server = http.createServer((request, response) => {
   }
 
   response.statusCode = 404;
-  response.end(JSON.stringify({
-    success: false,
-    code: "resource_not_found",
-    message: "Fixture resource not found.",
-    errors: {},
-    meta: {
-      apiVersion: "v1",
-      contractVersion: "2026-07-20-phase-16",
-      requestId: "phase10-3-fixture",
-    },
-  }));
+  response.end(
+    JSON.stringify({
+      success: false,
+      code: "resource_not_found",
+      message: "Fixture resource not found.",
+      errors: {},
+      meta: {
+        apiVersion: "v1",
+        contractVersion: "2026-07-20-phase-16",
+        requestId: "phase10-3-fixture",
+      },
+    }),
+  );
 });
 
 server.listen(port, host, () => {
