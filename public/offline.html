@@ -13,9 +13,9 @@
       .logo { width: 96px; height: 96px; margin: 0 auto 20px; display: block; border-radius: 999px; box-shadow: 0 16px 36px rgba(39, 57, 12, .18); }
       h1 { margin: 0 0 12px; font-size: clamp(24px, 5vw, 36px); }
       p { margin: 0 auto 24px; max-width: 500px; line-height: 2; color: #576539; }
-      button, a { min-height: 48px; border-radius: 14px; padding: 12px 20px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
-      button { border: 0; background: #d0e596; color: #27390c; }
-      a { display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; border: 1px solid #b9ce7d; color: #27390c; background: #fff; }
+      .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+      a { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; border-radius: 14px; padding: 12px 20px; border: 1px solid #b9ce7d; color: #27390c; background: #fff; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+      a.primary { border-color: #d0e596; background: #d0e596; }
     </style>
   </head>
   <body>
@@ -25,8 +25,10 @@
       <p>
         بعضی صفحات و فایل‌های ذخیره‌شده ممکن است همچنان باز شوند، اما دریافت موجودی، ورود، ثبت سفارش و پرداخت به اتصال اینترنت نیاز دارند.
       </p>
-      <button type="button" onclick="location.reload()">تلاش دوباره</button>
-      <a href="/">بازگشت به خانه</a>
+      <div class="actions">
+        <a class="primary" href="">تلاش دوباره</a>
+        <a href="/">بازگشت به خانه</a>
+      </div>
     </main>
   </body>
 </html>
