@@ -3,6 +3,7 @@ import fs from "node:fs";
 const files = {
   routes: "src/routes.ts",
   redirect: "src/routes/categories-redirect.tsx",
+  productsRoute: "src/routes/products-shop.tsx",
   categoryShop: "src/routes/category-shop.tsx",
   products: "src/pages/ProductsPage.tsx",
   home: "src/pages/HomePage.tsx",
@@ -30,6 +31,11 @@ const forbidText = (file, text, label = text) => {
 
 requireText(
   "routes",
+  'route("products", "./routes/products-shop.tsx")',
+  "hardened products route module",
+);
+requireText(
+  "routes",
   'route("categories", "./routes/categories-redirect.tsx")',
   "legacy permanent redirect route",
 );
@@ -39,13 +45,31 @@ requireText(
   "unique category route-module wrapper",
 );
 requireText(
-  "categoryShop",
-  'export { default, loader } from "../pages/ProductsPage"',
+  "productsRoute",
+  'import ProductsPage from "../pages/ProductsPage"',
   "shared ProductsPage implementation",
 );
+requireText(
+  "productsRoute",
+  "SAFE_CATEGORY_SLUG",
+  "legacy category redirect slug validation",
+);
+requireText(
+  "productsRoute",
+  "export const loader",
+  "legacy query redirect loader",
+);
+requireText(
+  "categoryShop",
+  'export { default } from "../pages/ProductsPage"',
+  "shared category shop implementation",
+);
+requireText(
+  "categoryShop",
+  "SAFE_CATEGORY_SLUG",
+  "category path slug validation",
+);
 requireText("redirect", 'redirect("/products", 301)', "301 redirect");
-requireText("products", "export const loader", "legacy query redirect loader");
-requireText("products", "resolveEditorialSlug", "backend/editorial slug bridge");
 requireText("products", "categoryNavigation", "category navigation inside shop");
 requireText("products", "getCategoryContent", "category-specific SEO content");
 requireText(
