@@ -39,8 +39,8 @@ jobs:
 
       - name: Align finalizer with the current Phase 18 workflow
         run: |
-          sed -i '395s/^  2,$/  1,/' scripts/finalize-phase10-1.mjs
-          test "$(sed -n '395p' scripts/finalize-phase10-1.mjs)" = "  1,"
+          perl -0pi -e 's/(frontend-https-proxy\.log\n`,\n  )2,/${1}1,/s' scripts/finalize-phase10-1.mjs
+          grep -A2 -F 'frontend-https-proxy.log' scripts/finalize-phase10-1.mjs | grep -q '  1,'
 
       - name: Apply Phase 10.1 deployment and acceptance finalizer
         id: finalizer
@@ -50,12 +50,12 @@ jobs:
           node scripts/finalize-phase10-1.mjs 2>&1 | tee phase10-1-finalizer.log
 
       - name: Upload finalizer diagnostic
-        if: always()
+        if: always() && steps.finalizer.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: phase10-1-finalizer-diagnostic
           path: phase10-1-finalizer.log
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Stop on finalizer failure
