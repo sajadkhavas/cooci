@@ -62,8 +62,23 @@ jobs:
       - name: Stop on typegen failure
         if: steps.typegen.outcome == 'failure'
         run: exit 1
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Typecheck migrated application
+        id: typecheck
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee phase10-1-typecheck.log
+      - name: Upload TypeScript migration diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10-1-typecheck
+          path: phase10-1-typecheck.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Stop on TypeScript failure
+        if: steps.typecheck.outcome == 'failure'
+        run: exit 1
       - name: Build SSR, client and PWA outputs
         env:
           NODE_ENV: production
