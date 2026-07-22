@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useLoaderData, useSearchParams } from "react-router";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { Link, useLoaderData, useSearchParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { BlogPostCard } from "@/components/content/BlogPostCard";
@@ -27,9 +27,10 @@ const parsePage = (value: string | null) => {
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(10_000, parsed) : 1;
 };
 
-const BlogListPage = () => {
+const BlogTopicPage = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
   const [searchParams, setSearchParams] = useSearchParams();
+  const topic = loaderData?.contentTopic;
   const page = parsePage(searchParams.get("page"));
   const initialPosts =
     loaderData?.posts?.pagination?.page === page ||
@@ -37,15 +38,14 @@ const BlogListPage = () => {
       ? loaderData.posts
       : undefined;
   const query = useQuery({
-    queryKey: ["store", "posts", page],
-    queryFn: () => loadPosts({ page, perPage: 12 }),
-    enabled: isBackendEnabled,
+    queryKey: ["store", "posts", "topic", topic?.name, page],
+    queryFn: () => loadPosts({ category: topic?.name, page, perPage: 12 }),
+    enabled: isBackendEnabled && Boolean(topic?.name),
     initialData: isBackendEnabled ? initialPosts : undefined,
     staleTime: 60_000,
   });
   const posts = query.data?.posts ?? [];
   const pagination = query.data?.pagination;
-  const topics = loaderData?.contentTopics ?? [];
 
   const handlePageChange = (nextPage: number) => {
     const next = new URLSearchParams(searchParams);
@@ -54,17 +54,28 @@ const BlogListPage = () => {
     setSearchParams(next);
   };
 
-  const title = "راهنماهای وینیمی";
-  const description =
-    "مقاله‌های منتشرشده وینیمی در موضوعات واقعی فروشگاه برای انتخاب، سفارش و نگهداری آگاهانه‌تر.";
-  const schemaPath = page <= 1 ? "/blog" : `/blog?page=${page}`;
+  if (!topic) {
+    return (
+      <section className="section-padding">
+        <div className="container-custom text-center">
+          منبع موضوعات محتوایی در دسترس نیست.
+        </div>
+      </section>
+    );
+  }
+
+  const title = `راهنماهای ${topic.name}`;
+  const description = `${topic.postCount} مقاله منتشرشده وینیمی در موضوع ${topic.name}.`;
+  const schemaPath =
+    page <= 1 ? topic.path : `${topic.path}?page=${page}`;
   const schema = createBlogCollectionSchema({
     siteOrigin: SITE_ORIGIN,
     path: schemaPath,
     title,
     description,
     posts,
-    topics,
+    topics: loaderData?.contentTopics,
+    activeTopic: topic,
   });
 
   return (
@@ -74,13 +85,28 @@ const BlogListPage = () => {
         <div className="container-custom max-w-5xl">
           <Breadcrumbs
             className="mb-8"
-            items={[{ name: "خانه", href: "/" }, { name: "راهنماها" }]}
+            items={[
+              { name: "خانه", href: "/" },
+              { name: "راهنماها", href: "/blog" },
+              { name: topic.name },
+            ]}
           />
+          <Link
+            to="/blog"
+            className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-primary"
+          >
+            <ArrowRight size={16} aria-hidden="true" />
+            همه راهنماها
+          </Link>
           <h1 className="heading-1 mb-4 text-foreground">{title}</h1>
           <p className="body-large max-w-2xl text-muted-foreground">
             {description}
           </p>
-          <ContentTopicNav topics={topics} className="mt-8" />
+          <ContentTopicNav
+            topics={loaderData?.contentTopics ?? []}
+            activeTopic={topic.name}
+            className="mt-8"
+          />
         </div>
       </section>
       <section className="section-padding">
@@ -96,7 +122,7 @@ const BlogListPage = () => {
                 size={42}
                 aria-hidden="true"
               />
-              در حال دریافت راهنماها…
+              در حال دریافت راهنماهای موضوع…
             </div>
           ) : query.error ? (
             <div
@@ -105,11 +131,7 @@ const BlogListPage = () => {
             >
               {query.error instanceof Error
                 ? query.error.message
-                : "دریافت راهنماها ناموفق بود."}
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="rounded-3xl border border-border bg-card p-10 text-center">
-              هنوز مقاله‌ای منتشر نشده است.
+                : "دریافت راهنماهای موضوع ناموفق بود."}
             </div>
           ) : (
             <>
@@ -133,4 +155,4 @@ const BlogListPage = () => {
   );
 };
 
-export default BlogListPage;
+export default BlogTopicPage;

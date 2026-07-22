@@ -40,12 +40,13 @@ test.describe("Phase 10.3 raw server-rendered public data", () => {
     const listing = await getSource(request, "/blog");
     expect(listing.response.status()).toBe(200);
     expect(listing.html).toContain("مقاله تست پذیرش وینیمی");
+    expect(listing.html).toContain('"@type":"Blog"');
 
     const detail = await getSource(request, "/blog/staging-welcome");
     expect(detail.response.status()).toBe(200);
     expect(detail.html).toContain("مقاله تست پذیرش وینیمی");
     expect(detail.html).toContain("این نوشته فقط در محیط staging استفاده می‌شود");
-    expect(detail.html).toContain('"@type":"Article"');
+    expect(detail.html).toContain('"@type":"BlogPosting"');
   });
 
   test("city content and featured products are rendered on the server", async ({ request }) => {

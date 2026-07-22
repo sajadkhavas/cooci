@@ -6,6 +6,7 @@ import {
 } from "@/lib/catalog-api";
 import { loadCityPage, loadPosts } from "@/lib/content";
 import { categoryContents } from "@/data/categoriesContent";
+import { getContentTopicPath } from "@/lib/seo/content-topics";
 import {
   CRAWLABLE_STATIC_PATHS,
   PUBLIC_CITY_SLUGS,
@@ -14,6 +15,11 @@ import {
 interface SitemapEntry {
   path: string;
   lastModified?: string;
+}
+
+interface CollectedContentEntries {
+  posts: SitemapEntry[];
+  topics: SitemapEntry[];
 }
 
 const MAX_SITEMAP_PAGES = 100;
@@ -31,6 +37,15 @@ const escapeXml = (value: string) =>
 const normalizeLastModified = (value?: string | null) => {
   if (!value || !Number.isFinite(Date.parse(value))) return undefined;
   return new Date(value).toISOString();
+};
+
+const latestLastModified = (
+  first?: string,
+  second?: string,
+) => {
+  if (!first) return second;
+  if (!second) return first;
+  return Date.parse(second) > Date.parse(first) ? second : first;
 };
 
 const readOptionalUpdatedAt = (product: object) => {
@@ -78,8 +93,9 @@ const collectProductEntries = async (): Promise<SitemapEntry[]> => {
   return entries;
 };
 
-const collectPostEntries = async (): Promise<SitemapEntry[]> => {
-  const entries: SitemapEntry[] = [];
+const collectContentEntries = async (): Promise<CollectedContentEntries> => {
+  const posts: SitemapEntry[] = [];
+  const topicLastModified = new Map<string, string | undefined>();
   let page = 1;
   let totalPages = 1;
 
@@ -93,16 +109,29 @@ const collectPostEntries = async (): Promise<SitemapEntry[]> => {
       throw new Error("Blog sitemap pagination exceeds the safety limit.");
     }
 
-    entries.push(
-      ...result.posts.map((post) => ({
+    for (const post of result.posts) {
+      const lastModified = normalizeLastModified(post.publishedAt);
+      posts.push({
         path: `/blog/${encodeURIComponent(post.slug)}`,
-        lastModified: normalizeLastModified(post.publishedAt),
-      })),
-    );
+        lastModified,
+      });
+      const topicPath = getContentTopicPath(post.category);
+      if (topicPath) {
+        topicLastModified.set(
+          topicPath,
+          latestLastModified(topicLastModified.get(topicPath), lastModified),
+        );
+      }
+    }
     page += 1;
   } while (page <= totalPages);
 
-  return entries;
+  return {
+    posts,
+    topics: Array.from(topicLastModified.entries()).map(
+      ([path, lastModified]) => ({ path, lastModified }),
+    ),
+  };
 };
 
 const collectCityEntries = async (): Promise<SitemapEntry[]> => {
@@ -123,10 +152,10 @@ const collectCityEntries = async (): Promise<SitemapEntry[]> => {
 
 export const generateDynamicSitemap = async (siteOrigin: string) => {
   const origin = new URL(siteOrigin).origin;
-  const [categories, products, posts, cities] = await Promise.all([
+  const [categories, products, content, cities] = await Promise.all([
     fetchCatalogCategories(),
     collectProductEntries(),
-    collectPostEntries(),
+    collectContentEntries(),
     collectCityEntries(),
   ]);
 
@@ -138,7 +167,8 @@ export const generateDynamicSitemap = async (siteOrigin: string) => {
       )}`,
     })),
     ...products,
-    ...posts,
+    ...content.posts,
+    ...content.topics,
     ...cities,
   ];
   const uniqueEntries = Array.from(

@@ -9,6 +9,7 @@ export default [
   route("products/category/:slug", "./routes/category-shop.tsx"),
   route("products/:slug", "./routes/product-detail.tsx"),
   route("blog", "./routes/blog-list.tsx"),
+  route("blog/topic/:topic", "./routes/blog-topic.tsx"),
   route("blog/:slug", "./routes/blog-detail.tsx"),
   route("city/:slug", "./routes/city.tsx"),
   route("gift", "./pages/GiftPage.tsx"),

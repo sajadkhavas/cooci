@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-22-phase-10-5`
+Roadmap lock: `2026-07-22-phase-10-6`
 
 ## Required final state
 
@@ -119,9 +119,14 @@ Status: `product_merchant_seo=ready`
 
 Authoritative Product JSON-LD is rendered in the initial HTML from Laravel product, preferred Variant, verified price, inventory, media and approved reviews. Offers are omitted when price or inventory cannot be verified, visible reviews match rating markup, category breadcrumbs use crawlable routes, and the frontend never fabricates shipping or return policy. ProductGroup remains blocked until direct stable variant URLs exist.
 
+### Phase 10.6 — Content and topical authority foundation — complete
+
+Status: `content_topical_authority=ready`
+
+Published Laravel post categories form the only production topic taxonomy. Crawlable server-rendered topic hubs, visible category links, same-topic related articles, Blog/CollectionPage/BlogPosting structured data and sitemap topic entries all use the same authoritative content values. Unknown topics return 404/noindex, related content is omitted instead of fabricated, and the frontend does not invent editorial claims or article modification dates.
+
 ### Remaining frontend SEO phases
 
-- Phase 10.6 — Content and topical authority foundation
 - Phase 10.7 — Local SEO and brand entity
 - Phase 10.8 — Core Web Vitals and media
 - Phase 10.9 — SEO acceptance and release candidate
@@ -160,6 +165,8 @@ No feature development is allowed. Only:
 - every API response passes through one typed envelope parser
 - public indexable data is present in server-rendered HTML
 - product price, inventory, media and review markup come from authoritative server-loaded data
+- published Laravel post categories are the only source of production content topics
+- visible topic links, related content, structured data and sitemap entries use the same authoritative published posts
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints

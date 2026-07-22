@@ -51,6 +51,7 @@ jobs:
           npm run audit:phase10-3
           npm run audit:phase10-4
           npm run audit:phase10-5
+          npm run audit:phase10-6
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -126,6 +127,7 @@ jobs:
           grep -q '/products/phase10-3-cookie' dynamic-sitemap.xml
           grep -q '/products/category/phase10-3-category' dynamic-sitemap.xml
           grep -q '/blog/phase10-4-crawl-guide' dynamic-sitemap.xml
+          grep -q '/blog/topic/%D8%B1%D8%A7%D9%87%D9%86%D9%85%D8%A7' dynamic-sitemap.xml
           grep -q '/city/phase10-4-city' dynamic-sitemap.xml
           grep -q 'Disallow: /account' dynamic-robots.txt
           grep -q 'Sitemap: https://winimibakery.com/sitemap.xml' dynamic-robots.txt
@@ -142,6 +144,20 @@ jobs:
           ! grep -q 'shippingDetails' ssr-product.html
           ! grep -q 'hasMerchantReturnPolicy' ssr-product.html
           node scripts/assert-csp-nonces.mjs ssr-product.html
+      - name: Verify server-rendered content topical authority
+        run: |
+          curl --fail --silent 'http://127.0.0.1:4178/blog/topic/%D8%B1%D8%A7%D9%87%D9%86%D9%85%D8%A7' > ssr-topic.html
+          curl --fail --silent http://127.0.0.1:4178/blog/phase10-4-crawl-guide > ssr-article.html
+          grep -q '"@type":"CollectionPage"' ssr-topic.html
+          grep -q 'راهنمای تست Crawl وینیمی' ssr-topic.html
+          grep -q 'راهنمای مرتبط تست معماری محتوا' ssr-topic.html
+          grep -q '"@type":"BlogPosting"' ssr-article.html
+          grep -q '"articleSection":"راهنما"' ssr-article.html
+          grep -q '/blog/topic/%D8%B1%D8%A7%D9%87%D9%86%D9%85%D8%A7' ssr-article.html
+          grep -q 'راهنماهای مرتبط' ssr-article.html
+          grep -q 'phase10-6-related-guide' ssr-article.html
+          node scripts/assert-csp-nonces.mjs ssr-topic.html
+          node scripts/assert-csp-nonces.mjs ssr-article.html
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -172,6 +188,8 @@ jobs:
             performance-report.json
             ssr-home.html
             ssr-product.html
+            ssr-topic.html
+            ssr-article.html
             dynamic-sitemap.xml
             dynamic-robots.txt
             ssr-runtime.log

@@ -51,7 +51,7 @@ const sanitizeSchema = (schema: object | undefined) => {
     delete offers.availability;
     cloned.offers = offers;
   }
-  if (schemaType === "Article") {
+  if (schemaType === "Article" || schemaType === "BlogPosting") {
     const published = cloned.datePublished;
     if (
       typeof published !== "string" ||
@@ -73,7 +73,7 @@ const getPaginationTotal = (
     .map((match) => match.data as PublicSsrLoaderData | undefined)
     .find((data) => data?.catalogs || data?.posts);
 
-  if (pathname === "/blog") {
+  if (pathname === "/blog" || pathname.startsWith("/blog/topic/")) {
     return loaderData?.posts?.pagination?.totalPages;
   }
   if (pathname === "/products" || pathname.startsWith("/products/category/")) {
@@ -108,6 +108,7 @@ export const SEO = ({
   const nonce = useCspNonce();
   const supportsPaginationPolicy =
     location.pathname === "/blog" ||
+    location.pathname.startsWith("/blog/topic/") ||
     location.pathname === "/products" ||
     location.pathname.startsWith("/products/category/");
   const paginationPolicy = supportsPaginationPolicy
