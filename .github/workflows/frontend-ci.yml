@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   SITE_URL: https://winimibakery.com
@@ -27,7 +27,59 @@ env:
   VITE_PAYMENT_MODE: disabled
 
 jobs:
+  phase10_1_bootstrap:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-phase-10-1-ssr-foundation' && github.actor != 'github-actions[bot]'
+    name: Migrate to React Router Framework Mode and SSR
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/frontend-phase-10-1-ssr-foundation
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js 22.22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: npm
+
+      - name: Apply source, build and audit migration
+        run: |
+          node scripts/migrate-phase10-1-framework.mjs
+          node scripts/migrate-phase10-1-build.mjs
+
+      - name: Resolve and lock exact dependency graph
+        run: npm install --no-audit --no-fund
+
+      - name: Generate Framework Mode route types
+        run: npx react-router typegen
+
+      - name: Typecheck migrated application
+        run: npm run typecheck
+
+      - name: Build SSR runtime, browser client and PWA
+        run: npm run build
+
+      - name: Verify framework route inventory
+        run: npm run audit:frontend
+
+      - name: Commit clean migration result
+        run: |
+          rm -f scripts/migrate-phase10-1-framework.mjs
+          rm -f scripts/migrate-phase10-1-build.mjs
+          rm -f .github/workflows/phase10-1-framework-bootstrap.yml
+          git checkout origin/main -- .github/workflows/frontend-ci.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Frontend Phase 10.1: React Router Framework SSR foundation'
+          git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
+
   validate:
+    if: github.ref != 'refs/heads/agent/frontend-phase-10-1-ssr-foundation' || github.actor == 'github-actions[bot]' || github.event_name == 'pull_request'
     name: Audit security, accessibility, runtime, build, PWA and deployment readiness
     runs-on: ubuntu-latest
     timeout-minutes: 36
