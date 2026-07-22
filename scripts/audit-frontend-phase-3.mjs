@@ -4,6 +4,7 @@ const files = {
   contract: "src/lib/catalog-contract-schema.ts",
   adapter: "src/lib/catalog-schema.ts",
   catalogApi: "src/lib/catalog-api.ts",
+  catalogQuery: "src/lib/catalog-query.ts",
   catalog: "src/lib/catalog.ts",
   productSelection: "src/lib/product-selection.ts",
   cart: "src/lib/cart.ts",
@@ -57,8 +58,9 @@ requireText("adapter", 'code: "invalid_catalog_contract"', "catalog contract err
 requireText("catalogApi", "parseBackendProducts", "runtime products parsing");
 requireText("catalogApi", "parseBackendPagination", "runtime pagination parsing");
 requireText("catalogApi", "verifiedImages", "verified media filtering");
-requireText("catalogApi", "MAX_SEARCH_LENGTH = 120", "bounded search query");
-requireText("catalogApi", "MAX_PER_PAGE = 100", "bounded page size");
+requireText("catalogApi", "toCatalogSearchParams", "shared catalog query serializer");
+requireText("catalogQuery", "MAX_SEARCH_LENGTH = 120", "bounded search query");
+requireText("catalogQuery", "MAX_PER_PAGE = 100", "bounded page size");
 
 requireText("catalog", "return 0;", "unknown stock fallback to zero");
 forbidText(
