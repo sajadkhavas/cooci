@@ -13,10 +13,6 @@ export interface CatalogQuery {
   perPage?: number;
 }
 
-interface CatalogPaginationHint {
-  totalPages?: unknown;
-}
-
 const clampInteger = (
   value: number | undefined,
   minimum: number,
@@ -54,14 +50,18 @@ export const toCatalogSearchParams = (query: CatalogQuery) => {
 
 export const resolveOutOfRangeCatalogQuery = (
   query: CatalogQuery,
-  pagination: CatalogPaginationHint | undefined,
+  pagination: unknown,
 ): CatalogQuery | undefined => {
   const requestedPage = clampInteger(query.page, 1, MAX_PAGE);
+  const totalPagesValue =
+    pagination && typeof pagination === "object"
+      ? (pagination as Record<string, unknown>).totalPages
+      : undefined;
   const totalPages =
-    typeof pagination?.totalPages === "number" &&
-    Number.isInteger(pagination.totalPages) &&
-    pagination.totalPages >= 1
-      ? pagination.totalPages
+    typeof totalPagesValue === "number" &&
+    Number.isInteger(totalPagesValue) &&
+    totalPagesValue >= 1
+      ? totalPagesValue
       : undefined;
 
   if (!requestedPage || !totalPages || requestedPage <= totalPages) {
