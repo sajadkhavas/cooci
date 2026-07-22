@@ -114,3 +114,8 @@ deploy/bin/smoke-test-frontend.sh https://winimibakery.com
 ```
 
 Rollback must be exercised once in staging before the first production switch and after any change to the release scripts or Nginx template.
+
+
+## SSR runtime activation
+
+The active release contains `app/build/client`, `app/build/server` and the bundled `app/build/runtime/server.mjs`. Install the example systemd unit, set `FRONTEND_RESTART_COMMAND="systemctl restart winimi-frontend-ssr"` and `FRONTEND_HEALTH_URL=http://127.0.0.1:4173/__ssr_health` during deploy/rollback. Nginx serves immutable assets directly and proxies HTML to the loopback SSR process so the response-specific CSP nonce is preserved.
