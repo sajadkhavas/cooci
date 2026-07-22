@@ -17,7 +17,7 @@
       "id": "offline-reconnect",
       "frontendEvidence": [
         "e2e/phase7-pwa.spec.mjs::__winimi_network_failure",
-        "e2e/phase7-pwa.spec.mjs::network restoration returns to the live application"
+        "e2e/phase7-pwa.spec.mjs::network restoration returns to the live server-rendered application"
       ],
       "backendEvidence": []
     },

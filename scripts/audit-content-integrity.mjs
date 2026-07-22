@@ -21,7 +21,7 @@ const files = {
   trustSecurity: "src/lib/security/enamad.ts",
   footer: "src/components/layout/Footer.tsx",
   header: "src/components/layout/Header.tsx",
-  app: "src/App.tsx",
+  routes: "src/routes.ts",
   home: "src/pages/HomePage.tsx",
   categoriesPage: "src/pages/CategoriesPage.tsx",
   categoryPage: "src/pages/CategoryPage.tsx",
@@ -69,7 +69,11 @@ requireText("quality", "ManagedContentPage", "managed quality content");
 requireText("corporate", "InquiryForm", "persisted corporate inquiry");
 requireText("inquiry", "submitInquiry", "persisted public inquiry");
 requireText("trust", "extractOfficialEnamadBadge", "isolated eNAMAD parser usage");
-requireText("trustSecurity", 'const ENAMAD_HOST = "trustseal.enamad.ir"', "official eNAMAD host allowlist");
+requireText(
+  "trustSecurity",
+  'const ENAMAD_HOST = "trustseal.enamad.ir"',
+  "official eNAMAD host allowlist",
+);
 forbidText("trust", "dangerouslySetInnerHTML", "raw badge HTML execution");
 forbidText("trustSecurity", "dangerouslySetInnerHTML", "raw trust-policy HTML execution");
 
@@ -115,7 +119,16 @@ requireText("catalog", "isProductInventoryVerified", "inventory verification hel
 requireText("catalog", "isProductContentVerified", "content verification helper");
 requireText("catalog", "isProductMediaVerified", "media verification helper");
 
-requireText("app", 'path="/categories"', "category index route");
+requireText(
+  "routes",
+  'route("categories", "./pages/CategoriesPage.tsx")',
+  "category index route module",
+);
+requireText(
+  "routes",
+  'route("products/category/:slug", "./pages/CategoryPage.tsx")',
+  "category detail route module",
+);
 requireText("header", 'href: "/categories"', "header category index link");
 requireText("footer", 'href: "/categories"', "footer category index link");
 for (const validPath of [
@@ -131,11 +144,7 @@ for (const validPath of [
   requireText("sitemap", validPath, `category sitemap URL ${validPath}`);
 }
 
-requireText(
-  "home",
-  "سفارش آنلاین کوکی،",
-  "product-led homepage H1",
-);
+requireText("home", "سفارش آنلاین کوکی،", "product-led homepage H1");
 requireText("home", "<CategoryShowcase", "homepage category discovery");
 requireText("home", "خرید بر اساس موقعیت", "occasion-led homepage section");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
@@ -152,7 +161,11 @@ requireText(
 requireText("categoryPage", "content?.catalogSearch", "subcategory search mapping");
 requireText("categoryPage", '"@type": "CollectionPage"', "category detail schema");
 requireText("sitemapGenerator", '{ path: "/categories"', "generated category index URL");
-requireText("runtimeE2e", "homepage is product-led and exposes the category architecture", "homepage browser acceptance");
+requireText(
+  "runtimeE2e",
+  "homepage is product-led and exposes the category architecture",
+  "homepage browser acceptance",
+);
 requireText("runtimeE2e", "editorial slugs map to Laravel", "category mapping browser acceptance");
 requireText(
   "phase10Documentation",
@@ -174,5 +187,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} production content contracts verified, including Phase 10.0 homepage and category architecture.`,
+  `Content integrity audit passed: ${Object.keys(files).length} production content contracts verified, including the SSR Phase 10.0 homepage and category route architecture.`,
 );

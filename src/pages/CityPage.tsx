@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin, MessageCircle, ShoppingCart } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { StructuredText } from "@/components/content/StructuredText";
 import { ProductCard } from "@/components/ProductCard";

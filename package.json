@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "predev": "node scripts/generate-sitemap.mjs",
-    "dev": "vite",
+    "dev": "react-router dev --host 0.0.0.0 --port 8080",
     "prebuild": "node scripts/generate-sitemap.mjs",
-    "build": "vite build && node scripts/generate-service-worker.mjs",
+    "build": "react-router build && vite build --config vite.ssr-server.config.ts && node scripts/generate-service-worker.mjs",
     "postbuild": "node scripts/audit-performance.mjs",
-    "build:dev": "vite build --mode development",
+    "build:dev": "react-router build --mode development && vite build --mode development --config vite.ssr-server.config.ts",
     "audit:frontend": "node scripts/audit-frontend.mjs",
     "audit:accessibility": "node scripts/audit-accessibility.mjs",
     "audit:content": "node scripts/audit-content-integrity.mjs",
@@ -36,9 +36,12 @@
     "test:unit": "node --experimental-strip-types --experimental-loader ./tests/unit/alias-loader.mjs --test tests/unit/*.test.ts",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs --max-failures=1",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:phase3 && npm run audit:phase4 && npm run audit:phase5 && npm run audit:phase6 && npm run audit:phase7 && npm run audit:phase8 && npm run audit:phase9 && npm run audit:runtime && npm run env:production:validate && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
-    "preview": "vite preview"
+    "typecheck": "npm run typegen && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "check": "npm run audit:launch && npm run audit:integration && npm run audit:acceptance && npm run audit:brand && npm run audit:phase1 && npm run audit:phase2 && npm run audit:phase3 && npm run audit:phase4 && npm run audit:phase5 && npm run audit:phase6 && npm run audit:phase7 && npm run audit:phase8 && npm run audit:phase9 && npm run audit:runtime && npm run audit:ssr && npm run env:production:validate && npm run audit:frontend && npm run audit:accessibility && npm run audit:content && npm run audit:modern-ui && npm run test:unit && npm run lint && npm run typecheck && npm run build",
+    "preview": "node build/runtime/server.mjs",
+    "typegen": "react-router typegen",
+    "postinstall": "node scripts/patch-react-router-dev-module-sync.mjs",
+    "audit:ssr": "node scripts/audit-frontend-phase-10-1.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -78,27 +81,29 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
-    "react": "^18.3.1",
+    "react": "19.2.7",
     "react-day-picker": "^8.10.1",
-    "react-dom": "^18.3.1",
-    "react-helmet-async": "^2.0.5",
+    "react-dom": "19.2.7",
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^2.1.9",
-    "react-router-dom": "^6.30.1",
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.9",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@react-router/express": "7.18.1",
+    "express": "^5.1.0",
+    "react-router": "7.18.1",
+    "@react-router/node": "7.18.1",
+    "isbot": "5.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.16.5",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react-swc": "^3.11.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -109,6 +114,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^5.4.19"
+    "vite": "7.3.6",
+    "@react-router/dev": "7.18.1"
   }
 }

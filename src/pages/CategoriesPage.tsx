@@ -1,5 +1,5 @@
 import { ArrowLeft, Gift, Search, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import { Reveal } from "@/components/motion/Reveal";

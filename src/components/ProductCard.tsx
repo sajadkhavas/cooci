@@ -5,7 +5,7 @@ import {
   Snowflake,
   Truck,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";

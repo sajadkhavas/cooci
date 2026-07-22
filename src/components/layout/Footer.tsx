@@ -14,7 +14,7 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import {
   brandConfig,
   generatePhoneUrl,

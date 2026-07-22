@@ -14,7 +14,7 @@ import {
   WalletCards,
   X,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AccountAddresses } from "@/components/account/AccountAddresses";
 import { SEO } from "@/components/SEO";

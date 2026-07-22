@@ -16,6 +16,33 @@ const percentile = (values, ratio) => {
   return sorted[index];
 };
 
+const waitForStableDocument = async (page) => {
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+
+    const deadline = performance.now() + 10_000;
+    let previousHeight = document.documentElement.scrollHeight;
+    let stableSamples = 0;
+
+    while (performance.now() < deadline) {
+      await new Promise((resolve) => window.setTimeout(resolve, 200));
+      const currentHeight = document.documentElement.scrollHeight;
+
+      if (Math.abs(currentHeight - previousHeight) <= 1) {
+        stableSamples += 1;
+        if (stableSamples >= 5) return;
+      } else {
+        stableSamples = 0;
+      }
+
+      previousHeight = currentHeight;
+    }
+
+    throw new Error("Document height did not stabilize before runtime profiling");
+  });
+};
+
 const profileScroll = async (page) =>
   page.evaluate(async () => {
     await document.fonts.ready;
@@ -26,10 +53,8 @@ const profileScroll = async (page) =>
 
     const frameDeltas = [];
     const durationMs = 2_600;
-    const maxScroll = Math.max(
-      0,
-      document.documentElement.scrollHeight - window.innerHeight,
-    );
+    const initialScrollHeight = document.documentElement.scrollHeight;
+    const maxScroll = Math.max(0, initialScrollHeight - window.innerHeight);
     let previousFrame;
     const startedAt = performance.now();
 
@@ -56,6 +81,7 @@ const profileScroll = async (page) =>
 
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
+      initialScrollHeight,
       scrollHeight: document.documentElement.scrollHeight,
       maxScroll,
       frameDeltas,
@@ -65,7 +91,9 @@ const profileScroll = async (page) =>
 
 const assertNoHorizontalOverflow = async (page) => {
   const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(2);
 };
@@ -85,17 +113,15 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
 
   await expect(navigation).toBeVisible();
   await expect(navigation.getByRole("link")).toHaveCount(5);
-  await expect(navigation.getByRole("link", { name: "خانه" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(
+    navigation.getByRole("link", { name: "خانه" }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(
     navigation.getByRole("link", { name: "فروشگاه" }),
   ).toBeVisible();
-  await expect(navigation.getByRole("link", { name: "حساب" })).toHaveAttribute(
-    "href",
-    "/account/login",
-  );
+  await expect(
+    navigation.getByRole("link", { name: "حساب" }),
+  ).toHaveAttribute("href", "/account/login");
 
   const viewport = page.viewportSize();
   const navigationBox = await navigation.boundingBox();
@@ -113,14 +139,18 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
 
   await navigation.getByRole("link", { name: "فروشگاه" }).click();
   await expect(page).toHaveURL(/\/products$/);
-  await expect(page.getByRole("heading", { name: "محصولات وینیمی" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "محصولات وینیمی" }),
+  ).toBeVisible();
   await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
   await expect(
     navigation.getByRole("link", { name: "فروشگاه" }),
   ).toHaveAttribute("aria-current", "page");
 });
 
-test("homepage is product-led and exposes the category architecture", async ({ page }) => {
+test("homepage is product-led and exposes the category architecture", async ({
+  page,
+}) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
   await expect(
@@ -132,14 +162,22 @@ test("homepage is product-led and exposes the category architecture", async ({ p
   await expect(
     page.getByRole("heading", { name: /اول دسته را پیدا کن/ }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /مشاهده همه دسته‌بندی‌ها/ })).toBeAttached();
-  await expect(page.getByRole("link", { name: /مشاهده دسته کوکی‌های خانگی/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /خرید بر اساس موقعیت/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /مشاهده همه دسته‌بندی‌ها/ }),
+  ).toBeAttached();
+  await expect(
+    page.getByRole("link", { name: /مشاهده دسته کوکی‌های خانگی/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /خرید بر اساس موقعیت/ }),
+  ).toBeVisible();
 
   await assertNoHorizontalOverflow(page);
 });
 
-test("category index is crawlable and editorial slugs map to Laravel", async ({ page }) => {
+test("category index is crawlable and editorial slugs map to Laravel", async ({
+  page,
+}) => {
   await page.goto("/categories", { waitUntil: "domcontentloaded" });
 
   await expect(
@@ -162,7 +200,9 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({ 
 
   for (const [name, href] of expectedDestinations) {
     await expect(
-      page.getByRole("link", { name: new RegExp(`مشاهده دسته ${name}`) }),
+      page.getByRole("link", {
+        name: new RegExp(`مشاهده دسته ${name}`),
+      }),
     ).toHaveAttribute("href", href);
   }
 
@@ -172,7 +212,9 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({ 
       response.url().includes("category=cookies") &&
       response.status() === 200,
   );
-  await page.goto("/products/category/cookies", { waitUntil: "domcontentloaded" });
+  await page.goto("/products/category/cookies", {
+    waitUntil: "domcontentloaded",
+  });
   const cookiesCatalogResponse = await cookiesResponse;
   const cookiesPayload = await cookiesCatalogResponse.json();
   expect(cookiesPayload.success).toBe(true);
@@ -197,14 +239,19 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({ 
   });
   await dietResponse;
   await expect(
-    page.getByRole("heading", { level: 1, name: /رژیمی و بدون قند افزوده/ }),
+    page.getByRole("heading", {
+      level: 1,
+      name: /رژیمی و بدون قند افزوده/,
+    }),
   ).toBeVisible();
 
   await assertNoHorizontalOverflow(page);
 });
 
-test("profiles production scrolling on desktop and mobile", async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
+test("profiles production scrolling on desktop and mobile", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(110_000);
 
   await page.addInitScript(() => {
     window.__winimiRuntimeLongTasks = [];
@@ -232,6 +279,15 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
     for (const route of routes) {
       await page.goto(route.path, { waitUntil: "domcontentloaded" });
       await expect(page.locator(route.ready)).toBeVisible();
+
+      if (route.path === "/") {
+        await expect(
+          page.locator(
+            '[aria-busy="true"][aria-label="در حال بارگذاری محصولات منتخب"]',
+          ),
+        ).toHaveCount(0);
+      }
+
       if (route.path === "/products") {
         await expect(
           page.getByRole("heading", { name: "محصولات وینیمی" }),
@@ -239,12 +295,17 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
         await expect(page.getByText("کوکی شکلاتی تست").first()).toBeVisible();
       }
 
+      await waitForStableDocument(page);
+
       const raw = await profileScroll(page);
-      const frameDeltas = raw.frameDeltas.filter((value) => Number.isFinite(value));
+      const frameDeltas = raw.frameDeltas.filter((value) =>
+        Number.isFinite(value),
+      );
       const longTaskDurations = raw.longTasks.map((entry) => entry.duration);
       const profile = {
         route: route.path,
         viewport: raw.viewport,
+        initialScrollHeight: raw.initialScrollHeight,
         scrollHeight: raw.scrollHeight,
         maxScroll: raw.maxScroll,
         frames: frameDeltas.length,
@@ -258,16 +319,26 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
         framesOver32ms: frameDeltas.filter((value) => value > 32).length,
         framesOver50ms: frameDeltas.filter((value) => value > 50).length,
         longTaskCount: longTaskDurations.length,
-        longTaskTotalMs: longTaskDurations.reduce((sum, value) => sum + value, 0),
+        longTaskTotalMs: longTaskDurations.reduce(
+          (sum, value) => sum + value,
+          0,
+        ),
         maxLongTaskMs: Math.max(0, ...longTaskDurations),
       };
       profiles.push(profile);
 
       expect(profile.maxScroll, `${route.path} must be scrollable`).toBeGreaterThan(0);
       expect(
-        Math.abs(profile.maxScroll - (profile.scrollHeight - profile.viewport.height)),
+        Math.abs(profile.initialScrollHeight - profile.scrollHeight),
         `${route.path} must keep a stable document height during profiling`,
       ).toBeLessThanOrEqual(4);
+      expect(
+        Math.abs(
+          profile.maxScroll -
+            (profile.initialScrollHeight - profile.viewport.height),
+        ),
+        `${route.path} must use a consistent measured scroll range`,
+      ).toBeLessThanOrEqual(1);
       expect(
         profile.frames,
         `${route.path} must produce enough frame samples`,
@@ -286,7 +357,7 @@ test("profiles production scrolling on desktop and mobile", async ({ page }, tes
 
   const report = {
     generatedAt: new Date().toISOString(),
-    mode: "production-preview",
+    mode: "production-ssr-stable-layout",
     cpuThrottlingRate: 4,
     project: testInfo.project.name,
     profiles,

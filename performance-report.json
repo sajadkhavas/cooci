@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-07-22T10:16:45.620Z",
+  "mode": "react-router-framework-ssr",
+  "budgets": {
+    "largestJavaScriptGzip": 153600,
+    "totalJavaScriptGzip": 716800,
+    "largestCssGzip": 51200,
+    "largestImage": 1048576,
+    "minimumJavaScriptChunks": 12,
+    "runtimeBundleGzip": 2621440
+  },
+  "serviceWorkerVersion": "47f025090cff3313",
+  "manifest": {
+    "id": "/",
+    "scope": "/",
+    "startUrl": "/?source=pwa",
+    "iconCount": 4
+  },
+  "summary": {
+    "javascriptChunks": 100,
+    "largestJavaScript": {
+      "file": "assets/entry.client-DSIlGs2E.js",
+      "bytes": 186527,
+      "gzipBytes": 58842
+    },
+    "totalJavaScriptGzip": 305177,
+    "largestCss": {
+      "file": "assets/root-gRAZdOfX.css",
+      "bytes": 127104,
+      "gzipBytes": 21739
+    },
+    "largestImage": {
+      "file": "assets/hero-assorted-BuWtpA_n.jpg",
+      "bytes": 268649
+    },
+    "runtimeFiles": 1,
+    "runtimeGzip": 623998
+  },
+  "warnings": [],
+  "failures": []
+}

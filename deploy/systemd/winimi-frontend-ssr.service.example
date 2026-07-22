@@ -1,0 +1,30 @@
+[Unit]
+Description=Winimi Bakery frontend SSR runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=winimi
+Group=www-data
+WorkingDirectory=/var/www/winimi/frontend/current/app
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4173
+Environment=WINIMI_API_ORIGIN=https://api.winimibakery.com
+ExecStart=/usr/bin/node build/runtime/server.mjs
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/winimi/frontend
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

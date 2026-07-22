@@ -4,10 +4,10 @@ const SHELL_CACHE = `${CACHE_PREFIX}-shell-${BUILD_VERSION}`;
 const ASSET_CACHE = `${CACHE_PREFIX}-assets-${BUILD_VERSION}`;
 const IMAGE_CACHE = `${CACHE_PREFIX}-images-${BUILD_VERSION}`;
 const MAX_IMAGE_ENTRIES = 48;
+const MAX_NAVIGATION_ENTRIES = 16;
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 const SHELL_FILES = [
-  "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
   "/brand/winimi-logo.svg",
@@ -26,6 +26,9 @@ const isSensitiveNavigation = (pathname) =>
   SENSITIVE_NAVIGATION_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+
+const navigationCacheKey = (url) =>
+  new Request(`${url.origin}${url.pathname}`, { method: "GET" });
 
 const matchCache = async (cacheName, request) => {
   const cache = await caches.open(cacheName);
@@ -68,7 +71,9 @@ const staleWhileRevalidate = async (request, cacheName) => {
   const networkPromise = fetch(request)
     .then((response) => putIfCacheable(cacheName, request, response))
     .then(async (response) => {
-      if (cacheName === IMAGE_CACHE) await trimCache(IMAGE_CACHE, MAX_IMAGE_ENTRIES);
+      if (cacheName === IMAGE_CACHE) {
+        await trimCache(IMAGE_CACHE, MAX_IMAGE_ENTRIES);
+      }
       return response;
     })
     .catch(() => undefined);
@@ -82,6 +87,7 @@ const offlineResponse = async () =>
 
 const networkFirstNavigation = async (request) => {
   const url = new URL(request.url);
+  const sensitive = isSensitiveNavigation(url.pathname);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), NAVIGATION_TIMEOUT_MS);
 
@@ -94,24 +100,28 @@ const networkFirstNavigation = async (request) => {
 
     const contentType = response.headers.get("content-type") || "";
     if (
+      !sensitive &&
       response.status === 200 &&
       response.type === "basic" &&
       contentType.includes("text/html")
     ) {
-      await putIfCacheable(SHELL_CACHE, "/index.html", response);
+      await putIfCacheable(
+        SHELL_CACHE,
+        navigationCacheKey(url),
+        response,
+      );
+      await trimCache(SHELL_CACHE, MAX_NAVIGATION_ENTRIES + SHELL_FILES.length);
     }
 
     return response;
   } catch {
     clearTimeout(timeoutId);
 
-    if (isSensitiveNavigation(url.pathname)) {
-      return offlineResponse();
-    }
+    if (sensitive) return offlineResponse();
 
     return (
-      (await matchCache(SHELL_CACHE, request)) ||
-      (await matchCache(SHELL_CACHE, "/index.html")) ||
+      (await matchCache(SHELL_CACHE, navigationCacheKey(url))) ||
+      (await matchCache(SHELL_CACHE, navigationCacheKey(new URL("/", url)))) ||
       (await offlineResponse())
     );
   }
@@ -128,6 +138,7 @@ self.addEventListener("install", (event) => {
           await cache.put(path, response);
         }),
       );
+      await self.skipWaiting();
     })(),
   );
 });

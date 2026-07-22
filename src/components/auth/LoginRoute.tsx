@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { type ReactNode, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { sanitizeInternalReturnPath } from "@/lib/security/navigation";
 
 interface LoginLocationState {
@@ -8,20 +8,20 @@ interface LoginLocationState {
 
 export const LoginRoute = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state as LoginLocationState | null;
 
-  if (state?.from !== undefined) {
+  useEffect(() => {
+    if (state?.from === undefined) return;
+
     const safeDestination = sanitizeInternalReturnPath(state.from);
     if (state.from !== safeDestination) {
-      return (
-        <Navigate
-          to="/account/login"
-          replace
-          state={{ from: safeDestination }}
-        />
-      );
+      navigate("/account/login", {
+        replace: true,
+        state: { from: safeDestination },
+      });
     }
-  }
+  }, [navigate, state?.from]);
 
   return children;
 };

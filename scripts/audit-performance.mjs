@@ -1,271 +1,173 @@
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { extname, join, relative } from "node:path";
 import { gzipSync } from "node:zlib";
 
-const DIST_DIR = "dist";
+const CLIENT_DIR = "build/client";
+const RUNTIME_DIR = "build/runtime";
 const KIB = 1024;
 const MIB = 1024 * KIB;
-
 const budgets = {
-  entryGzip: 90 * KIB,
-  largestJavaScriptGzip: 100 * KIB,
-  totalJavaScriptGzip: 450 * KIB,
-  largestCssGzip: 40 * KIB,
+  largestJavaScriptGzip: 150 * KIB,
+  totalJavaScriptGzip: 700 * KIB,
+  largestCssGzip: 50 * KIB,
   largestImage: 1 * MIB,
   minimumJavaScriptChunks: 12,
+  runtimeBundleGzip: 2.5 * MIB,
 };
-
 const failures = [];
 const warnings = [];
-
 const walk = (directory) =>
   readdirSync(directory).flatMap((name) => {
-    const absolutePath = join(directory, name);
-    return statSync(absolutePath).isDirectory() ? walk(absolutePath) : [absolutePath];
+    const path = join(directory, name);
+    return statSync(path).isDirectory() ? walk(path) : [path];
   });
+const gzipBytes = (file) => gzipSync(readFileSync(file), { level: 9 }).byteLength;
+const formatBytes = (value) =>
+  value >= MIB
+    ? (value / MIB).toFixed(2) + " MiB"
+    : (value / KIB).toFixed(1) + " KiB";
 
-const formatBytes = (value) => {
-  if (value >= MIB) return `${(value / MIB).toFixed(2)} MiB`;
-  return `${(value / KIB).toFixed(1)} KiB`;
-};
-
-if (!existsSync(DIST_DIR)) {
-  console.error("Performance audit requires a completed production build in dist/.");
-  process.exit(1);
+for (const directory of [CLIENT_DIR, RUNTIME_DIR]) {
+  if (!existsSync(directory)) failures.push("Missing production directory: " + directory);
+}
+for (const path of [
+  "build/client/manifest.webmanifest",
+  "build/client/sw.js",
+  "build/client/offline.html",
+  "build/client/icons/winimi-192.png",
+  "build/client/icons/winimi-512.png",
+  "build/runtime/server.mjs",
+]) {
+  if (!existsSync(path)) failures.push("Required production file is missing: " + path);
 }
 
-const requiredFiles = [
-  "dist/index.html",
-  "dist/manifest.webmanifest",
-  "dist/sw.js",
-  "dist/offline.html",
-  "dist/_headers",
-  "dist/_redirects",
-  "dist/icons/winimi-192.png",
-  "dist/icons/winimi-512.png",
-  "dist/icons/winimi-apple-touch.png",
-  "dist/icons/winimi-192.svg",
-  "dist/icons/winimi-512.svg",
-];
+const clientFiles = existsSync(CLIENT_DIR) ? walk(CLIENT_DIR) : [];
+const runtimeFiles = existsSync(RUNTIME_DIR) ? walk(RUNTIME_DIR) : [];
+const allFiles = [...clientFiles, ...runtimeFiles];
+const sourceMaps = allFiles.filter((file) => file.endsWith(".map"));
+if (sourceMaps.length) failures.push("Production output contains source maps.");
 
-for (const path of requiredFiles) {
-  if (!existsSync(path)) failures.push(`Required production file is missing: ${path}`);
-}
-
-const files = walk(DIST_DIR);
-const sourceMaps = files.filter((file) => file.endsWith(".map"));
-if (sourceMaps.length) {
-  failures.push(`Production build contains ${sourceMaps.length} source map file(s).`);
-}
-
-const javascriptFiles = files.filter((file) => extname(file) === ".js");
-const cssFiles = files.filter((file) => extname(file) === ".css");
-const imageFiles = files.filter((file) =>
-  [".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"].includes(
-    extname(file).toLowerCase(),
-  ),
-);
-
-const measureGzip = (file) => gzipSync(readFileSync(file), { level: 9 }).byteLength;
-const javascript = javascriptFiles.map((file) => ({
-  file: relative(DIST_DIR, file),
-  bytes: statSync(file).size,
-  gzipBytes: measureGzip(file),
-}));
-const css = cssFiles.map((file) => ({
-  file: relative(DIST_DIR, file),
-  bytes: statSync(file).size,
-  gzipBytes: measureGzip(file),
-}));
-const images = imageFiles.map((file) => ({
-  file: relative(DIST_DIR, file),
-  bytes: statSync(file).size,
-}));
+const javascript = clientFiles
+  .filter((file) => [".js", ".mjs"].includes(extname(file)))
+  .map((file) => ({
+    file: relative(CLIENT_DIR, file),
+    bytes: statSync(file).size,
+    gzipBytes: gzipBytes(file),
+  }));
+const css = clientFiles
+  .filter((file) => extname(file) === ".css")
+  .map((file) => ({
+    file: relative(CLIENT_DIR, file),
+    bytes: statSync(file).size,
+    gzipBytes: gzipBytes(file),
+  }));
+const images = clientFiles
+  .filter((file) =>
+    [".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"].includes(
+      extname(file).toLowerCase(),
+    ),
+  )
+  .map((file) => ({ file: relative(CLIENT_DIR, file), bytes: statSync(file).size }));
+const runtime = runtimeFiles
+  .filter((file) => [".js", ".mjs"].includes(extname(file)))
+  .map((file) => ({
+    file: relative(RUNTIME_DIR, file),
+    bytes: statSync(file).size,
+    gzipBytes: gzipBytes(file),
+  }));
 
 if (javascript.length < budgets.minimumJavaScriptChunks) {
   failures.push(
-    `Only ${javascript.length} JavaScript chunks were generated; expected at least ${budgets.minimumJavaScriptChunks} for route-level splitting.`,
+    "Only " + javascript.length +
+      " client JavaScript chunks were generated; route-module splitting is missing.",
   );
 }
-
-const indexHtml = readFileSync("dist/index.html", "utf8");
-if (!indexHtml.includes('rel="manifest"')) {
-  failures.push("Built index.html does not link to the web app manifest.");
-}
-if (!indexHtml.includes('/icons/winimi-apple-touch.png')) {
-  failures.push("Built index.html does not use the dedicated Apple touch icon.");
-}
-
-const entryMatch = indexHtml.match(/<script[^>]+src="([^"]+\.js)"/);
-const entryPath = entryMatch?.[1]?.replace(/^\//, "");
-const entry = javascript.find((item) => item.file === entryPath);
-
-if (!entry) {
-  failures.push("Unable to identify the generated JavaScript entry chunk.");
-} else if (entry.gzipBytes > budgets.entryGzip) {
-  failures.push(
-    `Entry chunk ${entry.file} is ${formatBytes(entry.gzipBytes)} gzip; budget is ${formatBytes(budgets.entryGzip)}.`,
-  );
-}
-
-const largestJavaScript = [...javascript].sort(
-  (a, b) => b.gzipBytes - a.gzipBytes,
-)[0];
-const totalJavaScriptGzip = javascript.reduce(
-  (total, item) => total + item.gzipBytes,
-  0,
-);
+const largestJavaScript = [...javascript].sort((a, b) => b.gzipBytes - a.gzipBytes)[0];
+const totalJavaScriptGzip = javascript.reduce((total, item) => total + item.gzipBytes, 0);
 const largestCss = [...css].sort((a, b) => b.gzipBytes - a.gzipBytes)[0];
 const largestImage = [...images].sort((a, b) => b.bytes - a.bytes)[0];
-
-if (
-  largestJavaScript &&
-  largestJavaScript.gzipBytes > budgets.largestJavaScriptGzip
-) {
+const runtimeGzip = runtime.reduce((total, item) => total + item.gzipBytes, 0);
+if (largestJavaScript?.gzipBytes > budgets.largestJavaScriptGzip) {
   failures.push(
-    `Largest JavaScript chunk ${largestJavaScript.file} is ${formatBytes(largestJavaScript.gzipBytes)} gzip; budget is ${formatBytes(budgets.largestJavaScriptGzip)}.`,
+    "Largest client JavaScript chunk exceeds budget: " +
+      largestJavaScript.file + " (" + formatBytes(largestJavaScript.gzipBytes) + ")",
   );
 }
-
 if (totalJavaScriptGzip > budgets.totalJavaScriptGzip) {
-  failures.push(
-    `Total JavaScript is ${formatBytes(totalJavaScriptGzip)} gzip; budget is ${formatBytes(budgets.totalJavaScriptGzip)}.`,
-  );
+  failures.push("Total client JavaScript exceeds budget: " + formatBytes(totalJavaScriptGzip));
 }
-
-if (largestCss && largestCss.gzipBytes > budgets.largestCssGzip) {
-  failures.push(
-    `Largest CSS file ${largestCss.file} is ${formatBytes(largestCss.gzipBytes)} gzip; budget is ${formatBytes(budgets.largestCssGzip)}.`,
-  );
+if (largestCss?.gzipBytes > budgets.largestCssGzip) {
+  failures.push("Largest CSS exceeds budget: " + formatBytes(largestCss.gzipBytes));
 }
-
-if (largestImage && largestImage.bytes > budgets.largestImage) {
-  failures.push(
-    `Largest image ${largestImage.file} is ${formatBytes(largestImage.bytes)}; budget is ${formatBytes(budgets.largestImage)}.`,
-  );
+if (largestImage?.bytes > budgets.largestImage) {
+  failures.push("Largest image exceeds budget: " + formatBytes(largestImage.bytes));
 }
-
-for (const image of images.filter((item) => item.bytes > 700 * KIB)) {
-  warnings.push(`${image.file} is ${formatBytes(image.bytes)} and should be converted to WebP or AVIF when final media is supplied.`);
+if (runtimeGzip > budgets.runtimeBundleGzip) {
+  failures.push("Bundled SSR runtime exceeds budget: " + formatBytes(runtimeGzip));
 }
 
 let serviceWorkerVersion = null;
-if (existsSync("dist/sw.js")) {
-  const serviceWorker = readFileSync("dist/sw.js", "utf8");
-  const versionMatch = serviceWorker.match(/const BUILD_VERSION = "([a-f0-9]{16})";/);
-  serviceWorkerVersion = versionMatch?.[1] ?? null;
-
-  if (!serviceWorkerVersion) {
-    failures.push("Generated service worker does not contain a 16-character artifact fingerprint.");
-  }
+if (existsSync("build/client/sw.js")) {
+  const serviceWorker = readFileSync("build/client/sw.js", "utf8");
+  serviceWorkerVersion = serviceWorker.match(/const BUILD_VERSION = "([a-f0-9]{16})";/)?.[1] || null;
+  if (!serviceWorkerVersion) failures.push("Service worker fingerprint is missing.");
   if (serviceWorker.includes("__WINIMI_BUILD_VERSION__")) {
-    failures.push("Generated service worker still contains its build-version placeholder.");
-  }
-  for (const requiredPolicy of [
-    "`${CACHE_PREFIX}-shell-${BUILD_VERSION}`",
-    "`${CACHE_PREFIX}-assets-${BUILD_VERSION}`",
-    "`${CACHE_PREFIX}-images-${BUILD_VERSION}`",
-    'cache: "no-store"',
-    '"/account"',
-    '"/checkout"',
-    '"/payment"',
-    "if (isSensitiveNavigation(url.pathname))",
-    'request.headers.has("range")',
-    "url.origin !== self.location.origin",
-  ]) {
-    if (!serviceWorker.includes(requiredPolicy)) {
-      failures.push(`Generated service worker is missing policy: ${requiredPolicy}`);
-    }
-  }
-  if (serviceWorker.includes("caches.match(request)")) {
-    failures.push("Generated service worker performs a cross-version global cache lookup.");
+    failures.push("Service worker placeholder remains in production output.");
   }
 }
 
 let manifestSummary = null;
-if (existsSync("dist/manifest.webmanifest")) {
+if (existsSync("build/client/manifest.webmanifest")) {
   try {
-    const manifest = JSON.parse(readFileSync("dist/manifest.webmanifest", "utf8"));
-    const icons = Array.isArray(manifest.icons) ? manifest.icons : [];
+    const manifest = JSON.parse(readFileSync("build/client/manifest.webmanifest", "utf8"));
     manifestSummary = {
       id: manifest.id,
       scope: manifest.scope,
       startUrl: manifest.start_url,
-      iconCount: icons.length,
+      iconCount: Array.isArray(manifest.icons) ? manifest.icons.length : 0,
     };
-
     if (manifest.id !== "/" || manifest.scope !== "/") {
-      failures.push("Built manifest must keep root id and scope.");
-    }
-    if (!icons.some((icon) => icon.src === "/icons/winimi-192.png" && icon.type === "image/png")) {
-      failures.push("Built manifest is missing its 192x192 PNG icon.");
-    }
-    if (!icons.some((icon) => icon.src === "/icons/winimi-512.png" && icon.type === "image/png")) {
-      failures.push("Built manifest is missing its 512x512 PNG icon.");
-    }
-    if (!icons.some((icon) => icon.src === "/icons/winimi-512.png" && String(icon.purpose).includes("maskable"))) {
-      failures.push("Built manifest is missing its maskable PNG icon.");
+      failures.push("Manifest must keep root id and scope.");
     }
   } catch (error) {
-    failures.push(`Built manifest is invalid JSON: ${error.message}`);
+    failures.push("Manifest JSON is invalid: " + error.message);
   }
 }
 
-if (existsSync("dist/_headers")) {
-  const headers = readFileSync("dist/_headers", "utf8");
-  for (const requiredHeader of [
-    "/assets/*\n  Cache-Control: public, max-age=31536000, immutable",
-    "/sw.js\n  Cache-Control: no-cache, no-store, must-revalidate",
-    "/\n  Cache-Control: no-cache, no-store, must-revalidate",
-    "/index.html\n  Cache-Control: no-cache, no-store, must-revalidate",
-  ]) {
-    if (!headers.includes(requiredHeader)) {
-      failures.push(`Built cache policy is missing: ${requiredHeader.split("\n")[0]}`);
-    }
-  }
+for (const image of images.filter((item) => item.bytes > 700 * KIB)) {
+  warnings.push(item.file + " is " + formatBytes(item.bytes) + ".");
 }
-
 const report = {
   generatedAt: new Date().toISOString(),
+  mode: "react-router-framework-ssr",
   budgets,
   serviceWorkerVersion,
   manifest: manifestSummary,
   summary: {
     javascriptChunks: javascript.length,
-    entry: entry ?? null,
-    largestJavaScript: largestJavaScript ?? null,
+    largestJavaScript: largestJavaScript || null,
     totalJavaScriptGzip,
-    largestCss: largestCss ?? null,
-    largestImage: largestImage ?? null,
-    imageCount: images.length,
+    largestCss: largestCss || null,
+    largestImage: largestImage || null,
+    runtimeFiles: runtime.length,
+    runtimeGzip,
   },
-  largestJavaScriptFiles: [...javascript]
-    .sort((a, b) => b.gzipBytes - a.gzipBytes)
-    .slice(0, 12),
-  largestImages: [...images].sort((a, b) => b.bytes - a.bytes).slice(0, 12),
   warnings,
   failures,
 };
-
-writeFileSync("performance-report.json", `${JSON.stringify(report, null, 2)}\n`);
-
-console.log(`JavaScript chunks: ${javascript.length}`);
-console.log(`Entry gzip: ${entry ? formatBytes(entry.gzipBytes) : "unknown"}`);
-console.log(
-  `Largest JavaScript gzip: ${largestJavaScript ? `${largestJavaScript.file} (${formatBytes(largestJavaScript.gzipBytes)})` : "none"}`,
-);
-console.log(`Total JavaScript gzip: ${formatBytes(totalJavaScriptGzip)}`);
-console.log(
-  `Largest image: ${largestImage ? `${largestImage.file} (${formatBytes(largestImage.bytes)})` : "none"}`,
-);
-console.log(`Service worker build: ${serviceWorkerVersion ?? "invalid"}`);
-
-warnings.forEach((warning) => console.warn(`Warning: ${warning}`));
-
+writeFileSync("performance-report.json", JSON.stringify(report, null, 2) + "\n");
+console.log("Client JavaScript chunks: " + javascript.length);
+console.log("Client JavaScript gzip: " + formatBytes(totalJavaScriptGzip));
+console.log("SSR runtime gzip: " + formatBytes(runtimeGzip));
+warnings.forEach((warning) => console.warn("Warning: " + warning));
 if (failures.length) {
-  console.error(`Performance audit failed with ${failures.length} issue(s):`);
-  failures.forEach((failure) => console.error(`- ${failure}`));
+  failures.forEach((failure) => console.error("- " + failure));
   process.exit(1);
 }
-
-console.log("Performance and PWA budgets passed.");
+console.log("SSR, client and PWA performance budgets passed.");

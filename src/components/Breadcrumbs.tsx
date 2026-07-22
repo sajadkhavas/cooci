@@ -1,7 +1,7 @@
-import { Helmet } from "react-helmet-async";
 import { ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { brandConfig } from "@/config/brand";
+import { useCspNonce } from "@/lib/security/csp";
 import { resolveCanonicalUrl, serializeJsonLd } from "@/lib/security/seo";
 
 export interface Crumb {
@@ -15,6 +15,7 @@ interface BreadcrumbsProps {
 }
 
 export const Breadcrumbs = ({ items, className = "" }: BreadcrumbsProps) => {
+  const nonce = useCspNonce();
   const schema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -30,9 +31,11 @@ export const Breadcrumbs = ({ items, className = "" }: BreadcrumbsProps) => {
 
   return (
     <>
-      <Helmet>
-        <script type="application/ld+json">{serializeJsonLd(schema)}</script>
-      </Helmet>
+      <script
+        nonce={nonce}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
+      />
       <nav
         aria-label="مسیر"
         className={`flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-sm text-muted-foreground ${className}`}

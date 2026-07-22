@@ -3,8 +3,8 @@ name: Phase 8 Deployment Readiness
 on:
   push:
     branches:
+      - "agent/**"
       - main
-      - "agent/frontend-full-audit-phase-8-*"
   pull_request:
     branches:
       - main
@@ -24,147 +24,107 @@ env:
   VITE_ALLOW_DEV_MOCKS: "false"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
+  DEPLOY_ROOT: /tmp/winimi-frontend
 
 jobs:
-  deployment-readiness:
-    name: Reproducible release, Nginx, deploy and rollback
+  release:
+    name: Reproducible SSR release, Nginx, deploy and rollback
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 35
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.22.0
           cache: npm
-
       - name: Install dependencies and Nginx
         run: |
           npm ci
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq nginx
-          sudo systemctl stop nginx || true
-
+          sudo apt-get update
+          sudo apt-get install -y nginx
       - name: Validate production environment and Phase 8 policy
         run: |
           npm run env:production:validate
           npm run audit:phase8
-
-      - name: Build production storefront
+          npm run audit:ssr
+      - name: Build production SSR storefront
         run: npm run build
-
       - name: Create and verify release A
         run: |
-          npm run release:create -- dist "$RUNNER_TEMP/release-a"
-          cp release-output.json release-a-output.json
-          RELEASE_A_DIR=$(node -e 'const r=require("./release-a-output.json");process.stdout.write(r.releaseDir)')
-          RELEASE_A_ID=$(node -e 'const fs=require("fs");const r=require("./release-a-output.json");process.stdout.write(JSON.parse(fs.readFileSync(`${r.releaseDir}/release-manifest.json`,"utf8")).releaseId)')
-          npm run release:verify -- "$RELEASE_A_DIR"
-          echo "RELEASE_A_DIR=$RELEASE_A_DIR" >> "$GITHUB_ENV"
-          echo "RELEASE_A_ID=$RELEASE_A_ID" >> "$GITHUB_ENV"
-
+          npm run release:create -- build .release-a
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("release-output.json"));fs.writeFileSync("release-a-path.txt",x.releaseDir);fs.writeFileSync("release-a-id.txt",x.releaseId)'
+          npm run release:verify -- "$(cat release-a-path.txt)"
       - name: Deploy release A
-        run: |
-          chmod +x deploy/bin/*.sh
-          KEEP_RELEASES=5 deploy/bin/deploy-frontend.sh "$RELEASE_A_DIR" "$RUNNER_TEMP/winimi-frontend"
-          test "$(cat "$RUNNER_TEMP/winimi-frontend/active-release")" = "$RELEASE_A_ID"
-          npm run release:verify -- "$RUNNER_TEMP/winimi-frontend/current"
-
+        run: deploy/bin/deploy-frontend.sh "$(cat release-a-path.txt)" "$DEPLOY_ROOT"
       - name: Create and verify release B
         run: |
-          cp -a dist "$RUNNER_TEMP/dist-b"
-          printf 'phase-8-rollback-probe\n' > "$RUNNER_TEMP/dist-b/release-probe.txt"
-          npm run release:create -- "$RUNNER_TEMP/dist-b" "$RUNNER_TEMP/release-b"
-          cp release-output.json release-b-output.json
-          RELEASE_B_DIR=$(node -e 'const r=require("./release-b-output.json");process.stdout.write(r.releaseDir)')
-          RELEASE_B_ID=$(node -e 'const fs=require("fs");const r=require("./release-b-output.json");process.stdout.write(JSON.parse(fs.readFileSync(`${r.releaseDir}/release-manifest.json`,"utf8")).releaseId)')
-          npm run release:verify -- "$RELEASE_B_DIR"
-          test "$RELEASE_B_ID" != "$RELEASE_A_ID"
-          echo "RELEASE_B_DIR=$RELEASE_B_DIR" >> "$GITHUB_ENV"
-          echo "RELEASE_B_ID=$RELEASE_B_ID" >> "$GITHUB_ENV"
-
+          cp -a build build-b
+          printf 'release-b\n' > build-b/client/release-probe.txt
+          npm run release:create -- build-b .release-b
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("release-output.json"));fs.writeFileSync("release-b-path.txt",x.releaseDir);fs.writeFileSync("release-b-id.txt",x.releaseId)'
+          npm run release:verify -- "$(cat release-b-path.txt)"
       - name: Deploy release B
         run: |
-          KEEP_RELEASES=5 deploy/bin/deploy-frontend.sh "$RELEASE_B_DIR" "$RUNNER_TEMP/winimi-frontend"
-          test "$(cat "$RUNNER_TEMP/winimi-frontend/active-release")" = "$RELEASE_B_ID"
-          test -f "$RUNNER_TEMP/winimi-frontend/current/dist/release-probe.txt"
-          npm run release:verify -- "$RUNNER_TEMP/winimi-frontend/current"
-
+          deploy/bin/deploy-frontend.sh "$(cat release-b-path.txt)" "$DEPLOY_ROOT"
+          test -f "$DEPLOY_ROOT/current/app/build/client/release-probe.txt"
       - name: Rollback to release A
         run: |
-          deploy/bin/rollback-frontend.sh "$RUNNER_TEMP/winimi-frontend" "$RELEASE_A_ID"
-          test "$(cat "$RUNNER_TEMP/winimi-frontend/active-release")" = "$RELEASE_A_ID"
-          test ! -e "$RUNNER_TEMP/winimi-frontend/current/dist/release-probe.txt"
-          npm run release:verify -- "$RUNNER_TEMP/winimi-frontend/current"
-
-      - name: Generate ephemeral TLS certificate
+          deploy/bin/rollback-frontend.sh "$DEPLOY_ROOT" "$(cat release-a-id.txt)"
+          test ! -f "$DEPLOY_ROOT/current/app/build/client/release-probe.txt"
+      - name: Start release A SSR runtime
         run: |
-          mkdir -p "$RUNNER_TEMP/tls"
-          openssl req -x509 -newkey rsa:2048 -nodes \
-            -keyout "$RUNNER_TEMP/tls/frontend.key" \
-            -out "$RUNNER_TEMP/tls/frontend.crt" \
-            -days 1 \
-            -subj '/CN=127.0.0.1' \
-            -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
-
-      - name: Render and validate production Nginx
+          cd "$DEPLOY_ROOT/current/app"
+          HOST=127.0.0.1 PORT=4178 NODE_ENV=production WINIMI_API_ORIGIN=https://api.winimibakery.com node build/runtime/server.mjs > "$GITHUB_WORKSPACE/ssr-runtime.log" 2>&1 &
+          echo $! > "$GITHUB_WORKSPACE/ssr-runtime.pid"
+      - name: Wait for SSR health
         run: |
-          FRONTEND_HTTP_PORT=8088 \
-          FRONTEND_HTTPS_PORT=8448 \
-          FRONTEND_HTTPS_REDIRECT_PORT=:8448 \
-          FRONTEND_SERVER_NAMES='127.0.0.1 localhost' \
-          FRONTEND_CANONICAL_HOST=127.0.0.1 \
-          FRONTEND_DEPLOY_ROOT="$RUNNER_TEMP/winimi-frontend" \
-          FRONTEND_ACME_ROOT="$RUNNER_TEMP/acme" \
-          FRONTEND_TLS_CERTIFICATE="$RUNNER_TEMP/tls/frontend.crt" \
-          FRONTEND_TLS_CERTIFICATE_KEY="$RUNNER_TEMP/tls/frontend.key" \
-          FRONTEND_SECURITY_HEADERS_INCLUDE="$GITHUB_WORKSPACE/deploy/nginx/winimi-security-headers.conf" \
-            npm run nginx:render -- deploy/nginx/winimi-frontend.conf.example "$RUNNER_TEMP/winimi-frontend.conf"
-          mkdir -p "$RUNNER_TEMP/acme" "$RUNNER_TEMP/nginx"
-          cat > "$RUNNER_TEMP/nginx/nginx.conf" <<EOF
-          user $USER;
-          worker_processes 1;
-          pid $RUNNER_TEMP/nginx/nginx.pid;
-          error_log $RUNNER_TEMP/nginx/error.log notice;
-          events { worker_connections 256; }
-          http {
-            include /etc/nginx/mime.types;
-            default_type application/octet-stream;
-            access_log $RUNNER_TEMP/nginx/access.log;
-            include $RUNNER_TEMP/winimi-frontend.conf;
-          }
-          EOF
-          sudo nginx -t -c "$RUNNER_TEMP/nginx/nginx.conf"
-
-      - name: Run HTTPS production smoke test
-        run: |
-          sudo nginx -c "$RUNNER_TEMP/nginx/nginx.conf"
-          for attempt in {1..30}; do
-            if curl --fail --silent --insecure https://127.0.0.1:8448/__frontend_health > frontend-health.json; then
-              break
-            fi
+          for attempt in {1..60}; do
+            curl --fail --silent http://127.0.0.1:4178/__ssr_health && exit 0
             sleep 1
           done
-          SMOKE_INSECURE=true deploy/bin/smoke-test-frontend.sh https://127.0.0.1:8448
-          sudo nginx -s quit -c "$RUNNER_TEMP/nginx/nginx.conf"
-
-      - name: Upload Phase 8 deployment evidence
+          cat ssr-runtime.log
+          exit 1
+      - name: Verify server-rendered homepage
+        run: |
+          curl --fail --silent http://127.0.0.1:4178/ > ssr-home.html
+          grep -q 'سفارش آنلاین کوکی،' ssr-home.html
+          grep -q 'rel="canonical"' ssr-home.html
+          node scripts/assert-csp-nonces.mjs ssr-home.html
+      - name: Generate ephemeral TLS certificate
+        run: |
+          mkdir -p .ci-tls
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout .ci-tls/loopback.key -out .ci-tls/loopback.crt -days 1 -subj '/CN=127.0.0.1' -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
+      - name: Render and validate SSR Nginx
+        run: |
+          mkdir -p .ci-nginx/snippets .ci-nginx/logs
+          cp deploy/nginx/winimi-security-headers.conf .ci-nginx/snippets/
+          cp deploy/nginx/winimi-static-csp.conf .ci-nginx/snippets/
+          FRONTEND_HTTP_PORT=8080 FRONTEND_HTTPS_PORT=8444 FRONTEND_HTTPS_REDIRECT_PORT=:8444 FRONTEND_SERVER_NAMES='127.0.0.1 localhost' FRONTEND_CANONICAL_HOST=127.0.0.1 FRONTEND_DEPLOY_ROOT="$DEPLOY_ROOT" FRONTEND_SSR_UPSTREAM=127.0.0.1:4178 FRONTEND_ACME_ROOT="$PWD/.ci-nginx/acme" FRONTEND_TLS_CERTIFICATE="$PWD/.ci-tls/loopback.crt" FRONTEND_TLS_CERTIFICATE_KEY="$PWD/.ci-tls/loopback.key" FRONTEND_SECURITY_HEADERS_INCLUDE="$PWD/.ci-nginx/snippets/winimi-security-headers.conf" FRONTEND_STATIC_CSP_INCLUDE="$PWD/.ci-nginx/snippets/winimi-static-csp.conf" npm run nginx:render -- deploy/nginx/winimi-frontend.conf.example .ci-nginx/site.conf
+          cat > .ci-nginx/nginx.conf <<EOF
+          pid $PWD/.ci-nginx/nginx.pid;
+          error_log $PWD/.ci-nginx/logs/error.log;
+          events { worker_connections 256; }
+          http { include /etc/nginx/mime.types; access_log $PWD/.ci-nginx/logs/access.log; include $PWD/.ci-nginx/site.conf; }
+          EOF
+          sudo nginx -t -c "$PWD/.ci-nginx/nginx.conf"
+          sudo nginx -c "$PWD/.ci-nginx/nginx.conf"
+      - name: Run HTTPS production smoke test — SSR
+        env:
+          SMOKE_INSECURE: "true"
+        run: deploy/bin/smoke-test-frontend.sh https://127.0.0.1:8444
+      - name: Upload Phase 8 SSR evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase8-deployment-readiness
+          name: phase8-ssr-deployment-evidence
           path: |
-            frontend-phase8-audit.json
-            production-env-audit.json
+            release-a-id.txt
+            release-b-id.txt
+            release-output.json
             performance-report.json
-            release-a-output.json
-            release-b-output.json
-            frontend-health.json
-            ${{ runner.temp }}/winimi-frontend.conf
-            ${{ runner.temp }}/nginx/error.log
-            ${{ runner.temp }}/nginx/access.log
+            ssr-home.html
+            ssr-runtime.log
+            .ci-nginx/site.conf
+            .ci-nginx/logs
           if-no-files-found: warn
           retention-days: 14

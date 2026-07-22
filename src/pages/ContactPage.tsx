@@ -1,5 +1,5 @@
 import { Clock, Instagram, Mail, MapPin, Phone, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { SEO } from "@/components/SEO";
 import { brandConfig, generatePhoneUrl } from "@/config/brand";

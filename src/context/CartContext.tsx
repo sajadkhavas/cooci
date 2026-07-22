@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useState,
 } from "react";
 import type { Product } from "@/data/products";
 import {
@@ -21,22 +22,6 @@ import {
 } from "@/lib/cart";
 import { cartReducer, type CartState } from "@/lib/cart-state";
 
-const getInitialState = (): CartState => {
-  if (typeof window === "undefined") return { items: [] };
-
-  try {
-    const currentRaw = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (currentRaw !== null) {
-      return { items: parseStoredCart(currentRaw) };
-    }
-
-    const legacyRaw = window.localStorage.getItem(LEGACY_CART_STORAGE_KEY);
-    return { items: parseStoredCart(legacyRaw) };
-  } catch {
-    return { items: [] };
-  }
-};
-
 interface CartContextType extends CartSummary {
   items: CartItem[];
   addItem: (item: CartItemInput, quantity?: number) => void;
@@ -47,24 +32,38 @@ interface CartContextType extends CartSummary {
 }
 
 const CartContext = createContext<CartContextType | null>(null);
+const emptyCartState: CartState = { items: [] };
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(cartReducer, undefined, getInitialState);
+  const [state, dispatch] = useReducer(cartReducer, emptyCartState);
+  const [isStorageHydrated, setIsStorageHydrated] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    try {
+      const currentRaw = window.localStorage.getItem(CART_STORAGE_KEY);
+      const legacyRaw = window.localStorage.getItem(LEGACY_CART_STORAGE_KEY);
+      dispatch({
+        type: "HYDRATE",
+        items: parseStoredCart(currentRaw ?? legacyRaw),
+      });
+    } catch {
+      dispatch({ type: "HYDRATE", items: [] });
+    } finally {
+      setIsStorageHydrated(true);
+    }
+  }, []);
 
+  useEffect(() => {
+    if (!isStorageHydrated) return;
     try {
       window.localStorage.setItem(CART_STORAGE_KEY, serializeCart(state.items));
       window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
     } catch {
       // Storage can be unavailable in private browsing or restricted environments.
     }
-  }, [state.items]);
+  }, [isStorageHydrated, state.items]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-
     const hydrateFromAnotherTab = (event: StorageEvent) => {
       if (event.storageArea !== window.localStorage) return;
       if (

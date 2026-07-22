@@ -1,5 +1,5 @@
 import { AlertCircle, ArrowLeft, MessageCircle } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import { ProductGridSkeleton } from "@/components/catalog/ProductGridSkeleton";

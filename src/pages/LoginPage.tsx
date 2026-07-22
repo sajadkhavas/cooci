@@ -9,7 +9,7 @@ import {
   Phone,
   ShieldCheck,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useAuth } from "@/context/AuthContext";

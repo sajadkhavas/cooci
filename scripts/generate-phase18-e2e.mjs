@@ -17,6 +17,29 @@ const replaceExactly = (needle, replacement, expectedCount, label) => {
 };
 
 replaceExactly(
+  `const attachPageErrorGuard = (page) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  return () => expect(errors, \`Unhandled browser errors: \${errors.join(" | ")}\`).toEqual([]);
+};`,
+  `const attachPageErrorGuard = (page) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (
+      message.type() === "error" &&
+      /Content Security Policy|Refused to execute inline script/i.test(message.text())
+    ) {
+      errors.push(message.text());
+    }
+  });
+  return () =>
+    expect(errors, \`Unhandled browser/security errors: \${errors.join(" | ")}\`).toEqual([]);
+};`,
+  1,
+  "browser CSP error guard",
+);
+replaceExactly(
   'const apiOrigin = process.env.PHASE18_API_URL || "http://127.0.0.1:8000";\n',
   'const apiOrigin = process.env.PHASE18_API_URL || "http://127.0.0.1:8000";\n' +
     'const frontendOrigin =\n' +

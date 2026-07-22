@@ -1,5 +1,5 @@
 import { ArrowRight, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { SEO } from "@/components/SEO";
 
 const NotFoundPage = () => (

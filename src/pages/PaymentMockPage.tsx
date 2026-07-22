@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, CreditCard, XCircle } from "lucide-react";
-import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router";
 import { CheckoutSteps } from "@/components/cart/CheckoutSteps";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";

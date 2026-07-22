@@ -6,7 +6,8 @@ const files = {
   authContext: "src/context/AuthContext.tsx",
   login: "src/pages/LoginPage.tsx",
   loginRoute: "src/components/auth/LoginRoute.tsx",
-  app: "src/App.tsx",
+  accountLoginRoute: "src/routes/account-login.tsx",
+  routes: "src/routes.ts",
   navigation: "src/lib/security/navigation.ts",
   normalization: "src/lib/security/normalization.ts",
   apiUrl: "src/lib/security/api-url.ts",
@@ -17,7 +18,6 @@ const files = {
 
 const errors = [];
 const sources = {};
-
 for (const [name, path] of Object.entries(files)) {
   if (!fs.existsSync(path)) {
     errors.push(`Missing Phase 2 file: ${path}`);
@@ -25,17 +25,11 @@ for (const [name, path] of Object.entries(files)) {
   }
   sources[name] = fs.readFileSync(path, "utf8");
 }
-
 const requireText = (file, text, label = text) => {
-  if (!sources[file]?.includes(text)) {
-    errors.push(`${files[file]}: missing ${label}`);
-  }
+  if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
 };
-
 const forbidText = (file, text, label = text) => {
-  if (sources[file]?.includes(text)) {
-    errors.push(`${files[file]}: contains forbidden ${label}`);
-  }
+  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
 };
 
 requireText("api", "normalizeApiBaseUrl", "validated API base URL");
@@ -71,7 +65,12 @@ requireText("login", 'error.code === "rate_limited"', "rate limit feedback");
 forbidText("login", 'state?.from?.startsWith("/")', "weak startsWith-only redirect check");
 
 requireText("loginRoute", "sanitizeInternalReturnPath", "pre-render login return guard");
-requireText("app", "<LoginRoute>", "login route security wrapper");
+requireText("accountLoginRoute", "<LoginRoute>", "login route security wrapper");
+requireText(
+  "routes",
+  'route("account/login", "./routes/account-login.tsx")',
+  "typed account login route module",
+);
 requireText("navigation", 'candidate.startsWith("//")', "protocol-relative redirect rejection");
 requireText("navigation", 'parsed.pathname === "/account/login"', "login-loop rejection");
 requireText("normalization", "normalizeIranianMobile", "mobile normalization");
@@ -84,7 +83,11 @@ requireText("unit", "return paths stay inside", "return path unit test");
 requireText("unit", "Persian and Arabic digits", "digit normalization unit test");
 requireText("unit", "production API origins require HTTPS", "API base unit test");
 requireText("e2e", "protocol-relative login return state", "hostile return-state browser test");
-requireText("e2e", "protected API 401 invalidates stale React auth state", "expired-session browser test");
+requireText(
+  "e2e",
+  "protected API 401 invalidates stale React auth state",
+  "expired-session browser test",
+);
 requireText("package", '"test:unit"', "unit test command");
 requireText("package", '"audit:phase2"', "Phase 2 audit command");
 
@@ -100,7 +103,6 @@ if (errors.length) {
   errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
-
 console.log(
-  "Frontend Phase 2 audit passed: API origin/path validation, network and rate-limit errors, CSRF retry, session expiry, same-origin login redirects, OTP normalization and exact-loopback diagnostics are locked.",
+  "Frontend Phase 2 audit passed: API validation, session expiry, same-origin redirects, OTP normalization and the SSR login route-module guard are locked.",
 );

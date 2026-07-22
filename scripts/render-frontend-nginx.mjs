@@ -14,9 +14,12 @@ const values = {
   __HTTP_PORT__: process.env.FRONTEND_HTTP_PORT || "80",
   __HTTPS_PORT__: process.env.FRONTEND_HTTPS_PORT || "443",
   __HTTPS_REDIRECT_PORT__: process.env.FRONTEND_HTTPS_REDIRECT_PORT ?? "",
-  __SERVER_NAMES__: process.env.FRONTEND_SERVER_NAMES || "winimibakery.com www.winimibakery.com",
+  __SERVER_NAMES__:
+    process.env.FRONTEND_SERVER_NAMES || "winimibakery.com www.winimibakery.com",
   __CANONICAL_HOST__: process.env.FRONTEND_CANONICAL_HOST || "winimibakery.com",
-  __FRONTEND_ROOT__: process.env.FRONTEND_DEPLOY_ROOT || "/var/www/winimi/frontend",
+  __FRONTEND_ROOT__:
+    process.env.FRONTEND_DEPLOY_ROOT || "/var/www/winimi/frontend",
+  __SSR_UPSTREAM__: process.env.FRONTEND_SSR_UPSTREAM || "127.0.0.1:4173",
   __ACME_ROOT__: process.env.FRONTEND_ACME_ROOT || "/var/www/letsencrypt",
   __TLS_CERTIFICATE__:
     process.env.FRONTEND_TLS_CERTIFICATE ||
@@ -27,6 +30,9 @@ const values = {
   __SECURITY_HEADERS_INCLUDE__:
     process.env.FRONTEND_SECURITY_HEADERS_INCLUDE ||
     "/etc/nginx/snippets/winimi-security-headers.conf",
+  __STATIC_CSP_INCLUDE__:
+    process.env.FRONTEND_STATIC_CSP_INCLUDE ||
+    "/etc/nginx/snippets/winimi-static-csp.conf",
 };
 
 for (const [name, value] of Object.entries(values)) {
@@ -40,6 +46,9 @@ for (const [name, value] of Object.entries(values)) {
   if (name === "__HTTPS_REDIRECT_PORT__" && value && !/^:\d{2,5}$/.test(value)) {
     throw new Error(`Invalid HTTPS redirect port suffix: ${value}`);
   }
+  if (name === "__SSR_UPSTREAM__" && !/^(?:127\.0\.0\.1|localhost):\d{2,5}$/.test(value)) {
+    throw new Error(`SSR upstream must be loopback host:port: ${value}`);
+  }
 }
 
 let config = fs.readFileSync(templatePath, "utf8");
@@ -48,9 +57,16 @@ for (const [name, value] of Object.entries(values)) {
 }
 
 const unresolved = config.match(/__[A-Z0-9_]+__/g);
-if (unresolved) throw new Error(`Unresolved Nginx placeholders: ${[...new Set(unresolved)].join(", ")}`);
+if (unresolved) {
+  throw new Error(
+    `Unresolved Nginx placeholders: ${[...new Set(unresolved)].join(", ")}`,
+  );
+}
+if (!config.includes("proxy_pass http://winimi_ssr;")) {
+  throw new Error("Rendered Nginx config does not proxy application HTML to SSR.");
+}
 if (/Content-Security-Policy-Report-Only/i.test(config)) {
-  throw new Error("Phase 8 requires an enforced Content-Security-Policy.");
+  throw new Error("Production requires enforced Content-Security-Policy.");
 }
 if (/script-src[^;]*(?:\*|'unsafe-eval')/i.test(config)) {
   throw new Error("Unsafe script execution is forbidden in production CSP.");
@@ -58,4 +74,4 @@ if (/script-src[^;]*(?:\*|'unsafe-eval')/i.test(config)) {
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, config);
-console.log(`Rendered production Nginx config: ${outputPath}`);
+console.log(`Rendered SSR production Nginx config: ${outputPath}`);

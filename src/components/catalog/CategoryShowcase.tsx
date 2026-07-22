@@ -1,5 +1,5 @@
 import { ArrowUpLeft, Cookie, Gift, Package, ShieldCheck, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
 import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";

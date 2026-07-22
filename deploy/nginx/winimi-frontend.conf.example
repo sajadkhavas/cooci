@@ -1,5 +1,10 @@
 # Render with scripts/render-frontend-nginx.mjs before installation.
 
+upstream winimi_ssr {
+    server __SSR_UPSTREAM__;
+    keepalive 32;
+}
+
 server {
     listen __HTTP_PORT__;
     listen [::]:__HTTP_PORT__;
@@ -19,8 +24,7 @@ server {
     listen [::]:__HTTPS_PORT__ ssl http2;
     server_name __SERVER_NAMES__;
 
-    root __FRONTEND_ROOT__/current/dist;
-    index index.html;
+    root __FRONTEND_ROOT__/current/app/build/client;
 
     ssl_certificate __TLS_CERTIFICATE__;
     ssl_certificate_key __TLS_CERTIFICATE_KEY__;
@@ -45,6 +49,7 @@ server {
         application/xml
         image/svg+xml
         text/css
+        text/html
         text/javascript
         text/plain
         text/xml;
@@ -55,13 +60,15 @@ server {
         default_type application/json;
         include __SECURITY_HEADERS_INCLUDE__;
         add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-        return 200 '{"status":"ok","surface":"winimi-frontend"}';
+        return 200 '{"status":"ok","surface":"winimi-nginx"}';
     }
 
-    location = /index.html {
-        include __SECURITY_HEADERS_INCLUDE__;
-        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-        try_files $uri =404;
+    location = /__ssr_health {
+        proxy_pass http://winimi_ssr;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
     location = /sw.js {
@@ -81,11 +88,19 @@ server {
 
     location = /offline.html {
         include __SECURITY_HEADERS_INCLUDE__;
+        include __STATIC_CSP_INCLUDE__;
         add_header Cache-Control "no-cache, must-revalidate" always;
         try_files $uri =404;
     }
 
-    location /assets/ {
+    location ^~ /icons/ {
+        include __SECURITY_HEADERS_INCLUDE__;
+        add_header Cache-Control "public, max-age=86400, stale-while-revalidate=604800" always;
+        try_files $uri =404;
+        access_log off;
+    }
+
+    location ^~ /assets/ {
         include __SECURITY_HEADERS_INCLUDE__;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
         try_files $uri =404;
@@ -101,9 +116,16 @@ server {
     }
 
     location / {
-        include __SECURITY_HEADERS_INCLUDE__;
-        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-        try_files $uri $uri/ /index.html;
+        proxy_pass http://winimi_ssr;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_read_timeout 60s;
     }
 
     client_max_body_size 2m;

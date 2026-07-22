@@ -8,7 +8,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { ProductGridSkeleton } from "@/components/catalog/ProductGridSkeleton";
 import { ProductCard } from "@/components/ProductCard";
