@@ -1,0 +1,82 @@
+name: Phase 10.1 SSR Finalization
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase10-1-finalize-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    if: github.head_ref == 'agent/frontend-phase-10-1-ssr-foundation' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SITE_URL: https://winimibakery.com
+      VITE_SITE_ORIGIN: https://winimibakery.com
+      VITE_USE_BACKEND: "true"
+      VITE_API_BASE_URL: https://api.winimibakery.com
+      VITE_ALLOW_DEV_MOCKS: "false"
+      VITE_AUTH_MODE: disabled
+      VITE_PAYMENT_MODE: disabled
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/frontend-phase-10-1-ssr-foundation
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: npm
+
+      - name: Apply Phase 10.1 deployment and acceptance finalizer
+        run: node scripts/finalize-phase10-1.mjs
+
+      - name: Install the locked dependency graph
+        run: npm ci --include=dev
+
+      - name: Validate framework, deployment and legacy contracts
+        run: |
+          npm run audit:ssr
+          npm run audit:phase7
+          npm run audit:phase8
+          npm run audit:frontend
+          npm run audit:accessibility
+
+      - name: Run type generation and TypeScript
+        run: npm run typecheck
+
+      - name: Build SSR runtime, client and PWA
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Create and verify deterministic SSR release
+        run: |
+          npm run release:create -- build .release-finalizer
+          RELEASE_DIR=$(node -e 'const fs=require("fs");process.stdout.write(JSON.parse(fs.readFileSync("release-output.json","utf8")).releaseDir)')
+          npm run release:verify -- "$RELEASE_DIR"
+
+      - name: Run unit and lint gates
+        run: |
+          npm run test:unit
+          npm run lint
+
+      - name: Commit finalized Phase 10.1 implementation
+        run: |
+          rm -f scripts/finalize-phase10-1.mjs
+          rm -f .github/workflows/phase10-1-finalize.yml
+          rm -rf .release-finalizer build .react-router
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Frontend Phase 10.1: finalize SSR deployment and acceptance gates'
+          git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
