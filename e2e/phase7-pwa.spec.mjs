@@ -80,7 +80,11 @@ test("production PWA fails closed on a real network failure and recovers after r
     page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
   ).toBeVisible();
   await expect(page.locator("#main-content")).toHaveCount(0);
-  await expect(page.locator('html[lang="fa-IR"]')).toHaveCount(0);
+  await expect(page.locator("script")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "تلاش دوباره" })).toHaveAttribute(
+    "href",
+    "",
+  );
 
   // network restoration returns to the live server-rendered application
   await page.goto("/", { waitUntil: "domcontentloaded" });
