@@ -8,6 +8,8 @@ const target = new URL(process.env.HTTPS_PROXY_TARGET || "http://127.0.0.1:8000"
 const keyPath = process.env.HTTPS_PROXY_KEY;
 const certPath = process.env.HTTPS_PROXY_CERT;
 const failureQueryParam = process.env.HTTPS_PROXY_FAILURE_QUERY_PARAM?.trim() || "";
+const rateLimitSearchValue =
+  process.env.HTTPS_PROXY_RATE_LIMIT_SEARCH_VALUE?.trim() || "";
 
 if (!keyPath || !certPath) {
   throw new Error("HTTPS_PROXY_KEY and HTTPS_PROXY_CERT are required.");
@@ -17,10 +19,43 @@ if (target.protocol !== "http:") {
   throw new Error("The loopback proxy target must use plain HTTP.");
 }
 
+const parseRequestUrl = (requestUrl = "/") =>
+  new URL(requestUrl, `https://${listenHost}:${listenPort}`);
+
 const shouldForceNetworkFailure = (requestUrl = "/") => {
   if (!failureQueryParam) return false;
-  const parsed = new URL(requestUrl, `https://${listenHost}:${listenPort}`);
-  return parsed.searchParams.has(failureQueryParam);
+  return parseRequestUrl(requestUrl).searchParams.has(failureQueryParam);
+};
+
+const shouldForceCatalogRateLimit = (requestUrl = "/") => {
+  if (!rateLimitSearchValue) return false;
+  const parsed = parseRequestUrl(requestUrl);
+  return (
+    parsed.pathname === "/api/catalog/products" &&
+    parsed.searchParams.get("search") === rateLimitSearchValue
+  );
+};
+
+const writeCatalogRateLimit = (response) => {
+  const payload = JSON.stringify({
+    success: false,
+    code: "rate_limited",
+    message: "درخواست‌های زیادی ارسال شده است. کمی صبر کنید.",
+    errors: {},
+    meta: {
+      requestId: "phase9-rate-limit",
+      apiVersion: "v1",
+      contractVersion: "2026-07-20-phase-16",
+    },
+  });
+  response.writeHead(429, {
+    "content-type": "application/json; charset=utf-8",
+    "content-length": Buffer.byteLength(payload),
+    "retry-after": "60",
+    "x-request-id": "phase9-rate-limit",
+    "cache-control": "no-store",
+  });
+  response.end(payload);
 };
 
 const server = https.createServer(
@@ -32,6 +67,12 @@ const server = https.createServer(
     if (shouldForceNetworkFailure(request.url)) {
       console.log(`Forced loopback network failure for ${request.url}`);
       request.socket.destroy();
+      return;
+    }
+
+    if (shouldForceCatalogRateLimit(request.url)) {
+      console.log(`Forced catalog rate limit for ${request.url}`);
+      writeCatalogRateLimit(response);
       return;
     }
 
