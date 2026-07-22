@@ -10,6 +10,21 @@ import { loadPost } from "@/lib/content";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import NotFoundPage from "@/pages/NotFoundPage";
 
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+
+const formatPublishedDate = (value: string) => {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return undefined;
+  const stableDate = [
+    parsed.getUTCFullYear(),
+    String(parsed.getUTCMonth() + 1).padStart(2, "0"),
+    String(parsed.getUTCDate()).padStart(2, "0"),
+  ]
+    .join("/")
+    .replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
+  return stableDate;
+};
+
 const BlogDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
@@ -28,6 +43,9 @@ const BlogDetailPage = () => {
   if (query.error || !query.data) return <section className="section-padding"><div className="container-custom rounded-3xl border border-destructive/30 bg-destructive/5 p-10 text-center text-destructive" role="alert">{query.error instanceof Error ? query.error.message : "مقاله دریافت نشد."}</div></section>;
 
   const post = query.data;
+  const publishedDate = post.publishedAt
+    ? formatPublishedDate(post.publishedAt)
+    : undefined;
   const schema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -50,7 +68,7 @@ const BlogDetailPage = () => {
           <h1 className="mb-6 text-3xl font-black leading-tight text-foreground md:text-4xl">{post.title}</h1>
           <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-border pb-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-1"><User size={14} aria-hidden="true" />{post.author || brandConfig.brandName}</span>
-            {post.publishedAt && <span className="flex items-center gap-1"><CalendarCheck2 size={14} aria-hidden="true" />{new Date(post.publishedAt).toLocaleDateString("fa-IR")}</span>}
+            {publishedDate && <time className="flex items-center gap-1" dateTime={post.publishedAt || undefined}><CalendarCheck2 size={14} aria-hidden="true" />{publishedDate}</time>}
           </div>
           {post.coverUrl && <figure className="mb-10 overflow-hidden rounded-3xl border border-border bg-muted shadow-soft"><img src={post.coverUrl} alt={post.title} className="aspect-[16/9] h-full w-full object-cover" loading="eager" /></figure>}
           <StructuredText content={post.content} />
