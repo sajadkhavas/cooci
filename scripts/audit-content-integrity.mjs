@@ -16,22 +16,24 @@ const files = {
   productCard: "src/components/ProductCard.tsx",
   productGallery: "src/components/catalog/ProductGallery.tsx",
   productDetail: "src/pages/ProductDetailPage.tsx",
+  productsPage: "src/pages/ProductsPage.tsx",
   catalog: "src/lib/catalog.ts",
   trust: "src/components/trust/EnamadTrustSlot.tsx",
   trustSecurity: "src/lib/security/enamad.ts",
   footer: "src/components/layout/Footer.tsx",
   header: "src/components/layout/Header.tsx",
   routes: "src/routes.ts",
+  categoriesRedirect: "src/routes/categories-redirect.tsx",
   home: "src/pages/HomePage.tsx",
-  categoriesPage: "src/pages/CategoriesPage.tsx",
-  categoryPage: "src/pages/CategoryPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   categoriesContent: "src/data/categoriesContent.ts",
   sitemapGenerator: "scripts/generate-sitemap.mjs",
   sitemap: "public/sitemap.xml",
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   phase10Documentation: "docs/FRONTEND_PHASE_10_0_HOME_CATEGORIES.md",
+  phase102Documentation: "docs/FRONTEND_PHASE_10_2_UNIFIED_SHOP_CATEGORIES.md",
 };
+
 const sources = Object.fromEntries(
   Object.entries(files).map(([name, path]) => [name, readFileSync(path, "utf8")]),
 );
@@ -121,16 +123,19 @@ requireText("catalog", "isProductMediaVerified", "media verification helper");
 
 requireText(
   "routes",
-  'route("categories", "./pages/CategoriesPage.tsx")',
-  "category index route module",
+  'route("categories", "./routes/categories-redirect.tsx")',
+  "legacy category-index redirect route",
 );
 requireText(
   "routes",
-  'route("products/category/:slug", "./pages/CategoryPage.tsx")',
-  "category detail route module",
+  'route("products/category/:slug", "./routes/category-shop.tsx")',
+  "shared shop category route module",
 );
-requireText("header", 'href: "/categories"', "header category index link");
-requireText("footer", 'href: "/categories"', "footer category index link");
+requireText("categoriesRedirect", 'redirect("/products", 301)', "permanent /categories redirect");
+forbidText("header", 'href: "/categories"', "header category-index navigation");
+forbidText("footer", 'href: "/categories"', "footer category-index navigation");
+forbidText("footer", 'to="/categories"', "footer category-index CTA");
+
 for (const validPath of [
   "/products/category/cookies",
   "/products/category/mini-cookies",
@@ -147,30 +152,34 @@ for (const validPath of [
 requireText("home", "سفارش آنلاین کوکی،", "product-led homepage H1");
 requireText("home", "<CategoryShowcase", "homepage category discovery");
 requireText("home", "خرید بر اساس موقعیت", "occasion-led homepage section");
+forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
 forbidText("home", "وضعیت داده", "developer-facing homepage copy");
 
-requireText("categoriesPage", '"@type": "CollectionPage"', "category collection schema");
-requireText("categoriesPage", '"@type": "ItemList"', "category ItemList schema");
+requireText("productsPage", "useParams", "one route-aware shop UI");
+requireText("productsPage", "getCategoryContent", "editorial category SEO mapping");
+requireText("productsPage", "categoryContents", "shop category navigation");
+requireText(
+  "productsPage",
+  'aria-label="دسته‌بندی محصولات"',
+  "crawlable category navigation",
+);
+requireText("productsPage", '"@type": "CollectionPage"', "shop and category CollectionPage schema");
+requireText("productsPage", "content?.catalogSearch", "subcategory search mapping");
+requireText("productsPage", "hasNonCanonicalFilters", "filtered-page robots policy");
 requireText("categoryShowcase", "productCount", "backend category count support");
-requireText(
-  "categoryPage",
-  "content?.productCategorySlug || slug",
-  "editorial-to-backend category mapping",
-);
-requireText("categoryPage", "content?.catalogSearch", "subcategory search mapping");
-requireText("categoryPage", '"@type": "CollectionPage"', "category detail schema");
-requireText("sitemapGenerator", '{ path: "/categories"', "generated category index URL");
-requireText(
-  "runtimeE2e",
-  "homepage is product-led and exposes the category architecture",
-  "homepage browser acceptance",
-);
-requireText("runtimeE2e", "editorial slugs map to Laravel", "category mapping browser acceptance");
+requireText("categoryShowcase", 'to="/products"', "all-shop destination");
+forbidText("sitemapGenerator", '{ path: "/categories"', "redirect-only URL in sitemap");
+requireText("runtimeE2e", "shop unifies categories and filters", "unified-shop browser acceptance");
 requireText(
   "phase10Documentation",
   "homepage_and_category_architecture=ready",
   "Phase 10.0 marker",
+);
+requireText(
+  "phase102Documentation",
+  "unified_shop_categories=ready",
+  "Phase 10.2 marker",
 );
 
 for (const claim of [
@@ -187,5 +196,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} production content contracts verified, including the SSR Phase 10.0 homepage and category route architecture.`,
+  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including unified shop categories and the permanent legacy redirect.`,
 );

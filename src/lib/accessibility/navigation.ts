@@ -17,9 +17,5 @@ export const isNavigationTargetActive = (
   if (target.match === "prefix") {
     return matchesRoutePrefix(pathname, target.href);
   }
-  return (
-    pathname === "/products" ||
-    (matchesRoutePrefix(pathname, "/products") &&
-      !matchesRoutePrefix(pathname, "/products/category"))
-  );
+  return matchesRoutePrefix(pathname, "/products");
 };

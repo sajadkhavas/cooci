@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-22T10:16:45.620Z",
+  "generatedAt": "2026-07-22T13:04:00.548Z",
   "mode": "react-router-framework-ssr",
   "budgets": {
     "largestJavaScriptGzip": 153600,
@@ -9,7 +9,7 @@
     "minimumJavaScriptChunks": 12,
     "runtimeBundleGzip": 2621440
   },
-  "serviceWorkerVersion": "47f025090cff3313",
+  "serviceWorkerVersion": "7e2b4c3a55e7a1a8",
   "manifest": {
     "id": "/",
     "scope": "/",
@@ -17,24 +17,24 @@
     "iconCount": 4
   },
   "summary": {
-    "javascriptChunks": 100,
+    "javascriptChunks": 97,
     "largestJavaScript": {
-      "file": "assets/entry.client-DSIlGs2E.js",
-      "bytes": 186527,
-      "gzipBytes": 58842
+      "file": "assets/entry.client-q_QjqS-9.js",
+      "bytes": 186566,
+      "gzipBytes": 58863
     },
-    "totalJavaScriptGzip": 305177,
+    "totalJavaScriptGzip": 301706,
     "largestCss": {
-      "file": "assets/root-gRAZdOfX.css",
-      "bytes": 127104,
-      "gzipBytes": 21739
+      "file": "assets/root-zmifyeAS.css",
+      "bytes": 126423,
+      "gzipBytes": 21668
     },
     "largestImage": {
       "file": "assets/hero-assorted-BuWtpA_n.jpg",
       "bytes": 268649
     },
     "runtimeFiles": 1,
-    "runtimeGzip": 623998
+    "runtimeGzip": 622671
   },
   "warnings": [],
   "failures": []

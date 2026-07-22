@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-07-22T13:03:33.414Z",
+  "passed": true,
+  "matrixVersion": "2026-07-21-phase-9",
+  "scenarioCount": 12,
+  "checkedFrontendEvidence": [
+    {
+      "scenarioId": "desktop-mobile-browser-matrix",
+      "path": "e2e/playwright.config.mjs",
+      "token": "desktop-chromium"
+    },
+    {
+      "scenarioId": "desktop-mobile-browser-matrix",
+      "path": "e2e/playwright.config.mjs",
+      "token": "mobile-chromium"
+    },
+    {
+      "scenarioId": "desktop-mobile-browser-matrix",
+      "path": "e2e/phase18.spec.mjs",
+      "token": "real Laravel checkout verifies testing payment"
+    },
+    {
+      "scenarioId": "offline-reconnect",
+      "path": "e2e/phase7-pwa.spec.mjs",
+      "token": "__winimi_network_failure"
+    },
+    {
+      "scenarioId": "offline-reconnect",
+      "path": "e2e/phase7-pwa.spec.mjs",
+      "token": "network restoration returns to the live server-rendered application"
+    },
+    {
+      "scenarioId": "expired-session",
+      "path": "e2e/phase18.spec.mjs",
+      "token": "a protected API 401 invalidates stale React auth state"
+    },
+    {
+      "scenarioId": "expired-session",
+      "path": "src/lib/api.ts",
+      "token": "AUTH_SESSION_EXPIRED_EVENT"
+    },
+    {
+      "scenarioId": "rate-limit-retry",
+      "path": "e2e/phase9-adversarial.spec.mjs",
+      "token": "rate-limited catalog fails visibly and recovers after retry"
+    },
+    {
+      "scenarioId": "rate-limit-retry",
+      "path": "src/lib/api.ts",
+      "token": "rate_limited"
+    },
+    {
+      "scenarioId": "stale-tampered-cart",
+      "path": "e2e/phase18.spec.mjs",
+      "token": "a tampered stale cart cannot bypass exact server reconciliation"
+    },
+    {
+      "scenarioId": "stale-tampered-cart",
+      "path": "src/components/cart/CheckoutGuard.tsx",
+      "token": "missingMockSlugs"
+    },
+    {
+      "scenarioId": "changed-stock",
+      "path": "src/context/CartContext.tsx",
+      "token": "syncWithCatalog"
+    },
+    {
+      "scenarioId": "changed-delivery-zone",
+      "path": "src/pages/CheckoutPage.tsx",
+      "token": "deliveryOptions"
+    },
+    {
+      "scenarioId": "duplicate-submit-idempotency",
+      "path": "src/lib/checkout.ts",
+      "token": "getOrCreateTransactionIntent"
+    },
+    {
+      "scenarioId": "duplicate-submit-idempotency",
+      "path": "src/lib/checkout.ts",
+      "token": "برای جلوگیری از سفارش تکراری"
+    },
+    {
+      "scenarioId": "payment-terminal-and-replay",
+      "path": "e2e/phase18.spec.mjs",
+      "token": "forged callback authority never clears an existing cart"
+    },
+    {
+      "scenarioId": "payment-terminal-and-replay",
+      "path": "src/pages/PaymentCallbackPage.tsx",
+      "token": "پرداخت لغو شد"
+    },
+    {
+      "scenarioId": "payment-terminal-and-replay",
+      "path": "src/pages/PaymentCallbackPage.tsx",
+      "token": "پرداخت تأیید نشد"
+    },
+    {
+      "scenarioId": "payment-terminal-and-replay",
+      "path": "src/pages/PaymentCallbackPage.tsx",
+      "token": "پرداخت از سمت سرور تأیید شد"
+    },
+    {
+      "scenarioId": "hostile-url-inputs",
+      "path": "e2e/phase18.spec.mjs",
+      "token": "protocol-relative login return state"
+    },
+    {
+      "scenarioId": "hostile-url-inputs",
+      "path": "e2e/phase9-adversarial.spec.mjs",
+      "token": "hostile encoded query values remain inert"
+    },
+    {
+      "scenarioId": "hostile-url-inputs",
+      "path": "src/lib/security/navigation.ts",
+      "token": "candidate.startsWith(\"//\")"
+    },
+    {
+      "scenarioId": "deployment-security-rollback",
+      "path": ".github/workflows/phase8-deployment.yml",
+      "token": "Rollback to release A"
+    },
+    {
+      "scenarioId": "deployment-security-rollback",
+      "path": ".github/workflows/phase8-deployment.yml",
+      "token": "Run HTTPS production smoke test"
+    },
+    {
+      "scenarioId": "deployment-security-rollback",
+      "path": "deploy/bin/smoke-test-frontend.sh",
+      "token": "strict-transport-security"
+    },
+    {
+      "scenarioId": "final-marker",
+      "path": "docs/FRONTEND_SECURITY_AND_DEPLOYMENT_AUDIT.md",
+      "token": "frontend_security_and_deployment_audited=ready"
+    }
+  ],
+  "finalMarker": "frontend_security_and_deployment_audited=ready",
+  "errors": []
+}

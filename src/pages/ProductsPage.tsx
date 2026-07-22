@@ -1,18 +1,37 @@
 import { useDeferredValue, useEffect } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
   CheckCircle2,
+  MessageCircle,
   Search,
   SlidersHorizontal,
   Snowflake,
   Truck,
   X,
 } from "lucide-react";
-import { useSearchParams } from "react-router";
+import {
+  Link,
+  redirect,
+  useParams,
+  useSearchParams,
+  type LoaderFunctionArgs,
+} from "react-router";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
+import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import { ProductGridSkeleton } from "@/components/catalog/ProductGridSkeleton";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
+import {
+  brandConfig,
+  generateWhatsAppUrl,
+  SUPPORT_WHATSAPP_MESSAGE,
+} from "@/config/brand";
+import {
+  categoryContents,
+  getCategoryContent,
+} from "@/data/categoriesContent";
 import {
   useCatalogCategories,
   useCatalogProducts,
@@ -38,20 +57,67 @@ const shippingOptions = [
 
 const parsePositivePage = (value: string | null) => {
   const parsed = Number.parseInt(value ?? "1", 10);
-  return Number.isFinite(parsed) && parsed > 0
-    ? Math.min(10_000, parsed)
-    : 1;
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(10_000, parsed) : 1;
+};
+
+const resolveEditorialSlug = (catalogSlug: string) =>
+  categoryContents.find(
+    (category) =>
+      category.slug === catalogSlug || category.productCategorySlug === catalogSlug,
+  )?.slug || catalogSlug;
+
+export const loader = ({ request, params }: LoaderFunctionArgs) => {
+  if (params.slug) return null;
+
+  const url = new URL(request.url);
+  const legacyCategory = url.searchParams.get("category");
+  const legacyDiet = url.searchParams.get("diet") === "true";
+  if (!legacyCategory && !legacyDiet) return null;
+
+  url.searchParams.delete("category");
+  url.searchParams.delete("diet");
+  const query = url.searchParams.toString();
+  if (legacyCategory === "all" && !legacyDiet) {
+    return redirect(`/products${query ? `?${query}` : ""}`, 301);
+  }
+
+  const targetSlug = legacyDiet
+    ? "diet-diabetic"
+    : resolveEditorialSlug(legacyCategory || "");
+  return redirect(
+    `/products/category/${encodeURIComponent(targetSlug)}${query ? `?${query}` : ""}`,
+    301,
+  );
 };
 
 const ProductsPage = () => {
+  const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { categories, isLoading: categoriesLoading } = useCatalogCategories();
-  const categoryParam = searchParams.get("category") ?? "all";
+  const content = slug ? getCategoryContent(slug) : undefined;
+  const catalogCategorySlug = slug
+    ? content?.productCategorySlug || slug
+    : undefined;
+  const backendCategory = categories.find(
+    (category) => category.slug === catalogCategorySlug,
+  );
+  const mappedCatalogSlugs = new Set(
+    categoryContents.map((category) => category.productCategorySlug),
+  );
+  const categoryNavigation = [
+    ...categoryContents.map((category) => ({
+      routeSlug: category.slug,
+      name: category.name,
+    })),
+    ...categories
+      .filter((category) => !mappedCatalogSlugs.has(category.slug))
+      .map((category) => ({ routeSlug: category.slug, name: category.name })),
+  ];
+
   const sortParam = searchParams.get("sort") ?? "featured";
   const shippingParam = searchParams.get("shipping") ?? "all";
   const searchQuery = searchParams.get("q") ?? "";
   const deferredSearch = useDeferredValue(searchQuery);
-  const dietOnly = searchParams.get("diet") === "true";
   const inStockOnly = searchParams.get("stock") === "true";
   const requestedPage = parsePositivePage(searchParams.get("page"));
   const validSort = sortOptions.some((option) => option.value === sortParam)
@@ -62,17 +128,7 @@ const ProductsPage = () => {
   )
     ? (shippingParam as (typeof shippingOptions)[number]["value"])
     : "all";
-  const dietCategory = categories.find(
-    (category) =>
-      category.slug === "diet" ||
-      category.name.includes("رژیمی") ||
-      category.name.includes("بدون قند"),
-  );
-  const effectiveCategory = dietOnly
-    ? dietCategory?.slug || "diet"
-    : categoryParam === "all"
-      ? undefined
-      : categoryParam;
+
   const {
     products,
     pagination,
@@ -82,8 +138,8 @@ const ProductsPage = () => {
     isBackendCatalogEnabled,
     refetch,
   } = useCatalogProducts({
-    category: effectiveCategory,
-    search: deferredSearch || undefined,
+    category: catalogCategorySlug,
+    search: content?.catalogSearch || deferredSearch || undefined,
     requiresCooling:
       validShipping === "chilled"
         ? true
@@ -105,7 +161,6 @@ const ProductsPage = () => {
     if (!("page" in updates)) next.delete("page");
     setSearchParams(next, { replace: true });
   };
-
   const updateParam = (key: string, value: string | null) =>
     updateParams({ [key]: value });
 
@@ -119,12 +174,11 @@ const ProductsPage = () => {
 
   const resetFilters = () => setSearchParams({}, { replace: true });
   const hasActiveFilters =
-    categoryParam !== "all" ||
     Boolean(searchQuery) ||
     validShipping !== "all" ||
-    dietOnly ||
     inStockOnly ||
     validSort !== "featured";
+  const hasNonCanonicalFilters = hasActiveFilters;
   const handlePageChange = (page: number) => {
     updateParam("page", page <= 1 ? null : String(page));
     window.requestAnimationFrame(() => {
@@ -135,66 +189,149 @@ const ProductsPage = () => {
     });
   };
 
+  const name = content?.name || backendCategory?.name || "محصولات وینیمی";
+  const heading = content?.heading || backendCategory?.name || "محصولات وینیمی";
+  const intro =
+    content?.intro ||
+    backendCategory?.description ||
+    "محصول موردنظرت را با دسته‌بندی، جست‌وجو، مرتب‌سازی و فیلترهای فروشگاه پیدا کن.";
+  const seoTitle =
+    content?.seoTitle ||
+    (backendCategory ? `خرید ${backendCategory.name}` : "محصولات");
+  const seoDescription =
+    content?.seoDescription ||
+    backendCategory?.description ||
+    "مشاهده، جست‌وجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور.";
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        name,
+        headline: heading,
+        description: seoDescription,
+        url: slug
+          ? `${brandConfig.website}/products/category/${encodeURIComponent(slug)}`
+          : `${brandConfig.website}/products`,
+        mainEntity: {
+          "@type": "ItemList",
+          itemListElement: products.map((product, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: product.name,
+            url: `${brandConfig.website}/products/${encodeURIComponent(product.slug)}`,
+          })),
+        },
+      },
+      ...(content
+        ? [
+            {
+              "@type": "FAQPage",
+              mainEntity: content.faq.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: { "@type": "Answer", text: faq.answer },
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
   return (
     <>
       <SEO
-        title="محصولات"
-        description="مشاهده، جستجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور."
+        title={seoTitle}
+        description={seoDescription}
+        schema={collectionSchema}
+        noIndex={hasNonCanonicalFilters}
       />
 
-      <section className="bg-secondary/50 py-12">
-        <div className="container-custom text-center">
-          <h1 className="heading-1 text-foreground">محصولات وینیمی</h1>
-          <p className="body-large mx-auto mt-4 max-w-2xl text-muted-foreground">
-            قیمت، موجودی، دسته‌بندی و وضعیت ارسال مستقیماً از کاتالوگ وینیمی دریافت می‌شود.
-          </p>
+      <section className="relative overflow-hidden bg-gradient-to-b from-secondary/55 to-background pb-12 pt-10 sm:pb-16">
+        <div className="soft-grid pointer-events-none absolute inset-0 opacity-30" aria-hidden="true" />
+        <div className="container-custom relative">
+          <Breadcrumbs
+            className="mb-8"
+            items={
+              slug
+                ? [
+                    { name: "خانه", href: "/" },
+                    { name: "فروشگاه", href: "/products" },
+                    { name },
+                  ]
+                : [{ name: "خانه", href: "/" }, { name: "فروشگاه" }]
+            }
+          />
+          <div className="max-w-4xl">
+            {content?.eyebrow && (
+              <span className="editorial-label mb-5">{content.eyebrow}</span>
+            )}
+            <h1 className="heading-1 text-foreground">{heading}</h1>
+            <p className="body-large mt-5 max-w-3xl leading-9 text-muted-foreground">
+              {intro}
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="section-padding">
+      {!slug && (
+        <section className="section-padding pb-4">
+          <div className="container-custom">
+            <CategoryShowcase
+              showAllLink={false}
+              title="دسته را انتخاب کن یا با فیلترها میان همه محصولات بگرد"
+              description="هر دسته یک URL مستقل و قابل اشتراک دارد، اما انتخاب، فیلتر، مرتب‌سازی و محصولات همگی داخل همین فروشگاه باقی می‌مانند."
+            />
+          </div>
+        </section>
+      )}
+
+      <section className="section-padding pt-8">
         <div className="container-custom">
           <div className="mb-10 space-y-5 rounded-3xl border border-border bg-card p-4 shadow-soft md:p-6">
-            <div className="flex flex-wrap gap-2" aria-label="دسته‌بندی محصولات">
-              <button
-                type="button"
-                onClick={() => updateParam("category", null)}
-                aria-pressed={categoryParam === "all" && !dietOnly}
-                className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                  categoryParam === "all" && !dietOnly
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-muted"
-                }`}
+            <div>
+              <p className="mb-3 text-sm font-black text-foreground">انتخاب دسته‌بندی</p>
+              <nav
+                className="flex gap-2 overflow-x-auto pb-2"
+                aria-label="دسته‌بندی محصولات"
               >
-                همه
-              </button>
-              {categories.map((category) => {
-                const isActive = categoryParam === category.slug && !dietOnly;
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() =>
-                      updateParams({ category: category.slug, diet: null })
-                    }
-                    aria-pressed={isActive}
-                    className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground hover:bg-muted"
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
-              {categoriesLoading && (
-                <span className="rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
-                  در حال دریافت دسته‌ها…
-                </span>
-              )}
+                <Link
+                  to="/products"
+                  aria-current={!slug ? "page" : undefined}
+                  className={
+                    !slug
+                      ? "shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+                      : "shrink-0 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground transition hover:bg-muted"
+                  }
+                >
+                  همه محصولات
+                </Link>
+                {categoryNavigation.map((category) => {
+                  const isActive = slug === category.routeSlug;
+                  return (
+                    <Link
+                      key={category.routeSlug}
+                      to={`/products/category/${category.routeSlug}`}
+                      aria-current={isActive ? "page" : undefined}
+                      className={
+                        isActive
+                          ? "shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+                          : "shrink-0 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground transition hover:bg-muted"
+                      }
+                    >
+                      {category.name}
+                    </Link>
+                  );
+                })}
+                {categoriesLoading && (
+                  <span className="shrink-0 rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
+                    در حال دریافت دسته‌ها…
+                  </span>
+                )}
+              </nav>
             </div>
 
-            <div className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div className="relative">
                 <Search
                   size={18}
@@ -243,25 +380,6 @@ const ProductsPage = () => {
                   ))}
                 </select>
               </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateParams(
-                    dietOnly
-                      ? { diet: null }
-                      : { diet: "true", category: null },
-                  )
-                }
-                aria-pressed={dietOnly}
-                className={`rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
-                  dietOnly
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-foreground hover:border-primary/50"
-                }`}
-              >
-                فقط رژیمی / بدون قند افزوده
-              </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -274,11 +392,11 @@ const ProductsPage = () => {
                     type="button"
                     onClick={() => updateParam("shipping", option.value)}
                     aria-pressed={isActive}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
+                    className={
                       isActive
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:border-primary/50"
-                    }`}
+                        ? "inline-flex items-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
+                        : "inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-xs font-bold text-muted-foreground transition hover:border-primary/50"
+                    }
                   >
                     <Icon size={15} aria-hidden="true" />
                     {option.label}
@@ -289,11 +407,11 @@ const ProductsPage = () => {
                 type="button"
                 onClick={() => updateParam("stock", inStockOnly ? null : "true")}
                 aria-pressed={inStockOnly}
-                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
+                className={
                   inStockOnly
-                    ? "border-emerald-700 bg-emerald-700 text-white"
-                    : "border-border bg-background text-muted-foreground hover:border-emerald-600/60"
-                }`}
+                    ? "inline-flex items-center gap-2 rounded-xl border border-emerald-700 bg-emerald-700 px-4 py-2 text-xs font-bold text-white"
+                    : "inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-xs font-bold text-muted-foreground transition hover:border-emerald-600/60"
+                }
               >
                 <CheckCircle2 size={15} aria-hidden="true" />
                 فقط محصولات موجود
@@ -332,7 +450,7 @@ const ProductsPage = () => {
                 <button
                   type="button"
                   onClick={() => void refetch()}
-                  className="btn-primary rounded-xl px-7 py-3"
+                  className="btn-primary rounded-xl px-6 py-3"
                 >
                   تلاش دوباره
                 </button>
@@ -351,7 +469,7 @@ const ProductsPage = () => {
                       onClick={resetFilters}
                       className="text-sm font-bold text-primary hover:underline"
                     >
-                      حذف همه فیلترها
+                      حذف فیلترهای این دسته
                     </button>
                   )}
                 </div>
@@ -384,15 +502,27 @@ const ProductsPage = () => {
                       نتیجه‌ای پیدا نشد
                     </h2>
                     <p className="body-large mx-auto mb-6 max-w-xl text-muted-foreground">
-                      دسته‌بندی، عبارت جستجو یا فیلترهای ارسال و موجودی را تغییر دهید.
+                      عبارت جستجو یا فیلترهای ارسال و موجودی را تغییر بده.
                     </p>
-                    <button
-                      type="button"
-                      onClick={resetFilters}
-                      className="btn-primary rounded-xl px-8 py-3"
-                    >
-                      نمایش همه محصولات
-                    </button>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {hasActiveFilters && (
+                        <button
+                          type="button"
+                          onClick={resetFilters}
+                          className="btn-secondary rounded-xl px-6 py-3"
+                        >
+                          پاک‌کردن فیلترها
+                        </button>
+                      )}
+                      {slug && (
+                        <Link
+                          to="/products"
+                          className="btn-primary rounded-xl px-6 py-3"
+                        >
+                          نمایش همه محصولات
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
@@ -400,6 +530,87 @@ const ProductsPage = () => {
           </div>
         </div>
       </section>
+
+      {content && (
+        <>
+          <section className="section-padding bg-secondary/30">
+            <div className="container-custom max-w-5xl">
+              <div className="grid gap-5 md:grid-cols-2">
+                {content.sections.map((section) => (
+                  <article
+                    key={section.title}
+                    className="rounded-[2rem] border border-border bg-card p-6 shadow-soft md:p-8"
+                  >
+                    <h2 className="heading-3 mb-3 flex items-center gap-3 text-foreground">
+                      <span className="h-1 w-8 rounded-full bg-primary" />
+                      {section.title}
+                    </h2>
+                    <p className="leading-9 text-muted-foreground">{section.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="section-padding">
+            <div className="container-custom max-w-4xl">
+              <h2 className="heading-2 mb-8 text-center text-foreground">
+                پرسش‌های متداول درباره {name}
+              </h2>
+              <div className="space-y-3">
+                {content.faq.map((faq) => (
+                  <details
+                    key={faq.question}
+                    className="group rounded-2xl border border-border bg-card p-5"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-foreground">
+                      {faq.question}
+                      <span className="text-primary transition-transform group-open:rotate-45">
+                        +
+                      </span>
+                    </summary>
+                    <p className="mt-3 leading-8 text-muted-foreground">{faq.answer}</p>
+                  </details>
+                ))}
+              </div>
+              <div className="mt-10 rounded-3xl bg-primary/10 p-8 text-center">
+                <p className="mb-4 font-bold text-foreground">
+                  سؤال دیگری درباره {name} داری؟
+                </p>
+                <a
+                  href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-whatsapp px-6 py-3 font-bold text-white"
+                >
+                  <MessageCircle size={18} aria-hidden="true" />
+                  پشتیبانی واتساپ {brandConfig.brandName}
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <section className="section-padding pt-4">
+            <div className="container-custom">
+              <CategoryShowcase
+                excludeSlug={slug}
+                limit={3}
+                compact
+                showAllLink={false}
+                title="دسته‌های دیگر همین فروشگاه"
+                description="بدون خروج از مسیر خرید، دسته دیگری را انتخاب کن و از همان فیلترها و ساختار فروشگاه استفاده کن."
+              />
+              <Link
+                to="/products"
+                className="btn-secondary mx-auto mt-8 flex w-fit items-center gap-2 rounded-full px-6 py-3 font-black"
+              >
+                بازگشت به همه محصولات
+                <ArrowLeft size={17} aria-hidden="true" />
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
     </>
   );
 };

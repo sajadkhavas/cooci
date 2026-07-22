@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-22T13:03:33.549Z",
+  "passed": true,
+  "inventory": {
+    "sourceFiles": 170,
+    "backdropBlurUtilities": 28,
+    "explicitBackdropFilters": 9,
+    "largeArbitraryBlurs": 6,
+    "stickyUtilities": 7,
+    "fixedUtilities": 20,
+    "infiniteAnimations": 4
+  },
+  "diagnosis": {
+    "productionBundleIsWithinStaticBudgets": true,
+    "developmentOnlyLovableTagger": true,
+    "primaryRisk": "client-side paint, compositing and scroll-linked work",
+    "productionDeploymentExpectedEffect": "faster transfer, caching and no editor instrumentation; browser paint costs still require code fixes"
+  },
+  "errors": []
+}

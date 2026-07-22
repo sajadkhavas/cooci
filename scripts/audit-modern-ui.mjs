@@ -11,7 +11,7 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   home: "src/pages/HomePage.tsx",
-  categories: "src/pages/CategoriesPage.tsx",
+  products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   productCard: "src/components/ProductCard.tsx",
   reveal: "src/components/motion/Reveal.tsx",
@@ -35,12 +35,16 @@ const forbidText = (file, text, description = text) => {
 };
 
 forbidText("index", "@import url(", "render-blocking remote font import");
-requireText("index", ".glass-panel", "modern glass surface primitive");
-requireText("index", ".bento-card", "bento card primitive");
-requireText("index", ".reveal.is-visible", "reveal motion state");
-requireText("index", "prefers-reduced-motion", "reduced-motion fallback");
-requireText("index", ".ambient-layer", "ambient visual layer");
-requireText("index", ".scroll-progress", "scroll progress styling");
+for (const requirement of [
+  ".glass-panel",
+  ".bento-card",
+  ".reveal.is-visible",
+  "prefers-reduced-motion",
+  ".ambient-layer",
+  ".scroll-progress",
+]) {
+  requireText("index", requirement);
+}
 
 requireText("main", 'import "./styles/modern-pages.css"', "modern routed-page stylesheet");
 requireText("layout", "<ScrollProgress", "global scroll progress");
@@ -56,16 +60,18 @@ for (const requirement of [
 ]) {
   requireText("header", requirement, `modern accessible navigation contract: ${requirement}`);
 }
-requireText("header", 'href: "/categories"', "category-first desktop/mobile navigation");
+requireText("header", 'href: "/products"', "single shop desktop/mobile navigation");
+forbidText("header", 'href: "/categories"', "duplicate category-index navigation");
 
 for (const validPath of [
-  "/categories",
+  "/products",
   "/products/category/diet-diabetic",
   "/products/category/cakes",
   "/products/category/gift-boxes",
 ]) {
   requireText("footer", validPath, `valid modern footer link ${validPath}`);
 }
+forbidText("footer", "/categories", "duplicate category-index footer link");
 requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
 
 for (const requirement of [
@@ -81,17 +87,20 @@ for (const requirement of [
 }
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
+forbidText("home", 'to="/categories"', "standalone category-index link");
 
 for (const requirement of [
-  '"@type": "CollectionPage"',
-  '"@type": "ItemList"',
   "<CategoryShowcase",
-  "startingPoints",
-  "rounded-[2.4rem]",
-  "text-gradient-modern",
+  'aria-label="دسته‌بندی محصولات"',
+  "categoryNavigation",
+  "CatalogPagination",
+  "hasNonCanonicalFilters",
+  "rounded-3xl",
+  "heading-1",
 ]) {
-  requireText("categories", requirement, `modern category-index contract: ${requirement}`);
+  requireText("products", requirement, `unified shop contract: ${requirement}`);
 }
+
 for (const requirement of [
   "categoryVisuals",
   "backendCategory?.image",
@@ -117,7 +126,11 @@ for (const requirement of [
 requireText("reveal", "IntersectionObserver", "dependency-free reveal observer");
 requireText("reveal", "prefers-reduced-motion", "reveal reduced-motion support");
 requireText("progress", 'aria-hidden="true"', "decorative progress accessibility");
-requireText("modernPages", 'nav[aria-label="مراحل ثبت سفارش"]', "modern checkout progress styling");
+requireText(
+  "modernPages",
+  'nav[aria-label="مراحل ثبت سفارش"]',
+  "modern checkout progress styling",
+);
 requireText("modernPages", "main details[open]", "modern FAQ/details styling");
 
 if (errors.length) {
@@ -127,5 +140,5 @@ if (errors.length) {
 }
 
 console.log(
-  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including the product-led homepage and category architecture.`,
+  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including one category-aware shop UI.`,
 );

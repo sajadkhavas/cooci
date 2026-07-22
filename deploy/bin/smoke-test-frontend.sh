@@ -3,8 +3,10 @@ set -Eeuo pipefail
 
 BASE_URL=${1:-https://winimibakery.com}
 CURL=(curl --fail --silent --show-error --location --max-time 20)
+CURL_NO_REDIRECT=(curl --silent --show-error --max-time 20)
 if [[ ${SMOKE_INSECURE:-false} == true ]]; then
   CURL+=(--insecure)
+  CURL_NO_REDIRECT+=(--insecure)
 fi
 
 headers_for() {
@@ -36,14 +38,20 @@ grep -q '"status":"ok"' <<<"$health"
 grep -q '"surface":"winimi-ssr"' <<<"$ssr_health"
 
 root_html=$("${CURL[@]}" "$BASE_URL/")
-categories_html=$("${CURL[@]}" "$BASE_URL/categories")
 products_html=$("${CURL[@]}" "$BASE_URL/products")
+legacy_categories_headers=$(
+  "${CURL_NO_REDIRECT[@]}" --dump-header - --output /dev/null "$BASE_URL/categories" |
+    tr -d '\r'
+)
+require_header "$legacy_categories_headers" '^HTTP/[^ ]+ 301' "legacy categories redirect status"
+require_header "$legacy_categories_headers" '^location: /products$' "legacy categories redirect location"
+
 require_html "$root_html" 'سفارش آنلاین کوکی،' "homepage H1 before hydration"
 require_html "$root_html" '<title>[^<]*وینیمی' "server-rendered title"
 require_html "$root_html" 'rel="canonical"' "canonical link"
 require_html "$root_html" '<script[^>]+nonce="[A-Za-z0-9_-]+"' "nonce-bearing framework script"
-require_html "$categories_html" 'دسته‌بندی محصولات وینیمی' "category index before hydration"
-require_html "$products_html" 'محصولات وینیمی' "products heading before hydration"
+require_html "$products_html" 'محصولات وینیمی' "unified shop heading before hydration"
+require_html "$products_html" 'دسته‌بندی محصولات' "unified shop category navigation before hydration"
 if grep -q '<div id="root"></div>' <<<"$root_html"; then
   echo "Legacy empty SPA shell is still present." >&2
   exit 1

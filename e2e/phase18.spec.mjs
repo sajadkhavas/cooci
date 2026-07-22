@@ -96,7 +96,7 @@ test("catalog renders backend staging products and search narrows results", asyn
   assertNoPageErrors();
 });
 
-test("diet and category filters update atomically without restoring stale URL state", async ({ page, request }) => {
+test("legacy diet URLs and category links resolve to clean unified-shop routes", async ({ page, request }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
   const response = await request.get(`${apiOrigin}/api/catalog/categories`, {
     headers: {
@@ -107,14 +107,45 @@ test("diet and category filters update atomically without restoring stale URL st
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
   const category = payload.data.find(
-    (item) => item.slug !== "diet" && !item.name.includes("رژیمی") && !item.name.includes("بدون قند"),
+    (item) =>
+      item.slug !== "diet" &&
+      !item.name.includes("رژیمی") &&
+      !item.name.includes("بدون قند"),
   );
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
-  await page.getByRole("button", { name: category.name, exact: true }).click();
-  await expect.poll(() => new URL(page.url()).searchParams.get("category")).toBe(category.slug);
-  await expect.poll(() => new URL(page.url()).searchParams.get("diet")).toBeNull();
+  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /رژیمی و بدون قند افزوده/,
+    }),
+  ).toBeVisible();
+
+  const categoryNavigation = page.getByRole("navigation", {
+    name: "دسته‌بندی محصولات",
+  });
+  const categoryLink = categoryNavigation.getByRole("link", {
+    name: category.name,
+    exact: true,
+  });
+  await expect(categoryLink).toHaveAttribute(
+    "href",
+    `/products/category/${category.slug}`,
+  );
+  await categoryLink.click();
+
+  await expect(page).toHaveURL(
+    new RegExp(`/products/category/${category.slug}$`),
+  );
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("category"))
+    .toBeNull();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("diet"))
+    .toBeNull();
+  await expect(categoryNavigation).toBeVisible();
   assertNoPageErrors();
 });
 
@@ -284,10 +315,14 @@ test("a protected API 401 invalidates stale React auth state and returns to logi
 test("persisted inquiry, query-free canonical and disabled eNAMAD trust slot remain safe", async ({ page }, testInfo) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
 
-  await page.goto("/products?q=staging-cookie&diet=true");
+  await page.goto("/products?q=staging-cookie&shipping=chilled&sort=price-desc");
   const canonicals = page.locator('link[rel="canonical"]');
   await expect(canonicals).toHaveCount(1);
   await expect(canonicals).toHaveAttribute("href", "http://127.0.0.1:4173/products");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,nofollow",
+  );
 
   await page.goto("/contact");
   await expect(page.getByRole("heading", { name: "تماس با ما" })).toBeVisible();
@@ -323,10 +358,14 @@ test("mobile navigation traps focus, restores dismissal focus and transfers rout
   await expect(dialog).toBeVisible();
   const closeButton = dialog.getByRole("button", { name: "بستن منوی اصلی" });
   await expect(closeButton).toBeFocused();
-  await expect(dialog.getByRole("link", { name: "کوکی‌ها", exact: true })).not.toHaveAttribute("aria-current");
+  await expect(
+    dialog.getByRole("link", { name: "فروشگاه", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
 
   await page.keyboard.press("Shift+Tab");
-  await expect.poll(() => dialog.evaluate((node) => node.contains(document.activeElement))).toBe(true);
+  await expect
+    .poll(() => dialog.evaluate((node) => node.contains(document.activeElement)))
+    .toBe(true);
   await page.keyboard.press("Tab");
   await expect(closeButton).toBeFocused();
 
@@ -335,12 +374,16 @@ test("mobile navigation traps focus, restores dismissal focus and transfers rout
   await expect(menuButton).toBeFocused();
 
   await menuButton.press("Enter");
-  const giftLink = page.getByRole("dialog").getByRole("link", { name: "هدیه", exact: true });
+  const giftLink = page
+    .getByRole("dialog")
+    .getByRole("link", { name: "هدیه", exact: true });
   await giftLink.focus();
   await giftLink.press("Enter");
   await expect(page).toHaveURL(/\/gift$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("main-content");
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.id))
+    .toBe("main-content");
   assertNoPageErrors();
 });
 
@@ -360,10 +403,14 @@ test("public content, city page, callback state and not-found route remain navig
   const assertNoPageErrors = attachPageErrorGuard(page);
 
   await page.goto("/blog/staging-welcome");
-  await expect(page.getByRole("heading", { name: "مقاله تست پذیرش وینیمی" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "مقاله تست پذیرش وینیمی" }),
+  ).toBeVisible();
 
   await page.goto("/city/staging-tehran");
-  await expect(page.getByRole("heading", { name: "سفارش کوکی تست در تهران" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "سفارش کوکی تست در تهران" }),
+  ).toBeVisible();
 
   await page.goto("/payment/callback?Status=NOK");
   await expect(page.locator("main")).toBeVisible();
@@ -372,7 +419,11 @@ test("public content, city page, callback state and not-found route remain navig
   await expect(page).toHaveURL(/phase18-route-does-not-exist/);
   await expect(page.getByRole("heading").first()).toBeVisible();
 
-  const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  const horizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth + 1,
+  );
   expect(horizontalOverflow).toBe(false);
   assertNoPageErrors();
 });
