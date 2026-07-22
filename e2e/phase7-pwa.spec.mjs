@@ -28,7 +28,10 @@ test("production PWA fails closed on a real network failure and recovers after r
   page,
   request,
 }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-chromium", "single production PWA acceptance");
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "single production PWA acceptance",
+  );
 
   const workerResponse = await request.get("/sw.js");
   expect(workerResponse.ok()).toBeTruthy();
@@ -39,6 +42,8 @@ test("production PWA fails closed on a real network failure and recovers after r
   expect(worker).toContain('"/payment"');
   expect(worker).toContain('"/account"');
   expect(worker).toContain('cache: "no-store"');
+  expect(worker).not.toContain('"/index.html"');
+  expect(worker).toContain("navigationCacheKey");
 
   const manifestResponse = await request.get("/manifest.webmanifest");
   expect(manifestResponse.ok()).toBeTruthy();
@@ -63,7 +68,9 @@ test("production PWA fails closed on a real network failure and recovers after r
   await page.goto("/");
   await waitForServiceWorkerControl(page);
   await expect
-    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .poll(() =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
     .toBe(true);
 
   await page.goto(`/checkout?${NETWORK_FAILURE_QUERY}=1`, {
@@ -72,13 +79,21 @@ test("production PWA fails closed on a real network failure and recovers after r
   await expect(
     page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
   ).toBeVisible();
-  await expect(page.locator("#root")).toHaveCount(0);
+  await expect(page.locator("#main-content")).toHaveCount(0);
+  await expect(page.locator('html[lang="fa-IR"]')).toHaveCount(0);
 
-  // network restoration returns to the live application
+  // network restoration returns to the live server-rendered application
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("#root")).toHaveCount(1);
+  await expect(page.locator('html[lang="fa-IR"][dir="rtl"]')).toHaveCount(1);
   await expect(page.locator("#main-content")).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: /سفارش آنلاین کوکی، کیک و باکس هدیه/,
+    }),
+  ).toBeVisible();
   await expect
-    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .poll(() =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
     .toBe(true);
 });
