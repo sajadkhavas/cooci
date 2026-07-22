@@ -148,6 +148,8 @@ const clampInteger = (
   return Math.min(maximum, Math.max(minimum, Math.floor(value)));
 };
 
+const laravelBoolean = (value: boolean) => (value ? "1" : "0");
+
 export const toCatalogSearchParams = (query: CatalogQuery) => {
   const params = new URLSearchParams();
   const category = query.category?.trim().slice(0, 180);
@@ -157,11 +159,15 @@ export const toCatalogSearchParams = (query: CatalogQuery) => {
 
   if (category && category !== "all") params.set("category", category);
   if (search) params.set("search", search);
-  if (query.featured !== undefined) params.set("featured", String(query.featured));
-  if (query.requiresCooling !== undefined) {
-    params.set("requiresCooling", String(query.requiresCooling));
+  if (query.featured !== undefined) {
+    params.set("featured", laravelBoolean(query.featured));
   }
-  if (query.inStock !== undefined) params.set("inStock", String(query.inStock));
+  if (query.requiresCooling !== undefined) {
+    params.set("requiresCooling", laravelBoolean(query.requiresCooling));
+  }
+  if (query.inStock !== undefined) {
+    params.set("inStock", laravelBoolean(query.inStock));
+  }
   if (query.sort) params.set("sort", query.sort);
   if (page) params.set("page", String(page));
   if (perPage) params.set("perPage", String(perPage));
