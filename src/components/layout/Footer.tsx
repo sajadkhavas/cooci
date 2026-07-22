@@ -27,14 +27,14 @@ const footerLinks = {
   quickLinks: [
     { name: "خانه", href: "/" },
     { name: "همه محصولات", href: "/products" },
-    { name: "دسته‌بندی محصولات", href: "/categories" },
+    { name: "فروشگاه و دسته‌بندی‌ها", href: "/products" },
     { name: "درباره ما", href: "/about" },
     { name: "نظرهای تأییدشده", href: "/reviews" },
     { name: "راهنماها", href: "/blog" },
     { name: "تماس با ما", href: "/contact" },
   ],
   categories: [
-    { name: "همه دسته‌بندی‌ها", href: "/categories" },
+    { name: "همه محصولات", href: "/products" },
     { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
     { name: "مینی کوکی", href: "/products/category/mini-cookies" },
     { name: "رژیمی و بدون قند افزوده", href: "/products/category/diet-diabetic" },
@@ -129,12 +129,12 @@ export const Footer = () => {
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <Link
-                to="/categories"
+                to="/products"
                 className="group flex min-h-14 items-center justify-between rounded-2xl bg-accent px-5 py-4 font-black text-accent-foreground shadow-xl transition duration-300 hover:-translate-y-1"
               >
                 <span className="flex items-center gap-2">
                   <ShoppingBag size={20} aria-hidden="true" />
-                  دسته‌بندی محصولات
+                  فروشگاه و دسته‌بندی‌ها
                 </span>
                 <ArrowUpLeft
                   size={19}

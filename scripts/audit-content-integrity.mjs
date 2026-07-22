@@ -128,7 +128,7 @@ requireText(
 );
 requireText(
   "routes",
-  'route("products/category/:slug", "./pages/ProductsPage.tsx")',
+  'route("products/category/:slug", "./routes/category-shop.tsx")',
   "shared shop category route module",
 );
 requireText("categoriesRedirect", 'redirect("/products", 301)', "permanent /categories redirect");

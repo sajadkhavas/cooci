@@ -34,7 +34,6 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { name: "خانه", href: "/", match: "home" },
   { name: "فروشگاه", href: "/products", match: "products" },
-  { name: "دسته‌بندی‌ها", href: "/categories", match: "prefix" },
   { name: "هدیه", href: "/gift", match: "prefix" },
   { name: "راهنماها", href: "/blog", match: "prefix" },
   { name: "داستان ما", href: "/about", match: "prefix" },

@@ -67,7 +67,7 @@ for (const file of pageFiles) {
 }
 for (const required of [
   'index("./pages/HomePage.tsx")',
-  'route("categories", "./pages/CategoriesPage.tsx")',
+  'route("categories", "./routes/categories-redirect.tsx")',
   'route("products/:slug", "./pages/ProductDetailPage.tsx")',
   'route("*", "./routes/not-found.tsx")',
 ]) {

@@ -175,18 +175,20 @@ test("homepage is product-led and exposes the category architecture", async ({
   await assertNoHorizontalOverflow(page);
 });
 
-test("category index is crawlable and editorial slugs map to Laravel", async ({
-  page,
-}) => {
+test("shop unifies categories and filters while editorial slugs map to Laravel", async ({ page }) => {
   await page.goto("/categories", { waitUntil: "domcontentloaded" });
-
+  await expect(page).toHaveURL(/\/products$/);
   await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /دسته‌بندی محصولات وینیمی/,
-    }),
+    page.getByRole("heading", { level: 1, name: "محصولات وینیمی" }),
   ).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "مسیر" })).toBeVisible();
+
+  const categoryNavigation = page.getByRole("navigation", {
+    name: "دسته‌بندی محصولات",
+  });
+  await expect(categoryNavigation).toBeVisible();
+  await expect(
+    categoryNavigation.getByRole("link", { name: "همه محصولات" }),
+  ).toHaveAttribute("aria-current", "page");
 
   const expectedDestinations = [
     ["کوکی‌های خانگی", "/products/category/cookies"],
@@ -197,13 +199,11 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({
     ["رول و کروسان", "/products/category/pastry"],
     ["باکس هدیه", "/products/category/gift-boxes"],
   ];
-
   for (const [name, href] of expectedDestinations) {
-    await expect(
-      page.getByRole("link", {
-        name: new RegExp(`مشاهده دسته ${name}`),
-      }),
-    ).toHaveAttribute("href", href);
+    await expect(categoryNavigation.getByRole("link", { name })).toHaveAttribute(
+      "href",
+      href,
+    );
   }
 
   const cookiesResponse = page.waitForResponse(
@@ -212,21 +212,17 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({
       response.url().includes("category=cookies") &&
       response.status() === 200,
   );
-  await page.goto("/products/category/cookies", {
-    waitUntil: "domcontentloaded",
-  });
-  const cookiesCatalogResponse = await cookiesResponse;
-  const cookiesPayload = await cookiesCatalogResponse.json();
-  expect(cookiesPayload.success).toBe(true);
-  expect(Array.isArray(cookiesPayload.data)).toBe(true);
+  await categoryNavigation.getByRole("link", { name: "کوکی‌های خانگی" }).click();
+  await cookiesResponse;
+  await expect(page).toHaveURL(/\/products\/category\/cookies$/);
   await expect(
     page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
   ).toBeVisible();
   await expect(
     page
-      .getByRole("navigation", { name: "مسیر" })
-      .getByRole("link", { name: "دسته‌بندی‌ها" }),
-  ).toBeVisible();
+      .getByRole("navigation", { name: "دسته‌بندی محصولات" })
+      .getByRole("link", { name: "کوکی‌های خانگی" }),
+  ).toHaveAttribute("aria-current", "page");
 
   const dietResponse = page.waitForResponse(
     (response) =>
@@ -234,17 +230,12 @@ test("category index is crawlable and editorial slugs map to Laravel", async ({
       response.url().includes("category=diet") &&
       response.status() === 200,
   );
-  await page.goto("/products/category/diet-diabetic", {
-    waitUntil: "domcontentloaded",
-  });
+  await page.goto("/products?diet=true", { waitUntil: "domcontentloaded" });
   await dietResponse;
+  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
   await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /رژیمی و بدون قند افزوده/,
-    }),
+    page.getByRole("heading", { level: 1, name: /رژیمی و بدون قند افزوده/ }),
   ).toBeVisible();
-
   await assertNoHorizontalOverflow(page);
 });
 

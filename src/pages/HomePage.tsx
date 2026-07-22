@@ -148,10 +148,10 @@ const HomePage = () => {
               <Reveal delay={220}>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
-                    to="/categories"
+                    to="/products"
                     className="btn-primary group inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-7 text-base font-black sm:px-9"
                   >
-                    انتخاب از دسته‌بندی‌ها
+                    ورود به فروشگاه و دسته‌ها
                     <ArrowLeft
                       size={20}
                       className="transition-transform group-hover:-translate-x-1"
@@ -279,9 +279,9 @@ const HomePage = () => {
             description="از کوکی و مینی کوکی تا کیک، چیزکیک، رول و کروسان و باکس هدیه؛ دسته‌بندی مسیر انتخاب را کوتاه‌تر می‌کند."
           />
           <Link
-            to="/categories"
+            to="/products"
             className="sr-only"
-            aria-label="مشاهده همه دسته‌بندی‌ها"
+            aria-label="مشاهده فروشگاه و دسته‌بندی‌ها"
           >
             مشاهده همه دسته‌بندی‌ها
           </Link>
@@ -576,7 +576,7 @@ const HomePage = () => {
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    to="/categories"
+                    to="/products"
                     className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-accent px-8 font-black text-accent-foreground transition hover:-translate-y-1"
                   >
                     مشاهده دسته‌بندی‌ها

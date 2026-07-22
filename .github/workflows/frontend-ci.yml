@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   SITE_URL: https://winimibakery.com
@@ -27,99 +27,69 @@ env:
   VITE_PAYMENT_MODE: disabled
 
 jobs:
-  phase10_2_bootstrap:
-    if: github.actor != 'github-actions[bot]' && ((github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-phase-10-2-unified-shop-categories') || (github.event_name == 'pull_request' && github.head_ref == 'agent/frontend-phase-10-2-unified-shop-categories'))
-    name: Apply and verify unified shop categories
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    steps:
-      - name: Checkout migration branch
-        uses: actions/checkout@v4
-        with:
-          ref: agent/frontend-phase-10-2-unified-shop-categories
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.22.0
-          cache: npm
-      - name: Apply Phase 10.2 migration
-        run: node scripts/apply-phase10-2-unified-shop.mjs
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Run complete repository gate
-        id: repository_gate
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npm run check 2>&1 | tee phase10-2-check.log
-      - name: Upload complete Phase 10.2 diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-2-repository-gate
-          path: phase10-2-check.log
-          if-no-files-found: error
-          retention-days: 7
-      - name: Stop when repository gate failed
-        if: steps.repository_gate.outcome == 'failure'
-        run: exit 1
-      - name: Commit verified migration
-        run: |
-          rm -f scripts/apply-phase10-2-unified-shop.mjs
-          git checkout origin/main -- .github/workflows/frontend-ci.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Frontend Phase 10.2: unify shop categories and filters'
-          git push origin HEAD:agent/frontend-phase-10-2-unified-shop-categories
-
   validate:
-    if: github.actor == 'github-actions[bot]' || ((github.ref != 'refs/heads/agent/frontend-phase-10-2-unified-shop-categories') && (github.head_ref != 'agent/frontend-phase-10-2-unified-shop-categories'))
     name: Audit security, accessibility, runtime, build, PWA and deployment readiness
     runs-on: ubuntu-latest
     timeout-minutes: 36
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Full-launch roadmap audit
         run: npm run audit:launch
+
       - name: Phase 17 integration audit
         run: npm run audit:integration
+
       - name: Winimi pastel brand audit
         run: npm run audit:brand
+
       - name: Frontend full-audit Phase 1
         run: npm run audit:phase1
+
       - name: Frontend full-audit Phase 2
         run: npm run audit:phase2
+
       - name: Frontend full-audit Phase 3
         run: npm run audit:phase3
+
       - name: Frontend full-audit Phase 4
         run: npm run audit:phase4
+
       - name: Frontend full-audit Phase 5
         run: npm run audit:phase5
+
       - name: Frontend full-audit Phase 6
         run: npm run audit:phase6
+
       - name: Frontend full-audit Phase 7
         run: npm run audit:phase7
+
       - name: Frontend full-audit Phase 8
         run: npm run audit:phase8
+
       - name: Frontend full-audit Phase 9
         run: npm run audit:phase9
+
       - name: Frontend runtime performance Phase 9.5
         run: npm run audit:runtime
+
       - name: Frontend SSR foundation Phase 10.1
         run: npm run audit:ssr
+
       - name: Production environment schema audit
         run: npm run env:production:validate
+
       - name: Upload full-audit diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,22 +110,79 @@ jobs:
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14
+
       - name: Frontend route and content audit
         run: npm run audit:frontend
+
       - name: Accessibility regression audit
         run: npm run audit:accessibility
+
       - name: Content integrity audit
         run: npm run audit:content
+
       - name: Full modern UI audit
         run: npm run audit:modern-ui
+
       - name: Unit tests
-        run: npm run test:unit
+        id: unit_tests
+        run: |
+          set -o pipefail
+          npm run test:unit 2>&1 | tee unit-tests.log
+
+      - name: Upload unit-test diagnostics
+        if: failure() && steps.unit_tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-diagnostics
+          path: unit-tests.log
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Lint
-        run: npm run lint
+        id: lint
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee lint.log
+
+      - name: Upload lint diagnostics
+        if: failure() && steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-diagnostics
+          path: lint.log
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Typecheck
-        run: npm run typecheck
+        id: typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: failure() && steps.typecheck.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: typecheck.log
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Production build and performance budget
-        run: npm run build
+        id: production_build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee production-build.log
+
+      - name: Upload build diagnostics
+        if: failure() && steps.production_build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-diagnostics
+          path: production-build.log
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Upload performance report
         if: always()
         uses: actions/upload-artifact@v4

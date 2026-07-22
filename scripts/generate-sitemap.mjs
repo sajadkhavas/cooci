@@ -40,7 +40,6 @@ const citySlugs = ["tehran", "karaj", "andisheh"];
 const entries = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/products", changefreq: "weekly", priority: "0.9" },
-  { path: "/categories", changefreq: "weekly", priority: "0.85" },
   { path: "/blog", changefreq: "weekly", priority: "0.7" },
   { path: "/gift", changefreq: "monthly", priority: "0.7" },
   { path: "/corporate", changefreq: "monthly", priority: "0.6" },
