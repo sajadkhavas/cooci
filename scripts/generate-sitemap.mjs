@@ -40,6 +40,7 @@ const citySlugs = ["tehran", "karaj", "andisheh"];
 const entries = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/products", changefreq: "weekly", priority: "0.9" },
+  { path: "/categories", changefreq: "weekly", priority: "0.85" },
   { path: "/blog", changefreq: "weekly", priority: "0.7" },
   { path: "/gift", changefreq: "monthly", priority: "0.7" },
   { path: "/corporate", changefreq: "monthly", priority: "0.6" },
@@ -55,7 +56,7 @@ const entries = [
   ...categorySlugs.map((slug) => ({
     path: `/products/category/${slug}`,
     changefreq: "weekly",
-    priority: "0.7",
+    priority: "0.75",
   })),
   ...citySlugs.map((slug) => ({
     path: `/city/${slug}`,
@@ -74,26 +75,23 @@ const entries = [
   })),
 ];
 
-const urls = entries
-  .map((entry) =>
-    [
-      "  <url>",
-      `    <loc>${BASE_URL}${entry.path}</loc>`,
-      entry.changefreq ? `    <changefreq>${entry.changefreq}</changefreq>` : null,
-      entry.priority ? `    <priority>${entry.priority}</priority>` : null,
-      "  </url>",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  )
-  .join("\n");
+const uniqueEntries = Array.from(
+  new Map(entries.map((entry) => [entry.path, entry])).values(),
+);
 
 const xml = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  urls,
+  ...uniqueEntries.flatMap((entry) => [
+    "  <url>",
+    `    <loc>${BASE_URL}${entry.path}</loc>`,
+    `    <changefreq>${entry.changefreq}</changefreq>`,
+    `    <priority>${entry.priority}</priority>`,
+    "  </url>",
+  ]),
   "</urlset>",
+  "",
 ].join("\n");
 
-writeFileSync(resolve("public/sitemap.xml"), xml);
-console.log(`sitemap.xml written (${entries.length} entries) for ${BASE_URL}`);
+writeFileSync(resolve("public/sitemap.xml"), xml, "utf-8");
+console.log(`Generated sitemap with ${uniqueEntries.length} URLs.`);
