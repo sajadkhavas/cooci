@@ -26,6 +26,7 @@ env:
   VITE_E2E_ACCEPTANCE: "true"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
+  WINIMI_PUBLIC_CITY_SLUGS: staging-tehran
   PHASE18_FRONTEND_URL: https://127.0.0.1:4443
   PHASE18_API_URL: https://127.0.0.1:8443
   APP_ENV: testing
@@ -210,6 +211,9 @@ jobs:
       - name: Phase 10.3 full server data rendering audit
         run: npm run audit:phase10-3
 
+      - name: Phase 10.4 crawl and URL architecture audit
+        run: npm run audit:phase10-4
+
       - name: Build production storefront and generated PWA
         id: production_build
         run: |
@@ -275,6 +279,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase10-3-ssr-source.spec.mjs 2>&1 | tee phase10-3-ssr-source.log
 
+      - name: Run Phase 10.4 crawl and index acceptance
+        id: phase10_4_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase10-4-crawl-index.spec.mjs 2>&1 | tee phase10-4-crawl-index.log
+
       - name: Run desktop, mobile and PWA acceptance — PWA segment
         id: pwa_tests
         run: |
@@ -301,6 +311,7 @@ jobs:
           path: |
             phase18-browser.log
             phase10-3-ssr-source.log
+            phase10-4-crawl-index.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
@@ -323,6 +334,7 @@ jobs:
           path: |
             phase18-browser.log
             phase10-3-ssr-source.log
+            phase10-4-crawl-index.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
