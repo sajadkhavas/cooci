@@ -34,8 +34,8 @@
     {
       "id": "rate-limit-retry",
       "frontendEvidence": [
-        "e2e/phase9-adversarial.spec.mjs::rate-limited catalog fails visibly and recovers after retry",
-        "src/lib/api.ts::rate_limited"
+        "e2e/phase9-adversarial.spec.mjs::rate-limited server render fails closed and recovers on clean request",
+        "src/lib/public-ssr.ts::retryAfterSeconds"
       ],
       "backendEvidence": [
         "tests/Feature/EndToEndAcceptanceTest.php::assertTooManyRequests"
