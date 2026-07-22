@@ -43,57 +43,18 @@ jobs:
           grep -A2 -F 'frontend-https-proxy.log' scripts/finalize-phase10-1.mjs | grep -q '  1,'
 
       - name: Apply Phase 10.1 deployment and acceptance finalizer
-        id: finalizer
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          node scripts/finalize-phase10-1.mjs 2>&1 | tee phase10-1-finalizer.log
-
-      - name: Upload finalizer diagnostic
-        if: always() && steps.finalizer.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-1-finalizer-diagnostic
-          path: phase10-1-finalizer.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Stop on finalizer failure
-        if: steps.finalizer.outcome == 'failure'
-        run: exit 1
+        run: node scripts/finalize-phase10-1.mjs
 
       - name: Install the locked dependency graph
         run: npm ci --include=dev
 
       - name: Validate framework, deployment and legacy contracts
-        id: audits
-        continue-on-error: true
         run: |
-          set -o pipefail
-          {
-            npm run audit:ssr
-            npm run audit:phase7
-            npm run audit:phase8
-            npm run audit:frontend
-            npm run audit:accessibility
-          } 2>&1 | tee phase10-1-audits.log
-
-      - name: Upload audit diagnostic
-        if: always() && steps.audits.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-1-audit-diagnostic
-          path: |
-            phase10-1-audits.log
-            frontend-phase7-audit.json
-            frontend-phase8-audit.json
-            frontend-phase10-1-audit.json
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Stop on audit failure
-        if: steps.audits.outcome == 'failure'
-        run: exit 1
+          npm run audit:ssr
+          npm run audit:phase7
+          npm run audit:phase8
+          npm run audit:frontend
+          npm run audit:accessibility
 
       - name: Run type generation and TypeScript
         run: npm run typecheck
@@ -110,54 +71,35 @@ jobs:
           npm run release:verify -- "$RELEASE_DIR"
 
       - name: Run unit and lint gates
-        id: quality
-        continue-on-error: true
         run: |
-          set -o pipefail
-          {
-            npm run test:unit
-            npm run lint
-          } 2>&1 | tee phase10-1-quality.log
+          npm run test:unit
+          npm run lint
 
-      - name: Upload unit and lint diagnostic
-        if: always() && steps.quality.outcome != 'skipped'
+      - name: Prepare protected workflow handoff
+        run: |
+          mkdir -p phase10-1-workflows
+          cp .github/workflows/frontend-ci.yml phase10-1-workflows/frontend-ci.yml
+          cp .github/workflows/phase18-e2e.yml phase10-1-workflows/phase18-e2e.yml
+          cp .github/workflows/phase8-deployment.yml phase10-1-workflows/phase8-deployment.yml
+          git checkout HEAD -- .github/workflows/frontend-ci.yml
+          git checkout HEAD -- .github/workflows/phase18-e2e.yml
+          git checkout HEAD -- .github/workflows/phase8-deployment.yml
+
+      - name: Upload protected workflow handoff
         uses: actions/upload-artifact@v4
         with:
-          name: phase10-1-quality-diagnostic
-          path: phase10-1-quality.log
+          name: phase10-1-finalized-workflows
+          path: phase10-1-workflows
           if-no-files-found: error
           retention-days: 7
 
-      - name: Stop on unit or lint failure
-        if: steps.quality.outcome == 'failure'
-        run: exit 1
-
-      - name: Commit finalized Phase 10.1 implementation
-        id: publish
-        continue-on-error: true
+      - name: Commit finalized non-workflow implementation
         run: |
-          set -o pipefail
-          {
-            rm -f scripts/finalize-phase10-1.mjs
-            rm -f .github/workflows/phase10-1-finalize.yml
-            rm -rf .release-finalizer build .react-router
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add -A
-            git status --short
-            git commit -m 'Frontend Phase 10.1: finalize SSR deployment and acceptance gates'
-            git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
-          } 2>&1 | tee phase10-1-publish.log
-
-      - name: Upload publish diagnostic
-        if: always() && steps.publish.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-1-publish-diagnostic
-          path: phase10-1-publish.log
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Stop on publish failure
-        if: steps.publish.outcome == 'failure'
-        run: exit 1
+          rm -f scripts/finalize-phase10-1.mjs
+          rm -rf .release-finalizer build .react-router phase10-1-workflows
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'Frontend Phase 10.1: finalize SSR deployment and acceptance gates'
+          git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
