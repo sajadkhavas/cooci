@@ -4,7 +4,7 @@ export default [
   index("./pages/HomePage.tsx"),
   route("products", "./pages/ProductsPage.tsx"),
   route("categories", "./routes/categories-redirect.tsx"),
-  route("products/category/:slug", "./pages/ProductsPage.tsx"),
+  route("products/category/:slug", "./routes/category-shop.tsx"),
   route("products/:slug", "./pages/ProductDetailPage.tsx"),
   route("blog", "./pages/BlogListPage.tsx"),
   route("blog/:slug", "./pages/BlogDetailPage.tsx"),
