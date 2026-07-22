@@ -25,7 +25,6 @@ jobs:
       VITE_ALLOW_DEV_MOCKS: "false"
       VITE_AUTH_MODE: disabled
       VITE_PAYMENT_MODE: disabled
-      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,8 +40,8 @@ jobs:
           node scripts/migrate-phase10-1-framework.mjs
           node scripts/migrate-phase10-1-build.mjs
           node scripts/patch-phase10-1-cli.mjs
-      - name: Resolve compatible dependency graph
-        run: npm install --no-audit --no-fund
+      - name: Resolve compatible dependency graph including development CLI
+        run: npm install --include=dev --no-audit --no-fund
       - name: Generate route types
         id: typegen
         continue-on-error: true
@@ -63,6 +62,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
       - name: Build SSR, client and PWA outputs
+        env:
+          NODE_ENV: production
         run: npm run build
       - name: Verify framework routes
         run: npm run audit:frontend
