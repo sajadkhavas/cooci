@@ -28,7 +28,7 @@ env:
 
 jobs:
   phase10_1_bootstrap:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-phase-10-1-ssr-foundation' && github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && ((github.event_name == 'push' && github.ref == 'refs/heads/agent/frontend-phase-10-1-ssr-foundation') || (github.event_name == 'pull_request' && github.head_ref == 'agent/frontend-phase-10-1-ssr-foundation'))
     name: Migrate to React Router Framework Mode and SSR
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -79,7 +79,7 @@ jobs:
           git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
 
   validate:
-    if: github.ref != 'refs/heads/agent/frontend-phase-10-1-ssr-foundation' || github.actor == 'github-actions[bot]' || github.event_name == 'pull_request'
+    if: github.actor == 'github-actions[bot]' || (github.ref != 'refs/heads/agent/frontend-phase-10-1-ssr-foundation' && github.head_ref != 'agent/frontend-phase-10-1-ssr-foundation')
     name: Audit security, accessibility, runtime, build, PWA and deployment readiness
     runs-on: ubuntu-latest
     timeout-minutes: 36
