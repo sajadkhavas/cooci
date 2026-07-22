@@ -57,9 +57,10 @@ const BlogListPage = () => {
   const title = "راهنماهای وینیمی";
   const description =
     "مقاله‌های منتشرشده وینیمی در موضوعات واقعی فروشگاه برای انتخاب، سفارش و نگهداری آگاهانه‌تر.";
+  const schemaPath = page <= 1 ? "/blog" : `/blog?page=${page}`;
   const schema = createBlogCollectionSchema({
     siteOrigin: SITE_ORIGIN,
-    path: "/blog",
+    path: schemaPath,
     title,
     description,
     posts,
