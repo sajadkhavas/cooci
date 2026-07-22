@@ -40,14 +40,15 @@ requireText("threatModel", "respect `prefers-reduced-motion`", "motion boundary"
 
 requireText("navigation", "isNavigationTargetActive", "shared active-route helper");
 requireText("navigation", "matchesRoutePrefix", "path-segment prefix helper");
-requireText("navigation", 'target.match === "exact"', "exact category matching");
+requireText("navigation", 'target.match === "exact"', "exact route matching capability");
 requireText("navigation", '!matchesRoutePrefix(pathname, "/products/category")', "store/category separation");
 
 requireText("motion", 'window.matchMedia("(prefers-reduced-motion: reduce)")', "reduced-motion query");
 requireText("motion", 'prefersReducedMotion() ? "auto" : "smooth"', "programmatic motion policy");
 
 requireText("header", "isNavigationTargetActive(location.pathname, link)", "route-accurate Header state");
-requireText("header", 'match: "exact"', "exact cookie category match");
+requireText("header", 'href: "/categories"', "category-index navigation target");
+requireText("header", 'match: "prefix"', "segment-aware category-index current state");
 requireText("header", "restoreMenuFocusRef", "dialog focus-restoration intent");
 requireText("header", "previousLocationRef", "route navigation close tracking");
 requireText("header", 'event.key === "Escape"', "Escape dismissal");
@@ -56,7 +57,7 @@ requireText("header", 'role="dialog"', "mobile dialog role");
 requireText("header", 'aria-modal="true"', "modal semantics");
 requireText("header", "aria-label={link.name}", "stable mobile navigation names");
 requireText("header", "document.body.style.overflow = previousOverflow", "body-scroll restoration");
-forbidText("header", 'match: "categories"', "all-category cookie current state");
+forbidText("header", 'match: "categories"', "unsupported navigation match mode");
 forbidText("header", "const isNavLinkActive", "duplicated legacy route matcher");
 
 requireText("footer", "getProgrammaticScrollBehavior", "reduced-motion Footer scroll");
