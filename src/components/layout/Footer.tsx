@@ -27,18 +27,21 @@ const footerLinks = {
   quickLinks: [
     { name: "خانه", href: "/" },
     { name: "همه محصولات", href: "/products" },
+    { name: "دسته‌بندی محصولات", href: "/categories" },
     { name: "درباره ما", href: "/about" },
     { name: "نظرهای تأییدشده", href: "/reviews" },
     { name: "راهنماها", href: "/blog" },
     { name: "تماس با ما", href: "/contact" },
   ],
   categories: [
+    { name: "همه دسته‌بندی‌ها", href: "/categories" },
     { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
     { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-    { name: "رژیمی و بدون قند", href: "/products/category/diet" },
+    { name: "رژیمی و بدون قند افزوده", href: "/products/category/diet-diabetic" },
     { name: "کیک و دسر", href: "/products/category/cakes" },
+    { name: "چیزکیک", href: "/products/category/cheesecakes" },
     { name: "رول و کروسان", href: "/products/category/pastry" },
-    { name: "باکس هدیه", href: "/products/category/gift" },
+    { name: "باکس هدیه", href: "/products/category/gift-boxes" },
   ],
   services: [
     { name: "تهران", href: "/city/tehran" },
@@ -112,25 +115,26 @@ export const Footer = () => {
             <div>
               <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-black text-accent">
                 <Sparkles size={15} aria-hidden="true" />
-                انتخاب مدرن، مسیر شفاف
+                انتخاب بر اساس دسته و مناسبت
               </span>
               <h2 className="max-w-4xl text-3xl font-black leading-[1.12] sm:text-5xl lg:text-6xl">
-                شیرینی دلخواهت را پیدا کن،
-                <span className="block text-accent">سبدت را با آرامش بساز.</span>
+                مسیر مناسب را پیدا کن،
+                <span className="block text-accent">بعد جزئیات محصول را ببین.</span>
               </h2>
               <p className="mt-5 max-w-2xl text-sm leading-8 text-primary-foreground/62 sm:text-base">
-                {brandConfig.deliveryInfo} قیمت فعلی کاتالوگ و وضعیت تأیید اطلاعات به‌صورت جداگانه نمایش داده می‌شوند.
+                {brandConfig.deliveryInfo} اطلاعات نهایی هر محصول از کاتالوگ فعال
+                دریافت می‌شود.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <Link
-                to="/products"
+                to="/categories"
                 className="group flex min-h-14 items-center justify-between rounded-2xl bg-accent px-5 py-4 font-black text-accent-foreground shadow-xl transition duration-300 hover:-translate-y-1"
               >
                 <span className="flex items-center gap-2">
                   <ShoppingBag size={20} aria-hidden="true" />
-                  ورود به فروشگاه
+                  دسته‌بندی محصولات
                 </span>
                 <ArrowUpLeft
                   size={19}
@@ -166,17 +170,18 @@ export const Footer = () => {
             </Link>
 
             <p className="mt-6 max-w-lg text-sm leading-8 text-primary-foreground/58">
-              {brandConfig.slogan} روش تحویل به نوع محصول، مقصد و تنظیمات فعال بک‌اند وابسته است.
+              {brandConfig.slogan}. روش تحویل به نوع محصول، مقصد و تنظیمات فعال
+              بک‌اند وابسته است.
             </p>
 
             <div className="mt-6 grid gap-3 text-sm text-primary-foreground/62 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <span className="flex items-start gap-2">
                 <ShieldCheck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
-                اطلاعات حساس فقط با وضعیت تأیید روشن
+                اطلاعات حساس فقط پس از تأیید
               </span>
               <span className="flex items-start gap-2">
                 <Truck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
-                انتخاب روش تحویل در Checkout
+                روش تحویل متناسب با محصول
               </span>
             </div>
 
