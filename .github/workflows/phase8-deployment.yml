@@ -47,6 +47,7 @@ jobs:
           npm run env:production:validate
           npm run audit:phase8
           npm run audit:ssr
+          npm run audit:phase10-3
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -71,10 +72,34 @@ jobs:
         run: |
           deploy/bin/rollback-frontend.sh "$DEPLOY_ROOT" "$(cat release-a-id.txt)"
           test ! -f "$DEPLOY_ROOT/current/app/build/client/release-probe.txt"
+      - name: Generate ephemeral TLS certificate
+        run: |
+          mkdir -p .ci-tls
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout .ci-tls/loopback.key -out .ci-tls/loopback.crt -days 1 -subj '/CN=127.0.0.1' -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
+      - name: Start deterministic catalog fixture
+        run: |
+          FIXTURE_HOST=127.0.0.1 FIXTURE_PORT=8001 node scripts/phase10-3-catalog-fixture.mjs > catalog-fixture.log 2>&1 &
+          echo $! > catalog-fixture.pid
+      - name: Start HTTPS API fixture proxy
+        run: |
+          HTTPS_PROXY_KEY=.ci-tls/loopback.key \
+          HTTPS_PROXY_CERT=.ci-tls/loopback.crt \
+          HTTPS_PROXY_PORT=8443 \
+          HTTPS_PROXY_TARGET=http://127.0.0.1:8001 \
+            node scripts/https-loopback-proxy.mjs > api-fixture-proxy.log 2>&1 &
+          echo $! > api-fixture-proxy.pid
+      - name: Wait for API fixture
+        run: |
+          for attempt in {1..60}; do
+            curl --fail --silent --insecure https://127.0.0.1:8443/health && exit 0
+            sleep 1
+          done
+          cat catalog-fixture.log api-fixture-proxy.log
+          exit 1
       - name: Start release A SSR runtime
         run: |
           cd "$DEPLOY_ROOT/current/app"
-          HOST=127.0.0.1 PORT=4178 NODE_ENV=production WINIMI_API_ORIGIN=https://api.winimibakery.com node build/runtime/server.mjs > "$GITHUB_WORKSPACE/ssr-runtime.log" 2>&1 &
+          HOST=127.0.0.1 PORT=4178 NODE_ENV=production NODE_TLS_REJECT_UNAUTHORIZED=0 WINIMI_API_ORIGIN=https://127.0.0.1:8443 node build/runtime/server.mjs > "$GITHUB_WORKSPACE/ssr-runtime.log" 2>&1 &
           echo $! > "$GITHUB_WORKSPACE/ssr-runtime.pid"
       - name: Wait for SSR health
         run: |
@@ -88,12 +113,9 @@ jobs:
         run: |
           curl --fail --silent http://127.0.0.1:4178/ > ssr-home.html
           grep -q 'سفارش آنلاین کوکی،' ssr-home.html
+          grep -q 'کوکی تست انتشار SSR' ssr-home.html
           grep -q 'rel="canonical"' ssr-home.html
           node scripts/assert-csp-nonces.mjs ssr-home.html
-      - name: Generate ephemeral TLS certificate
-        run: |
-          mkdir -p .ci-tls
-          openssl req -x509 -newkey rsa:2048 -nodes -keyout .ci-tls/loopback.key -out .ci-tls/loopback.crt -days 1 -subj '/CN=127.0.0.1' -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -124,6 +146,8 @@ jobs:
             performance-report.json
             ssr-home.html
             ssr-runtime.log
+            catalog-fixture.log
+            api-fixture-proxy.log
             .ci-nginx/site.conf
             .ci-nginx/logs
           if-no-files-found: warn
