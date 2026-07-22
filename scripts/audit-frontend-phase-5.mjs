@@ -95,8 +95,16 @@ requireText("seoSecurity", "parsed.origin !== origin.origin", "external canonica
 requireText("seoSecurity", "resolvePublicMediaUrl", "public media resolver");
 requireText("seoSecurity", 'parsed.protocol !== "https:"', "insecure external media rejection");
 requireText("seoSecurity", "serializeJsonLd", "JSON-LD serializer");
-requireText("seoSecurity", '.replaceAll("<", "\\u003c")', "JSON-LD less-than escaping");
-requireText("seoSecurity", '.replaceAll("&", "\\u0026")', "JSON-LD ampersand escaping");
+requireText(
+  "seoSecurity",
+  String.raw`.replaceAll("<", "\u003c")`,
+  "JSON-LD less-than escaping",
+);
+requireText(
+  "seoSecurity",
+  String.raw`.replaceAll("&", "\u0026")`,
+  "JSON-LD ampersand escaping",
+);
 
 requireText("seoComponent", "resolveCanonicalUrl", "secure canonical usage");
 requireText("seoComponent", "resolvePublicMediaUrl", "secure media usage");
