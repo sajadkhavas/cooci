@@ -87,6 +87,9 @@ jobs:
       - name: Frontend SSR foundation Phase 10.1
         run: npm run audit:ssr
 
+      - name: Frontend unified shop Phase 10.2
+        run: npm run audit:phase10-2
+
       - name: Production environment schema audit
         run: npm run env:production:validate
 
@@ -107,6 +110,7 @@ jobs:
             frontend-phase9-audit.json
             runtime-performance-audit.json
             frontend-phase10-1-audit.json
+            frontend-phase10-2-audit.json
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14
