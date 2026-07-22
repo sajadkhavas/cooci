@@ -32,6 +32,11 @@ const normalizeLastModified = (value?: string | null) => {
   return new Date(value).toISOString();
 };
 
+const readOptionalUpdatedAt = (product: object) => {
+  const value = Reflect.get(product, "updatedAt");
+  return typeof value === "string" ? value : undefined;
+};
+
 const resolveCategoryRouteSlug = (catalogSlug: string) =>
   categoryContents.find(
     (category) => category.productCategorySlug === catalogSlug,
@@ -60,7 +65,7 @@ const collectProductEntries = async (): Promise<SitemapEntry[]> => {
     entries.push(
       ...catalog.products.map((product) => ({
         path: `/products/${encodeURIComponent(product.slug)}`,
-        lastModified: normalizeLastModified(product.updatedAt),
+        lastModified: normalizeLastModified(readOptionalUpdatedAt(product)),
       })),
     );
     page += 1;
