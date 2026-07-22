@@ -7,6 +7,7 @@ import {
   resolvePublicMediaUrl,
   serializeJsonLd,
 } from "@/lib/security/seo";
+import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
 interface SEOProps {
@@ -82,6 +83,12 @@ const getPaginationTotal = (
   return undefined;
 };
 
+const getProductLoaderData = (matches: ReturnType<typeof useMatches>) =>
+  [...matches]
+    .reverse()
+    .map((match) => match.data as PublicSsrLoaderData | undefined)
+    .find((data) => data?.product);
+
 export const SEO = ({
   title,
   description,
@@ -155,8 +162,17 @@ export const SEO = ({
     email: brandConfig.email,
     sameAs: [brandConfig.instagramUrl],
   };
+  const productLoaderData = type === "product" ? getProductLoaderData(matches) : undefined;
+  const authoritativeProductSchema = productLoaderData?.product
+    ? createProductMerchantSchema({
+        product: productLoaderData.product,
+        reviews: productLoaderData.productReviews,
+        siteOrigin: SITE_ORIGIN,
+        brandName: brandConfig.brandName,
+      })
+    : undefined;
   const serializedSchema = serializeJsonLd(
-    sanitizeSchema(schema) || defaultSchema,
+    authoritativeProductSchema || sanitizeSchema(schema) || defaultSchema,
   );
 
   return (
