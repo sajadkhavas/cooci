@@ -7,9 +7,16 @@ import {
   fetchCatalogProducts,
   type CatalogQuery,
 } from "@/lib/catalog-api";
-import { loadCityPage, loadPost, loadPosts } from "@/lib/content";
+import {
+  loadCityPage,
+  loadPost,
+  loadPosts,
+  loadProductReviews,
+  type ProductReviewsResult,
+} from "@/lib/content";
 import {
   catalogLoaderKey,
+  reportOptionalPublicSsrFailure,
   toPublicSsrResponse,
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
@@ -67,6 +74,17 @@ const crawlResponse = (
         }
       : undefined,
   });
+
+const loadOptionalProductReviews = async (
+  slug: string,
+): Promise<ProductReviewsResult | undefined> => {
+  try {
+    return await loadProductReviews(slug, 1, 10);
+  } catch (error) {
+    reportOptionalPublicSsrFailure(error, "Product reviews");
+    return undefined;
+  }
+};
 
 export const loadHomePublicData = async (): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
@@ -149,12 +167,14 @@ export const loadProductPublicData = async ({
   }), "Product");
 
   try {
-    const [product, catalog] = await Promise.all([
+    const [product, catalog, productReviews] = await Promise.all([
       fetchCatalogProduct(slug),
       fetchCatalogProducts(),
+      loadOptionalProductReviews(slug),
     ]);
     return {
       product,
+      productReviews,
       catalogs: { [catalogLoaderKey({})]: catalog },
     };
   } catch (error) {
