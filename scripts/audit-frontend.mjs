@@ -66,9 +66,11 @@ for (const file of pageFiles) {
   }
 }
 for (const required of [
-  'index("./pages/HomePage.tsx")',
+  'index("./routes/home.tsx")',
   'route("categories", "./routes/categories-redirect.tsx")',
-  'route("products/:slug", "./pages/ProductDetailPage.tsx")',
+  'route("products/:slug", "./routes/product-detail.tsx")',
+  'route("blog/:slug", "./routes/blog-detail.tsx")',
+  'route("city/:slug", "./routes/city.tsx")',
   'route("*", "./routes/not-found.tsx")',
 ]) {
   if (!routesSource.includes(required)) errors.push("src/routes.ts missing " + required);

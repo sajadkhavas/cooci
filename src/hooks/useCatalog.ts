@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLoaderData } from "react-router";
 import type { Product } from "@/data/products";
 import {
   areDevelopmentMocksEnabled,
@@ -13,6 +14,10 @@ import {
 } from "@/lib/catalog-api";
 import { filterCatalogProducts, paginateCatalog } from "@/lib/catalog";
 import { loadDevelopmentCatalog } from "@/lib/development-catalog";
+import {
+  catalogLoaderKey,
+  type PublicSsrLoaderData,
+} from "@/lib/public-ssr";
 
 const disabledError = new Error(
   "اتصال کاتالوگ به API فعال نیست و داده نمایشی توسعه نیز اجازه داده نشده است.",
@@ -52,6 +57,9 @@ const createMockCatalog = (products: Product[], query: CatalogQuery) => {
   };
 };
 
+const usePublicLoaderData = () =>
+  useLoaderData() as PublicSsrLoaderData | undefined;
+
 const useDevelopmentCatalog = () =>
   useQuery({
     queryKey: ["development-catalog"],
@@ -63,10 +71,13 @@ const useDevelopmentCatalog = () =>
   });
 
 export const useCatalogProducts = (query: CatalogQuery = {}) => {
+  const loaderData = usePublicLoaderData();
+  const initialCatalog = loaderData?.catalogs?.[catalogLoaderKey(query)];
   const backendQuery = useQuery({
     queryKey: ["catalog", "products", query],
     queryFn: () => fetchCatalogProducts(query),
     enabled: isBackendEnabled,
+    initialData: isBackendEnabled ? initialCatalog : undefined,
     staleTime: 60_000,
   });
   const developmentQuery = useDevelopmentCatalog();
@@ -107,10 +118,12 @@ export const useCatalogProducts = (query: CatalogQuery = {}) => {
 };
 
 export const useCatalogCategories = () => {
+  const loaderData = usePublicLoaderData();
   const backendQuery = useQuery({
     queryKey: ["catalog", "categories"],
     queryFn: fetchCatalogCategories,
     enabled: isBackendEnabled,
+    initialData: isBackendEnabled ? loaderData?.categories : undefined,
     staleTime: 5 * 60_000,
   });
   const developmentQuery = useDevelopmentCatalog();
@@ -135,10 +148,14 @@ export const useCatalogCategories = () => {
 };
 
 export const useCatalogProduct = (slug?: string) => {
+  const loaderData = usePublicLoaderData();
+  const initialProduct =
+    loaderData?.product?.slug === slug ? loaderData.product : undefined;
   const backendQuery = useQuery({
     queryKey: ["catalog", "product", slug],
     queryFn: () => fetchCatalogProduct(slug as string),
     enabled: isBackendEnabled && Boolean(slug),
+    initialData: isBackendEnabled ? initialProduct : undefined,
     staleTime: 60_000,
   });
   const developmentQuery = useDevelopmentCatalog();

@@ -1,23 +1,43 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck2, ImageIcon, Loader2 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLoaderData, useSearchParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { SEO } from "@/components/SEO";
 import { isBackendEnabled } from "@/lib/api";
 import { loadPosts } from "@/lib/content";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
+
+const parsePage = (value: string | null) => {
+  const parsed = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(10_000, parsed) : 1;
+};
 
 const BlogListPage = () => {
-  const [page, setPage] = useState(1);
+  const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parsePage(searchParams.get("page"));
+  const initialPosts =
+    loaderData?.posts?.pagination?.page === page ||
+    (!loaderData?.posts?.pagination && page === 1)
+      ? loaderData.posts
+      : undefined;
   const query = useQuery({
     queryKey: ["store", "posts", page],
     queryFn: () => loadPosts({ page, perPage: 12 }),
     enabled: isBackendEnabled,
+    initialData: isBackendEnabled ? initialPosts : undefined,
     staleTime: 60_000,
   });
   const posts = query.data?.posts ?? [];
   const pagination = query.data?.pagination;
+
+  const handlePageChange = (nextPage: number) => {
+    const next = new URLSearchParams(searchParams);
+    if (nextPage <= 1) next.delete("page");
+    else next.set("page", String(nextPage));
+    setSearchParams(next);
+  };
 
   return (
     <>
@@ -59,7 +79,7 @@ const BlogListPage = () => {
                   </Link>
                 ))}
               </div>
-              {pagination && <CatalogPagination page={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />}
+              {pagination && <CatalogPagination page={pagination.page} totalPages={pagination.totalPages} onPageChange={handlePageChange} />}
             </>
           )}
         </div>

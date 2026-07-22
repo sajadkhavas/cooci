@@ -12,21 +12,13 @@ import {
   parseBackendProduct,
   parseBackendProducts,
 } from "@/lib/catalog-schema";
+import {
+  resolveOutOfRangeCatalogQuery,
+  toCatalogSearchParams,
+  type CatalogQuery,
+} from "@/lib/catalog-query";
 
-const MAX_SEARCH_LENGTH = 120;
-const MAX_PAGE = 10_000;
-const MAX_PER_PAGE = 100;
-
-export interface CatalogQuery {
-  category?: string;
-  search?: string;
-  featured?: boolean;
-  requiresCooling?: boolean;
-  inStock?: boolean;
-  sort?: "featured" | "newest" | "name" | "price-asc" | "price-desc";
-  page?: number;
-  perPage?: number;
-}
+export type { CatalogQuery } from "@/lib/catalog-query";
 
 export interface CatalogPage {
   products: Product[];
@@ -139,41 +131,18 @@ export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
   };
 };
 
-const clampInteger = (
-  value: number | undefined,
-  minimum: number,
-  maximum: number,
-) => {
-  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
-  return Math.min(maximum, Math.max(minimum, Math.floor(value)));
-};
-
-export const toCatalogSearchParams = (query: CatalogQuery) => {
-  const params = new URLSearchParams();
-  const category = query.category?.trim().slice(0, 180);
-  const search = query.search?.trim().slice(0, MAX_SEARCH_LENGTH);
-  const page = clampInteger(query.page, 1, MAX_PAGE);
-  const perPage = clampInteger(query.perPage, 1, MAX_PER_PAGE);
-
-  if (category && category !== "all") params.set("category", category);
-  if (search) params.set("search", search);
-  if (query.featured !== undefined) params.set("featured", String(query.featured));
-  if (query.requiresCooling !== undefined) {
-    params.set("requiresCooling", String(query.requiresCooling));
-  }
-  if (query.inStock !== undefined) params.set("inStock", String(query.inStock));
-  if (query.sort) params.set("sort", query.sort);
-  if (page) params.set("page", String(page));
-  if (perPage) params.set("perPage", String(perPage));
-  return params;
-};
-
 export const fetchCatalogProducts = async (
   query: CatalogQuery = {},
 ): Promise<CatalogPage> => {
   const params = toCatalogSearchParams(query);
   const suffix = params.size ? `?${params.toString()}` : "";
   const response = await apiRequest<unknown>(`/api/catalog/products${suffix}`);
+  const retryQuery = resolveOutOfRangeCatalogQuery(
+    query,
+    response.meta.pagination,
+  );
+  if (retryQuery) return fetchCatalogProducts(retryQuery);
+
   const products = parseBackendProducts(response.data);
   const pagination = parseBackendPagination(response.meta.pagination);
 

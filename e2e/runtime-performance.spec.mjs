@@ -175,8 +175,20 @@ test("homepage is product-led and exposes the category architecture", async ({
   await assertNoHorizontalOverflow(page);
 });
 
-test("shop unifies categories and filters while editorial slugs map to Laravel", async ({ page }) => {
-  await page.goto("/categories", { waitUntil: "domcontentloaded" });
+test("shop unifies categories and filters while editorial slugs map to Laravel", async ({
+  page,
+}) => {
+  const browserCatalogRequests = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/catalog/products")) {
+      browserCatalogRequests.push(request.url());
+    }
+  });
+
+  const categoriesResponse = await page.goto("/categories", {
+    waitUntil: "domcontentloaded",
+  });
+  expect(categoriesResponse?.status()).toBe(200);
   await expect(page).toHaveURL(/\/products$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "محصولات وینیمی" }),
@@ -206,15 +218,10 @@ test("shop unifies categories and filters while editorial slugs map to Laravel",
     );
   }
 
-  const cookiesResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/catalog/products") &&
-      response.url().includes("category=cookies") &&
-      response.status() === 200,
-  );
-  await categoryNavigation.getByRole("link", { name: "کوکی‌های خانگی" }).click();
-  await cookiesResponse;
-  await expect(page).toHaveURL(/\/products\/category\/cookies$/);
+  await Promise.all([
+    page.waitForURL(/\/products\/category\/cookies$/),
+    categoryNavigation.getByRole("link", { name: "کوکی‌های خانگی" }).click(),
+  ]);
   await expect(
     page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
   ).toBeVisible();
@@ -224,18 +231,15 @@ test("shop unifies categories and filters while editorial slugs map to Laravel",
       .getByRole("link", { name: "کوکی‌های خانگی" }),
   ).toHaveAttribute("aria-current", "page");
 
-  const dietResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/catalog/products") &&
-      response.url().includes("category=diet") &&
-      response.status() === 200,
-  );
-  await page.goto("/products?diet=true", { waitUntil: "domcontentloaded" });
-  await dietResponse;
+  const dietResponse = await page.goto("/products?diet=true", {
+    waitUntil: "domcontentloaded",
+  });
+  expect(dietResponse?.status()).toBe(200);
   await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
   await expect(
     page.getByRole("heading", { level: 1, name: /رژیمی و بدون قند افزوده/ }),
   ).toBeVisible();
+  expect(browserCatalogRequests).toEqual([]);
   await assertNoHorizontalOverflow(page);
 });
 

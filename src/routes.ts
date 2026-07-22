@@ -1,14 +1,14 @@
 import { index, route, type RouteConfig } from "@react-router/dev/routes";
 
 export default [
-  index("./pages/HomePage.tsx"),
+  index("./routes/home.tsx"),
   route("products", "./routes/products-shop.tsx"),
   route("categories", "./routes/categories-redirect.tsx"),
   route("products/category/:slug", "./routes/category-shop.tsx"),
-  route("products/:slug", "./pages/ProductDetailPage.tsx"),
-  route("blog", "./pages/BlogListPage.tsx"),
-  route("blog/:slug", "./pages/BlogDetailPage.tsx"),
-  route("city/:slug", "./pages/CityPage.tsx"),
+  route("products/:slug", "./routes/product-detail.tsx"),
+  route("blog", "./routes/blog-list.tsx"),
+  route("blog/:slug", "./routes/blog-detail.tsx"),
+  route("city/:slug", "./routes/city.tsx"),
   route("gift", "./pages/GiftPage.tsx"),
   route("corporate", "./pages/CorporatePage.tsx"),
   route("reviews", "./pages/ReviewsPage.tsx"),

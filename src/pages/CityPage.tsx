@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin, MessageCircle, ShoppingCart } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { Link, useLoaderData, useParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { StructuredText } from "@/components/content/StructuredText";
 import { ProductCard } from "@/components/ProductCard";
@@ -9,11 +9,20 @@ import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/co
 import { useCatalogProducts } from "@/hooks/useCatalog";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import { loadCityPage } from "@/lib/content";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 const CityPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const cityQuery = useQuery({ queryKey: ["store", "city", slug], queryFn: () => loadCityPage(slug as string), enabled: isBackendEnabled && Boolean(slug), staleTime: 5 * 60_000 });
+  const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const initialCity = loaderData?.city?.slug === slug ? loaderData.city : undefined;
+  const cityQuery = useQuery({
+    queryKey: ["store", "city", slug],
+    queryFn: () => loadCityPage(slug as string),
+    enabled: isBackendEnabled && Boolean(slug),
+    initialData: isBackendEnabled ? initialCity : undefined,
+    staleTime: 5 * 60_000,
+  });
   const catalog = useCatalogProducts({ featured: true, perPage: 6 });
   if (cityQuery.error instanceof ApiError && cityQuery.error.status === 404) return <NotFoundPage />;
   if (cityQuery.isLoading) return <section className="section-padding"><div className="container-custom text-center" role="status"><Loader2 className="mx-auto mb-3 animate-spin text-primary" aria-hidden="true" />در حال دریافت صفحه شهر…</div></section>;

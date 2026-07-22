@@ -1,20 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck2, Loader2, MessageCircle, User } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { Link, useLoaderData, useParams } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { StructuredText } from "@/components/content/StructuredText";
 import { SEO } from "@/components/SEO";
 import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import { loadPost } from "@/lib/content";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 const BlogDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const initialPost = loaderData?.post?.slug === slug ? loaderData.post : undefined;
   const query = useQuery({
     queryKey: ["store", "post", slug],
     queryFn: () => loadPost(slug as string),
     enabled: isBackendEnabled && Boolean(slug),
+    initialData: isBackendEnabled ? initialPost : undefined,
     staleTime: 60_000,
   });
 

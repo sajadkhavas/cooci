@@ -9,13 +9,14 @@ const app = express();
 const host = process.env.HOST || "127.0.0.1";
 const port = Number.parseInt(process.env.PORT || "4173", 10);
 const clientDirectory = path.resolve(process.cwd(), "build/client");
+const publicApiOrigin = "https://api.winimibakery.com";
 const apiOrigin = (() => {
   try {
     return new URL(
-      process.env.WINIMI_API_ORIGIN || "https://api.winimibakery.com",
+      process.env.WINIMI_API_ORIGIN || publicApiOrigin,
     ).origin;
   } catch {
-    return "https://api.winimibakery.com";
+    return publicApiOrigin;
   }
 })();
 const sensitivePrefixes = [
@@ -24,6 +25,27 @@ const sensitivePrefixes = [
   "/checkout",
   "/payment",
 ];
+
+const nativeFetch = globalThis.fetch.bind(globalThis);
+if (apiOrigin !== publicApiOrigin) {
+  globalThis.fetch = (input, init) => {
+    const sourceUrl = new URL(
+      input instanceof Request ? input.url : String(input),
+    );
+    if (sourceUrl.origin !== publicApiOrigin) {
+      return nativeFetch(input, init);
+    }
+
+    const targetUrl = new URL(
+      `${sourceUrl.pathname}${sourceUrl.search}`,
+      apiOrigin,
+    );
+    if (input instanceof Request) {
+      return nativeFetch(new Request(targetUrl, input), init);
+    }
+    return nativeFetch(targetUrl, init);
+  };
+}
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);

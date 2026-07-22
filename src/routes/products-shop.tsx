@@ -1,5 +1,6 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
 import { categoryContents } from "@/data/categoriesContent";
+import { loadShopPublicData } from "@/lib/public-loaders.server";
 import ProductsPage from "../pages/ProductsPage";
 
 const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -11,11 +12,11 @@ const resolveEditorialSlug = (catalogSlug: string) =>
       category.productCategorySlug === catalogSlug,
   )?.slug || catalogSlug;
 
-export const loader = ({ request }: LoaderFunctionArgs) => {
-  const url = new URL(request.url);
+export const loader = async (args: LoaderFunctionArgs) => {
+  const url = new URL(args.request.url);
   const legacyCategory = url.searchParams.get("category");
   const legacyDiet = url.searchParams.get("diet") === "true";
-  if (!legacyCategory && !legacyDiet) return null;
+  if (!legacyCategory && !legacyDiet) return loadShopPublicData(args);
 
   url.searchParams.delete("category");
   url.searchParams.delete("diet");
@@ -41,4 +42,6 @@ export const loader = ({ request }: LoaderFunctionArgs) => {
   );
 };
 
+export { passPublicSsrHeaders as headers } from "@/lib/public-ssr";
+export { default as ErrorBoundary } from "@/routes/PublicRouteErrorBoundary";
 export default ProductsPage;
