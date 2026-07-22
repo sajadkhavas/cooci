@@ -12,6 +12,7 @@ const files = {
   city: "src/pages/CityPage.tsx",
   playwright: "e2e/playwright.config.mjs",
   sourceSpec: "e2e/phase10-3-ssr-source.spec.mjs",
+  acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
   doc: "docs/FRONTEND_PHASE_10_3_FULL_SERVER_DATA_RENDERING.md",
 };
 
@@ -70,6 +71,21 @@ for (const path of [
   requireText("sourceSpec", path, `raw SSR check for ${path}`);
 }
 requireText("sourceSpec", "expect(product.status()).toBe(404)", "real product 404 acceptance");
+requireText(
+  "acceptanceWorkflow",
+  "Run Phase 10.3 raw dynamic SSR acceptance",
+  "dedicated Phase 10.3 workflow step",
+);
+requireText(
+  "acceptanceWorkflow",
+  "npm run test:e2e -- phase10-3-ssr-source.spec.mjs",
+  "executed Phase 10.3 Playwright suite",
+);
+requireText(
+  "acceptanceWorkflow",
+  "phase10-3-ssr-source.log",
+  "retained Phase 10.3 browser evidence",
+);
 requireText("doc", "full_public_ssr=ready", "Phase 10.3 completion marker");
 
 const report = {
