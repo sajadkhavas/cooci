@@ -1,4 +1,4 @@
-name: Phase 10.1 Typegen Diagnostics
+name: Phase 10.1 Framework Bootstrap
 
 on:
   pull_request:
@@ -6,44 +6,59 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: phase10-1-typegen-${{ github.event.pull_request.number }}
+  group: phase10-1-framework-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  diagnose:
-    if: github.head_ref == 'agent/frontend-phase-10-1-ssr-foundation'
+  bootstrap:
+    if: github.head_ref == 'agent/frontend-phase-10-1-ssr-foundation' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    env:
+      SITE_URL: https://winimibakery.com
+      VITE_SITE_ORIGIN: https://winimibakery.com
+      VITE_USE_BACKEND: "true"
+      VITE_API_BASE_URL: https://api.winimibakery.com
+      VITE_ALLOW_DEV_MOCKS: "false"
+      VITE_AUTH_MODE: disabled
+      VITE_PAYMENT_MODE: disabled
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/frontend-phase-10-1-ssr-foundation
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22.22.0
           cache: npm
-      - name: Apply migration and install
+      - name: Apply Framework Mode migration
         run: |
           node scripts/migrate-phase10-1-framework.mjs
           node scripts/migrate-phase10-1-build.mjs
-          npm install --no-audit --no-fund
-      - name: Capture typegen output
-        id: typegen
-        continue-on-error: true
+      - name: Resolve compatible dependency graph
+        run: npm install --no-audit --no-fund --save-dev vite@7.3.6
+      - name: Generate route types
+        run: npx react-router typegen
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build SSR, client and PWA outputs
+        run: npm run build
+      - name: Verify framework routes
+        run: npm run audit:frontend
+      - name: Commit clean migration
         run: |
-          set -o pipefail
-          npx react-router typegen 2>&1 | tee phase10-1-typegen.log
-      - name: Upload diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase10-1-typegen-diagnostic
-          path: phase10-1-typegen.log
-          if-no-files-found: error
-          retention-days: 7
-      - name: Fail when typegen failed
-        if: steps.typegen.outcome == 'failure'
-        run: exit 1
+          rm -f scripts/migrate-phase10-1-framework.mjs
+          rm -f scripts/migrate-phase10-1-build.mjs
+          rm -f .github/workflows/phase10-1-framework-bootstrap.yml
+          rm -f .github/workflows/phase10-1-typegen-diagnostics.yml
+          git checkout origin/main -- .github/workflows/frontend-ci.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Frontend Phase 10.1: React Router Framework SSR foundation'
+          git push origin HEAD:agent/frontend-phase-10-1-ssr-foundation
