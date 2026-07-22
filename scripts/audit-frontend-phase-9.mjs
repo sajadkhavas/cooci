@@ -109,13 +109,18 @@ if (matrix) {
 }
 
 requireText("adversarialE2e", "rate-limited catalog fails visibly and recovers after retry", "429 recovery browser test");
-requireText("adversarialE2e", 'status: 429', "429 fault injection");
+requireText("adversarialE2e", "status: 429", "429 fault injection");
 requireText("adversarialE2e", '"retry-after": "60"', "Retry-After evidence");
 requireText("adversarialE2e", "hostile encoded query values remain inert", "hostile URL browser test");
 requireText("adversarialE2e", "window.__phase9Xss", "XSS canary");
 requireText("adversarialE2e", "externalRequests", "external request canary");
-requireText("pwaE2e", "network restoration returns to the live application", "PWA reconnect assertion");
+requireText(
+  "pwaE2e",
+  "network restoration returns to the live server-rendered application",
+  "SSR PWA reconnect assertion",
+);
 requireText("pwaE2e", "#main-content", "live application restoration target");
+requireText("pwaE2e", "navigationCacheKey", "route-aware PWA evidence");
 requireText("playwright", '"phase9-adversarial.spec.mjs"', "Phase 9 Playwright inclusion");
 requireText("coordinatedAudit", "checkedBackendEvidence", "backend evidence ledger");
 requireText("coordinatedAudit", "assertTooManyRequests()", "backend 429 invariant");
@@ -159,5 +164,5 @@ if (errors.length) {
 }
 
 console.log(
-  `Frontend Phase 9 audit passed: ${expectedScenarios.length} adversarial scenarios and ${checkedFrontendEvidence.length} frontend evidence pointer(s) are locked; frontend_security_and_deployment_audited=ready.`,
+  `Frontend Phase 9 audit passed: ${expectedScenarios.length} adversarial scenarios and ${checkedFrontendEvidence.length} frontend evidence pointer(s), including SSR PWA recovery, are locked; frontend_security_and_deployment_audited=ready.`,
 );
