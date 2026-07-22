@@ -14,6 +14,7 @@ export default defineConfig({
     "generated/phase18.spec.mjs",
     "phase7-pwa.spec.mjs",
     "phase9-adversarial.spec.mjs",
+    "phase10-3-ssr-source.spec.mjs",
     "runtime-performance.spec.mjs",
   ],
   timeout: 45_000,
