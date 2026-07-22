@@ -39,8 +39,7 @@ const BlogTopicPage = () => {
       : undefined;
   const query = useQuery({
     queryKey: ["store", "posts", "topic", topic?.name, page],
-    queryFn: () =>
-      loadPosts({ category: topic?.name, page, perPage: 12 }),
+    queryFn: () => loadPosts({ category: topic?.name, page, perPage: 12 }),
     enabled: isBackendEnabled && Boolean(topic?.name),
     initialData: isBackendEnabled ? initialPosts : undefined,
     staleTime: 60_000,
@@ -67,9 +66,11 @@ const BlogTopicPage = () => {
 
   const title = `راهنماهای ${topic.name}`;
   const description = `${topic.postCount} مقاله منتشرشده وینیمی در موضوع ${topic.name}.`;
+  const schemaPath =
+    page <= 1 ? topic.path : `${topic.path}?page=${page}`;
   const schema = createBlogCollectionSchema({
     siteOrigin: SITE_ORIGIN,
-    path: topic.path,
+    path: schemaPath,
     title,
     description,
     posts,
@@ -79,12 +80,7 @@ const BlogTopicPage = () => {
 
   return (
     <>
-      <SEO
-        title={title}
-        description={description}
-        url={topic.path}
-        schema={schema}
-      />
+      <SEO title={title} description={description} schema={schema} />
       <section className="bg-gradient-to-b from-secondary/40 to-background section-padding">
         <div className="container-custom max-w-5xl">
           <Breadcrumbs
