@@ -28,3 +28,5 @@ deploy/nginx/winimi-frontend.conf
 *.njsproj
 *.sln
 *.sw?
+.react-router/
+build/

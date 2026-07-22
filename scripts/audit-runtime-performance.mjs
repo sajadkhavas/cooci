@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const files = {
-  main: "src/main.tsx",
+  main: "src/root.tsx",
   runtimeCss: "src/styles/runtime-performance.css",
   scrollProgress: "src/components/layout/ScrollProgress.tsx",
   reveal: "src/components/motion/Reveal.tsx",

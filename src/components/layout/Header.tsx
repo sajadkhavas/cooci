@@ -11,7 +11,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import {
   brandConfig,
   generatePhoneUrl,

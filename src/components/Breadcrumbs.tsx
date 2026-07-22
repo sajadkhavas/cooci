@@ -1,5 +1,5 @@
 import { ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { brandConfig } from "@/config/brand";
 import { useCspNonce } from "@/lib/security/csp";
 import { resolveCanonicalUrl, serializeJsonLd } from "@/lib/security/seo";

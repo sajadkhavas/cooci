@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck2, ImageIcon, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { SEO } from "@/components/SEO";

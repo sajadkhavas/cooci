@@ -1,5 +1,5 @@
 import { Gift, Heart, MessageCircle, Sparkles, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { InquiryForm } from "@/components/forms/InquiryForm";

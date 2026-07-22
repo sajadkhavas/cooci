@@ -1,6 +1,6 @@
-import { Helmet } from "react-helmet-async";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { brandConfig } from "@/config/brand";
+import { useCspNonce } from "@/lib/security/csp";
 import {
   resolveCanonicalUrl,
   resolvePublicMediaUrl,
@@ -33,7 +33,6 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 
 const sanitizeSchema = (schema: object | undefined) => {
   if (!schema) return undefined;
-
   const cloned = JSON.parse(JSON.stringify(schema)) as Record<string, unknown>;
   const schemaType = cloned["@type"];
 
@@ -41,13 +40,11 @@ const sanitizeSchema = (schema: object | undefined) => {
     delete cloned.aggregateRating;
     delete cloned.review;
   }
-
   if (schemaType === "Product" && cloned.offers) {
     const offers = cloned.offers as Record<string, unknown>;
     delete offers.availability;
     cloned.offers = offers;
   }
-
   if (schemaType === "Article") {
     const published = cloned.datePublished;
     if (
@@ -58,7 +55,6 @@ const sanitizeSchema = (schema: object | undefined) => {
       delete cloned.datePublished;
     }
   }
-
   return cloned;
 };
 
@@ -74,23 +70,22 @@ export const SEO = ({
   noIndex = false,
 }: SEOProps) => {
   const location = useLocation();
+  const nonce = useCspNonce();
   const siteTitle = title
-    ? `${title} | ${brandConfig.brandName}`
+    ? title + " | " + brandConfig.brandName
     : brandConfig.defaultMeta.title;
   const siteDescription = description || brandConfig.defaultMeta.description;
   const siteImage = resolvePublicMediaUrl(
     image || brandConfig.defaultMeta.image,
     SITE_ORIGIN,
   );
-  const canonicalPath = url || location.pathname;
-  const siteUrl = resolveCanonicalUrl(canonicalPath, SITE_ORIGIN);
+  const siteUrl = resolveCanonicalUrl(url || location.pathname, SITE_ORIGIN);
   const safePublishedTime =
     publishedTime &&
     ISO_DATE_PATTERN.test(publishedTime) &&
     Number.isFinite(Date.parse(publishedTime))
       ? publishedTime
       : undefined;
-
   const defaultSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -102,18 +97,16 @@ export const SEO = ({
     email: brandConfig.email,
     sameAs: [brandConfig.instagramUrl],
   };
-
-  const finalSchema = sanitizeSchema(schema) || defaultSchema;
-  const serializedSchema = serializeJsonLd(finalSchema);
+  const serializedSchema = serializeJsonLd(
+    sanitizeSchema(schema) || defaultSchema,
+  );
 
   return (
-    <Helmet>
-      <html lang="fa-IR" dir="rtl" />
+    <>
       <title>{siteTitle}</title>
       <meta name="description" content={siteDescription} />
       <link rel="canonical" href={siteUrl} />
       {noIndex && <meta name="robots" content="noindex,nofollow" />}
-
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={siteDescription} />
       <meta property="og:image" content={siteImage} />
@@ -121,20 +114,21 @@ export const SEO = ({
       <meta property="og:type" content={type} />
       <meta property="og:locale" content="fa_IR" />
       <meta property="og:site_name" content={brandConfig.brandName} />
-
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={siteDescription} />
       <meta name="twitter:image" content={siteImage} />
-
       {type === "article" && safePublishedTime && (
         <meta property="article:published_time" content={safePublishedTime} />
       )}
       {type === "article" && author && (
         <meta property="article:author" content={author} />
       )}
-
-      <script type="application/ld+json">{serializedSchema}</script>
-    </Helmet>
+      <script
+        nonce={nonce}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializedSchema }}
+      />
+    </>
   );
 };

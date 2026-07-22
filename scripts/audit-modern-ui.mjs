@@ -6,7 +6,7 @@ const read = (path) => readFileSync(path, "utf8");
 const files = {
   index: "src/index.css",
   modernPages: "src/styles/modern-pages.css",
-  main: "src/main.tsx",
+  main: "src/root.tsx",
   layout: "src/components/layout/SiteLayout.tsx",
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
 
 const focusTarget = (target: HTMLElement) => {

@@ -13,7 +13,7 @@ import {
   Truck,
   XCircle,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";

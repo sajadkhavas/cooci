@@ -1,4 +1,4 @@
-import { useLocation, Outlet } from "react-router-dom";
+import { useLocation, Outlet } from "react-router";
 import { RouteAnnouncer } from "@/components/accessibility/RouteAnnouncer";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 import { Footer } from "@/components/layout/Footer";

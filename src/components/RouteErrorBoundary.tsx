@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { AlertTriangle, Home, RefreshCcw, ShoppingBag } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import { SEO } from "@/components/SEO";
 
 interface BoundaryProps {
