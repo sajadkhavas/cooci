@@ -15,15 +15,24 @@ interface BreadcrumbsProps {
 }
 
 const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const configuredOrigin =
+  (import.meta.env.VITE_SITE_ORIGIN as string | undefined) || brandConfig.website;
+const BREADCRUMB_ORIGIN = (() => {
+  try {
+    return new URL(configuredOrigin).origin;
+  } catch {
+    return new URL(brandConfig.website).origin;
+  }
+})();
 
 export const normalizeBreadcrumbHref = (href?: string) => {
   if (!href) return undefined;
 
   try {
-    const parsed = new URL(href, brandConfig.website);
+    const parsed = new URL(href, BREADCRUMB_ORIGIN);
     const category = parsed.searchParams.get("category");
     if (
-      parsed.origin === new URL(brandConfig.website).origin &&
+      parsed.origin === BREADCRUMB_ORIGIN &&
       parsed.pathname === "/products" &&
       category &&
       SAFE_CATEGORY_SLUG.test(category)
@@ -51,7 +60,7 @@ export const Breadcrumbs = ({ items, className = "" }: BreadcrumbsProps) => {
       position: index + 1,
       name: item.name.slice(0, 255),
       item: item.href
-        ? resolveCanonicalUrl(item.href, brandConfig.website)
+        ? resolveCanonicalUrl(item.href, BREADCRUMB_ORIGIN)
         : undefined,
     })),
   };
