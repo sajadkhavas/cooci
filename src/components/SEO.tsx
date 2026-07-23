@@ -7,6 +7,10 @@ import {
   resolvePublicMediaUrl,
   serializeJsonLd,
 } from "@/lib/security/seo";
+import {
+  createBrandGraphSchema,
+  type JsonLdNode,
+} from "@/lib/seo/brand-entity";
 import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
@@ -20,7 +24,7 @@ interface SEOProps {
   type?: "website" | "article" | "product";
   publishedTime?: string;
   author?: string;
-  schema?: object;
+  schema?: object | object[];
   noIndex?: boolean;
   robots?: "index,follow" | "noindex,follow" | "noindex,nofollow";
 }
@@ -37,8 +41,7 @@ const SITE_ORIGIN = (() => {
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 
-const sanitizeSchema = (schema: object | undefined) => {
-  if (!schema) return undefined;
+const sanitizeSchemaNode = (schema: object) => {
   const cloned = JSON.parse(JSON.stringify(schema)) as Record<string, unknown>;
   const schemaType = cloned["@type"];
 
@@ -62,6 +65,13 @@ const sanitizeSchema = (schema: object | undefined) => {
     }
   }
   return cloned;
+};
+
+const sanitizeSchema = (schema: object | object[] | undefined) => {
+  if (!schema) return undefined;
+  return Array.isArray(schema)
+    ? schema.map((node) => sanitizeSchemaNode(node))
+    : sanitizeSchemaNode(schema);
 };
 
 const getPaginationTotal = (
@@ -152,17 +162,6 @@ export const SEO = ({
     Number.isFinite(Date.parse(publishedTime))
       ? publishedTime
       : undefined;
-  const defaultSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: brandConfig.brandName,
-    alternateName: brandConfig.brandNameEn,
-    url: brandConfig.website,
-    description: brandConfig.defaultMeta.description,
-    telephone: brandConfig.phone,
-    email: brandConfig.email,
-    sameAs: [brandConfig.instagramUrl],
-  };
   const productLoaderData = type === "product" ? getProductLoaderData(matches) : undefined;
   const authoritativeProductSchema = productLoaderData?.product
     ? createProductMerchantSchema({
@@ -172,8 +171,14 @@ export const SEO = ({
         brandName: brandConfig.brandName,
       })
     : undefined;
+  const pageSchema =
+    (authoritativeProductSchema as JsonLdNode | undefined) ||
+    (sanitizeSchema(schema) as JsonLdNode | JsonLdNode[] | undefined);
   const serializedSchema = serializeJsonLd(
-    authoritativeProductSchema || sanitizeSchema(schema) || defaultSchema,
+    createBrandGraphSchema({
+      siteOrigin: SITE_ORIGIN,
+      pageSchema,
+    }),
   );
 
   return (
