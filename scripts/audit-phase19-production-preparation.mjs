@@ -67,6 +67,7 @@ requireText("server preflight", preflight, [
   "nginx -t",
   "systemd-analyze verify",
   "HOST=127.0.0.1",
+  "frontend runtime env contains a backend secret-shaped variable",
 ]);
 requireText("production smoke", smoke, [
   "strict-transport-security",
@@ -95,7 +96,9 @@ requireText("roadmap", roadmap, [
 for (const [name, content] of [
   ["frontend systemd unit", unit],
   ["frontend runtime env", runtimeEnv],
-  ["frontend deployment scripts", `${deploy}\n${rollback}\n${preflight}\n${smoke}`],
+  ["frontend deploy wrapper", deploy],
+  ["frontend rollback wrapper", rollback],
+  ["frontend public smoke", smoke],
 ]) {
   if (/ZARINPAL_MERCHANT_ID|KAVENEGAR_API_KEY|ENAMAD_BADGE_CODE|APP_KEY|DB_PASSWORD/.test(content)) {
     failures.push(`${name} contains a backend secret name`);
