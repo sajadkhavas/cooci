@@ -12,7 +12,6 @@ export const CRAWLABLE_STATIC_PATHS = [
   "/gift",
   "/corporate",
   "/reviews",
-  "/quality",
   "/gallery",
   "/faq",
   "/contact",
@@ -20,6 +19,7 @@ export const CRAWLABLE_STATIC_PATHS = [
 
 export const MANAGED_CONTENT_PATHS = [
   { path: "/about", slug: "about" },
+  { path: "/quality", slug: "quality" },
   { path: "/shipping", slug: "shipping" },
   { path: "/privacy", slug: "privacy" },
   { path: "/terms", slug: "terms" },
