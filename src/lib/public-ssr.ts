@@ -28,6 +28,7 @@ export interface PublicSsrLoaderData {
   contentTopics?: ContentTopicSummary[];
   contentTopic?: ContentTopicSummary;
   city?: StoreCityPage;
+  cities?: StoreCityPage[];
 }
 
 export const catalogLoaderKey = (query: CatalogQuery = {}) => {
