@@ -44,9 +44,7 @@ const footerLinks = {
     { name: "باکس هدیه", href: "/products/category/gift-boxes" },
   ],
   services: [
-    { name: "تهران", href: "/city/tehran" },
-    { name: "کرج", href: "/city/karaj" },
-    { name: "اندیشه", href: "/city/andisheh" },
+    { name: "مناطق منتشرشده ارسال", href: "/locations" },
     { name: "سفارش سازمانی", href: "/corporate" },
     { name: "راهنمای هدیه", href: "/gift" },
   ],
@@ -227,12 +225,18 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-white/10 py-7">
-          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/[0.045] p-4 text-xs leading-7 text-primary-foreground/55 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 grid gap-3 rounded-2xl border border-white/8 bg-white/[0.045] p-4 text-xs leading-7 text-primary-foreground/55 sm:grid-cols-2 lg:grid-cols-4">
+            <strong className="text-primary-foreground/75">{brandConfig.brandName}</strong>
             <span className="flex items-center gap-2">
               <MapPin size={15} className="shrink-0 text-accent" aria-hidden="true" />
               {brandConfig.address}
             </span>
-            <span dir="ltr">{brandConfig.email}</span>
+            <a href={generatePhoneUrl()} dir="ltr" className="hover:text-accent">
+              {brandConfig.phone}
+            </a>
+            <a href={`mailto:${brandConfig.email}`} dir="ltr" className="hover:text-accent">
+              {brandConfig.email}
+            </a>
           </div>
 
           <ul className="mb-6 flex flex-wrap gap-x-5 gap-y-3">
@@ -272,9 +276,7 @@ export const Footer = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      <div className="pointer-events-none relative overflow-hidden py-4" aria-hidden="true">
         <div className="whitespace-nowrap text-center text-[14vw] font-black leading-none tracking-[-0.09em] text-white/[0.035] sm:text-[12vw]">
           WINIMI BAKERY
         </div>
