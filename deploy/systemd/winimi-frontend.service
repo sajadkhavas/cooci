@@ -1,0 +1,37 @@
+[Unit]
+Description=Winimi Bakery Node SSR storefront
+Documentation=https://github.com/sajadkhavas/cooci/blob/main/docs/PHASE_19_PRODUCTION_DEPLOYMENT.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=winimi
+Group=www-data
+WorkingDirectory=/var/www/winimi/frontend/current/app
+EnvironmentFile=/etc/winimi/frontend-runtime.env
+ExecStart=/usr/bin/node /var/www/winimi/frontend/current/app/build/runtime/server.mjs
+Restart=on-failure
+RestartSec=3s
+TimeoutStartSec=45s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+SyslogIdentifier=winimi-frontend
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
