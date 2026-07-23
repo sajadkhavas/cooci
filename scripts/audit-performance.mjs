@@ -16,7 +16,8 @@ const budgets = {
   largestJavaScriptGzip: 150 * KIB,
   totalJavaScriptGzip: 700 * KIB,
   largestCssGzip: 50 * KIB,
-  largestImage: 1 * MIB,
+  largestImage: 750 * KIB,
+  totalImageBytes: 5 * MIB,
   minimumJavaScriptChunks: 12,
   runtimeBundleGzip: 2.5 * MIB,
 };
@@ -92,6 +93,7 @@ const largestJavaScript = [...javascript].sort((a, b) => b.gzipBytes - a.gzipByt
 const totalJavaScriptGzip = javascript.reduce((total, item) => total + item.gzipBytes, 0);
 const largestCss = [...css].sort((a, b) => b.gzipBytes - a.gzipBytes)[0];
 const largestImage = [...images].sort((a, b) => b.bytes - a.bytes)[0];
+const totalImageBytes = images.reduce((total, item) => total + item.bytes, 0);
 const runtimeGzip = runtime.reduce((total, item) => total + item.gzipBytes, 0);
 if (largestJavaScript?.gzipBytes > budgets.largestJavaScriptGzip) {
   failures.push(
@@ -106,7 +108,16 @@ if (largestCss?.gzipBytes > budgets.largestCssGzip) {
   failures.push("Largest CSS exceeds budget: " + formatBytes(largestCss.gzipBytes));
 }
 if (largestImage?.bytes > budgets.largestImage) {
-  failures.push("Largest image exceeds budget: " + formatBytes(largestImage.bytes));
+  failures.push(
+    "Largest image exceeds Phase 10.8 budget: " +
+      largestImage.file + " (" + formatBytes(largestImage.bytes) + ")",
+  );
+}
+if (totalImageBytes > budgets.totalImageBytes) {
+  failures.push(
+    "Total production image bytes exceed Phase 10.8 budget: " +
+      formatBytes(totalImageBytes),
+  );
 }
 if (runtimeGzip > budgets.runtimeBundleGzip) {
   failures.push("Bundled SSR runtime exceeds budget: " + formatBytes(runtimeGzip));
@@ -140,7 +151,7 @@ if (existsSync("build/client/manifest.webmanifest")) {
   }
 }
 
-for (const image of images.filter((item) => item.bytes > 700 * KIB)) {
+for (const image of images.filter((item) => item.bytes > 500 * KIB)) {
   warnings.push(item.file + " is " + formatBytes(item.bytes) + ".");
 }
 const report = {
@@ -154,7 +165,9 @@ const report = {
     largestJavaScript: largestJavaScript || null,
     totalJavaScriptGzip,
     largestCss: largestCss || null,
+    imageCount: images.length,
     largestImage: largestImage || null,
+    totalImageBytes,
     runtimeFiles: runtime.length,
     runtimeGzip,
   },
@@ -164,10 +177,11 @@ const report = {
 writeFileSync("performance-report.json", JSON.stringify(report, null, 2) + "\n");
 console.log("Client JavaScript chunks: " + javascript.length);
 console.log("Client JavaScript gzip: " + formatBytes(totalJavaScriptGzip));
+console.log("Production images: " + images.length + " / " + formatBytes(totalImageBytes));
 console.log("SSR runtime gzip: " + formatBytes(runtimeGzip));
 warnings.forEach((warning) => console.warn("Warning: " + warning));
 if (failures.length) {
   failures.forEach((failure) => console.error("- " + failure));
   process.exit(1);
 }
-console.log("SSR, client and PWA performance budgets passed.");
+console.log("SSR, client, media and PWA performance budgets passed.");
