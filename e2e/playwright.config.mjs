@@ -20,6 +20,7 @@ export default defineConfig({
     "phase10-6-content-topical-authority.spec.mjs",
     "phase10-7-local-seo-brand-entity.spec.mjs",
     "phase10-8-core-web-vitals-media.spec.mjs",
+    "phase10-9-seo-release-candidate.spec.mjs",
     "runtime-performance.spec.mjs",
   ],
   timeout: 45_000,
