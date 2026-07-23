@@ -4,6 +4,7 @@ const files = {
   routes: "src/routes.ts",
   urlPolicy: "src/lib/seo/url-policy.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
+  localServer: "src/lib/seo/local-seo.server.ts",
   sitemapRoute: "src/routes/sitemap.ts",
   robotsRoute: "src/routes/robots.ts",
   seo: "src/components/SEO.tsx",
@@ -49,10 +50,11 @@ requireText("urlPolicy", "PRIVATE_INDEX_PREFIXES", "private index registry");
 requireText("sitemap", "fetchCatalogProducts", "Laravel product sitemap source");
 requireText("sitemap", "fetchCatalogCategories", "Laravel category sitemap source");
 requireText("sitemap", "loadPosts", "Laravel post sitemap source");
-requireText("sitemap", "loadCityPage", "Laravel city validation");
-requireText("sitemap", "WINIMI_PUBLIC_CITY_SLUGS", "server city registry override");
+requireText("sitemap", "collectPublishedCityPages", "shared authoritative Laravel city collector");
+requireText("localServer", "loadCityPage", "Laravel city validation");
+requireText("localServer", "WINIMI_PUBLIC_CITY_SLUGS", "server city registry override");
 requireText("sitemapRoute", '"application/xml; charset=utf-8"', "XML response type");
-requireText("sitemapRoute", 'status: 503', "fail-closed sitemap response");
+requireText("sitemapRoute", "status: 503", "fail-closed sitemap response");
 requireText("robotsRoute", "createRobotsText", "central robots policy");
 requireText("seo", 'rel="prev"', "pagination previous link");
 requireText("seo", 'rel="next"', "pagination next link");
