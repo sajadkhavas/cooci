@@ -99,6 +99,7 @@ export const resolvePaginationUrlPolicy = ({
     cleanPathname,
     hasNonPageParams ? 1 : boundedPage,
   );
+  const noIndex = hasNonPageParams;
 
   let redirectPath: string | undefined;
   if (!hasNonPageParams) {
@@ -109,8 +110,8 @@ export const resolvePaginationUrlPolicy = ({
 
   return {
     canonicalPath,
-    noIndex: hasNonPageParams,
-    robots: hasNonPageParams ? "noindex,follow" : "index,follow",
+    noIndex,
+    robots: noIndex ? "noindex,follow" : "index,follow",
     previousPath:
       !hasNonPageParams && boundedPage > 1
         ? pathWithPage(cleanPathname, boundedPage - 1)
