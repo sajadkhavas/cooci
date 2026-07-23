@@ -21,7 +21,8 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 | Product and merchant SEO | Complete in Phase 10.5 |
 | Content and topical authority | Complete in Phase 10.6 |
 | Local SEO and brand entity | Complete in Phase 10.7 |
-| Performance SEO and release acceptance | Phases 10.8–10.9 |
+| Core Web Vitals and media | Complete in Phase 10.8 |
+| SEO release acceptance | Phase 10.9 |
 | Production deployment | Phase 19 after Phase 10.9 |
 | External activation only | Phase 20 |
 
@@ -46,6 +47,11 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - Official phone, email, brand name, locality and social profile come from one configured brand source.
 - `/locations`, city links, Service schemas and sitemap city entries use only successfully resolved Laravel city pages.
 - Service-area pages do not claim physical branches, exact street addresses, coordinates or fixed opening hours.
+- The homepage LCP image is preloaded from the first HTML, eager, high-priority and intrinsically sized.
+- Product and article media reserve layout space and use explicit responsive sizes and network priorities.
+- The frontend never fabricates resized backend media URLs; `<picture>` sources are supplied only when real derivatives exist.
+- Production releases enforce JavaScript, CSS, SSR runtime, largest-image and total-image budgets.
+- Privacy-bounded LCP, INP and CLS payloads are accepted by the Node runtime for structured production logging.
 - Cart storage is only a convenience snapshot; Variants, price and stock are reconciled before checkout.
 - Delivery options are informational and checkout recalculates every total on the server.
 - Checkout creates an order first; payment initiation is a separate idempotent request.
@@ -80,11 +86,13 @@ For an isolated local simulator, use a Vite development build and explicitly set
 npm run check
 ```
 
-Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.7, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
+Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.8, Core Web Vitals thresholds, media budgets, routes, accessibility, content integrity, modern UI, ESLint, TypeScript and the production SSR build.
 
 ## Security boundary
 
 The frontend never contains payment credentials, SMS provider keys, eNAMAD code, provider verification secrets or trusted payment state. eNAMAD settings are read from the backend; only HTTPS links and images on `trustseal.enamad.ir` are accepted by the prepared trust slot.
+
+The Core Web Vitals application payload does not include customer identities, order information, form values, IP addresses or user-agent strings.
 
 ## Production domains
 
@@ -96,7 +104,6 @@ https://api.winimibakery.com
 
 ## Remaining delivery phases
 
-- Phase 10.8: Core Web Vitals and media
 - Phase 10.9: SEO acceptance and release candidate
 - Phase 19: production server, DNS, HTTPS, queue, storage, monitoring and rollback
 - Phase 20: external activation only
