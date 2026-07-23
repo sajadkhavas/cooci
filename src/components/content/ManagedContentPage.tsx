@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useLoaderData } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { StructuredText } from "@/components/content/StructuredText";
 import { SEO } from "@/components/SEO";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import { loadContentPage } from "@/lib/content";
 import { formatPersianUtcDate } from "@/lib/format-persian-date";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 export const ManagedContentPage = ({
@@ -21,10 +23,14 @@ export const ManagedContentPage = ({
   canonicalPath?: string;
   schema?: object | object[];
 }) => {
+  const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const initialContentPage =
+    loaderData?.contentPage?.slug === slug ? loaderData.contentPage : undefined;
   const query = useQuery({
     queryKey: ["store", "page", slug],
     queryFn: () => loadContentPage(slug),
     enabled: isBackendEnabled,
+    initialData: isBackendEnabled ? initialContentPage : undefined,
     staleTime: 5 * 60_000,
   });
 
