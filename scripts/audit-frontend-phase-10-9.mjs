@@ -6,6 +6,7 @@ const files = {
   readme: "README.md",
   package: "package.json",
   contract: "src/lib/seo/release-candidate.ts",
+  productCard: "src/components/ProductCard.tsx",
   unit: "tests/unit/seo-release-candidate.test.ts",
   e2e: "e2e/phase10-9-seo-release-candidate.spec.mjs",
   playwright: "e2e/playwright.config.mjs",
@@ -32,6 +33,9 @@ for (const [name, path] of Object.entries(files)) {
 const requireText = (file, text, label = text) => {
   if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
 };
+const forbidText = (file, text, label = text) => {
+  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
+};
 
 requireText("docs", "seo_release_candidate=ready", "final Phase 10.9 marker");
 requireText("roadmap", "Phase 10.9 — SEO acceptance and release candidate — complete");
@@ -41,6 +45,8 @@ requireText("contract", "winimi-seo-release-candidate-v1", "release candidate fo
 requireText("contract", "desktop-chromium", "desktop acceptance requirement");
 requireText("contract", "mobile-chromium", "mobile acceptance requirement");
 requireText("contract", "2026-07-20-phase-16", "frozen backend contract");
+requireText("productCard", "/products/category/${encodeURIComponent(product.categorySlug)}", "direct canonical product category link");
+forbidText("productCard", "/products?category=", "legacy product category query link");
 requireText("unit", "matching desktop and mobile evidence", "viewport evidence unit gate");
 requireText("unit", "locks hashes, production origins and backend boundary", "attestation unit gate");
 
@@ -88,5 +94,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 10.9 audit passed: sitemap-wide raw HTML acceptance, status policy, internal-link integrity and cryptographic release candidate evidence are locked.",
+  "Frontend Phase 10.9 audit passed: sitemap-wide raw HTML acceptance, canonical internal links, status policy, internal-link integrity and cryptographic release candidate evidence are locked.",
 );
