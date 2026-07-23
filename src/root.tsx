@@ -23,6 +23,7 @@ import "./index.css";
 import "./styles/modern-pages.css";
 import "./styles/brand-theme.css";
 import "./styles/runtime-performance.css";
+import "./styles/core-web-vitals.css";
 
 interface RootLoaderData {
   cspNonce?: string;
