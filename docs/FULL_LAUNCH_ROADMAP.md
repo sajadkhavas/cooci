@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-23-phase-10-9`
+Roadmap lock: `2026-07-23-phase-19a`
 
 ## Required final state
 
@@ -143,26 +143,47 @@ Status: `seo_release_candidate=ready`
 
 The dynamic sitemap is now the final indexable inventory. Desktop Chromium and Pixel 7 independently request every sitemap URL before hydration and verify HTTP 200, HTTPS origin, title, description, one self-canonical URL, indexability, Open Graph/Twitter metadata, exactly one H1, parseable JSON-LD, stable Organization/WebSite entities and route-specific schema. The same gate verifies redirects, 404/noindex behavior, filtered and private noindex policy, robots declarations and internal links without 404/5xx or legacy category URLs. Both viewport reports must share the same sitemap SHA-256. Their merged evidence is cryptographically bound to the deterministic SSR release manifest in `seo-release-candidate.json`, while the backend contract and production origin/mock boundary remain frozen.
 
-Production deployment may now begin in Phase 19. Search Console submission, URL Inspection, live Rich Results validation and field percentile dashboards require the public deployment and remain Phase 19/21 work.
+## Phase 19A — production deployment package — complete
 
-## Phase 19 — Production server deployment — ready to begin
+Status: `production_server_package=ready`
 
-Both repositories will run on one Linux server while remaining separate release artifacts:
+Both repositories now provide the complete package required before SSH access:
 
-- `winimibakery.com` runs the Node SSR storefront behind Nginx
+- separate deterministic frontend and backend immutable release manifests
+- SHA-256 verification, file inventory and tamper rejection
+- secret-shaped-content rejection from release artifacts
+- atomic `current` symlinks with retained prior releases
+- frontend Node SSR systemd unit bound to loopback
+- Laravel PHP-FPM API Nginx virtual host
+- supervised queue worker and one-minute scheduler timer
+- encrypted backup service/timer and mandatory isolated restore drill
+- disabled-provider production environment baselines
+- frontend and backend server preflight commands
+- public storefront/API smoke checks
+- migration-aware backend rollback and health-checked frontend rollback
+- single-server DNS/TLS, persistence, monitoring and Search Console runbook
+- dedicated Phase 19 package workflows
+
+This marker proves the repositories are ready to enter the VPS. It does not claim that DNS, TLS, database, services or public domains are live.
+
+## Phase 19B — live server execution — next
+
+Both repositories run on one Linux server while remaining separate release artifacts:
+
+- `winimibakery.com` runs Node SSR behind Nginx
 - immutable client assets are served directly by Nginx
-- `api.winimibakery.com` serves Laravel, Filament and media
-- Nginx provides two virtual hosts on the same machine
-- DNS, TLS, secure Cookie/CORS configuration
-- production database and persistent storage
-- queue worker and one-minute scheduler
-- backups, restore drill, logs, monitoring and rollback
-- disabled-provider production smoke tests
-- Search Console ownership, sitemap submission and representative URL Inspection
-- production Core Web Vitals log shipping and 75th-percentile dashboards
-- `production_deployed=ready`
+- `api.winimibakery.com` serves Laravel, Filament and persistent media
+- DNS and trusted TLS are configured for apex, www and API hosts
+- production database, private environment and shared storage are provisioned
+- queue worker, one-minute scheduler and backup timer survive reboot
+- disabled-provider production smoke tests pass over public HTTPS
+- encrypted off-server backup and isolated restore drill pass
+- frontend and migration-aware backend rollback drills pass
+- logs, monitoring and Core Web Vitals 75th-percentile dashboards are active
+- Search Console ownership, sitemap submission and representative URL Inspection are recorded
+- final evidence sets `production_deployed=ready`
 
-See `docs/SINGLE_SERVER_TOPOLOGY.md` and the SSR deployment documents.
+See `docs/SINGLE_SERVER_TOPOLOGY.md` and `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md`.
 
 ## Phase 20 — External activation only
 
