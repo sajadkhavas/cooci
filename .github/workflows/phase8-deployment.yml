@@ -31,7 +31,7 @@ jobs:
   release:
     name: Reproducible SSR release, Nginx, deploy and rollback
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 38
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,6 +54,7 @@ jobs:
           npm run audit:phase10-6
           npm run audit:phase10-7
           npm run audit:phase10-8
+          npm run audit:phase10-9
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -207,6 +208,8 @@ jobs:
           sleep 1
           grep -q 'WINIMI_WEB_VITAL' ssr-runtime.log
           node -e 'const r=require("./performance-report.json");if(r.budgets.largestImage!==750*1024||r.budgets.totalImageBytes!==5*1024*1024||r.failures.length)process.exit(1)'
+      - name: Verify SEO release candidate deployment snapshot
+        run: node scripts/verify-seo-deployment-snapshot.mjs
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -235,6 +238,7 @@ jobs:
             release-b-id.txt
             release-output.json
             performance-report.json
+            seo-deployment-acceptance.json
             ssr-home.html
             ssr-product.html
             ssr-topic.html

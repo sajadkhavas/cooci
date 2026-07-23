@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-23-phase-10-8`
+Roadmap lock: `2026-07-23-phase-10-9`
 
 ## Required final state
 
@@ -137,13 +137,15 @@ Status: `core_web_vitals_media=ready`
 
 The homepage LCP image is discoverable from the server-rendered head and rendered with eager high network priority plus intrinsic dimensions. Product and article media follow one typed loading contract with reserved layout space, responsive sizes and low-priority lazy loading below the fold. Rendering containment, stable scrollbar space, reduced-motion and reduced-data paths protect CLS and interaction work. Production builds enforce JavaScript, CSS, SSR and media budgets. Privacy-bounded field LCP/INP/CLS records are accepted by the Node runtime and emitted as structured logs without customer, order, form, IP or user-agent fields in the application payload. Desktop and mobile lab gates verify LCP, CLS and interaction targets while the existing CPU-throttled scroll profiler remains mandatory.
 
-### Remaining frontend SEO phase
+### Phase 10.9 — SEO acceptance and release candidate — complete
 
-- Phase 10.9 — SEO acceptance and release candidate
+Status: `seo_release_candidate=ready`
 
-Production deployment begins only after Phase 10.9 is complete.
+The dynamic sitemap is now the final indexable inventory. Desktop Chromium and Pixel 7 independently request every sitemap URL before hydration and verify HTTP 200, HTTPS origin, title, description, one self-canonical URL, indexability, Open Graph/Twitter metadata, exactly one H1, parseable JSON-LD, stable Organization/WebSite entities and route-specific schema. The same gate verifies redirects, 404/noindex behavior, filtered and private noindex policy, robots declarations and internal links without 404/5xx or legacy category URLs. Both viewport reports must share the same sitemap SHA-256. Their merged evidence is cryptographically bound to the deterministic SSR release manifest in `seo-release-candidate.json`, while the backend contract and production origin/mock boundary remain frozen.
 
-## Phase 19 — Production server deployment — after Phase 10.9
+Production deployment may now begin in Phase 19. Search Console submission, URL Inspection, live Rich Results validation and field percentile dashboards require the public deployment and remain Phase 19/21 work.
+
+## Phase 19 — Production server deployment — ready to begin
 
 Both repositories will run on one Linux server while remaining separate release artifacts:
 
@@ -156,6 +158,8 @@ Both repositories will run on one Linux server while remaining separate release 
 - queue worker and one-minute scheduler
 - backups, restore drill, logs, monitoring and rollback
 - disabled-provider production smoke tests
+- Search Console ownership, sitemap submission and representative URL Inspection
+- production Core Web Vitals log shipping and 75th-percentile dashboards
 - `production_deployed=ready`
 
 See `docs/SINGLE_SERVER_TOPOLOGY.md` and the SSR deployment documents.
@@ -186,6 +190,10 @@ No feature development is allowed. Only:
 - below-fold media is lazy and low-priority while route-level LCP media is explicitly prioritized
 - field Core Web Vitals payloads exclude customer, order, form, IP and user-agent fields at the application layer
 - production releases remain inside locked JavaScript, CSS, SSR and image budgets
+- every sitemap URL must pass raw HTML, status, canonical, metadata, H1 and structured-data acceptance on desktop and mobile
+- missing or private URLs must expose the correct noindex policy and never enter the sitemap
+- internal links from indexable pages must not resolve to 404/5xx or legacy category URLs
+- the final SEO acceptance report and deterministic release manifest are bound by SHA-256 in one verifiable release candidate
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints

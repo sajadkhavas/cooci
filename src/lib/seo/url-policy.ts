@@ -12,14 +12,17 @@ export const CRAWLABLE_STATIC_PATHS = [
   "/gift",
   "/corporate",
   "/reviews",
-  "/quality",
-  "/about",
   "/gallery",
   "/faq",
   "/contact",
-  "/shipping",
-  "/privacy",
-  "/terms",
+] as const;
+
+export const MANAGED_CONTENT_PATHS = [
+  { path: "/about", slug: "about" },
+  { path: "/quality", slug: "quality" },
+  { path: "/shipping", slug: "shipping" },
+  { path: "/privacy", slug: "privacy" },
+  { path: "/terms", slug: "terms" },
 ] as const;
 
 export const PUBLIC_CITY_SLUGS = ["tehran", "karaj", "andisheh"] as const;

@@ -38,7 +38,7 @@ const GiftPage = () => {
                 محصولات آماده را از فروشگاه انتخاب کنید. برای کارت، بسته‌بندی یا ترکیب اختصاصی، درخواست ثبت کنید تا امکان اجرا، هزینه و زمان آماده‌سازی بررسی شود.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link to="/products?category=gift" className="btn-primary inline-flex items-center justify-center rounded-xl px-7 py-4 font-bold">
+                <Link to="/products/category/gift-boxes" className="btn-primary inline-flex items-center justify-center rounded-xl px-7 py-4 font-bold">
                   مشاهده محصولات هدیه
                 </Link>
                 <a href={generateWhatsAppUrl(message)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-whatsapp px-7 py-4 font-bold text-white">

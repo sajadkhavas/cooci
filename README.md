@@ -22,8 +22,8 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 | Content and topical authority | Complete in Phase 10.6 |
 | Local SEO and brand entity | Complete in Phase 10.7 |
 | Core Web Vitals and media | Complete in Phase 10.8 |
-| SEO release acceptance | Phase 10.9 |
-| Production deployment | Phase 19 after Phase 10.9 |
+| SEO acceptance and release candidate | Complete in Phase 10.9 |
+| Production deployment | Phase 19 ready to begin |
 | External activation only | Phase 20 |
 
 ## Production integration boundary
@@ -52,6 +52,10 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - The frontend never fabricates resized backend media URLs; `<picture>` sources are supplied only when real derivatives exist.
 - Production releases enforce JavaScript, CSS, SSR runtime, largest-image and total-image budgets.
 - Privacy-bounded LCP, INP and CLS payloads are accepted by the Node runtime for structured production logging.
+- Every dynamic sitemap URL passes raw SSR title, description, canonical, indexability, H1, social metadata and structured-data acceptance on desktop and mobile.
+- Internal links from indexable pages are checked against 404/5xx responses and legacy category URL patterns.
+- Desktop and mobile reports must share the same sitemap SHA-256 digest.
+- The merged SEO report is bound to the deterministic SSR release manifest in a verifiable `seo-release-candidate.json` attestation.
 - Cart storage is only a convenience snapshot; Variants, price and stock are reconciled before checkout.
 - Delivery options are informational and checkout recalculates every total on the server.
 - Checkout creates an order first; payment initiation is a separate idempotent request.
@@ -86,13 +90,24 @@ For an isolated local simulator, use a Vite development build and explicitly set
 npm run check
 ```
 
-Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.8, Core Web Vitals thresholds, media budgets, routes, accessibility, content integrity, modern UI, ESLint, TypeScript and the production SSR build.
+Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.9, Core Web Vitals thresholds, media budgets, sitemap-wide raw HTML acceptance, release-candidate attestation, routes, accessibility, content integrity, modern UI, ESLint, TypeScript and the production SSR build.
+
+The final coordinated CI additionally runs:
+
+```bash
+npm run test:e2e -- phase10-9-seo-release-candidate.spec.mjs
+npm run seo:acceptance:merge -- seo-acceptance-desktop-chromium.json seo-acceptance-mobile-chromium.json seo-acceptance-report.json
+npm run seo:rc:create -- <release-directory> seo-acceptance-report.json seo-release-candidate.json
+npm run seo:rc:verify -- seo-release-candidate.json <release-directory> seo-acceptance-report.json
+```
 
 ## Security boundary
 
 The frontend never contains payment credentials, SMS provider keys, eNAMAD code, provider verification secrets or trusted payment state. eNAMAD settings are read from the backend; only HTTPS links and images on `trustseal.enamad.ir` are accepted by the prepared trust slot.
 
 The Core Web Vitals application payload does not include customer identities, order information, form values, IP addresses or user-agent strings.
+
+The SEO release candidate contains only release hashes, acceptance hashes, production origins, viewport names and the frozen backend contract. It does not contain credentials or customer data.
 
 ## Production domains
 
@@ -104,8 +119,7 @@ https://api.winimibakery.com
 
 ## Remaining delivery phases
 
-- Phase 10.9: SEO acceptance and release candidate
-- Phase 19: production server, DNS, HTTPS, queue, storage, monitoring and rollback
+- Phase 19: production server, DNS, HTTPS, queue, storage, monitoring, Search Console activation and rollback
 - Phase 20: external activation only
 
 The only external values allowed in Phase 20 are:
