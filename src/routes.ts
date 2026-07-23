@@ -11,6 +11,7 @@ export default [
   route("blog", "./routes/blog-list.tsx"),
   route("blog/topic/:topic", "./routes/blog-topic.tsx"),
   route("blog/:slug", "./routes/blog-detail.tsx"),
+  route("locations", "./routes/locations.tsx"),
   route("city/:slug", "./routes/city.tsx"),
   route("gift", "./pages/GiftPage.tsx"),
   route("corporate", "./pages/CorporatePage.tsx"),
