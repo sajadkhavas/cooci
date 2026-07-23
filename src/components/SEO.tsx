@@ -11,6 +11,7 @@ import {
   createBrandGraphSchema,
   type JsonLdNode,
 } from "@/lib/seo/brand-entity";
+import { resolveMetaDescription } from "@/lib/seo/meta-description";
 import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
@@ -146,7 +147,10 @@ export const SEO = ({
   const siteTitle = title
     ? title + " | " + brandConfig.brandName
     : brandConfig.defaultMeta.title;
-  const siteDescription = description || brandConfig.defaultMeta.description;
+  const siteDescription = resolveMetaDescription(
+    description,
+    brandConfig.defaultMeta.description,
+  );
   const siteImage = resolvePublicMediaUrl(
     image || brandConfig.defaultMeta.image,
     SITE_ORIGIN,
