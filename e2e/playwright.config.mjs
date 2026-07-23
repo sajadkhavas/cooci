@@ -18,6 +18,7 @@ export default defineConfig({
     "phase10-4-crawl-index.spec.mjs",
     "phase10-5-product-merchant-seo.spec.mjs",
     "phase10-6-content-topical-authority.spec.mjs",
+    "phase10-7-local-seo-brand-entity.spec.mjs",
     "runtime-performance.spec.mjs",
   ],
   timeout: 45_000,
