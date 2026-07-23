@@ -3,12 +3,25 @@ import { Link } from "react-router";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { SEO } from "@/components/SEO";
 import { brandConfig, generatePhoneUrl } from "@/config/brand";
+import { createContactPageSchema } from "@/lib/seo/local-seo";
+
+const configuredOrigin =
+  (import.meta.env.VITE_SITE_ORIGIN as string | undefined) || brandConfig.website;
+const SITE_ORIGIN = (() => {
+  try {
+    return new URL(configuredOrigin).origin;
+  } catch {
+    return new URL(brandConfig.website).origin;
+  }
+})();
 
 const ContactPage = () => (
   <>
     <SEO
       title="تماس با ما"
-      description="راه‌های ارتباط با وینیمی و فرم امن ثبت درخواست پشتیبانی و همکاری."
+      description="راه‌های ارتباط رسمی با وینیمی و فرم امن ثبت درخواست پشتیبانی و همکاری."
+      url="/contact"
+      schema={createContactPageSchema(SITE_ORIGIN)}
     />
 
     <section className="bg-secondary/50 py-10 sm:py-12">
@@ -27,7 +40,7 @@ const ContactPage = () => (
             <article className="flex min-w-0 items-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft">
               <Phone className="shrink-0 text-primary" size={24} aria-hidden="true" />
               <div className="min-w-0">
-                <h2 className="font-semibold">تلفن</h2>
+                <h2 className="font-semibold">تلفن رسمی</h2>
                 <a href={generatePhoneUrl()} className="touch-target inline-flex items-center font-medium text-primary hover:underline" dir="ltr">
                   {brandConfig.phone}
                 </a>
@@ -36,7 +49,7 @@ const ContactPage = () => (
             <article className="flex min-w-0 items-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft">
               <Mail className="shrink-0 text-primary" size={24} aria-hidden="true" />
               <div className="min-w-0">
-                <h2 className="font-semibold">ایمیل</h2>
+                <h2 className="font-semibold">ایمیل رسمی</h2>
                 <a href={`mailto:${brandConfig.email}`} className="touch-target inline-flex items-center font-medium text-primary hover:underline" dir="ltr">
                   {brandConfig.email}
                 </a>
@@ -45,10 +58,10 @@ const ContactPage = () => (
             <article className="flex min-w-0 items-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft">
               <MapPin className="shrink-0 text-primary" size={24} aria-hidden="true" />
               <div className="min-w-0">
-                <h2 className="font-semibold">آدرس</h2>
+                <h2 className="font-semibold">محدوده اعلام‌شده برند</h2>
                 <p className="mt-1 leading-7 text-muted-foreground">{brandConfig.address}</p>
                 <a href={brandConfig.mapUrl} target="_blank" rel="noopener noreferrer" className="touch-target mt-1 inline-flex items-center text-sm font-medium text-primary hover:underline">
-                  مشاهده در نقشه
+                  مشاهده محدوده در نقشه
                 </a>
               </div>
             </article>
@@ -58,15 +71,22 @@ const ContactPage = () => (
                 <h2 className="font-semibold">ساعات پاسخ‌گویی</h2>
                 <p className="mt-1 leading-7 text-muted-foreground">شنبه تا پنج‌شنبه: {brandConfig.workingHours.weekdays}</p>
                 <p className="leading-7 text-muted-foreground">جمعه: {brandConfig.workingHours.weekends}</p>
+                <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                  بازه دقیق و ثابت اعلام نشده است؛ هماهنگی از مسیرهای رسمی انجام می‌شود.
+                </p>
               </div>
             </article>
+            <Link to="/locations" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-4 text-center font-bold hover:bg-secondary">
+              <MapPin size={20} aria-hidden="true" />
+              مناطق منتشرشده ارسال
+            </Link>
             <Link to="/products" className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-center font-bold">
               <ShoppingBag size={20} aria-hidden="true" />
               شروع سفارش از فروشگاه
             </Link>
             <a href={brandConfig.instagramUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-4 font-bold hover:bg-secondary">
               <Instagram size={20} aria-hidden="true" />
-              اینستاگرام
+              اینستاگرام رسمی
             </a>
           </div>
 

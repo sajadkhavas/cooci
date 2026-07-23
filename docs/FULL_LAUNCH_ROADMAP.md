@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-22-phase-10-6`
+Roadmap lock: `2026-07-23-phase-10-7`
 
 ## Required final state
 
@@ -125,9 +125,14 @@ Status: `content_topical_authority=ready`
 
 Published Laravel post categories form the only production topic taxonomy. Crawlable server-rendered topic hubs, visible category links, same-topic related articles, Blog/CollectionPage/BlogPosting structured data and sitemap topic entries all use the same authoritative content values. Unknown topics return 404/noindex, related content is omitted instead of fabricated, and the frontend does not invent editorial claims or article modification dates.
 
+### Phase 10.7 — Local SEO and brand entity — complete
+
+Status: `local_seo_brand_entity=ready`
+
+Every public SEO surface emits one stable Organization and WebSite identity with consistent configured name, phone, email, locality, region and official social profile. `/locations` and `/city/:slug` are server-rendered only from successfully resolved Laravel city pages, use crawlable visible links and matching CollectionPage/Service schemas, permanently redirect duplicate local URLs, and share the same authoritative inventory with the dynamic sitemap. Service-area pages explicitly do not claim physical branches, exact street addresses, coordinates or fixed opening hours.
+
 ### Remaining frontend SEO phases
 
-- Phase 10.7 — Local SEO and brand entity
 - Phase 10.8 — Core Web Vitals and media
 - Phase 10.9 — SEO acceptance and release candidate
 
@@ -167,6 +172,10 @@ No feature development is allowed. Only:
 - product price, inventory, media and review markup come from authoritative server-loaded data
 - published Laravel post categories are the only source of production content topics
 - visible topic links, related content, structured data and sitemap entries use the same authoritative published posts
+- every public SEO page uses the same stable Organization and WebSite identifiers
+- visible NAP and JSON-LD values come from one configured brand source
+- only successfully resolved Laravel city pages enter `/locations`, local schemas and the sitemap
+- service-area pages never imply a physical branch or invent street address, coordinates or fixed hours
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints
