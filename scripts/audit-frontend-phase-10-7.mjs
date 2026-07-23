@@ -66,7 +66,7 @@ requireText("seo", "serializedBrandSchema", "brand entity emitted on every SEO p
 requireText("seo", "serializedPageSchema", "page schemas preserved separately");
 requireText("local", '"@type": "CollectionPage"', "location collection schema");
 requireText("local", '"@type": "Service"', "city service schema");
-requireText("local", "provider: { \"@id\": ids.organization }", "service provider entity link");
+requireText("local", 'provider: { "@id": ids.organization }', "service provider entity link");
 requireText("local", "areaServed", "published city areaServed link");
 requireText("localServer", "collectPublishedCityPages", "Laravel city page collector");
 requireText("localServer", "error instanceof ApiError && error.status === 404", "unpublished city omission");
@@ -82,7 +82,8 @@ requireText("cityPage", "createCityLocalServiceSchema", "city service structured
 requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub");
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");
 requireText("aboutPage", "createAboutPageSchema", "AboutPage entity");
-requireText("footer", '{ name: "مناطق ارسال", href: "/locations" }', "single authoritative local hub link");
+requireText("footer", 'name: "مناطق منتشرشده ارسال"', "authoritative local hub label");
+requireText("footer", 'href: "/locations"', "authoritative local hub URL");
 forbidText("footer", 'href: "/city/tehran"', "hard-coded Tehran city link");
 forbidText("footer", 'href: "/city/karaj"', "hard-coded Karaj city link");
 forbidText("footer", 'href: "/city/andisheh"', "hard-coded Andisheh city link");
