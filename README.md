@@ -20,7 +20,8 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 | Crawl, index and canonical URL architecture | Complete in Phase 10.4 |
 | Product and merchant SEO | Complete in Phase 10.5 |
 | Content and topical authority | Complete in Phase 10.6 |
-| Local and performance SEO | Phases 10.7–10.9 |
+| Local SEO and brand entity | Complete in Phase 10.7 |
+| Performance SEO and release acceptance | Phases 10.8–10.9 |
 | Production deployment | Phase 19 after Phase 10.9 |
 | External activation only | Phase 20 |
 
@@ -30,9 +31,9 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - The frontend requires contract version `2026-07-20-phase-16`.
 - Customer authentication uses an HttpOnly cookie and Sanctum CSRF.
 - Production catalog, orders, content, reviews and forms come from the backend.
-- Public product, category, article, topic and city data is loaded before the server sends indexable HTML.
+- Public product, category, article, topic, location hub and city data is loaded before the server sends indexable HTML.
 - Missing public resources preserve real 404 responses; unavailable authoritative data fails closed with 503.
-- Sitemap products, categories, posts, published topics and configured cities are generated from authoritative Laravel responses at request time.
+- Sitemap products, categories, posts, published topics, the location hub and published cities are generated from authoritative Laravel responses at request time.
 - Filtered collection URLs are `noindex,follow`; private and transaction surfaces are `noindex,nofollow`.
 - Clean collection pagination is self-canonical and duplicate page URLs permanently redirect.
 - Product merchant JSON-LD is built from server-loaded Laravel price, stock, media and approved reviews.
@@ -41,6 +42,10 @@ Production storefront for Winimi Bakery, built with React, TypeScript, Vite and 
 - Content topics exist only when published Laravel posts expose the category; no static production taxonomy is added in the frontend.
 - Topic hubs, article category links, related articles, Blog/CollectionPage/BlogPosting schemas and sitemap topic entries use the same authoritative content values.
 - Related content is limited to published posts from the same topic and is omitted rather than fabricated when unavailable.
+- Every public SEO page emits the same stable Organization and WebSite identifiers.
+- Official phone, email, brand name, locality and social profile come from one configured brand source.
+- `/locations`, city links, Service schemas and sitemap city entries use only successfully resolved Laravel city pages.
+- Service-area pages do not claim physical branches, exact street addresses, coordinates or fixed opening hours.
 - Cart storage is only a convenience snapshot; Variants, price and stock are reconciled before checkout.
 - Delivery options are informational and checkout recalculates every total on the server.
 - Checkout creates an order first; payment initiation is a separate idempotent request.
@@ -75,7 +80,7 @@ For an isolated local simulator, use a Vite development build and explicitly set
 npm run check
 ```
 
-Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.6, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
+Validation includes the launch roadmap, Phase 17 integration contract, SSR phases 10.1–10.7, routes, accessibility, content integrity, modern UI, ESLint, TypeScript, production build and performance budgets.
 
 ## Security boundary
 
@@ -91,7 +96,6 @@ https://api.winimibakery.com
 
 ## Remaining delivery phases
 
-- Phase 10.7: local SEO and brand entity
 - Phase 10.8: Core Web Vitals and media
 - Phase 10.9: SEO acceptance and release candidate
 - Phase 19: production server, DNS, HTTPS, queue, storage, monitoring and rollback
