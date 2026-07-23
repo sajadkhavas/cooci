@@ -19,7 +19,8 @@ const env = read(".env.example");
 for (const phase of [
   "Phase 17 — Full frontend/backend integration",
   "Phase 18 — End-to-end completion",
-  "Phase 19 — Production server deployment",
+  "Phase 19A — production deployment package",
+  "Phase 19B — live server execution",
   "Phase 20 — External activation only",
 ]) {
   requireText(roadmap, phase, "locked roadmap phase");
@@ -31,6 +32,8 @@ for (const externalInput of [
 ]) {
   requireText(roadmap, externalInput, "external-only input");
 }
+requireText(roadmap, "production_server_package=ready", "Phase 19A package marker");
+requireText(roadmap, "production_deployed=ready", "Phase 19B live marker");
 requireText(readme, "Winimi Bakery Storefront", "project identity");
 requireText(readme, "Phase 17", "Phase 17 status");
 requireText(env, "VITE_USE_BACKEND=true", "integrated backend default");
@@ -50,4 +53,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
-console.log("Full-launch roadmap audit passed: phases 17–20 and exactly three external activations remain locked.");
+console.log("Full-launch roadmap audit passed: Phase 19A package, Phase 19B live execution and exactly three external activations remain locked.");
