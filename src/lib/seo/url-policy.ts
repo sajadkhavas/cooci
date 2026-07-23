@@ -13,13 +13,16 @@ export const CRAWLABLE_STATIC_PATHS = [
   "/corporate",
   "/reviews",
   "/quality",
-  "/about",
   "/gallery",
   "/faq",
   "/contact",
-  "/shipping",
-  "/privacy",
-  "/terms",
+] as const;
+
+export const MANAGED_CONTENT_PATHS = [
+  { path: "/about", slug: "about" },
+  { path: "/shipping", slug: "shipping" },
+  { path: "/privacy", slug: "privacy" },
+  { path: "/terms", slug: "terms" },
 ] as const;
 
 export const PUBLIC_CITY_SLUGS = ["tehran", "karaj", "andisheh"] as const;
@@ -99,58 +102,27 @@ export const resolvePaginationUrlPolicy = ({
 
   let redirectPath: string | undefined;
   if (!hasNonPageParams) {
-    const requestedCanonicalPath = pathWithPage(cleanPathname, pageState.page);
-    if (!pageState.canonical && searchParams.has("page")) {
-      redirectPath = requestedCanonicalPath;
-    }
-    if (safeTotalPages && pageState.page > safeTotalPages) {
-      redirectPath = pathWithPage(cleanPathname, safeTotalPages);
+    if (!pageState.canonical || pageState.page !== boundedPage) {
+      redirectPath = canonicalPath;
     }
   }
 
-  const noIndex = hasNonPageParams;
-  const previousPath =
-    !noIndex && boundedPage > 1
-      ? pathWithPage(cleanPathname, boundedPage - 1)
-      : undefined;
-  const nextPath =
-    !noIndex && safeTotalPages && boundedPage < safeTotalPages
-      ? pathWithPage(cleanPathname, boundedPage + 1)
-      : undefined;
-
   return {
     canonicalPath,
-    noIndex,
-    robots: noIndex ? "noindex,follow" : "index,follow",
-    previousPath,
-    nextPath,
-    redirectPath:
-      redirectPath && redirectPath !== `${cleanPathname}${searchParams.size ? `?${searchParams}` : ""}`
-        ? redirectPath
+    noIndex: hasNonPageParams,
+    robots: hasNonPageParams ? "noindex,follow" : "index,follow",
+    previousPath:
+      !hasNonPageParams && boundedPage > 1
+        ? pathWithPage(cleanPathname, boundedPage - 1)
         : undefined,
+    nextPath:
+      !hasNonPageParams && safeTotalPages && boundedPage < safeTotalPages
+        ? pathWithPage(cleanPathname, boundedPage + 1)
+        : undefined,
+    redirectPath,
     page: boundedPage,
   };
 };
 
 export const getLegacyRedirectTarget = (pathname: string) =>
   LEGACY_EXACT_REDIRECTS.get(normalizePathname(pathname));
-
-export const isPrivateIndexPath = (pathname: string) => {
-  const normalized = normalizePathname(pathname);
-  return PRIVATE_INDEX_PREFIXES.some(
-    (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
-  );
-};
-
-export const createRobotsText = (siteOrigin: string) => {
-  const origin = new URL(siteOrigin).origin;
-  return [
-    "User-agent: *",
-    "Allow: /",
-    ...PRIVATE_INDEX_PREFIXES.map((prefix) => `Disallow: ${prefix}`),
-    "Disallow: /__ssr_health",
-    "",
-    `Sitemap: ${origin}/sitemap.xml`,
-    "",
-  ].join("\n");
-};
