@@ -19,7 +19,7 @@ export FRONTEND_RESTART_COMMAND="sudo systemctl restart $SERVICE_NAME"
 export FRONTEND_HEALTH_URL="$HEALTH_URL"
 
 SCRIPT_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-"$SCRIPT_ROOT/deploy/bin/rollback-frontend.sh" "$DEPLOY_ROOT" "$RELEASE_ID"
+bash "$SCRIPT_ROOT/deploy/bin/rollback-frontend.sh" "$DEPLOY_ROOT" "$RELEASE_ID"
 
 sudo systemctl is-active --quiet "$SERVICE_NAME"
 curl --fail --silent --show-error --retry 20 --retry-delay 1 "$HEALTH_URL" >/dev/null
