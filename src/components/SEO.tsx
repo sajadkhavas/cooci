@@ -74,6 +74,21 @@ const sanitizeSchema = (schema: object | object[] | undefined) => {
     : sanitizeSchemaNode(schema);
 };
 
+const serializePageSchema = (
+  schema: JsonLdNode | JsonLdNode[] | undefined,
+) => {
+  if (!schema) return undefined;
+  if (!Array.isArray(schema)) return serializeJsonLd(schema);
+  return serializeJsonLd({
+    "@context": "https://schema.org",
+    "@graph": schema.map((node) => {
+      const copy = { ...node };
+      delete copy["@context"];
+      return copy;
+    }),
+  });
+};
+
 const getPaginationTotal = (
   pathname: string,
   matches: ReturnType<typeof useMatches>,
@@ -174,12 +189,10 @@ export const SEO = ({
   const pageSchema =
     (authoritativeProductSchema as JsonLdNode | undefined) ||
     (sanitizeSchema(schema) as JsonLdNode | JsonLdNode[] | undefined);
-  const serializedSchema = serializeJsonLd(
-    createBrandGraphSchema({
-      siteOrigin: SITE_ORIGIN,
-      pageSchema,
-    }),
+  const serializedBrandSchema = serializeJsonLd(
+    createBrandGraphSchema({ siteOrigin: SITE_ORIGIN }),
   );
+  const serializedPageSchema = serializePageSchema(pageSchema);
 
   return (
     <>
@@ -209,8 +222,15 @@ export const SEO = ({
       <script
         nonce={nonce}
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializedSchema }}
+        dangerouslySetInnerHTML={{ __html: serializedBrandSchema }}
       />
+      {serializedPageSchema && (
+        <script
+          nonce={nonce}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializedPageSchema }}
+        />
+      )}
     </>
   );
 };
