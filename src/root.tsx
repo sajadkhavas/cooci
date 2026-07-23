@@ -7,9 +7,11 @@ import {
   ScrollRestoration,
   type LoaderFunctionArgs,
 } from "react-router";
+import heroImage from "@/assets/cookies/hero-main.jpg";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
+import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,6 +50,13 @@ export const loader = ({ request }: LoaderFunctionArgs): RootLoaderData => ({
 export const shouldRevalidate = () => false;
 
 export const links = () => [
+  {
+    rel: "preload",
+    as: "image",
+    href: heroImage,
+    type: "image/jpeg",
+    fetchPriority: "high" as const,
+  },
   { rel: "manifest", href: "/manifest.webmanifest" },
   { rel: "icon", href: "/icons/winimi-192.svg", type: "image/svg+xml" },
   {
@@ -100,6 +109,7 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
             </TooltipProvider>
           </QueryClientProvider>
         </CspNonceProvider>
+        <WebVitalsReporter />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
