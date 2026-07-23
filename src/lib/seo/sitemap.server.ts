@@ -145,7 +145,9 @@ const collectPublishedManagedContentEntries = async (): Promise<SitemapEntry[]> 
     }),
   );
 
-  return resolved.filter((entry): entry is SitemapEntry => Boolean(entry));
+  return resolved.filter(
+    (entry): entry is NonNullable<(typeof resolved)[number]> => entry !== undefined,
+  );
 };
 
 export const generateDynamicSitemap = async (siteOrigin: string) => {
