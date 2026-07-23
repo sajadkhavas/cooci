@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageIcon } from "lucide-react";
+import { OptimizedImage } from "@/components/media/OptimizedImage";
 import type { Product } from "@/data/products";
 import { isProductMediaVerified } from "@/lib/catalog";
 
@@ -46,7 +47,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
       className="min-w-0 space-y-4"
       aria-label={`گالری تصاویر ${product.name}`}
     >
-      <figure className="overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+      <figure className="media-frame overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
         <div
           id={`product-image-panel-${product.id}`}
           role="tabpanel"
@@ -54,12 +55,12 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
           className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary to-muted"
         >
           {activeImage?.url ? (
-            <img
+            <OptimizedImage
               src={activeImage.url}
               alt={activeImage.alt || product.name}
               className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-              loading="eager"
-              decoding="async"
+              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
               width={900}
               height={900}
             />
@@ -107,17 +108,19 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 aria-label={`نمایش تصویر ${index + 1} از ${product.images.length}`}
                 aria-selected={isActive}
                 aria-controls={`product-image-panel-${product.id}`}
-                className={`h-20 w-20 shrink-0 snap-start overflow-hidden rounded-xl border-2 bg-secondary transition duration-200 md:h-24 md:w-24 ${
+                className={`media-frame h-20 w-20 shrink-0 snap-start overflow-hidden rounded-xl border-2 bg-secondary transition duration-200 md:h-24 md:w-24 ${
                   isActive
                     ? "border-primary shadow-md ring-2 ring-primary/20"
                     : "border-transparent opacity-70 hover:border-primary/50 hover:opacity-100"
                 }`}
               >
-                <img
+                <OptimizedImage
                   src={image.url}
                   alt=""
                   className="h-full w-full object-cover"
                   loading="lazy"
+                  fetchPriority="low"
+                  sizes="96px"
                   width={160}
                   height={160}
                 />
