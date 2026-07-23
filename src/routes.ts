@@ -16,7 +16,7 @@ export default [
   route("gift", "./pages/GiftPage.tsx"),
   route("corporate", "./pages/CorporatePage.tsx"),
   route("reviews", "./pages/ReviewsPage.tsx"),
-  route("quality", "./pages/QualityPage.tsx"),
+  route("quality", "./routes/quality.tsx"),
   route("about", "./routes/about.tsx"),
   route("gallery", "./pages/GalleryPage.tsx"),
   route("faq", "./pages/FAQPage.tsx"),
