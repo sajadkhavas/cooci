@@ -32,9 +32,6 @@ for (const [name, path] of Object.entries(files)) {
 const requireText = (file, text, label = text) => {
   if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
 };
-const forbidText = (file, text, label = text) => {
-  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
-};
 
 requireText("docs", "seo_release_candidate=ready", "final Phase 10.9 marker");
 requireText("roadmap", "Phase 10.9 — SEO acceptance and release candidate — complete");
@@ -48,7 +45,7 @@ requireText("unit", "matching desktop and mobile evidence", "viewport evidence u
 requireText("unit", "locks hashes, production origins and backend boundary", "attestation unit gate");
 
 requireText("e2e", "every sitemap URL passes raw HTML", "sitemap-driven crawl suite");
-requireText("e2e", "exactly one canonical", "canonical uniqueness gate");
+requireText("e2e", "expect(canonicalTags).toHaveLength(1)", "canonical uniqueness gate");
 requireText("e2e", "h1Count", "H1 acceptance gate");
 requireText("e2e", "extractJsonLd", "JSON-LD parser");
 requireText("e2e", "Organization", "brand entity gate");
@@ -57,7 +54,8 @@ requireText("e2e", "broken internal link", "internal link integrity gate");
 requireText("e2e", "noindex,follow", "filtered URL gate");
 requireText("e2e", "noindex, nofollow", "private and missing URL gate");
 requireText("e2e", "seo-acceptance-${testInfo.project.name}.json", "per-project evidence");
-forbidText("e2e", "products?category=", "legacy category query link allowance");
+requireText("e2e", 'href.startsWith("/products?category=")', "legacy category query rejection");
+requireText("e2e", "toBe(false)", "legacy URL rejection assertion");
 
 requireText("mergeReports", "validateMergedSeoAcceptance", "desktop/mobile merge validation");
 requireText("createCandidate", "releaseManifestSha256", "release manifest attestation");
