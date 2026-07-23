@@ -163,7 +163,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
         <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
           <Link
-            to={`/products?category=${encodeURIComponent(product.categorySlug)}`}
+            to={`/products/category/${encodeURIComponent(product.categorySlug)}`}
             className="inline-flex min-h-8 items-center rounded-full border border-primary/12 bg-primary/8 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-primary transition hover:bg-primary/12"
           >
             {product.category}
