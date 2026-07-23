@@ -1,0 +1,152 @@
+name: Phase 19 Production Package
+
+on:
+  push:
+    branches:
+      - "agent/phase-19-*"
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: phase19-frontend-package-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: https://winimibakery.com
+  VITE_SITE_ORIGIN: https://winimibakery.com
+  VITE_USE_BACKEND: "true"
+  VITE_API_BASE_URL: https://api.winimibakery.com
+  VITE_ALLOW_DEV_MOCKS: "false"
+  VITE_AUTH_MODE: disabled
+  VITE_PAYMENT_MODE: disabled
+  DEPLOY_ROOT: /tmp/winimi-phase19-frontend
+
+jobs:
+  package:
+    name: Verify Node SSR production server package
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: npm
+
+      - name: Install dependencies and Nginx
+        run: |
+          npm ci
+          sudo apt-get update
+          sudo apt-get install -y nginx
+
+      - name: Audit Phase 19 package and production environment
+        run: |
+          npm run env:production:validate
+          npm run audit:phase19
+
+      - name: Validate shell syntax
+        run: |
+          for script in deploy/bin/*.sh; do
+            bash -n "$script"
+          done
+
+      - name: Build production SSR storefront
+        run: npm run build
+
+      - name: Create and verify release A
+        run: |
+          npm run release:create -- build .phase19-release-a
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("release-output.json"));fs.writeFileSync("release-a-path.txt",x.releaseDir);fs.writeFileSync("release-a-id.txt",x.releaseId)'
+          npm run release:verify -- "$(cat release-a-path.txt)"
+
+      - name: Prove release tamper detection
+        run: |
+          cp -a "$(cat release-a-path.txt)" .tampered-frontend-release
+          printf '\nphase19-tamper\n' >> .tampered-frontend-release/app/build/client/offline.html
+          if npm run release:verify -- .tampered-frontend-release; then
+            echo 'Tampered frontend release was incorrectly accepted.' >&2
+            exit 1
+          fi
+
+      - name: Simulate atomic release and rollback
+        run: |
+          bash deploy/bin/deploy-frontend.sh "$(cat release-a-path.txt)" "$DEPLOY_ROOT"
+          test "$(basename "$(readlink -f "$DEPLOY_ROOT/current")")" = "$(cat release-a-id.txt)"
+          cp -a build build-b
+          printf 'phase19-release-b\n' > build-b/client/phase19-release-probe.txt
+          npm run release:create -- build-b .phase19-release-b
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("release-output.json"));fs.writeFileSync("release-b-path.txt",x.releaseDir);fs.writeFileSync("release-b-id.txt",x.releaseId)'
+          npm run release:verify -- "$(cat release-b-path.txt)"
+          bash deploy/bin/deploy-frontend.sh "$(cat release-b-path.txt)" "$DEPLOY_ROOT"
+          test -f "$DEPLOY_ROOT/current/app/build/client/phase19-release-probe.txt"
+          bash deploy/bin/rollback-frontend.sh "$DEPLOY_ROOT" "$(cat release-a-id.txt)"
+          test ! -f "$DEPLOY_ROOT/current/app/build/client/phase19-release-probe.txt"
+
+      - name: Validate frontend systemd unit
+        run: |
+          sudo useradd --system --home /var/www/winimi --shell /usr/sbin/nologin winimi || true
+          sudo mkdir -p /var/www/winimi/frontend/current/app /etc/winimi
+          sudo cp deploy/systemd/frontend-runtime.env.example /etc/winimi/frontend-runtime.env
+          sudo chmod 0640 /etc/winimi/frontend-runtime.env
+          sudo systemd-analyze verify deploy/systemd/winimi-frontend.service
+
+      - name: Validate rendered production Nginx
+        run: |
+          mkdir -p .ci-tls .ci-nginx/snippets .ci-nginx/logs .ci-nginx/acme
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout .ci-tls/loopback.key -out .ci-tls/loopback.crt \
+            -days 1 -subj '/CN=127.0.0.1' \
+            -addext 'subjectAltName=IP:127.0.0.1,DNS:localhost'
+          cp deploy/nginx/winimi-security-headers.conf .ci-nginx/snippets/
+          cp deploy/nginx/winimi-static-csp.conf .ci-nginx/snippets/
+          FRONTEND_HTTP_PORT=8080 \
+          FRONTEND_HTTPS_PORT=8444 \
+          FRONTEND_HTTPS_REDIRECT_PORT=:8444 \
+          FRONTEND_SERVER_NAMES='127.0.0.1 localhost' \
+          FRONTEND_CANONICAL_HOST=127.0.0.1 \
+          FRONTEND_DEPLOY_ROOT="$DEPLOY_ROOT" \
+          FRONTEND_SSR_UPSTREAM=127.0.0.1:4173 \
+          FRONTEND_ACME_ROOT="$PWD/.ci-nginx/acme" \
+          FRONTEND_TLS_CERTIFICATE="$PWD/.ci-tls/loopback.crt" \
+          FRONTEND_TLS_CERTIFICATE_KEY="$PWD/.ci-tls/loopback.key" \
+          FRONTEND_SECURITY_HEADERS_INCLUDE="$PWD/.ci-nginx/snippets/winimi-security-headers.conf" \
+          FRONTEND_STATIC_CSP_INCLUDE="$PWD/.ci-nginx/snippets/winimi-static-csp.conf" \
+            npm run nginx:render -- deploy/nginx/winimi-frontend.conf.example .ci-nginx/site.conf
+          cat > .ci-nginx/nginx.conf <<EOF
+          pid $PWD/.ci-nginx/nginx.pid;
+          error_log $PWD/.ci-nginx/logs/error.log;
+          events { worker_connections 256; }
+          http { include /etc/nginx/mime.types; access_log $PWD/.ci-nginx/logs/access.log; include $PWD/.ci-nginx/site.conf; }
+          EOF
+          sudo nginx -t -c "$PWD/.ci-nginx/nginx.conf"
+
+      - name: Run non-host frontend preflight contract
+        env:
+          WINIMI_PREFLIGHT_TEST_MODE: "true"
+          FRONTEND_DEPLOY_ROOT: /tmp/winimi-frontend-preflight
+          FRONTEND_MIN_FREE_KIB: "1"
+        run: bash deploy/bin/preflight-frontend-server.sh
+
+      - name: Upload Phase 19 package evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase19-frontend-production-package
+          path: |
+            phase19-production-preparation-audit.json
+            release-a-id.txt
+            release-b-id.txt
+            release-output.json
+            .phase19-release-a/frontend-*/release-manifest.json
+            .phase19-release-b/frontend-*/release-manifest.json
+            .ci-nginx/site.conf
+          if-no-files-found: error
+          retention-days: 14
