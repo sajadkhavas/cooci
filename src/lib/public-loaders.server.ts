@@ -29,6 +29,8 @@ import {
   collectPublishedContentTopics,
   loadRelatedPublishedPosts,
 } from "@/lib/seo/content-topics.server";
+import { getCityPagePath } from "@/lib/seo/local-seo";
+import { collectPublishedCityPages } from "@/lib/seo/local-seo.server";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
 const allowedSorts = new Set<CatalogQuery["sort"]>([
@@ -297,9 +299,22 @@ export const loadBlogDetailPublicData = async ({
   }
 };
 
+export const loadLocationsPublicData = async (): Promise<PublicSsrLoaderData> => {
+  if (!isBackendEnabled) return disabledData();
+
+  try {
+    const cities = await collectPublishedCityPages();
+    if (!cities.length) throw resourceNotFound("Location pages not found.");
+    return { cities };
+  } catch (error) {
+    throw toPublicSsrResponse(error, "Location pages");
+  }
+};
+
 export const loadCityPublicData = async ({
+  request,
   params,
-}: LoaderFunctionArgs): Promise<PublicSsrLoaderData> => {
+}: LoaderFunctionArgs): Promise<PublicSsrLoaderData | Response> => {
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
   if (!slug) {
@@ -315,6 +330,11 @@ export const loadCityPublicData = async ({
       loadCityPage(slug),
       fetchCatalogProducts(catalogQuery),
     ]);
+    const url = new URL(request.url);
+    const canonicalPath = getCityPagePath(city.slug);
+    if (url.pathname !== canonicalPath || url.search) {
+      return redirect(canonicalPath, 301);
+    }
     return {
       city,
       catalogs: { [catalogLoaderKey(catalogQuery)]: catalog },
