@@ -2,6 +2,7 @@ import type { HeadersArgs } from "react-router";
 import type { Product } from "@/data/products";
 import { ApiError } from "@/lib/api";
 import type {
+  BackendContentPage,
   BackendPostDetail,
   BackendPostSummary,
 } from "@/lib/backend-contract";
@@ -25,6 +26,7 @@ export interface PublicSsrLoaderData {
   posts?: StorePostsResult;
   post?: BackendPostDetail;
   relatedPosts?: BackendPostSummary[];
+  contentPage?: BackendContentPage["page"];
   contentTopics?: ContentTopicSummary[];
   contentTopic?: ContentTopicSummary;
   city?: StoreCityPage;
