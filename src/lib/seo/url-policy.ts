@@ -99,31 +99,61 @@ export const resolvePaginationUrlPolicy = ({
     cleanPathname,
     hasNonPageParams ? 1 : boundedPage,
   );
-  const noIndex = hasNonPageParams;
 
   let redirectPath: string | undefined;
   if (!hasNonPageParams) {
-    if (!pageState.canonical || pageState.page !== boundedPage) {
-      redirectPath = canonicalPath;
+    const requestedCanonicalPath = pathWithPage(cleanPathname, pageState.page);
+    if (!pageState.canonical && searchParams.has("page")) {
+      redirectPath = requestedCanonicalPath;
+    }
+    if (safeTotalPages && pageState.page > safeTotalPages) {
+      redirectPath = pathWithPage(cleanPathname, safeTotalPages);
     }
   }
+
+  const noIndex = hasNonPageParams;
+  const previousPath =
+    !noIndex && boundedPage > 1
+      ? pathWithPage(cleanPathname, boundedPage - 1)
+      : undefined;
+  const nextPath =
+    !noIndex && safeTotalPages && boundedPage < safeTotalPages
+      ? pathWithPage(cleanPathname, boundedPage + 1)
+      : undefined;
 
   return {
     canonicalPath,
     noIndex,
     robots: noIndex ? "noindex,follow" : "index,follow",
-    previousPath:
-      !hasNonPageParams && boundedPage > 1
-        ? pathWithPage(cleanPathname, boundedPage - 1)
+    previousPath,
+    nextPath,
+    redirectPath:
+      redirectPath && redirectPath !== `${cleanPathname}${searchParams.size ? `?${searchParams}` : ""}`
+        ? redirectPath
         : undefined,
-    nextPath:
-      !hasNonPageParams && safeTotalPages && boundedPage < safeTotalPages
-        ? pathWithPage(cleanPathname, boundedPage + 1)
-        : undefined,
-    redirectPath,
     page: boundedPage,
   };
 };
 
 export const getLegacyRedirectTarget = (pathname: string) =>
   LEGACY_EXACT_REDIRECTS.get(normalizePathname(pathname));
+
+export const isPrivateIndexPath = (pathname: string) => {
+  const normalized = normalizePathname(pathname);
+  return PRIVATE_INDEX_PREFIXES.some(
+    (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
+  );
+};
+
+export const createRobotsText = (siteOrigin: string) => {
+  const origin = new URL(siteOrigin).origin;
+  return [
+    "User-agent: *",
+    "Allow: /",
+    ...PRIVATE_INDEX_PREFIXES.map((prefix) => `Disallow: ${prefix}`),
+    "Disallow: /__ssr_health",
+    "",
+    `Sitemap: ${origin}/sitemap.xml`,
+    "",
+  ].join("\n");
+};
