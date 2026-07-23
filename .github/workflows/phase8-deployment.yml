@@ -24,7 +24,7 @@ env:
   VITE_ALLOW_DEV_MOCKS: "false"
   VITE_AUTH_MODE: disabled
   VITE_PAYMENT_MODE: disabled
-  WINIMI_PUBLIC_CITY_SLUGS: phase10-4-city
+  WINIMI_PUBLIC_CITY_SLUGS: phase10-4-city,missing-city
   DEPLOY_ROOT: /tmp/winimi-frontend
 
 jobs:
@@ -52,6 +52,7 @@ jobs:
           npm run audit:phase10-4
           npm run audit:phase10-5
           npm run audit:phase10-6
+          npm run audit:phase10-7
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -128,7 +129,9 @@ jobs:
           grep -q '/products/category/phase10-3-category' dynamic-sitemap.xml
           grep -q '/blog/phase10-4-crawl-guide' dynamic-sitemap.xml
           grep -q '/blog/topic/%D8%B1%D8%A7%D9%87%D9%86%D9%85%D8%A7' dynamic-sitemap.xml
+          grep -q '/locations' dynamic-sitemap.xml
           grep -q '/city/phase10-4-city' dynamic-sitemap.xml
+          ! grep -q '/city/missing-city' dynamic-sitemap.xml
           grep -q 'Disallow: /account' dynamic-robots.txt
           grep -q 'Sitemap: https://winimibakery.com/sitemap.xml' dynamic-robots.txt
       - name: Verify server-rendered merchant Product schema
@@ -158,6 +161,30 @@ jobs:
           grep -q 'phase10-6-related-guide' ssr-article.html
           node scripts/assert-csp-nonces.mjs ssr-topic.html
           node scripts/assert-csp-nonces.mjs ssr-article.html
+      - name: Verify server-rendered local SEO and brand entity
+        run: |
+          curl --fail --silent http://127.0.0.1:4178/locations > ssr-locations.html
+          curl --fail --silent http://127.0.0.1:4178/city/phase10-4-city > ssr-city.html
+          curl --fail --silent http://127.0.0.1:4178/contact > ssr-contact.html
+          grep -q '"@type":"Organization"' ssr-locations.html
+          grep -q '"@id":"https://winimibakery.com/#organization"' ssr-locations.html
+          grep -q '"@type":"WebSite"' ssr-locations.html
+          grep -q '"@type":"CollectionPage"' ssr-locations.html
+          grep -q '/city/phase10-4-city' ssr-locations.html
+          grep -q 'سفارش تست وینیمی در تهران' ssr-locations.html
+          grep -q '"@type":"Service"' ssr-city.html
+          grep -q '"provider":{"@id":"https://winimibakery.com/#organization"}' ssr-city.html
+          grep -q '"areaServed"' ssr-city.html
+          grep -q 'محدوده اندیشه، استان تهران' ssr-city.html
+          grep -q '09212508746' ssr-contact.html
+          grep -q 'hello@winimibakery.com' ssr-contact.html
+          ! grep -q '"@type":"LocalBusiness"' ssr-locations.html
+          ! grep -q '"@type":"Bakery"' ssr-city.html
+          ! grep -q '"geo"' ssr-city.html
+          ! grep -q 'openingHoursSpecification' ssr-contact.html
+          node scripts/assert-csp-nonces.mjs ssr-locations.html
+          node scripts/assert-csp-nonces.mjs ssr-city.html
+          node scripts/assert-csp-nonces.mjs ssr-contact.html
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -190,6 +217,9 @@ jobs:
             ssr-product.html
             ssr-topic.html
             ssr-article.html
+            ssr-locations.html
+            ssr-city.html
+            ssr-contact.html
             dynamic-sitemap.xml
             dynamic-robots.txt
             ssr-runtime.log
