@@ -2,12 +2,16 @@ import {
   fetchCatalogCategories,
   fetchCatalogProducts,
 } from "@/lib/catalog-api";
-import { loadPosts } from "@/lib/content";
+import { ApiError } from "@/lib/api";
+import { loadContentPage, loadPosts } from "@/lib/content";
 import { categoryContents } from "@/data/categoriesContent";
 import { getContentTopicPath } from "@/lib/seo/content-topics";
 import { getCityPagePath } from "@/lib/seo/local-seo";
 import { collectPublishedCityPages } from "@/lib/seo/local-seo.server";
-import { CRAWLABLE_STATIC_PATHS } from "@/lib/seo/url-policy";
+import {
+  CRAWLABLE_STATIC_PATHS,
+  MANAGED_CONTENT_PATHS,
+} from "@/lib/seo/url-policy";
 
 interface SitemapEntry {
   path: string;
@@ -122,13 +126,36 @@ const collectContentEntries = async (): Promise<CollectedContentEntries> => {
   };
 };
 
+const collectPublishedManagedContentEntries = async (): Promise<SitemapEntry[]> => {
+  const resolved = await Promise.all(
+    MANAGED_CONTENT_PATHS.map(async ({ path, slug }) => {
+      try {
+        const page = await loadContentPage(slug);
+        if (page.slug !== slug) {
+          throw new Error(`Managed sitemap slug mismatch: expected ${slug}.`);
+        }
+        return {
+          path,
+          lastModified: normalizeLastModified(page.publishedAt),
+        } satisfies SitemapEntry;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return undefined;
+        throw error;
+      }
+    }),
+  );
+
+  return resolved.filter((entry): entry is SitemapEntry => Boolean(entry));
+};
+
 export const generateDynamicSitemap = async (siteOrigin: string) => {
   const origin = new URL(siteOrigin).origin;
-  const [categories, products, content, cities] = await Promise.all([
+  const [categories, products, content, cities, managedContent] = await Promise.all([
     fetchCatalogCategories(),
     collectProductEntries(),
     collectContentEntries(),
     collectPublishedCityPages(),
+    collectPublishedManagedContentEntries(),
   ]);
 
   const localEntries: SitemapEntry[] = cities.length
@@ -139,6 +166,7 @@ export const generateDynamicSitemap = async (siteOrigin: string) => {
     : [];
   const entries: SitemapEntry[] = [
     ...CRAWLABLE_STATIC_PATHS.map((path) => ({ path })),
+    ...managedContent,
     ...categories.map((category) => ({
       path: `/products/category/${encodeURIComponent(
         resolveCategoryRouteSlug(category.slug),
