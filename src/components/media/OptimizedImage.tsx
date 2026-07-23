@@ -10,8 +10,9 @@ export interface ResponsiveImageSource {
 interface OptimizedImageProps
   extends Omit<
     ImgHTMLAttributes<HTMLImageElement>,
-    "loading" | "decoding" | "fetchPriority"
+    "alt" | "loading" | "decoding" | "fetchPriority"
   > {
+  alt: string;
   sources?: ResponsiveImageSource[];
   loading?: "eager" | "lazy";
   decoding?: "async" | "auto" | "sync";
@@ -20,6 +21,7 @@ interface OptimizedImageProps
 }
 
 export const OptimizedImage = ({
+  alt,
   sources = [],
   loading,
   decoding = "async",
@@ -34,6 +36,7 @@ export const OptimizedImage = ({
   const image = (
     <img
       {...imageProps}
+      alt={alt}
       width={width}
       height={height}
       loading={resolvedLoading}
