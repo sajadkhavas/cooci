@@ -53,6 +53,7 @@ jobs:
           npm run audit:phase10-5
           npm run audit:phase10-6
           npm run audit:phase10-7
+          npm run audit:phase10-8
       - name: Build production SSR storefront
         run: npm run build
       - name: Create and verify release A
@@ -185,6 +186,27 @@ jobs:
           node scripts/assert-csp-nonces.mjs ssr-locations.html
           node scripts/assert-csp-nonces.mjs ssr-city.html
           node scripts/assert-csp-nonces.mjs ssr-contact.html
+      - name: Verify Core Web Vitals media and RUM runtime
+        run: |
+          grep -Eqi '<link[^>]+rel="preload"[^>]+as="image"' ssr-home.html
+          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+loading="eager"' ssr-home.html
+          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+fetchpriority="high"' ssr-home.html
+          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+width="1200"[^>]+height="1450"' ssr-home.html
+          VITAL_STATUS=$(curl --silent --output web-vitals-body.txt --dump-header web-vitals-headers.txt --write-out '%{http_code}' \
+            --request POST http://127.0.0.1:4178/__web_vitals \
+            --header 'Content-Type: application/json' \
+            --data '{"name":"LCP","value":1240.5,"rating":"good","route":"/","navigationType":"navigate","viewport":{"width":412,"height":915},"pageId":"phase10-8-deployment","recordedAt":"2026-07-23T00:00:00.000Z"}')
+          test "$VITAL_STATUS" = "204"
+          grep -qi 'cache-control: .*no-store' web-vitals-headers.txt
+          grep -qi 'x-robots-tag: noindex, nofollow' web-vitals-headers.txt
+          INVALID_STATUS=$(curl --silent --output invalid-web-vitals-body.json --write-out '%{http_code}' \
+            --request POST http://127.0.0.1:4178/__web_vitals \
+            --header 'Content-Type: application/json' \
+            --data '{"name":"UNKNOWN","value":-1}')
+          test "$INVALID_STATUS" = "400"
+          sleep 1
+          grep -q 'WINIMI_WEB_VITAL' ssr-runtime.log
+          node -e 'const r=require("./performance-report.json");if(r.budgets.largestImage!==750*1024||r.budgets.totalImageBytes!==5*1024*1024||r.failures.length)process.exit(1)'
       - name: Render and validate SSR Nginx
         run: |
           mkdir -p .ci-nginx/snippets .ci-nginx/logs
@@ -220,6 +242,9 @@ jobs:
             ssr-locations.html
             ssr-city.html
             ssr-contact.html
+            web-vitals-headers.txt
+            web-vitals-body.txt
+            invalid-web-vitals-body.json
             dynamic-sitemap.xml
             dynamic-robots.txt
             ssr-runtime.log

@@ -1,5 +1,6 @@
 import { CalendarCheck2, ImageIcon } from "lucide-react";
 import { Link } from "react-router";
+import { OptimizedImage } from "@/components/media/OptimizedImage";
 import type { BackendPostSummary } from "@/lib/backend-contract";
 import { formatPersianUtcDate } from "@/lib/format-persian-date";
 import { getContentTopicPath } from "@/lib/seo/content-topics";
@@ -23,14 +24,18 @@ export const BlogPostCard = ({
       <Link
         to={articlePath}
         aria-label={`مطالعه ${post.title}`}
-        className="relative block aspect-[16/10] overflow-hidden bg-secondary"
+        className="media-frame relative block aspect-[16/10] overflow-hidden bg-secondary"
       >
         {post.coverUrl ? (
-          <img
+          <OptimizedImage
             src={post.coverUrl}
             alt={post.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            fetchPriority="low"
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            width={800}
+            height={500}
           />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-muted-foreground">

@@ -1,0 +1,58 @@
+/* Phase 10.8 rendering and media guardrails. */
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-synthesis: none;
+}
+
+.media-frame {
+  contain: layout paint;
+  isolation: isolate;
+  background-color: hsl(var(--muted));
+}
+
+.media-frame picture {
+  display: contents;
+}
+
+.media-frame img {
+  color: transparent;
+  transform: translateZ(0);
+}
+
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .media-frame img {
+    transform: none;
+  }
+
+  .media-frame:hover img {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-frame img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .ambient-layer,
+  .soft-grid,
+  .float-slow,
+  .float-slower {
+    display: none !important;
+  }
+
+  .media-frame img {
+    transition: none !important;
+  }
+}

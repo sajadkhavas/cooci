@@ -25,6 +25,8 @@ const sensitivePrefixes = [
   "/checkout",
   "/payment",
 ];
+const webVitalNames = new Set(["LCP", "INP", "CLS"]);
+const webVitalRatings = new Set(["good", "needs-improvement", "poor"]);
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 if (apiOrigin !== publicApiOrigin) {
@@ -83,12 +85,96 @@ const sharedHeaders = (response, nonce) => {
   response.setHeader("Cross-Origin-Resource-Policy", "same-site");
 };
 
+const isValidWebVitalPayload = (payload) => {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  if (!webVitalNames.has(payload.name) || !webVitalRatings.has(payload.rating)) {
+    return false;
+  }
+  if (
+    typeof payload.value !== "number" ||
+    !Number.isFinite(payload.value) ||
+    payload.value < 0 ||
+    payload.value > 120_000
+  ) {
+    return false;
+  }
+  if (
+    typeof payload.route !== "string" ||
+    !payload.route.startsWith("/") ||
+    payload.route.length > 512
+  ) {
+    return false;
+  }
+  if (
+    typeof payload.pageId !== "string" ||
+    payload.pageId.length < 8 ||
+    payload.pageId.length > 128
+  ) {
+    return false;
+  }
+  if (
+    !payload.viewport ||
+    typeof payload.viewport !== "object" ||
+    !Number.isFinite(payload.viewport.width) ||
+    !Number.isFinite(payload.viewport.height) ||
+    payload.viewport.width < 1 ||
+    payload.viewport.height < 1 ||
+    payload.viewport.width > 20_000 ||
+    payload.viewport.height > 20_000
+  ) {
+    return false;
+  }
+  return true;
+};
+
 app.get("/__ssr_health", (_request, response) => {
   sharedHeaders(response, null);
   response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   response.setHeader("X-Robots-Tag", "noindex, nofollow");
   response.json({ status: "ok", surface: "winimi-ssr" });
 });
+
+app.post(
+  "/__web_vitals",
+  express.json({ limit: "8kb", type: "application/json" }),
+  (request, response) => {
+    sharedHeaders(response, null);
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("X-Robots-Tag", "noindex, nofollow");
+
+    if (!isValidWebVitalPayload(request.body)) {
+      response.status(400).json({ accepted: false });
+      return;
+    }
+
+    const payload = request.body;
+    console.log(
+      "WINIMI_WEB_VITAL " +
+        JSON.stringify({
+          name: payload.name,
+          value: payload.value,
+          rating: payload.rating,
+          route: payload.route,
+          navigationType:
+            typeof payload.navigationType === "string"
+              ? payload.navigationType.slice(0, 32)
+              : "unknown",
+          viewport: {
+            width: payload.viewport.width,
+            height: payload.viewport.height,
+          },
+          pageId: payload.pageId,
+          recordedAt:
+            typeof payload.recordedAt === "string"
+              ? payload.recordedAt.slice(0, 40)
+              : new Date().toISOString(),
+        }),
+    );
+    response.status(204).end();
+  },
+);
 
 app.use(
   "/assets",

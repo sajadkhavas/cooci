@@ -59,7 +59,7 @@ jobs:
   browser-acceptance:
     name: Desktop and mobile Chromium against Laravel production build
     runs-on: ubuntu-latest
-    timeout-minutes: 42
+    timeout-minutes: 45
 
     steps:
       - name: Checkout storefront
@@ -223,6 +223,9 @@ jobs:
       - name: Phase 10.7 local SEO and brand entity audit
         run: npm run audit:phase10-7
 
+      - name: Phase 10.8 Core Web Vitals and media audit
+        run: npm run audit:phase10-8
+
       - name: Build production storefront and generated PWA
         id: production_build
         run: |
@@ -312,6 +315,12 @@ jobs:
           set -o pipefail
           npm run test:e2e -- phase10-7-local-seo-brand-entity.spec.mjs 2>&1 | tee phase10-7-local-seo-brand-entity.log
 
+      - name: Run Phase 10.8 Core Web Vitals and media acceptance
+        id: phase10_8_tests
+        run: |
+          set -o pipefail
+          npm run test:e2e -- phase10-8-core-web-vitals-media.spec.mjs 2>&1 | tee phase10-8-core-web-vitals-media.log
+
       - name: Run desktop, mobile and PWA acceptance — PWA segment
         id: pwa_tests
         run: |
@@ -342,6 +351,7 @@ jobs:
             phase10-5-product-merchant-seo.log
             phase10-6-content-topical-authority.log
             phase10-7-local-seo-brand-entity.log
+            phase10-8-core-web-vitals-media.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log
@@ -368,6 +378,7 @@ jobs:
             phase10-5-product-merchant-seo.log
             phase10-6-content-topical-authority.log
             phase10-7-local-seo-brand-entity.log
+            phase10-8-core-web-vitals-media.log
             phase7-pwa.log
             phase9-adversarial.log
             phase9-backend-acceptance.log

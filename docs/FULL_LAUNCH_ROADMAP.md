@@ -1,6 +1,6 @@
 # Winimi Bakery Full Launch Roadmap
 
-Roadmap lock: `2026-07-23-phase-10-7`
+Roadmap lock: `2026-07-23-phase-10-8`
 
 ## Required final state
 
@@ -131,9 +131,14 @@ Status: `local_seo_brand_entity=ready`
 
 Every public SEO surface emits one stable Organization and WebSite identity with consistent configured name, phone, email, locality, region and official social profile. `/locations` and `/city/:slug` are server-rendered only from successfully resolved Laravel city pages, use crawlable visible links and matching CollectionPage/Service schemas, permanently redirect duplicate local URLs, and share the same authoritative inventory with the dynamic sitemap. Service-area pages explicitly do not claim physical branches, exact street addresses, coordinates or fixed opening hours.
 
-### Remaining frontend SEO phases
+### Phase 10.8 — Core Web Vitals and media — complete
 
-- Phase 10.8 — Core Web Vitals and media
+Status: `core_web_vitals_media=ready`
+
+The homepage LCP image is discoverable from the server-rendered head and rendered with eager high network priority plus intrinsic dimensions. Product and article media follow one typed loading contract with reserved layout space, responsive sizes and low-priority lazy loading below the fold. Rendering containment, stable scrollbar space, reduced-motion and reduced-data paths protect CLS and interaction work. Production builds enforce JavaScript, CSS, SSR and media budgets. Privacy-bounded field LCP/INP/CLS records are accepted by the Node runtime and emitted as structured logs without customer, order, form, IP or user-agent fields in the application payload. Desktop and mobile lab gates verify LCP, CLS and interaction targets while the existing CPU-throttled scroll profiler remains mandatory.
+
+### Remaining frontend SEO phase
+
 - Phase 10.9 — SEO acceptance and release candidate
 
 Production deployment begins only after Phase 10.9 is complete.
@@ -176,6 +181,11 @@ No feature development is allowed. Only:
 - visible NAP and JSON-LD values come from one configured brand source
 - only successfully resolved Laravel city pages enter `/locations`, local schemas and the sitemap
 - service-area pages never imply a physical branch or invent street address, coordinates or fixed hours
+- the primary LCP media candidate is discoverable in the first HTML and reserves intrinsic layout space
+- the frontend never fabricates image derivatives; responsive sources require authoritative media variants
+- below-fold media is lazy and low-priority while route-level LCP media is explicitly prioritized
+- field Core Web Vitals payloads exclude customer, order, form, IP and user-agent fields at the application layer
+- production releases remain inside locked JavaScript, CSS, SSR and image budgets
 - checkout totals and availability come from server responses
 - payment query parameters never create trusted paid state
 - all production forms persist through backend endpoints

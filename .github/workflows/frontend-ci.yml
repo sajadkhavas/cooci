@@ -105,6 +105,9 @@ jobs:
       - name: Frontend local SEO and brand entity Phase 10.7
         run: npm run audit:phase10-7
 
+      - name: Frontend Core Web Vitals and media Phase 10.8
+        run: npm run audit:phase10-8
+
       - name: Production environment schema audit
         run: npm run env:production:validate
 
@@ -131,6 +134,7 @@ jobs:
             frontend-phase10-5-audit.json
             frontend-phase10-6-audit.json
             frontend-phase10-7-audit.json
+            frontend-phase10-8-audit.json
             production-env-audit.json
           if-no-files-found: warn
           retention-days: 14
