@@ -52,13 +52,13 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
           id={`product-image-panel-${product.id}`}
           role="tabpanel"
           aria-label={`تصویر ${activeImageIndex + 1} از ${product.images.length || 1}`}
-          className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary to-muted"
+          className="relative aspect-square overflow-hidden bg-gradient-to-br from-card via-secondary/60 to-muted"
         >
           {activeImage?.url ? (
             <OptimizedImage
               src={activeImage.url}
               alt={activeImage.alt || product.name}
-              className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+              className="h-full w-full object-contain p-4 transition-transform duration-300 hover:scale-[1.02] sm:p-6 lg:p-8"
               priority
               sizes="(min-width: 1024px) 50vw, 100vw"
               width={900}
@@ -117,7 +117,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 <OptimizedImage
                   src={image.url}
                   alt=""
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain p-1.5"
                   loading="lazy"
                   fetchPriority="low"
                   sizes="96px"
