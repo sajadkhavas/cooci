@@ -15,7 +15,7 @@ const cardSource = await readFile(
 test("product detail gallery preserves the complete managed image", () => {
   assert.match(
     gallerySource,
-    /className="h-full w-full object-contain p-4[^\"]*sm:p-6[^\"]*lg:p-8"/,
+    /className="h-full w-full object-contain p-4[^"]*sm:p-6[^"]*lg:p-8"/,
   );
   assert.doesNotMatch(
     gallerySource,
