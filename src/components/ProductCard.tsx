@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { OptimizedImage } from "@/components/media/OptimizedImage";
 import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/data/products";
@@ -101,19 +102,36 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-border/65 bg-card/75 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-primary/25 hover:shadow-hover focus-within:border-primary/40 focus-within:shadow-hover">
       <Link
         to={`/products/${encodeURIComponent(product.slug)}`}
-        className="relative block aspect-[1.12/1] overflow-hidden bg-muted"
+        className="relative isolate block aspect-[1.12/1] overflow-hidden bg-gradient-to-br from-card via-secondary/70 to-muted"
         aria-label={`مشاهده جزئیات ${product.name}`}
       >
         {product.images[0]?.url ? (
-          <img
-            src={product.images[0].url}
-            alt={product.images[0].alt || product.name}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.07]"
-            loading="lazy"
-            decoding="async"
-            width={640}
-            height={570}
-          />
+          <>
+            <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+              <OptimizedImage
+                src={product.images[0].url}
+                alt=""
+                className="h-full w-full scale-110 object-cover opacity-35 blur-2xl transition duration-700 group-hover:scale-125 group-hover:opacity-45"
+                loading="lazy"
+                fetchPriority="low"
+                sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
+                width={640}
+                height={570}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/35 via-transparent to-primary/20" />
+            </div>
+
+            <OptimizedImage
+              src={product.images[0].url}
+              alt={product.images[0].alt || product.name}
+              className="relative z-[1] h-full w-full object-contain p-3 transition duration-700 group-hover:scale-[1.04] sm:p-4"
+              loading="lazy"
+              fetchPriority="low"
+              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
+              width={640}
+              height={570}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-secondary to-muted text-muted-foreground">
             <ImageIcon size={42} aria-hidden="true" />
@@ -121,15 +139,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-white/5 opacity-75 transition duration-500 group-hover:opacity-95" />
+        <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-primary/45 via-transparent to-white/10 opacity-70 transition duration-500 group-hover:opacity-90" />
 
         {!mediaVerified && product.images[0]?.url && (
-          <span className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur-lg">
+          <span className="absolute bottom-3 left-3 z-20 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur-lg">
             تصویر نمایشی
           </span>
         )}
 
-        <div className="absolute right-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2">
+        <div className="absolute right-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2">
           {discountPercent > 0 && (
             <span className="rounded-full bg-destructive px-3 py-1.5 text-xs font-black text-white shadow-xl">
               {discountPercent.toLocaleString("fa-IR")}٪ تخفیف
@@ -147,12 +165,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             ))}
         </div>
 
-        <span className="absolute bottom-4 right-4 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-accent text-accent-foreground opacity-0 shadow-xl transition duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+        <span className="absolute bottom-4 right-4 z-20 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-accent text-accent-foreground opacity-0 shadow-xl transition duration-500 group-hover:translate-y-0 group-hover:opacity-100">
           <ArrowUpLeft size={19} aria-hidden="true" />
         </span>
 
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/72 backdrop-blur-md">
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/72 backdrop-blur-md">
             <span className="rounded-full bg-destructive px-5 py-2 text-sm font-black text-white shadow-xl">
               ناموجود
             </span>
