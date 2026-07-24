@@ -34,7 +34,7 @@ payload = json.load(open(sys.argv[1], encoding='utf-8'))
 if payload.get('success') is not True:
     raise SystemExit('backend readiness envelope is not successful')
 data = payload.get('data') or {}
-if data.get('ready') is not True:
+if data.get('ready') is not True and data.get('status') != 'ready':
     raise SystemExit('backend is not ready')
 PY
 
