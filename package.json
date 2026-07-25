@@ -31,6 +31,7 @@
     "env:production:validate": "node scripts/validate-production-env.mjs deploy/frontend.production.env.schema.json deploy/frontend.production.env.example",
     "release:create": "node scripts/create-frontend-release.mjs",
     "release:verify": "node scripts/verify-frontend-release.mjs",
+    "catalog:export": "node scripts/export-legacy-catalog.mjs",
     "seo:acceptance:merge": "node --experimental-strip-types scripts/merge-seo-acceptance-reports.mjs",
     "seo:rc:create": "node --experimental-strip-types scripts/create-seo-release-candidate.mjs",
     "seo:rc:verify": "node --experimental-strip-types scripts/verify-seo-release-candidate.mjs",
