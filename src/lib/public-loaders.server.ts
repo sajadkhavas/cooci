@@ -1,5 +1,5 @@
 import { data, redirect, type LoaderFunctionArgs } from "react-router";
-import { categoryContents, getCategoryContent } from "@/data/categoriesContent";
+import { getCategoryContent } from "@/data/categoriesContent";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import type { BackendPostDetail } from "@/lib/backend-contract";
 import {
@@ -146,14 +146,11 @@ export const loadShopPublicData = async ({
     ]);
 
     if (slug) {
-      const editorialCategory = categoryContents.some(
-        (category) => category.slug === slug,
-      );
       const catalogSlug = resolveCatalogCategorySlug(slug);
       const backendCategory = categories.some(
         (category) => category.slug === catalogSlug,
       );
-      if (!editorialCategory && !backendCategory) {
+      if (!backendCategory) {
         throw resourceNotFound("Category not found.");
       }
     }
