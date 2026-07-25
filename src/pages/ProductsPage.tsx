@@ -37,6 +37,7 @@ import {
   useCatalogProducts,
 } from "@/hooks/useCatalog";
 import type { CatalogQuery } from "@/lib/catalog-api";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const sortOptions: Array<{
   value: NonNullable<CatalogQuery["sort"]>;
@@ -101,18 +102,15 @@ const ProductsPage = () => {
   const backendCategory = categories.find(
     (category) => category.slug === catalogCategorySlug,
   );
-  const mappedCatalogSlugs = new Set(
-    categoryContents.map((category) => category.productCategorySlug),
+  const visibleCategories = buildVisibleCatalogCategories(
+    categoryContents,
+    categories,
   );
-  const categoryNavigation = [
-    ...categoryContents.map((category) => ({
-      routeSlug: category.slug,
-      name: category.name,
-    })),
-    ...categories
-      .filter((category) => !mappedCatalogSlugs.has(category.slug))
-      .map((category) => ({ routeSlug: category.slug, name: category.name })),
-  ];
+  const categoryNavigation = visibleCategories.map((category) => ({
+    routeSlug: category.routeSlug,
+    name: category.name,
+  }));
+  const isFilteredEditorialCategory = Boolean(content?.catalogSearch);
 
   const sortParam = searchParams.get("sort") ?? "featured";
   const shippingParam = searchParams.get("shipping") ?? "all";
@@ -189,19 +187,28 @@ const ProductsPage = () => {
     });
   };
 
-  const name = content?.name || backendCategory?.name || "محصولات وینیمی";
-  const heading = content?.heading || backendCategory?.name || "محصولات وینیمی";
-  const intro =
-    content?.intro ||
-    backendCategory?.description ||
-    "محصول موردنظرت را با دسته‌بندی، جست‌وجو، مرتب‌سازی و فیلترهای فروشگاه پیدا کن.";
-  const seoTitle =
-    content?.seoTitle ||
-    (backendCategory ? `خرید ${backendCategory.name}` : "محصولات");
-  const seoDescription =
-    content?.seoDescription ||
-    backendCategory?.description ||
-    "مشاهده، جست‌وجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور.";
+  const name = isFilteredEditorialCategory
+    ? content?.name || "محصولات وینیمی"
+    : backendCategory?.name || content?.name || "محصولات وینیمی";
+  const heading = isFilteredEditorialCategory
+    ? content?.heading || name
+    : backendCategory?.name || content?.heading || name;
+  const intro = isFilteredEditorialCategory
+    ? content?.intro || "محصولات این مجموعه را بررسی کن."
+    : backendCategory?.description ||
+      content?.intro ||
+      "محصول موردنظرت را با دسته‌بندی، جست‌وجو، مرتب‌سازی و فیلترهای فروشگاه پیدا کن.";
+  const seoTitle = isFilteredEditorialCategory
+    ? content?.seoTitle || name
+    : backendCategory?.seo.title ||
+      content?.seoTitle ||
+      (backendCategory ? `خرید ${backendCategory.name}` : "محصولات");
+  const seoDescription = isFilteredEditorialCategory
+    ? content?.seoDescription || intro
+    : backendCategory?.seo.description ||
+      backendCategory?.description ||
+      content?.seoDescription ||
+      "مشاهده، جست‌وجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور.";
   const collectionSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -274,7 +281,7 @@ const ProductsPage = () => {
         </div>
       </section>
 
-      {!slug && (
+      {!slug && categoryNavigation.length > 0 && (
         <section className="section-padding pb-4">
           <div className="container-custom">
             <CategoryShowcase
