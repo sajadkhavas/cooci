@@ -9,6 +9,7 @@ import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
 import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
 import { categoryContents } from "@/data/categoriesContent";
 import { useCatalogCategories } from "@/hooks/useCatalog";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 import { Reveal } from "@/components/motion/Reveal";
 
 const categoryVisuals = {
@@ -44,9 +45,14 @@ export const CategoryShowcase = ({
   compact = false,
 }: CategoryShowcaseProps) => {
   const { categories } = useCatalogCategories();
-  const visibleCategories = categoryContents
-    .filter((category) => category.slug !== excludeSlug)
+  const visibleCategories = buildVisibleCatalogCategories(
+    categoryContents,
+    categories,
+  )
+    .filter((category) => category.routeSlug !== excludeSlug)
     .slice(0, limit);
+
+  if (visibleCategories.length === 0) return null;
 
   return (
     <div>
@@ -80,28 +86,26 @@ export const CategoryShowcase = ({
           compact ? "sm:grid-cols-2 xl:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-3"
         }`}
       >
-        {visibleCategories.map((content, index) => {
+        {visibleCategories.map((category, index) => {
           const visual =
-            categoryVisuals[content.slug as keyof typeof categoryVisuals] ??
-            categoryVisuals.cookies;
+            categoryVisuals[
+              category.routeSlug as keyof typeof categoryVisuals
+            ] ?? categoryVisuals.cookies;
           const Icon = visual.icon;
-          const backendCategory = categories.find(
-            (category) => category.slug === content.productCategorySlug,
-          );
-          const productCount = backendCategory?.productCount;
+          const editorial = category.editorial;
 
           return (
-            <Reveal key={content.slug} delay={(index % 3) * 70}>
+            <Reveal key={category.routeSlug} delay={(index % 3) * 70}>
               <Link
-                to={`/products/category/${content.slug}`}
+                to={`/products/category/${category.routeSlug}`}
                 className={`group relative block overflow-hidden rounded-[2rem] border border-border/70 bg-card shadow-soft transition duration-500 hover:-translate-y-1 hover:border-primary/25 hover:shadow-card ${
                   compact ? "min-h-[19rem]" : "min-h-[22rem]"
                 }`}
-                aria-label={`مشاهده دسته ${content.name}`}
+                aria-label={`مشاهده دسته ${category.name}`}
               >
                 <img
-                  src={backendCategory?.image || visual.image}
-                  alt={`تصویر دسته ${content.name}`}
+                  src={category.image || visual.image}
+                  alt={`تصویر دسته ${category.name}`}
                   className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
@@ -116,7 +120,7 @@ export const CategoryShowcase = ({
                 >
                   <div className="flex items-center justify-between gap-4">
                     <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em]">
-                      {content.eyebrow}
+                      {editorial?.eyebrow || "Catalog"}
                     </span>
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-xl">
                       <Icon size={20} aria-hidden="true" />
@@ -124,16 +128,17 @@ export const CategoryShowcase = ({
                   </div>
 
                   <div className="mt-20">
-                    {typeof productCount === "number" && productCount > 0 && (
-                      <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
-                        {productCount.toLocaleString("fa-IR")} محصول فعال
-                      </span>
-                    )}
+                    {typeof category.productCount === "number" &&
+                      category.productCount > 0 && (
+                        <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                          {category.productCount.toLocaleString("fa-IR")} محصول فعال
+                        </span>
+                      )}
                     <h3 className="text-2xl font-black leading-tight sm:text-3xl">
-                      {content.name}
+                      {category.name}
                     </h3>
                     <p className="mt-3 max-w-xl text-sm leading-7 text-primary-foreground/72">
-                      {content.cardDescription}
+                      {category.description || "محصولات فعال این دسته را بررسی کن."}
                     </p>
                     <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-accent">
                       دیدن این دسته
