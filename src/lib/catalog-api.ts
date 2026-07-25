@@ -32,6 +32,10 @@ export interface CatalogCategory {
   description?: string;
   image?: string;
   productCount?: number;
+  seo: {
+    title: string;
+    description?: string;
+  };
 }
 
 type ProductVariant = NonNullable<Product["variants"]>[number] & {
@@ -171,5 +175,9 @@ export const fetchCatalogCategories = async (): Promise<CatalogCategory[]> => {
     image: category.image || undefined,
     productCount:
       typeof category.productCount === "number" ? category.productCount : undefined,
+    seo: {
+      title: category.seo.title,
+      description: category.seo.description || undefined,
+    },
   }));
 };
