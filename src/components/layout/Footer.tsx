@@ -15,12 +15,8 @@ import {
   Truck,
 } from "lucide-react";
 import { Link } from "react-router";
-import {
-  brandConfig,
-  generatePhoneUrl,
-  generateWhatsAppUrl,
-  SUPPORT_WHATSAPP_MESSAGE,
-} from "@/config/brand";
+import { brandConfig } from "@/config/brand";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
 
 const footerLinks = {
@@ -37,7 +33,10 @@ const footerLinks = {
     { name: "همه محصولات", href: "/products" },
     { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
     { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-    { name: "رژیمی و بدون قند افزوده", href: "/products/category/diet-diabetic" },
+    {
+      name: "رژیمی و بدون قند افزوده",
+      href: "/products/category/diet-diabetic",
+    },
     { name: "کیک و دسر", href: "/products/category/cakes" },
     { name: "چیزکیک", href: "/products/category/cheesecakes" },
     { name: "رول و کروسان", href: "/products/category/pastry" },
@@ -93,6 +92,7 @@ const FooterColumn = ({
 );
 
 export const Footer = () => {
+  const { settings } = useStorefrontSettings();
   const scrollToTop = () =>
     window.scrollTo({
       top: 0,
@@ -101,7 +101,10 @@ export const Footer = () => {
 
   return (
     <footer className="relative z-10 mt-12 overflow-hidden rounded-t-[3rem] bg-primary text-primary-foreground sm:mt-20 sm:rounded-t-[4.5rem]">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
         <span className="absolute -right-32 top-8 h-96 w-96 rounded-full bg-accent/12 blur-[110px]" />
         <span className="absolute -left-40 bottom-0 h-[30rem] w-[30rem] rounded-full bg-gold/10 blur-[130px]" />
         <div className="soft-grid absolute inset-0 opacity-10" />
@@ -117,11 +120,13 @@ export const Footer = () => {
               </span>
               <h2 className="max-w-4xl text-3xl font-black leading-[1.12] sm:text-5xl lg:text-6xl">
                 مسیر مناسب را پیدا کن،
-                <span className="block text-accent">بعد جزئیات محصول را ببین.</span>
+                <span className="block text-accent">
+                  بعد جزئیات محصول را ببین.
+                </span>
               </h2>
               <p className="mt-5 max-w-2xl text-sm leading-8 text-primary-foreground/62 sm:text-base">
-                {brandConfig.deliveryInfo} اطلاعات نهایی هر محصول از کاتالوگ فعال
-                دریافت می‌شود.
+                {brandConfig.deliveryInfo} اطلاعات نهایی هر محصول از کاتالوگ
+                فعال دریافت می‌شود.
               </p>
             </div>
 
@@ -159,10 +164,10 @@ export const Footer = () => {
               </span>
               <span>
                 <strong className="block text-2xl font-black">
-                  {brandConfig.brandName}
+                  {settings.brand.name}
                 </strong>
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground/42">
-                  {brandConfig.brandNameEn}
+                  {settings.brand.nameEn}
                 </span>
               </span>
             </Link>
@@ -174,18 +179,26 @@ export const Footer = () => {
 
             <div className="mt-6 grid gap-3 text-sm text-primary-foreground/62 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <span className="flex items-start gap-2">
-                <ShieldCheck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
+                <ShieldCheck
+                  size={17}
+                  className="mt-1 shrink-0 text-accent"
+                  aria-hidden="true"
+                />
                 اطلاعات حساس فقط پس از تأیید
               </span>
               <span className="flex items-start gap-2">
-                <Truck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
+                <Truck
+                  size={17}
+                  className="mt-1 shrink-0 text-accent"
+                  aria-hidden="true"
+                />
                 روش تحویل متناسب با محصول
               </span>
             </div>
 
             <div className="mt-7 flex flex-wrap gap-2.5">
               <a
-                href={brandConfig.instagramUrl}
+                href={settings.contact.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
@@ -194,7 +207,7 @@ export const Footer = () => {
                 <Instagram size={18} aria-hidden="true" />
               </a>
               <a
-                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                href={settings.contact.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-whatsapp"
@@ -203,14 +216,14 @@ export const Footer = () => {
                 <MessageCircle size={18} aria-hidden="true" />
               </a>
               <a
-                href={`mailto:${brandConfig.email}`}
+                href={`mailto:${settings.contact.email}`}
                 className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
                 aria-label="ارسال ایمیل"
               >
                 <Mail size={18} aria-hidden="true" />
               </a>
               <a
-                href={generatePhoneUrl()}
+                href={settings.contact.phoneUrl}
                 className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
                 aria-label="تماس تلفنی"
               >
@@ -226,16 +239,30 @@ export const Footer = () => {
 
         <div className="border-t border-white/10 py-7">
           <div className="mb-6 grid gap-3 rounded-2xl border border-white/8 bg-white/[0.045] p-4 text-xs leading-7 text-primary-foreground/55 sm:grid-cols-2 lg:grid-cols-4">
-            <strong className="text-primary-foreground/75">{brandConfig.brandName}</strong>
+            <strong className="text-primary-foreground/75">
+              {settings.brand.name}
+            </strong>
             <span className="flex items-center gap-2">
-              <MapPin size={15} className="shrink-0 text-accent" aria-hidden="true" />
-              {brandConfig.address}
+              <MapPin
+                size={15}
+                className="shrink-0 text-accent"
+                aria-hidden="true"
+              />
+              {settings.contact.address}
             </span>
-            <a href={generatePhoneUrl()} dir="ltr" className="hover:text-accent">
-              {brandConfig.phone}
+            <a
+              href={settings.contact.phoneUrl}
+              dir="ltr"
+              className="hover:text-accent"
+            >
+              {settings.contact.phone}
             </a>
-            <a href={`mailto:${brandConfig.email}`} dir="ltr" className="hover:text-accent">
-              {brandConfig.email}
+            <a
+              href={`mailto:${settings.contact.email}`}
+              dir="ltr"
+              className="hover:text-accent"
+            >
+              {settings.contact.email}
             </a>
           </div>
 
@@ -254,10 +281,14 @@ export const Footer = () => {
 
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
             <p className="flex flex-wrap items-center gap-2 text-xs text-primary-foreground/45">
-              © {currentYear} {brandConfig.brandName}. تمامی حقوق محفوظ است.
+              © {currentYear} {settings.brand.name}. تمامی حقوق محفوظ است.
               <span className="inline-flex items-center gap-1">
                 ساخته‌شده با
-                <Heart size={13} className="fill-rose-300 text-rose-300" aria-hidden="true" />
+                <Heart
+                  size={13}
+                  className="fill-rose-300 text-rose-300"
+                  aria-hidden="true"
+                />
                 برای تجربه بهتر خرید آنلاین
               </span>
             </p>

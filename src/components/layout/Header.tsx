@@ -12,12 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
-import {
-  brandConfig,
-  generatePhoneUrl,
-  generateWhatsAppUrl,
-  SUPPORT_WHATSAPP_MESSAGE,
-} from "@/config/brand";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import {
@@ -54,13 +49,12 @@ export const Header = () => {
   const location = useLocation();
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const { settings } = useStorefrontSettings();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const restoreMenuFocusRef = useRef(true);
-  const previousLocationRef = useRef(
-    `${location.pathname}${location.search}`,
-  );
+  const previousLocationRef = useRef(`${location.pathname}${location.search}`);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
@@ -138,7 +132,7 @@ export const Header = () => {
           <Link
             to="/"
             className="group flex min-w-0 items-center gap-3 rounded-2xl"
-            aria-label={`${brandConfig.brandName} - صفحه اصلی`}
+            aria-label={`${settings.brand.name} - صفحه اصلی`}
           >
             <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-primary-foreground shadow-[0_16px_34px_-18px_hsl(var(--primary)/0.9)] transition duration-500 group-hover:-rotate-6 group-hover:scale-105 lg:h-12 lg:w-12">
               <span className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-accent/20" />
@@ -146,10 +140,10 @@ export const Header = () => {
             </span>
             <span className="min-w-0">
               <strong className="block truncate text-lg font-black tracking-[-0.04em] text-foreground sm:text-xl">
-                {brandConfig.brandName}
+                {settings.brand.name}
               </strong>
               <span className="hidden text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground sm:block">
-                {brandConfig.brandNameEn}
+                {settings.brand.nameEn}
               </span>
             </span>
           </Link>
@@ -179,12 +173,12 @@ export const Header = () => {
 
           <div className="flex shrink-0 items-center gap-1.5">
             <a
-              href={generatePhoneUrl()}
+              href={settings.contact.phoneUrl}
               className="touch-target hidden items-center justify-center rounded-full border border-border/70 bg-card/55 px-4 text-sm font-black text-foreground shadow-soft backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-primary/25 hover:text-primary lg:flex"
-              aria-label={`تماس با ${brandConfig.brandName}: ${brandConfig.phone}`}
+              aria-label={`تماس با ${settings.brand.name}: ${settings.contact.phone}`}
             >
               <Phone size={17} className="ml-2" aria-hidden="true" />
-              <span dir="ltr">{brandConfig.phone}</span>
+              <span dir="ltr">{settings.contact.phone}</span>
             </a>
 
             <Link
@@ -272,7 +266,7 @@ export const Header = () => {
             <div className="relative flex items-center justify-between border-b border-white/10 p-5">
               <div>
                 <p id="mobile-navigation-title" className="text-xl font-black">
-                  {brandConfig.brandName}
+                  {settings.brand.name}
                 </p>
                 <p className="mt-1 text-xs text-primary-foreground/55">
                   منوی سریع فروشگاه
@@ -311,7 +305,9 @@ export const Header = () => {
                       : "ورود به حساب"}
                   </strong>
                   <span className="mt-1 block truncate text-xs text-primary-foreground/55">
-                    {isAuthenticated ? user?.mobile : "سفارش‌ها، پروفایل و پیگیری"}
+                    {isAuthenticated
+                      ? user?.mobile
+                      : "سفارش‌ها، پروفایل و پیگیری"}
                   </span>
                 </span>
                 <ArrowUpLeft size={18} aria-hidden="true" />
@@ -319,7 +315,10 @@ export const Header = () => {
 
               <nav className="grid gap-2" aria-label="منوی موبایل">
                 {navLinks.map((link, index) => {
-                  const active = isNavigationTargetActive(location.pathname, link);
+                  const active = isNavigationTargetActive(
+                    location.pathname,
+                    link,
+                  );
                   return (
                     <Link
                       key={link.href}
@@ -367,7 +366,7 @@ export const Header = () => {
               </Link>
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                  href={settings.contact.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 font-bold"
@@ -376,7 +375,7 @@ export const Header = () => {
                   واتساپ
                 </a>
                 <a
-                  href={generatePhoneUrl()}
+                  href={settings.contact.phoneUrl}
                   className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 font-bold"
                 >
                   <Phone size={18} aria-hidden="true" />

@@ -1,22 +1,13 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
-import { isBackendEnabled } from "@/lib/api";
-import { loadStoreSettings } from "@/lib/content";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { extractOfficialEnamadBadge } from "@/lib/security/enamad";
 
 export const EnamadTrustSlot = () => {
-  const query = useQuery({
-    queryKey: ["store", "settings", "trust"],
-    queryFn: loadStoreSettings,
-    enabled: isBackendEnabled,
-    staleTime: 10 * 60_000,
-  });
+  const { query } = useStorefrontSettings();
   const badge = useMemo(
     () =>
-      extractOfficialEnamadBadge(
-        query.data?.trust.enamad.badgeCode || null,
-      ),
+      extractOfficialEnamadBadge(query.data?.trust.enamad.badgeCode || null),
     [query.data?.trust.enamad.badgeCode],
   );
 
@@ -48,8 +39,8 @@ export const EnamadTrustSlot = () => {
         aria-hidden="true"
       />
       <span>
-        جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش
-        داده می‌شود.
+        جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش داده
+        می‌شود.
       </span>
     </div>
   );
