@@ -68,8 +68,6 @@ export const links = () => [
 ];
 
 export const meta = () => [
-  { title: brandConfig.defaultMeta.title },
-  { name: "description", content: brandConfig.defaultMeta.description },
   { name: "theme-color", content: "#D0E596" },
   { name: "color-scheme", content: "light" },
   { name: "application-name", content: brandConfig.brandName },
