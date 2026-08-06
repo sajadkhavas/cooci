@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { extractOfficialEnamadBadge } from "@/lib/security/enamad";
 
+const badgeId = "1234567";
+const badgeCode = "OfficialMarkupTestCode123";
 const officialMarkup =
-  "<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=7206502&Code=sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=7206502&Code=sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq' alt='' style='cursor:pointer' code='sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq'></a>";
+  `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=${badgeId}&Code=${badgeCode}'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=${badgeId}&Code=${badgeCode}' alt='' style='cursor:pointer' code='${badgeCode}'></a>`;
 
 test("official eNAMAD markup is returned byte-for-byte without reconstruction", () => {
   const badge = extractOfficialEnamadBadge(officialMarkup);
@@ -12,11 +14,11 @@ test("official eNAMAD markup is returned byte-for-byte without reconstruction", 
   assert.equal(badge.html, officialMarkup);
   assert.equal(
     badge.verification,
-    "https://trustseal.enamad.ir/?id=7206502&Code=sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq",
+    `https://trustseal.enamad.ir/?id=${badgeId}&Code=${badgeCode}`,
   );
   assert.equal(
     badge.image,
-    "https://trustseal.enamad.ir/logo.aspx?id=7206502&Code=sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq",
+    `https://trustseal.enamad.ir/logo.aspx?id=${badgeId}&Code=${badgeCode}`,
   );
 });
 
@@ -26,8 +28,8 @@ test("eNAMAD markup rejects added executable attributes and mismatched codes", (
     "target='_blank' onclick='alert(1)'",
   );
   const mismatched = officialMarkup.replace(
-    "logo.aspx?id=7206502&Code=sM6Q6kNQY4DdpoVICR18BC3a1E9N9jUq",
-    "logo.aspx?id=7206502&Code=DifferentCode",
+    `logo.aspx?id=${badgeId}&Code=${badgeCode}`,
+    `logo.aspx?id=${badgeId}&Code=DifferentCode`,
   );
 
   assert.equal(extractOfficialEnamadBadge(executable), null);
