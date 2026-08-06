@@ -13,21 +13,11 @@ export const EnamadTrustSlot = () => {
 
   if (query.data?.trust.enamad.enabled && badge) {
     return (
-      <a
-        href={badge.verification}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
+      <div
         className="inline-flex min-h-24 min-w-24 items-center justify-center rounded-2xl border border-white/12 bg-white/8 p-3"
-        aria-label="اعتبارسنجی نماد اعتماد الکترونیکی وینیمی در پنجره جدید"
-      >
-        <img
-          src={badge.image}
-          alt="نماد اعتماد الکترونیکی وینیمی"
-          className="h-20 w-auto object-contain"
-          loading="lazy"
-          referrerPolicy="origin"
-        />
-      </a>
+        aria-label="نماد اعتماد الکترونیکی وینیمی"
+        dangerouslySetInnerHTML={{ __html: badge.html }}
+      />
     );
   }
 
