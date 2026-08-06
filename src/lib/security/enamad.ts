@@ -47,16 +47,8 @@ const hasOnlyAllowedAttributes = (
   allowed: Set<string>,
 ) => [...attributes.keys()].every((name) => allowed.has(name));
 
-const hasExactQuery = (url: URL, id: string, code: string) => {
-  const entries = [...url.searchParams.entries()];
-  if (entries.length !== 2) return false;
-
-  return (
-    url.searchParams.get("id") === id &&
-    url.searchParams.get("Code") === code &&
-    entries.every(([key]) => key === "id" || key === "Code")
-  );
-};
+const hasOnlyExpectedQueryKeys = (url: URL) =>
+  [...url.searchParams.keys()].every((key) => key === "id" || key === "Code");
 
 export const extractOfficialEnamadBadge = (
   code: string | null,
@@ -74,22 +66,29 @@ export const extractOfficialEnamadBadge = (
   if (!hasOnlyAllowedAttributes(anchorAttributes, ANCHOR_ATTRIBUTES)) return null;
   if (!hasOnlyAllowedAttributes(imageAttributes, IMAGE_ATTRIBUTES)) return null;
 
-  if (anchorAttributes.get("referrerpolicy")?.toLowerCase() !== "origin") {
-    return null;
-  }
-  if (anchorAttributes.get("target") !== "_blank") return null;
-  if (imageAttributes.get("referrerpolicy")?.toLowerCase() !== "origin") {
+  const anchorReferrerPolicy = anchorAttributes.get("referrerpolicy");
+  if (anchorReferrerPolicy && anchorReferrerPolicy.toLowerCase() !== "origin") {
     return null;
   }
 
-  const style = imageAttributes.get("style")?.replaceAll(/\s/g, "").toLowerCase();
-  if (style !== "cursor:pointer") return null;
+  const target = anchorAttributes.get("target");
+  if (target && target !== "_blank") return null;
+
+  const imageReferrerPolicy = imageAttributes.get("referrerpolicy");
+  if (imageReferrerPolicy && imageReferrerPolicy.toLowerCase() !== "origin") {
+    return null;
+  }
+
+  const style = imageAttributes.get("style");
+  if (style && style.replaceAll(/\s/g, "").toLowerCase() !== "cursor:pointer") {
+    return null;
+  }
 
   const verificationValue = anchorAttributes.get("href");
   const imageValue = imageAttributes.get("src");
-  const badgeCode = imageAttributes.get("code");
-  if (!verificationValue || !imageValue || !badgeCode) return null;
-  if (!/^[A-Za-z0-9]+$/.test(badgeCode)) return null;
+  const attributeCode = imageAttributes.get("code");
+  if (!verificationValue || !imageValue) return null;
+  if (attributeCode && !/^[A-Za-z0-9]+$/.test(attributeCode)) return null;
 
   try {
     const verification = new URL(verificationValue);
@@ -100,11 +99,21 @@ export const extractOfficialEnamadBadge = (
     if (verification.pathname !== "/" || image.pathname !== "/logo.aspx") {
       return null;
     }
+    if (!hasOnlyExpectedQueryKeys(verification) || !hasOnlyExpectedQueryKeys(image)) {
+      return null;
+    }
 
-    const id = verification.searchParams.get("id");
-    if (!id || !/^\d+$/.test(id)) return null;
-    if (!hasExactQuery(verification, id, badgeCode)) return null;
-    if (!hasExactQuery(image, id, badgeCode)) return null;
+    const verificationId = verification.searchParams.get("id");
+    const imageId = image.searchParams.get("id");
+    if (!verificationId || !/^\d+$/.test(verificationId)) return null;
+    if (verificationId !== imageId) return null;
+
+    const providedCodes = [
+      verification.searchParams.get("Code"),
+      image.searchParams.get("Code"),
+      attributeCode,
+    ].filter((value): value is string => Boolean(value));
+    if (new Set(providedCodes).size > 1) return null;
 
     return {
       html: code,
