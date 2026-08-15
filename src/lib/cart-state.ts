@@ -32,6 +32,10 @@ type ProductVariant = NonNullable<Product["variants"]>[number];
 type ProductVariantRuntime = ProductVariant & {
   stock?: number;
   available?: boolean;
+  inventoryVerified?: boolean;
+  packageQuantity?: number;
+  minOrderQuantity?: number;
+  maxOrderQuantity?: number;
 };
 
 const getVariantStock = (variant: ProductVariant) => {
@@ -98,6 +102,12 @@ export const syncCartItemWithCatalog = (
     : getProductDisplayPrice(product);
   const variantStock = selectedVariant ? getVariantStock(selectedVariant) : undefined;
   const stock = variantStock ?? getProductStock(product, selectedVariant?.id);
+  const variantRuntime = selectedVariant as ProductVariantRuntime | undefined;
+
+  const inventoryVerified = selectedVariant
+    ? variantRuntime?.inventoryVerified === true
+    : product.inventoryVerified === true;
+
   const availability =
     !currentPrice ||
     currentPrice <= 0 ||
@@ -121,6 +131,16 @@ export const syncCartItemWithCatalog = (
     quantity: clampCartQuantity(item.quantity, stock),
     stock,
     requiresCooling: Boolean(product.requiresCooling),
+    inventoryVerified,
+    shippingPolicyScope: product.shippingPolicy?.scope,
+    availabilityMode: product.availabilityMode,
+    preparationMinDays:
+      product.preparation?.minDays ??
+      product.preparationTimeDays,
+    preparationMaxDays:
+      product.preparation?.maxDays ??
+      product.preparation?.minDays ??
+      product.preparationTimeDays,
     image: product.images[0]?.url ?? item.image,
     availability,
     selectedVariant: selectedVariant
@@ -130,6 +150,10 @@ export const syncCartItemWithCatalog = (
           priceToman:
             currentPrice ?? item.selectedVariant?.priceToman ?? item.priceToman,
           stock,
+          inventoryVerified: variantRuntime?.inventoryVerified === true,
+          packageQuantity: variantRuntime?.packageQuantity,
+          minOrderQuantity: variantRuntime?.minOrderQuantity,
+          maxOrderQuantity: variantRuntime?.maxOrderQuantity,
         }
       : undefined,
   };
@@ -150,8 +174,14 @@ export const cartReducer = (
       const item: CartItem = {
         ...action.item,
         stock,
+        inventoryVerified: action.item.inventoryVerified === true,
         selectedVariant: action.item.selectedVariant
-          ? { ...action.item.selectedVariant, stock }
+          ? {
+              ...action.item.selectedVariant,
+              stock,
+              inventoryVerified:
+                action.item.selectedVariant.inventoryVerified === true,
+            }
           : undefined,
         availability,
         quantity: 1,

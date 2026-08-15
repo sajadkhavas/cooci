@@ -37,6 +37,7 @@ for (const stalePath of [
   "public/sitemap.xml",
   "public/robots.txt",
   "scripts/generate-sitemap.mjs",
+  "scripts/generate-sitemap.ts",
 ]) {
   if (fs.existsSync(stalePath)) errors.push(`Stale crawl artifact must be removed: ${stalePath}`);
 }

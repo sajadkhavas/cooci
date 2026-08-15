@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { loadAccountAddresses } from "@/lib/account";
 import type { BackendAddress, BackendDeliveryOptions } from "@/lib/backend-contract";
+import { isCartDeliveryMethodAllowed } from "@/lib/cart";
 import {
   createCheckoutSession,
   createIdempotencyKey,
@@ -37,7 +38,14 @@ const emptyRecipient = (fullName: string, mobile: string): ManualRecipient => ({
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, subtotal, hasCoolingItems, isReadyForCheckout } = useCart();
+  const {
+    items,
+    subtotal,
+    hasCoolingItems,
+    requiresPickup,
+    requiresConfiguredDeliveryZone,
+    isReadyForCheckout,
+  } = useCart();
   const draft = useMemo(() => loadCheckoutDraft(), []);
   const paymentMode = getPaymentMode();
   const idempotencyKeyRef = useRef(createIdempotencyKey("CHK"));
@@ -50,7 +58,9 @@ const CheckoutPage = () => {
     ...draft?.customer,
   }));
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>(
-    draft?.deliveryMethod || (hasCoolingItems ? "chilled" : "standard"),
+    requiresPickup
+      ? "pickup"
+      : draft?.deliveryMethod || (hasCoolingItems ? "chilled" : "standard"),
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -60,8 +70,13 @@ const CheckoutPage = () => {
     enabled: paymentMode === "backend",
     staleTime: 30_000,
   });
-  const addresses = addressesQuery.data ?? [];
-  const selectedAddress = addresses.find((address) => address.id === selectedAddressId);
+  const addresses = useMemo(
+    () => addressesQuery.data ?? [],
+    [addressesQuery.data],
+  );
+  const selectedAddress = addresses.find(
+    (address) => address.id === selectedAddressId,
+  );
 
   useEffect(() => {
     if (addresses.length === 0 || selectedAddressId) return;
@@ -107,21 +122,87 @@ const CheckoutPage = () => {
     ],
   };
   const deliveryOptions = paymentMode === "mock" ? developmentOptions : deliveryQuery.data;
-  const methods = deliveryOptions?.methods ?? [];
-  const selectedMethod = methods.find((method) => method.method === deliveryMethod);
+  const methods = useMemo(
+    () => deliveryOptions?.methods ?? [],
+    [deliveryOptions?.methods],
+  );
+  const selectedMethod = methods.find(
+    (method) => method.method === deliveryMethod,
+  );
+
+  const hasConfiguredDeliveryZone = Boolean(deliveryOptions?.zone);
+
+  const deliveryPolicyContext = useMemo(
+    () => ({
+      requiresPickup,
+      requiresConfiguredDeliveryZone,
+      hasConfiguredDeliveryZone,
+    }),
+    [
+      hasConfiguredDeliveryZone,
+      requiresConfiguredDeliveryZone,
+      requiresPickup,
+    ],
+  );
+
+  const selectedMethodAllowedByCartPolicy =
+    selectedMethod?.enabled === true &&
+    isCartDeliveryMethodAllowed(
+      selectedMethod.method,
+      deliveryPolicyContext,
+    );
+
+  const configuredZoneMissing =
+    requiresConfiguredDeliveryZone &&
+    !requiresPickup &&
+    !hasConfiguredDeliveryZone;
+
   const packagingFee = deliveryOptions?.zone?.packagingFeeToman ?? 0;
   const deliveryFee = selectedMethod?.feeToman ?? 0;
   const estimatedTotal = subtotal + packagingFee + deliveryFee;
 
   useEffect(() => {
     if (methods.length === 0) return;
-    if (selectedMethod?.enabled) return;
-    const preferred = methods.find(
-      (method) => method.enabled && (hasCoolingItems ? method.method === "chilled" : method.method === "standard"),
-    );
-    const fallback = preferred || methods.find((method) => method.enabled);
-    if (fallback) setDeliveryMethod(fallback.method);
-  }, [hasCoolingItems, methods, selectedMethod?.enabled]);
+
+    const isUsable = (method: (typeof methods)[number]) =>
+      method.enabled &&
+      isCartDeliveryMethodAllowed(
+        method.method,
+        deliveryPolicyContext,
+      );
+
+    if (selectedMethod && isUsable(selectedMethod)) {
+      return;
+    }
+
+    const preferred = requiresPickup
+      ? methods.find(
+          (method) =>
+            method.method === "pickup" &&
+            isUsable(method),
+        )
+      : methods.find(
+          (method) =>
+            isUsable(method) &&
+            (hasCoolingItems
+              ? method.method === "chilled"
+              : method.method === "standard"),
+        );
+
+    const fallback =
+      preferred ||
+      methods.find((method) => isUsable(method));
+
+    if (fallback) {
+      setDeliveryMethod(fallback.method);
+    }
+  }, [
+    deliveryPolicyContext,
+    hasCoolingItems,
+    methods,
+    requiresPickup,
+    selectedMethod,
+  ]);
 
   useEffect(() => {
     saveCheckoutDraft({
@@ -164,6 +245,20 @@ const CheckoutPage = () => {
     }
     if (!selectedMethod?.enabled) {
       toast.error("روش تحویل انتخاب‌شده از طرف سرور فعال نیست.");
+      return;
+    }
+
+    if (
+      !isCartDeliveryMethodAllowed(
+        deliveryMethod,
+        deliveryPolicyContext,
+      )
+    ) {
+      toast.error(
+        requiresPickup
+          ? "این سبد فقط با تحویل حضوری قابل ثبت است."
+          : "مقصد انتخاب‌شده برای محصولات محدود به محدوده‌های فعال فروشگاه قابل استفاده نیست.",
+      );
       return;
     }
 
@@ -324,21 +419,90 @@ const CheckoutPage = () => {
                 </div>
                 {deliveryQuery.isFetching && paymentMode === "backend" && <p className="mb-4 text-sm text-muted-foreground" role="status">در حال محاسبه روش‌ها و هزینه از سرور…</p>}
                 {deliveryQuery.error && <div className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive" role="alert">{deliveryQuery.error instanceof Error ? deliveryQuery.error.message : "دریافت گزینه‌های تحویل ناموفق بود."}</div>}
+
+                {requiresPickup && (
+                  <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4 text-sm leading-7 text-primary">
+                    این سبد شامل محصولی است که فقط با تحویل حضوری قابل سفارش است؛ روش‌های ارسال برای این سفارش قابل انتخاب نیستند.
+                  </div>
+                )}
+
+                {configuredZoneMissing && !deliveryQuery.isFetching && (
+                  <div
+                    className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7 text-amber-950"
+                    role="alert"
+                  >
+                    مقصد فعلی در محدوده ارسال فعال محصولات محدودشده این سبد نیست. می‌توانید مقصد را تغییر دهید یا در صورت فعال بودن، تحویل حضوری را انتخاب کنید.
+                  </div>
+                )}
+
+                {!requiresPickup &&
+                  requiresConfiguredDeliveryZone &&
+                  hasConfiguredDeliveryZone && (
+                    <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-900">
+                      مقصد فعلی داخل یکی از محدوده‌های فعال فروشگاه تأیید شده است.
+                    </div>
+                  )}
+
                 <div className="grid gap-3 md:grid-cols-3">
                   {methods.map((method) => {
-                    const Icon = method.method === "chilled" ? Snowflake : method.method === "pickup" ? MapPin : Truck;
+                    const Icon =
+                      method.method === "chilled"
+                        ? Snowflake
+                        : method.method === "pickup"
+                          ? MapPin
+                          : Truck;
+
+                    const policyAllowed =
+                      isCartDeliveryMethodAllowed(
+                        method.method,
+                        deliveryPolicyContext,
+                      );
+
+                    const usable =
+                      method.enabled && policyAllowed;
+
+                    const disabledReason = !method.enabled
+                      ? "برای این مقصد غیرفعال"
+                      : requiresPickup &&
+                          method.method !== "pickup"
+                        ? "این سبد فقط تحویل حضوری است"
+                        : requiresConfiguredDeliveryZone &&
+                            !hasConfiguredDeliveryZone &&
+                            method.method !== "pickup"
+                          ? "مقصد خارج از محدوده فعال است"
+                          : null;
+
                     return (
                       <button
                         key={method.method}
                         type="button"
-                        disabled={!method.enabled}
-                        onClick={() => setDeliveryMethod(method.method)}
-                        aria-pressed={deliveryMethod === method.method}
-                        className={`rounded-2xl border p-4 text-right transition disabled:cursor-not-allowed disabled:opacity-45 ${deliveryMethod === method.method ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"}`}
+                        disabled={!usable}
+                        onClick={() =>
+                          setDeliveryMethod(method.method)
+                        }
+                        aria-pressed={
+                          usable &&
+                          deliveryMethod === method.method
+                        }
+                        className={`rounded-2xl border p-4 text-right transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          usable &&
+                          deliveryMethod === method.method
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-background hover:border-primary/40"
+                        }`}
                       >
-                        <Icon className="mb-3 text-primary" size={22} aria-hidden="true" />
-                        <span className="block font-black">{method.label}</span>
-                        <span className="mt-2 block text-sm text-muted-foreground">{method.enabled ? formatToman(method.feeToman) : "برای این مقصد غیرفعال"}</span>
+                        <Icon
+                          className="mb-3 text-primary"
+                          size={22}
+                          aria-hidden="true"
+                        />
+                        <span className="block font-black">
+                          {method.label}
+                        </span>
+                        <span className="mt-2 block text-sm text-muted-foreground">
+                          {disabledReason ??
+                            formatToman(method.feeToman)}
+                        </span>
                       </button>
                     );
                   })}
@@ -358,7 +522,17 @@ const CheckoutPage = () => {
                 <div className="flex justify-between gap-3 border-t border-border pt-4 text-lg"><span className="font-black">جمع تخمینی</span><strong className="text-primary">{formatToman(estimatedTotal)}</strong></div>
               </div>
               <p className="mt-4 text-xs leading-6 text-muted-foreground">عدد قطعی از پاسخ ثبت سفارش می‌آید؛ هیچ مبلغی از مرورگر برای بک‌اند معتبر نیست.</p>
-              <button type="submit" disabled={submitting || paymentMode === "disabled" || !selectedMethod?.enabled || deliveryQuery.isFetching} className="btn-primary mt-6 flex min-h-13 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-black disabled:cursor-not-allowed disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={
+                  submitting ||
+                  paymentMode === "disabled" ||
+                  !isReadyForCheckout ||
+                  !selectedMethodAllowedByCartPolicy ||
+                  deliveryQuery.isFetching
+                }
+                className="btn-primary mt-6 flex min-h-13 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 {submitting && <Loader2 size={18} className="animate-spin" aria-hidden="true" />}
                 {submitting ? "در حال ثبت امن سفارش…" : "ثبت سفارش و ادامه پرداخت"}
               </button>

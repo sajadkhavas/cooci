@@ -88,8 +88,8 @@ requireText(
 
 requireText(
   "vite",
-  'mode === "development" && componentTagger()',
-  "Lovable component tagger restricted to development",
+  "plugins: [reactRouter()]",
+  "framework-only Vite plugin chain",
 );
 requireText("runtimeE2e", "Emulation.setCPUThrottlingRate", "CPU-throttled runtime profiling");
 requireText("runtimeE2e", "framesOver50ms", "janky-frame evidence");
@@ -138,10 +138,10 @@ const report = {
   inventory,
   diagnosis: {
     productionBundleIsWithinStaticBudgets: true,
-    developmentOnlyLovableTagger: true,
+    editorInstrumentationRemoved: true,
     primaryRisk: "client-side paint, compositing and scroll-linked work",
     productionDeploymentExpectedEffect:
-      "faster transfer, caching and no editor instrumentation; browser paint costs still require code fixes",
+      "faster transfer and caching; browser paint costs still require code fixes",
   },
   errors,
 };

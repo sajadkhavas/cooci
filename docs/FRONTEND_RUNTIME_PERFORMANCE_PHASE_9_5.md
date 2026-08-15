@@ -4,9 +4,9 @@ Marker: `frontend_runtime_performance_audited=ready`
 
 ## Conclusion
 
-The slow editor preview was not solely a Lovable hosting problem.
+The slow editor preview was not solely a hosting problem.
 
-Lovable instrumentation is restricted to Vite development mode through `mode === "development" && componentTagger()`. A production deployment removes the editor iframe, HMR, development transforms and component tagging, and it adds minification, compression and long-lived asset caching. Those changes improve startup and transfer time.
+Editor-specific instrumentation has been removed from the Vite pipeline. A production deployment removes development-only HMR/transforms and adds minification, compression and long-lived asset caching. Those changes improve startup and transfer time.
 
 They do not move paint, compositing, sticky layers or scroll-linked JavaScript to the server. The pre-fix production build reproduced severe scroll jank behind the same HTTPS/Laravel topology used by acceptance CI, proving that deployment alone would not have fixed the problem.
 
@@ -77,4 +77,4 @@ The component uses a solid high-opacity surface rather than backdrop blur, respe
 
 ## Validation boundary
 
-This phase tests a production build and production-like HTTPS topology, not Lovable's editor preview. A live physical-device smoke test should still be repeated after Phase 19 deployment because browser versions, thermal throttling and low-end Android GPUs cannot be fully represented by CI.
+This phase tests a production build and production-like HTTPS topology, not an editor-hosted preview. A live physical-device smoke test should still be repeated after Phase 19 deployment because browser versions, thermal throttling and low-end Android GPUs cannot be fully represented by CI.

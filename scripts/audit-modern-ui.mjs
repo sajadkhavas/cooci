@@ -103,7 +103,7 @@ for (const requirement of [
 
 for (const requirement of [
   "categoryVisuals",
-  "backendCategory?.image",
+  "category.image || visual.image",
   "productCount",
   "group-hover:scale-105",
   "rounded-[2rem]",
@@ -118,7 +118,7 @@ for (const requirement of [
   "isProductInventoryVerified",
   "isProductMediaVerified",
   "rounded-[2rem]",
-  "group-hover:scale-[1.07]",
+  "group-hover:scale-[1.04]",
 ]) {
   requireText("productCard", requirement, `modern product-card contract: ${requirement}`);
 }

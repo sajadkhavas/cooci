@@ -77,11 +77,15 @@ export const backendProductVariantSchema = z
     productCode: z.string().trim().min(1).max(160),
     weightGrams: z.number().int().nonnegative().nullable(),
     weight: nullableText(160),
+    packageQuantity: z.number().int().positive().nullable(),
+    minOrderQuantity: z.number().int().positive().nullable(),
+    maxOrderQuantity: z.number().int().positive().nullable(),
     priceToman: z.number().int().nonnegative(),
     regularPriceToman: z.number().int().nonnegative(),
     salePriceToman: z.number().int().nonnegative().nullable(),
     stock: z.number().int().nonnegative(),
     available: z.boolean(),
+    inventoryVerified: z.boolean(),
     lowStock: z.boolean(),
     isDefault: z.boolean(),
   })
@@ -102,6 +106,18 @@ export const backendProductVariantSchema = z
         code: z.ZodIssueCode.custom,
         path: ["available"],
         message: "available variant has no stock",
+      });
+    }
+
+    if (
+      variant.minOrderQuantity !== null &&
+      variant.maxOrderQuantity !== null &&
+      variant.minOrderQuantity > variant.maxOrderQuantity
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["minOrderQuantity"],
+        message: "minimum order quantity exceeds maximum",
       });
     }
   });
@@ -127,11 +143,26 @@ export const backendProductSchema = z
     requiresCooling: z.boolean(),
     shippingScope: z.enum(["nationwide", "tehran-karaj"]),
     shippingNote: z.string().max(2_000),
+    shippingPolicy: z.object({
+      scope: z
+        .enum(["nationwide", "configured_zones", "pickup_only"])
+        .nullable(),
+      note: nullableText(2_000),
+    }),
+    availabilityMode: z
+      .enum(["stocked", "made_to_order"])
+      .nullable(),
     ingredients: z.array(z.string().max(500)).max(100),
     allergens: z.array(z.string().max(500)).max(100),
     shelfLife: nullableText(1_000),
     storageTips: nullableText(2_000),
     preparationTimeDays: z.number().int().nonnegative().nullable(),
+    preparation: z
+      .object({
+        minDays: z.number().int().nonnegative(),
+        maxDays: z.number().int().nonnegative(),
+      })
+      .nullable(),
     badges: z.array(z.string().max(160)).max(30),
     images: z.array(backendProductImageSchema).max(30),
     isFeatured: z.boolean(),
@@ -163,6 +194,17 @@ export const backendProductSchema = z
         code: z.ZodIssueCode.custom,
         path: ["available"],
         message: "available product has no stock",
+      });
+    }
+
+    if (
+      product.preparation !== null &&
+      product.preparation.minDays > product.preparation.maxDays
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["preparation"],
+        message: "preparation minimum exceeds maximum",
       });
     }
   })

@@ -10,11 +10,54 @@ export const CHILLED_DELIVERY_FEE = 0;
 
 export type CartAvailability = "available" | "out_of_stock" | "unavailable";
 
+export type CartShippingPolicyScope =
+  | "nationwide"
+  | "configured_zones"
+  | "pickup_only";
+
+export type CartAvailabilityMode =
+  | "stocked"
+  | "made_to_order";
+
+export type CartDeliveryMethod =
+  | "standard"
+  | "chilled"
+  | "pickup";
+
+export interface CartDeliveryPolicyContext {
+  requiresPickup: boolean;
+  requiresConfiguredDeliveryZone: boolean;
+  hasConfiguredDeliveryZone: boolean;
+}
+
+export const isCartDeliveryMethodAllowed = (
+  method: CartDeliveryMethod,
+  context: CartDeliveryPolicyContext,
+) => {
+  if (context.requiresPickup) {
+    return method === "pickup";
+  }
+
+  if (
+    context.requiresConfiguredDeliveryZone &&
+    method !== "pickup" &&
+    !context.hasConfiguredDeliveryZone
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
 export interface CartVariantSnapshot {
   id: string;
   name: string;
   priceToman: number;
   stock: number;
+  inventoryVerified: boolean;
+  packageQuantity?: number;
+  minOrderQuantity?: number;
+  maxOrderQuantity?: number;
 }
 
 export interface CartItem {
@@ -28,6 +71,11 @@ export interface CartItem {
   quantity: number;
   stock: number;
   requiresCooling: boolean;
+  inventoryVerified: boolean;
+  shippingPolicyScope?: CartShippingPolicyScope;
+  availabilityMode?: CartAvailabilityMode;
+  preparationMinDays?: number;
+  preparationMaxDays?: number;
   image: string;
   availability: CartAvailability;
   selectedVariant?: CartVariantSnapshot;
@@ -38,14 +86,23 @@ export interface CartVariantInput {
   name: string;
   priceToman: number;
   stock?: number;
+  inventoryVerified?: boolean;
+  packageQuantity?: number;
+  minOrderQuantity?: number;
+  maxOrderQuantity?: number;
 }
 
 export type CartItemInput = Omit<
   CartItem,
-  "quantity" | "availability" | "stock" | "selectedVariant"
+  | "quantity"
+  | "availability"
+  | "stock"
+  | "selectedVariant"
+  | "inventoryVerified"
 > & {
   availability?: CartAvailability;
   stock?: number;
+  inventoryVerified?: boolean;
   selectedVariant?: CartVariantInput;
 };
 
@@ -67,6 +124,10 @@ export interface CartSummary {
   hasCoolingItems: boolean;
   hasUnavailableItems: boolean;
   hasStockIssues: boolean;
+  hasInventoryIssues: boolean;
+  hasQuantityPolicyIssues: boolean;
+  requiresPickup: boolean;
+  requiresConfiguredDeliveryZone: boolean;
   isReadyForCheckout: boolean;
 }
 
@@ -81,6 +142,38 @@ export const getCartRegularUnitPrice = (item: CartItem) =>
   item.regularPriceToman ?? getCartUnitPrice(item);
 export const getCartItemStock = (item: CartItem) =>
   Math.max(0, item.selectedVariant?.stock ?? item.stock);
+
+export const getCartItemInventoryVerified = (item: CartItem) =>
+  item.selectedVariant
+    ? item.selectedVariant.inventoryVerified === true
+    : item.inventoryVerified === true;
+
+export const getCartItemMinOrderQuantity = (item: CartItem) =>
+  Math.max(1, item.selectedVariant?.minOrderQuantity ?? 1);
+
+export const getCartItemMaxOrderQuantity = (item: CartItem) => {
+  const stock = getCartItemStock(item);
+  if (stock <= 0) return 0;
+
+  const configuredMaximum = item.selectedVariant?.maxOrderQuantity;
+
+  return Math.min(
+    MAX_CART_QUANTITY,
+    stock,
+    configuredMaximum ?? stock,
+  );
+};
+
+export const hasCartItemQuantityPolicyIssue = (item: CartItem) => {
+  const minimum = getCartItemMinOrderQuantity(item);
+  const maximum = getCartItemMaxOrderQuantity(item);
+
+  return (
+    maximum < minimum ||
+    item.quantity < minimum ||
+    item.quantity > maximum
+  );
+};
 
 export const clampCartQuantity = (quantity: number, stock: number) => {
   const safeQuantity = Number.isFinite(quantity)
@@ -102,14 +195,34 @@ export const calculateCartSummary = (items: CartItem[]): CartSummary => {
     (sum, item) => sum + getCartRegularUnitPrice(item) * item.quantity,
     0,
   );
+
   const hasCoolingItems = items.some((item) => item.requiresCooling);
+
   const hasUnavailableItems = items.some(
     (item) => item.availability !== "available" || getCartItemStock(item) <= 0,
   );
+
   const hasStockIssues = items.some(
     (item) =>
       item.quantity > getCartItemStock(item) && getCartItemStock(item) > 0,
   );
+
+  const hasInventoryIssues = items.some(
+    (item) => !getCartItemInventoryVerified(item),
+  );
+
+  const hasQuantityPolicyIssues = items.some(
+    hasCartItemQuantityPolicyIssue,
+  );
+
+  const requiresPickup = items.some(
+    (item) => item.shippingPolicyScope === "pickup_only",
+  );
+
+  const requiresConfiguredDeliveryZone = items.some(
+    (item) => item.shippingPolicyScope === "configured_zones",
+  );
+
   return {
     totalItems,
     uniqueItems: items.length,
@@ -122,8 +235,16 @@ export const calculateCartSummary = (items: CartItem[]): CartSummary => {
     hasCoolingItems,
     hasUnavailableItems,
     hasStockIssues,
+    hasInventoryIssues,
+    hasQuantityPolicyIssues,
+    requiresPickup,
+    requiresConfiguredDeliveryZone,
     isReadyForCheckout:
-      items.length > 0 && !hasUnavailableItems && !hasStockIssues,
+      items.length > 0 &&
+      !hasUnavailableItems &&
+      !hasStockIssues &&
+      !hasInventoryIssues &&
+      !hasQuantityPolicyIssues,
   };
 };
 
@@ -150,6 +271,32 @@ const toPositiveNumber = (value: unknown, fallback: number) => {
 const toNonNegativeInteger = (value: unknown, fallback: number) => {
   const number = toBoundedNumber(value, fallback, 1_000_000);
   return Math.floor(number);
+};
+
+const toOptionalPositiveInteger = (value: unknown) => {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value < 1 ||
+    value > MAX_CART_QUANTITY
+  ) {
+    return undefined;
+  }
+
+  return Math.floor(value);
+};
+
+const toOptionalNonNegativeInteger = (value: unknown) => {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value < 0 ||
+    value > 365
+  ) {
+    return undefined;
+  }
+
+  return Math.floor(value);
 };
 
 const toSafeString = (
@@ -199,6 +346,10 @@ const sanitizeVariant = (value: unknown): CartVariantSnapshot | undefined => {
     name,
     priceToman,
     stock: toNonNegativeInteger(value.stock, 0),
+    inventoryVerified: value.inventoryVerified === true,
+    packageQuantity: toOptionalPositiveInteger(value.packageQuantity),
+    minOrderQuantity: toOptionalPositiveInteger(value.minOrderQuantity),
+    maxOrderQuantity: toOptionalPositiveInteger(value.maxOrderQuantity),
   };
 };
 
@@ -240,6 +391,24 @@ export const sanitizeCartItem = (value: unknown): CartItem | null => {
     ),
     stock,
     requiresCooling: value.requiresCooling === true,
+    inventoryVerified: value.inventoryVerified === true,
+    shippingPolicyScope:
+      value.shippingPolicyScope === "nationwide" ||
+      value.shippingPolicyScope === "configured_zones" ||
+      value.shippingPolicyScope === "pickup_only"
+        ? value.shippingPolicyScope
+        : undefined,
+    availabilityMode:
+      value.availabilityMode === "stocked" ||
+      value.availabilityMode === "made_to_order"
+        ? value.availabilityMode
+        : undefined,
+    preparationMinDays: toOptionalNonNegativeInteger(
+      value.preparationMinDays,
+    ),
+    preparationMaxDays: toOptionalNonNegativeInteger(
+      value.preparationMaxDays,
+    ),
     image: sanitizeImage(value.image),
     availability,
     selectedVariant,

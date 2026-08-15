@@ -97,6 +97,7 @@ for (const removed of [
   "src/pages/CategoryPage.tsx",
   "public/sitemap.xml",
   "scripts/generate-sitemap.mjs",
+  "scripts/generate-sitemap.ts",
 ]) {
   if (fs.existsSync(removed)) {
     errors.push(`${removed} must be removed after UI and crawl unification`);

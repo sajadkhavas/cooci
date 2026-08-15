@@ -33,14 +33,27 @@ export interface BackendProductVariant {
   productCode: string;
   weightGrams: number | null;
   weight: string | null;
+  packageQuantity: number | null;
+  minOrderQuantity: number | null;
+  maxOrderQuantity: number | null;
   priceToman: number;
   regularPriceToman: number;
   salePriceToman: number | null;
   stock: number;
   available: boolean;
+  inventoryVerified: boolean;
   lowStock: boolean;
   isDefault: boolean;
 }
+
+export type BackendAvailabilityMode =
+  | "stocked"
+  | "made_to_order";
+
+export type BackendShippingPolicyScope =
+  | "nationwide"
+  | "configured_zones"
+  | "pickup_only";
 
 export interface BackendProduct {
   id: string;
@@ -60,13 +73,27 @@ export interface BackendProduct {
   stock: number;
   available: boolean;
   requiresCooling: boolean;
+
+  // Compatibility-only legacy field.
   shippingScope: "nationwide" | "tehran-karaj";
   shippingNote: string;
+
+  shippingPolicy: {
+    scope: BackendShippingPolicyScope | null;
+    note: string | null;
+  };
+
+  availabilityMode: BackendAvailabilityMode | null;
+
   ingredients: string[];
   allergens: string[];
   shelfLife: string | null;
   storageTips: string | null;
   preparationTimeDays: number | null;
+  preparation: {
+    minDays: number;
+    maxDays: number;
+  } | null;
   badges: string[];
   images: BackendProductImage[];
   isFeatured: boolean;

@@ -102,7 +102,36 @@ requireText("productsPage", "onClick={() => void refetch()}", "query retry witho
 forbidText("productsPage", "window.location.reload()", "full-page retry");
 requireText("cartPage", "useCartCatalogReconciliation", "exact cart reconciliation hook");
 requireText("cartPage", "cartCatalogReconciled", "checkout reconciliation gate");
-requireText("cartPage", "تهران، کرج و اندیشه", "complete chilled delivery area copy");
+requireText(
+  "cartPage",
+  "روش و محدوده قابل استفاده در Checkout توسط سرور تعیین می‌شود",
+  "truth-safe chilled delivery disclosure",
+);
+requireText(
+  "cartPage",
+  "فقط در محدوده‌های فعال فروشگاه ارسال می‌شود",
+  "configured-zone delivery disclosure",
+);
+forbidText(
+  "cartPage",
+  "ارسال سرد فقط برای تهران، کرج و اندیشه",
+  "hard-coded chilled delivery geography",
+);
+requireText(
+  "cart",
+  "requiresConfiguredDeliveryZone",
+  "configured delivery-zone policy",
+);
+requireText(
+  "cart",
+  "requiresPickup",
+  "pickup-only cart policy",
+);
+requireText(
+  "unit",
+  "cart delivery policy fails closed for pickup-only and configured zones",
+  "fail-closed delivery policy unit test",
+);
 
 requireText("unit", "runtime catalog contract rejects unsafe media", "unsafe media unit test");
 requireText("unit", "unverifiable media is downgraded", "media downgrade unit test");
@@ -127,5 +156,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 3 audit passed: runtime catalog contracts, safe stock and Variant pricing, bounded cart persistence, exact per-slug reconciliation and atomic catalog filters are locked.",
+  "Frontend Phase 3 audit passed: runtime catalog contracts, safe stock and Variant pricing, bounded cart persistence, exact per-slug reconciliation, truth-safe delivery policy and atomic catalog filters are locked.",
 );

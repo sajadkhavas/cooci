@@ -96,13 +96,73 @@ const ProductDetailPage = () => {
 
   const activeStock = product ? getProductStock(product, selectedVariant?.id) : 0;
 
+  const activeInventoryVerified = selectedVariant
+    ? selectedVariant.inventoryVerified === true
+    : product
+      ? isProductInventoryVerified(product)
+      : false;
+
+  const minimumOrderQuantity = Math.max(
+    1,
+    selectedVariant?.minOrderQuantity ?? 1,
+  );
+
+  const maximumOrderQuantity =
+    activeStock > 0
+      ? Math.min(
+          activeStock,
+          selectedVariant?.maxOrderQuantity ?? activeStock,
+        )
+      : 0;
+
+  const cartKey = product
+    ? `${product.id}::${selectedVariant?.id ?? ""}`
+    : "";
+
+  const existingCartItem = product
+    ? items.find(
+        (item) =>
+          `${item.id}::${item.selectedVariant?.id ?? ""}` === cartKey,
+      )
+    : undefined;
+
+  const existingCartQuantity = existingCartItem?.quantity ?? 0;
+
+  const remainingOrderCapacity = Math.max(
+    0,
+    maximumOrderQuantity - existingCartQuantity,
+  );
+
+  const minimumAddQuantity =
+    remainingOrderCapacity > 0
+      ? Math.min(
+          remainingOrderCapacity,
+          Math.max(1, minimumOrderQuantity - existingCartQuantity),
+        )
+      : 1;
+
+  const maximumAddQuantity = Math.max(
+    minimumAddQuantity,
+    remainingOrderCapacity,
+  );
+
   useEffect(() => {
-    if (activeStock <= 0) {
+    if (remainingOrderCapacity <= 0) {
       setQuantity(1);
       return;
     }
-    setQuantity((current) => Math.min(Math.max(1, current), activeStock));
-  }, [activeStock]);
+
+    setQuantity((current) =>
+      Math.min(
+        maximumAddQuantity,
+        Math.max(minimumAddQuantity, current),
+      ),
+    );
+  }, [
+    maximumAddQuantity,
+    minimumAddQuantity,
+    remainingOrderCapacity,
+  ]);
 
   if (isLoading) return <ProductDetailSkeleton />;
 
@@ -154,7 +214,7 @@ const ProductDetailPage = () => {
     ? getVariantDisplayPrice(selectedVariant)
     : salePrice ?? regularPrice;
   const contentVerified = isProductContentVerified(product);
-  const inventoryVerified = isProductInventoryVerified(product);
+  const inventoryVerified = activeInventoryVerified;
   const publicDescription = getPublicProductDescription(product);
   const publicBadges = getPublicProductBadges(product);
   const publicIngredients = getPublicIngredients(product);
@@ -165,10 +225,35 @@ const ProductDetailPage = () => {
     ? selectedVariant?.weight ?? product.weight
     : undefined;
   const activeCode = selectedVariant?.productCode ?? product.productCode;
-  const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
-  const shippingText = product.requiresCooling
-    ? "این انتخاب نیازمند روش تحویل سرد است. محدوده و ظرفیت نهایی در Checkout و بک‌اند تأیید می‌شود."
-    : "روش تحویل قابل انتخاب بر اساس شهر مقصد و تنظیمات فعال Checkout نمایش داده می‌شود.";
+  const ShippingIcon =
+    product.shippingPolicy?.scope === "pickup_only"
+      ? Package
+      : product.requiresCooling
+        ? Snowflake
+        : Truck;
+
+  const shippingPolicyText = (() => {
+    switch (product.shippingPolicy?.scope) {
+      case "pickup_only":
+        return "این محصول فقط با تحویل حضوری قابل سفارش است.";
+      case "configured_zones":
+        return "ارسال این محصول فقط در محدوده‌های فعال و تنظیم‌شده فروشگاه انجام می‌شود.";
+      case "nationwide":
+        return "ارسال این محصول مطابق روش‌ها و محدوده‌های فعال Checkout انجام می‌شود.";
+      default:
+        return "محدوده و روش تحویل این محصول هنگام Checkout توسط سرور تأیید می‌شود.";
+    }
+  })();
+
+  const shippingText = [
+    shippingPolicyText,
+    product.requiresCooling
+      ? "این انتخاب همچنین نیازمند رعایت شرایط تحویل و نگهداری سرد است."
+      : null,
+    product.shippingPolicy?.note || null,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const stockPresentation = getStockPresentation(
     activeStock,
     inventoryVerified,
@@ -178,13 +263,12 @@ const ProductDetailPage = () => {
     : salePrice
       ? getDiscountPercent(product)
       : 0;
-  const cartKey = `${product.id}::${selectedVariant?.id ?? ""}`;
-  const existingCartItem = items.find(
-    (item) => `${item.id}::${item.selectedVariant?.id ?? ""}` === cartKey,
-  );
-  const remainingStock = Math.max(0, activeStock - (existingCartItem?.quantity ?? 0));
-  const canAddToCart = Boolean(activePrice) && activeStock > 0 && remainingStock > 0;
-  const maxQuantity = Math.max(1, remainingStock);
+  const canAddToCart =
+    Boolean(activePrice) &&
+    activeInventoryVerified &&
+    activeStock > 0 &&
+    maximumOrderQuantity >= minimumOrderQuantity &&
+    remainingOrderCapacity >= minimumAddQuantity;
 
 
   const productSchema = {
@@ -215,7 +299,6 @@ const ProductDetailPage = () => {
 
   const handleVariantChange = (variantId: string) => {
     setSelectedVariantId(variantId);
-    setQuantity(1);
   };
 
   const handleAddToCart = () => {
@@ -224,17 +307,30 @@ const ProductDetailPage = () => {
       return;
     }
 
+    if (!activeInventoryVerified) {
+      toast.error("موجودی این انتخاب هنوز توسط فروشگاه تأیید نشده است");
+      return;
+    }
+
     if (activeStock <= 0) {
       toast.error("این انتخاب در حال حاضر ناموجود است");
       return;
     }
 
-    if (remainingStock <= 0) {
-      toast.info("تمام موجودی قابل سفارش این انتخاب در سبد شماست");
+    if (maximumOrderQuantity < minimumOrderQuantity) {
+      toast.error("محدودیت تعداد سفارش این انتخاب با موجودی فعلی سازگار نیست");
       return;
     }
 
-    const safeQuantity = Math.min(quantity, remainingStock);
+    if (remainingOrderCapacity <= 0) {
+      toast.info("حداکثر تعداد قابل سفارش این انتخاب در سبد شماست");
+      return;
+    }
+
+    const safeQuantity = Math.min(
+      maximumAddQuantity,
+      Math.max(minimumAddQuantity, quantity),
+    );
 
     addItem(
       {
@@ -247,6 +343,16 @@ const ProductDetailPage = () => {
           regularPrice && regularPrice > activePrice ? regularPrice : undefined,
         stock: activeStock,
         requiresCooling: Boolean(product.requiresCooling),
+        inventoryVerified: activeInventoryVerified,
+        shippingPolicyScope: product.shippingPolicy?.scope,
+        availabilityMode: product.availabilityMode,
+        preparationMinDays:
+          product.preparation?.minDays ??
+          product.preparationTimeDays,
+        preparationMaxDays:
+          product.preparation?.maxDays ??
+          product.preparation?.minDays ??
+          product.preparationTimeDays,
         image: product.images[0]?.url ?? "",
         selectedVariant: selectedVariant
           ? {
@@ -254,6 +360,11 @@ const ProductDetailPage = () => {
               name: selectedVariant.name,
               priceToman: activePrice,
               stock: activeStock,
+              inventoryVerified:
+                selectedVariant.inventoryVerified === true,
+              packageQuantity: selectedVariant.packageQuantity,
+              minOrderQuantity: selectedVariant.minOrderQuantity,
+              maxOrderQuantity: selectedVariant.maxOrderQuantity,
             }
           : undefined,
       },
@@ -334,7 +445,12 @@ const ProductDetailPage = () => {
                     {product.variants.map((variant) => {
                       const isActive = selectedVariant?.id === variant.id;
                       const variantStock = getProductStock(product, variant.id);
-                      const isUnavailable = variantStock <= 0;
+                      const variantInventoryVerified =
+                        variant.inventoryVerified === true;
+                      const isUnavailable =
+                        variantStock <= 0 ||
+                        variant.available === false ||
+                        !variantInventoryVerified;
 
                       return (
                         <button
@@ -355,7 +471,13 @@ const ProductDetailPage = () => {
                               {formatToman(variant.price)}
                             </span>
                           )}
-                          {isUnavailable && <span className="mt-1 block text-[10px]">ناموجود</span>}
+                          {isUnavailable && (
+                            <span className="mt-1 block text-[10px]">
+                              {!variantInventoryVerified
+                                ? "موجودی تأیید نشده"
+                                : "ناموجود"}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -411,7 +533,11 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              <div className={`flex items-start gap-3 rounded-2xl border p-5 ${product.requiresCooling ? "border-sky-200 bg-sky-50 text-sky-900" : "border-primary/20 bg-primary/10 text-primary"}`}>
+              <div className={`flex items-start gap-3 rounded-2xl border p-5 ${
+                product.requiresCooling
+                  ? "border-sky-200 bg-sky-50 text-sky-900"
+                  : "border-primary/20 bg-primary/10 text-primary"
+              }`}>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80">
                   <ShippingIcon size={20} aria-hidden="true" />
                 </div>
@@ -421,14 +547,61 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
+              {(product.availabilityMode === "made_to_order" ||
+                product.preparation ||
+                selectedVariant?.packageQuantity) && (
+                <div className="grid gap-2 rounded-2xl border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                  {product.availabilityMode === "made_to_order" && (
+                    <p>
+                      <strong className="text-foreground">نوع تأمین:</strong>{" "}
+                      آماده‌سازی پس از ثبت سفارش
+                    </p>
+                  )}
+
+                  {product.preparation && (
+                    <p>
+                      <strong className="text-foreground">زمان آماده‌سازی:</strong>{" "}
+                      {product.preparation.minDays === product.preparation.maxDays
+                        ? `${product.preparation.minDays.toLocaleString("fa-IR")} روز`
+                        : `${product.preparation.minDays.toLocaleString("fa-IR")} تا ${product.preparation.maxDays.toLocaleString("fa-IR")} روز`}
+                    </p>
+                  )}
+
+                  {selectedVariant?.packageQuantity && (
+                    <p>
+                      <strong className="text-foreground">تعداد در بسته:</strong>{" "}
+                      {selectedVariant.packageQuantity.toLocaleString("fa-IR")}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="grid gap-4 rounded-2xl border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                  <span className="font-bold text-foreground">تعداد سفارش</span>
+                  <div>
+                    <span className="font-bold text-foreground">تعداد سفارش</span>
+                    {(minimumOrderQuantity > 1 ||
+                      selectedVariant?.maxOrderQuantity) && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        حداقل {minimumOrderQuantity.toLocaleString("fa-IR")}
+                        {selectedVariant?.maxOrderQuantity
+                          ? ` · حداکثر ${maximumOrderQuantity.toLocaleString("fa-IR")}`
+                          : ""}
+                      </p>
+                    )}
+                  </div>
                   <div className="inline-flex items-center gap-2 rounded-xl bg-secondary p-1">
                     <button
                       type="button"
-                      onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                      disabled={!canAddToCart || quantity <= 1}
+                      onClick={() =>
+                        setQuantity((value) =>
+                          Math.max(minimumAddQuantity, value - 1),
+                        )
+                      }
+                      disabled={
+                        !canAddToCart ||
+                        quantity <= minimumAddQuantity
+                      }
                       className="flex h-10 w-10 items-center justify-center rounded-lg bg-card hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="کم کردن تعداد"
                     >
@@ -437,8 +610,15 @@ const ProductDetailPage = () => {
                     <span className="min-w-10 text-center font-black">{quantity.toLocaleString("fa-IR")}</span>
                     <button
                       type="button"
-                      onClick={() => setQuantity((value) => Math.min(maxQuantity, value + 1))}
-                      disabled={!canAddToCart || quantity >= maxQuantity}
+                      onClick={() =>
+                        setQuantity((value) =>
+                          Math.min(maximumAddQuantity, value + 1),
+                        )
+                      }
+                      disabled={
+                        !canAddToCart ||
+                        quantity >= maximumAddQuantity
+                      }
                       className="flex h-10 w-10 items-center justify-center rounded-lg bg-card hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="زیاد کردن تعداد"
                     >
@@ -461,11 +641,13 @@ const ProductDetailPage = () => {
                   className="flex items-center justify-center gap-3 rounded-xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:hover:scale-100"
                 >
                   <ShoppingCart size={22} aria-hidden="true" />
-                  {activeStock <= 0
-                    ? "ناموجود"
-                    : remainingStock <= 0
-                      ? "تمام موجودی در سبد است"
-                      : "افزودن به سبد خرید"}
+                  {!activeInventoryVerified
+                    ? "در انتظار تأیید موجودی"
+                    : activeStock <= 0
+                      ? "ناموجود"
+                      : remainingOrderCapacity <= 0
+                        ? "حداکثر تعداد در سبد است"
+                        : "افزودن به سبد خرید"}
                 </button>
                 <Link
                   to="/cart"

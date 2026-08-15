@@ -49,7 +49,6 @@ for (const file of sourceFiles) {
     { pattern: /javascript:/gi, message: "javascript: URL" },
     { pattern: /\b(?:TODO|FIXME)\b/g, message: "unfinished TODO/FIXME marker" },
     { pattern: /lorem ipsum/gi, message: "placeholder Lorem Ipsum copy" },
-    { pattern: /cooci\.lovable\.app/gi, message: "temporary Lovable domain" },
   ]) {
     if (rule.pattern.test(source)) errors.push(displayPath + ": contains " + rule.message + ".");
   }

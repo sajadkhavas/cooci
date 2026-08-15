@@ -46,6 +46,10 @@ type ProductVariant = NonNullable<Product["variants"]>[number] & {
   lowStock: boolean;
   isDefault: boolean;
   weightGrams?: number;
+  packageQuantity?: number;
+  minOrderQuantity?: number;
+  maxOrderQuantity?: number;
+  inventoryVerified: boolean;
 };
 
 type MappedProduct = Product & {
@@ -63,12 +67,16 @@ const mapVariant = (variant: BackendProductVariant): ProductVariant => ({
   price: variant.priceToman,
   weight: variant.weight || undefined,
   weightGrams: variant.weightGrams || undefined,
+  packageQuantity: variant.packageQuantity || undefined,
+  minOrderQuantity: variant.minOrderQuantity || undefined,
+  maxOrderQuantity: variant.maxOrderQuantity || undefined,
   productCode: variant.productCode,
   description: variant.lowStock ? "موجودی محدود" : undefined,
   stock: variant.stock,
   regularPriceToman: variant.regularPriceToman,
   salePriceToman: variant.salePriceToman || undefined,
   available: variant.available,
+  inventoryVerified: variant.inventoryVerified,
   lowStock: variant.lowStock,
   isDefault: variant.isDefault,
 });
@@ -114,11 +122,22 @@ export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
     ingredients: product.ingredients,
     shelfLife: product.shelfLife || "",
     storageTips: product.storageTips || "",
-    preparationTimeDays: product.preparationTimeDays || undefined,
+    preparationTimeDays: product.preparationTimeDays ?? undefined,
+    preparation: product.preparation
+      ? {
+          minDays: product.preparation.minDays,
+          maxDays: product.preparation.maxDays,
+        }
+      : undefined,
     stock: product.stock,
     requiresCooling: product.requiresCooling,
     shippingScope: product.shippingScope,
     shippingNote: product.shippingNote,
+    shippingPolicy: {
+      scope: product.shippingPolicy.scope ?? undefined,
+      note: product.shippingPolicy.note ?? undefined,
+    },
+    availabilityMode: product.availabilityMode ?? undefined,
     images: verifiedImages.length ? verifiedImages : [fallbackImage],
     isFeatured: product.isFeatured,
     productCode: product.productCode,

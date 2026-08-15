@@ -5,19 +5,32 @@ import { extractOfficialEnamadBadge } from "@/lib/security/enamad";
 
 export const EnamadTrustSlot = () => {
   const { query } = useStorefrontSettings();
+
   const badge = useMemo(
     () =>
-      extractOfficialEnamadBadge(query.data?.trust.enamad.badgeCode || null),
+      extractOfficialEnamadBadge(
+        query.data?.trust.enamad.badgeCode || null,
+      ),
     [query.data?.trust.enamad.badgeCode],
   );
 
   if (query.data?.trust.enamad.enabled && badge) {
     return (
-      <div
+      <a
         className="inline-flex min-h-24 min-w-24 items-center justify-center rounded-2xl border border-white/12 bg-white/8 p-3"
-        aria-label="نماد اعتماد الکترونیکی وینیمی"
-        dangerouslySetInnerHTML={{ __html: badge.html }}
-      />
+        href={badge.verification}
+        target="_blank"
+        rel="noopener noreferrer"
+        referrerPolicy="origin"
+        aria-label="مشاهده نماد اعتماد الکترونیکی وینیمی"
+      >
+        <img
+          src={badge.image}
+          alt="نماد اعتماد الکترونیکی وینیمی"
+          referrerPolicy="origin"
+          className="h-auto max-h-20 w-auto max-w-24"
+        />
+      </a>
     );
   }
 

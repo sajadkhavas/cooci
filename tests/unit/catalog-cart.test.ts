@@ -5,6 +5,8 @@ import {
   backendProductSchema,
 } from "../../src/lib/catalog-contract-schema.ts";
 import {
+  calculateCartSummary,
+  isCartDeliveryMethodAllowed,
   MAX_CART_ITEMS,
   parseStoredCart,
   sanitizeCartItem,
@@ -40,11 +42,20 @@ const backendProductFixture = {
   requiresCooling: false,
   shippingScope: "nationwide",
   shippingNote: "Nationwide delivery",
+  shippingPolicy: {
+    scope: "nationwide",
+    note: "Nationwide delivery",
+  },
+  availabilityMode: "stocked",
   ingredients: [],
   allergens: [],
   shelfLife: "7 days",
   storageTips: "Keep dry",
   preparationTimeDays: 1,
+  preparation: {
+    minDays: 1,
+    maxDays: 2,
+  },
   badges: [],
   images: [
     {
@@ -64,11 +75,15 @@ const backendProductFixture = {
       productCode: "COOKIE-001-6",
       weightGrams: 300,
       weight: "300 grams",
+      packageQuantity: 6,
+      minOrderQuantity: 1,
+      maxOrderQuantity: 5,
       priceToman: 120_000,
       regularPriceToman: 150_000,
       salePriceToman: 120_000,
       stock: 5,
       available: true,
+      inventoryVerified: true,
       lowStock: true,
       isDefault: true,
     },
@@ -111,6 +126,16 @@ const catalogProductFixture = {
   requiresCooling: false,
   shippingScope: "nationwide",
   shippingNote: "",
+  shippingPolicy: {
+    scope: "configured_zones",
+    note: "Configured delivery zones",
+  },
+  availabilityMode: "stocked",
+  preparation: {
+    minDays: 1,
+    maxDays: 2,
+  },
+  inventoryVerified: true,
   images: [{ url: "/assets/cookie.jpg", alt: "Cookie" }],
   isFeatured: true,
   productCode: "COOKIE-001",
@@ -124,6 +149,7 @@ const catalogProductFixture = {
       regularPriceToman: 150_000,
       salePriceToman: 120_000,
       available: false,
+      inventoryVerified: false,
       isDefault: true,
     },
     {
@@ -135,6 +161,10 @@ const catalogProductFixture = {
       regularPriceToman: 140_000,
       salePriceToman: 110_000,
       available: true,
+      inventoryVerified: true,
+      packageQuantity: 6,
+      minOrderQuantity: 2,
+      maxOrderQuantity: 3,
       isDefault: false,
     },
   ],
@@ -175,6 +205,28 @@ test("runtime catalog contract rejects contradictory stock truth", () => {
   badVariant.variants[0].stock = 0;
   badVariant.variants[0].available = true;
   assert.equal(backendProductSchema.safeParse(badVariant).success, false);
+});
+
+test("runtime catalog contract rejects inverted operational ranges", () => {
+  const badPreparation = structuredClone(backendProductFixture);
+  badPreparation.preparation = {
+    minDays: 3,
+    maxDays: 1,
+  };
+
+  assert.equal(
+    backendProductSchema.safeParse(badPreparation).success,
+    false,
+  );
+
+  const badOrderRange = structuredClone(backendProductFixture);
+  badOrderRange.variants[0].minOrderQuantity = 6;
+  badOrderRange.variants[0].maxOrderQuantity = 2;
+
+  assert.equal(
+    backendProductSchema.safeParse(badOrderRange).success,
+    false,
+  );
 });
 
 test("pagination contract rejects impossible bounds", () => {
@@ -253,7 +305,128 @@ test("exact Variant reconciliation refreshes price, discount and stock", () => {
   assert.equal(synchronized.regularPriceToman, 140_000);
   assert.equal(synchronized.stock, 3);
   assert.equal(synchronized.selectedVariant?.stock, 3);
+  assert.equal(synchronized.selectedVariant?.inventoryVerified, true);
+  assert.equal(synchronized.selectedVariant?.packageQuantity, 6);
+  assert.equal(synchronized.selectedVariant?.minOrderQuantity, 2);
+  assert.equal(synchronized.selectedVariant?.maxOrderQuantity, 3);
+  assert.equal(synchronized.inventoryVerified, true);
+  assert.equal(synchronized.shippingPolicyScope, "configured_zones");
+  assert.equal(synchronized.preparationMinDays, 1);
+  assert.equal(synchronized.preparationMaxDays, 2);
   assert.equal(synchronized.availability, "available");
+});
+
+test("checkout readiness requires verified inventory and valid order bounds", () => {
+  const valid = sanitizeCartItem({
+    ...storedCartCandidate,
+    stock: 5,
+    availability: "available",
+    inventoryVerified: true,
+    shippingPolicyScope: "configured_zones",
+    selectedVariant: {
+      id: "variant-available",
+      name: "Available",
+      priceToman: 110_000,
+      stock: 5,
+      inventoryVerified: true,
+      minOrderQuantity: 2,
+      maxOrderQuantity: 3,
+    },
+    quantity: 2,
+  }) as CartItem;
+
+  const ready = calculateCartSummary([valid]);
+  assert.equal(ready.hasInventoryIssues, false);
+  assert.equal(ready.hasQuantityPolicyIssues, false);
+  assert.equal(ready.requiresConfiguredDeliveryZone, true);
+  assert.equal(ready.isReadyForCheckout, true);
+
+  const belowMinimum = calculateCartSummary([
+    { ...valid, quantity: 1 },
+  ]);
+  assert.equal(belowMinimum.hasQuantityPolicyIssues, true);
+  assert.equal(belowMinimum.isReadyForCheckout, false);
+
+  const unverified = calculateCartSummary([
+    {
+      ...valid,
+      selectedVariant: {
+        ...valid.selectedVariant!,
+        inventoryVerified: false,
+      },
+    },
+  ]);
+  assert.equal(unverified.hasInventoryIssues, true);
+  assert.equal(unverified.isReadyForCheckout, false);
+});
+
+test("cart delivery policy fails closed for pickup-only and configured zones", () => {
+  const pickupOnly = {
+    requiresPickup: true,
+    requiresConfiguredDeliveryZone: true,
+    hasConfiguredDeliveryZone: false,
+  };
+
+  assert.equal(
+    isCartDeliveryMethodAllowed("standard", pickupOnly),
+    false,
+  );
+  assert.equal(
+    isCartDeliveryMethodAllowed("chilled", pickupOnly),
+    false,
+  );
+  assert.equal(
+    isCartDeliveryMethodAllowed("pickup", pickupOnly),
+    true,
+  );
+
+  const configuredZoneMissing = {
+    requiresPickup: false,
+    requiresConfiguredDeliveryZone: true,
+    hasConfiguredDeliveryZone: false,
+  };
+
+  assert.equal(
+    isCartDeliveryMethodAllowed(
+      "standard",
+      configuredZoneMissing,
+    ),
+    false,
+  );
+  assert.equal(
+    isCartDeliveryMethodAllowed(
+      "chilled",
+      configuredZoneMissing,
+    ),
+    false,
+  );
+  assert.equal(
+    isCartDeliveryMethodAllowed(
+      "pickup",
+      configuredZoneMissing,
+    ),
+    true,
+  );
+
+  const configuredZoneResolved = {
+    ...configuredZoneMissing,
+    hasConfiguredDeliveryZone: true,
+  };
+
+  assert.equal(
+    isCartDeliveryMethodAllowed(
+      "standard",
+      configuredZoneResolved,
+    ),
+    true,
+  );
+  assert.equal(
+    isCartDeliveryMethodAllowed(
+      "chilled",
+      configuredZoneResolved,
+    ),
+    true,
+  );
 });
 
 test("unknown catalog stock is zero and preferred Variant must be available", () => {

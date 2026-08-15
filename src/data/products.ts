@@ -17,6 +17,15 @@ import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
 
 export type ShippingScope = "nationwide" | "tehran-karaj";
 
+export type ShippingPolicyScope =
+  | "nationwide"
+  | "configured_zones"
+  | "pickup_only";
+
+export type AvailabilityMode =
+  | "stocked"
+  | "made_to_order";
+
 export interface Product {
   id: string;
   slug: string;
@@ -40,10 +49,20 @@ export interface Product {
   shelfLifeDays?: number;
   storageTips: string;
   preparationTimeDays?: number;
+  preparation?: {
+    minDays: number;
+    maxDays: number;
+  };
   stock?: number;
   requiresCooling?: boolean;
   shippingScope?: ShippingScope;
   shippingNote?: string;
+  shippingPolicy?: {
+    scope?: ShippingPolicyScope;
+    note?: string;
+  };
+  availabilityMode?: AvailabilityMode;
+  inventoryVerified?: boolean;
   images: { url: string; alt: string }[];
   isFeatured: boolean;
   productCode: string;
@@ -54,6 +73,17 @@ export interface Product {
     weight?: string;
     productCode?: string;
     description?: string;
+    stock?: number;
+    regularPriceToman?: number;
+    salePriceToman?: number;
+    available?: boolean;
+    inventoryVerified?: boolean;
+    lowStock?: boolean;
+    isDefault?: boolean;
+    weightGrams?: number;
+    packageQuantity?: number;
+    minOrderQuantity?: number;
+    maxOrderQuantity?: number;
   }[];
   seo?: {
     title: string;

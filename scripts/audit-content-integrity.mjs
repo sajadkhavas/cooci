@@ -53,6 +53,7 @@ for (const stalePath of [
   "public/sitemap.xml",
   "public/robots.txt",
   "scripts/generate-sitemap.mjs",
+  "scripts/generate-sitemap.ts",
 ]) {
   if (existsSync(stalePath)) {
     errors.push(`${stalePath}: stale static crawl artifact is forbidden.`);

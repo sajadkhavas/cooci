@@ -20,9 +20,13 @@ import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
 import { useCartCatalogReconciliation } from "@/hooks/useCartCatalogReconciliation";
 import {
+  getCartItemInventoryVerified,
+  getCartItemMaxOrderQuantity,
+  getCartItemMinOrderQuantity,
   getCartItemStock,
   getCartRegularUnitPrice,
   getCartUnitPrice,
+  hasCartItemQuantityPolicyIssue,
 } from "@/lib/cart";
 
 const CartPage = () => {
@@ -41,6 +45,10 @@ const CartPage = () => {
     hasCoolingItems,
     hasUnavailableItems,
     hasStockIssues,
+    hasInventoryIssues,
+    hasQuantityPolicyIssues,
+    requiresPickup,
+    requiresConfiguredDeliveryZone,
     isReadyForCheckout,
     totalItems,
     uniqueItems,
@@ -150,18 +158,39 @@ const CartPage = () => {
                   <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
                     <Snowflake size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
                     <p className="text-sm leading-7">
-                      سبد شما شامل محصول یخچالی است؛ ارسال سرد فقط برای تهران، کرج و اندیشه امکان‌پذیر خواهد بود.
+                      سبد شامل محصول نیازمند شرایط سرد است؛ روش و محدوده قابل استفاده در Checkout توسط سرور تعیین می‌شود.
                     </p>
                   </div>
                 )}
 
-                {(hasUnavailableItems || hasStockIssues) && (
+                {requiresPickup && (
+                  <div className="flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-primary">
+                    <PackageCheck size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    <p className="text-sm leading-7">
+                      حداقل یک محصول این سبد فقط با تحویل حضوری قابل سفارش است؛ برای کل این سفارش باید روش تحویل حضوری انتخاب شود.
+                    </p>
+                  </div>
+                )}
+
+                {!requiresPickup && requiresConfiguredDeliveryZone && (
+                  <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+                    <Truck size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    <p className="text-sm leading-7">
+                      حداقل یک محصول فقط در محدوده‌های فعال فروشگاه ارسال می‌شود؛ مقصد نهایی در Checkout بررسی خواهد شد.
+                    </p>
+                  </div>
+                )}
+
+                {(hasUnavailableItems ||
+                  hasStockIssues ||
+                  hasInventoryIssues ||
+                  hasQuantityPolicyIssues) && (
                   <div className="flex items-start gap-3 rounded-2xl border border-destructive/25 bg-destructive/5 p-4 text-destructive" role="alert">
                     <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
                     <div>
                       <p className="font-bold">سبد نیاز به اصلاح دارد</p>
                       <p className="mt-1 text-sm leading-7">
-                        محصول ناموجود را حذف کنید یا تعداد اقلامی که بیشتر از موجودی هستند کاهش دهید.
+                        محصول نامعتبر را حذف کنید، موجودی تأییدنشده را دوباره بررسی کنید یا تعداد سفارش را با حداقل، حداکثر و موجودی فعلی هماهنگ کنید.
                       </p>
                     </div>
                   </div>
@@ -171,10 +200,42 @@ const CartPage = () => {
                   const unitPrice = getCartUnitPrice(item);
                   const regularUnitPrice = getCartRegularUnitPrice(item);
                   const stock = getCartItemStock(item);
-                  const isUnavailable = item.availability !== "available" || stock <= 0;
-                  const hasQuantityIssue = stock > 0 && item.quantity > stock;
-                  const isAtStockLimit = item.quantity >= stock && stock > 0;
+                  const isUnavailable =
+                    item.availability !== "available" || stock <= 0;
+
+                  const inventoryVerified =
+                    getCartItemInventoryVerified(item);
+
+                  const minimumOrder =
+                    getCartItemMinOrderQuantity(item);
+
+                  const maximumOrder =
+                    getCartItemMaxOrderQuantity(item);
+
+                  const hasQuantityIssue =
+                    hasCartItemQuantityPolicyIssue(item);
+
+                  const belowMinimum =
+                    item.quantity < minimumOrder;
+
+                  const aboveMaximum =
+                    maximumOrder > 0 &&
+                    item.quantity > maximumOrder;
+
+                  const isAtMaximum =
+                    maximumOrder > 0 &&
+                    item.quantity >= maximumOrder;
+
                   const variantId = item.selectedVariant?.id;
+
+                  const shippingLabel =
+                    item.shippingPolicyScope === "pickup_only"
+                      ? "فقط تحویل حضوری"
+                      : item.shippingPolicyScope === "configured_zones"
+                        ? "ارسال در محدوده‌های فعال"
+                        : item.shippingPolicyScope === "nationwide"
+                          ? "ارسال مطابق تنظیمات سراسری"
+                          : "محدوده ارسال در Checkout";
 
                   return (
                     <article
@@ -242,10 +303,17 @@ const CartPage = () => {
                                 <XCircle size={14} aria-hidden="true" />
                                 {item.availability === "unavailable" ? "دیگر قابل سفارش نیست" : "ناموجود"}
                               </span>
+                            ) : !inventoryVerified ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
+                                <AlertTriangle size={14} aria-hidden="true" />
+                                موجودی نیازمند تأیید مجدد
+                              </span>
                             ) : hasQuantityIssue ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
                                 <AlertTriangle size={14} aria-hidden="true" />
-                                موجودی فعلی: {stock.toLocaleString("fa-IR")} عدد
+                                {belowMinimum
+                                  ? `حداقل سفارش ${minimumOrder.toLocaleString("fa-IR")} عدد`
+                                  : `حداکثر قابل سفارش ${maximumOrder.toLocaleString("fa-IR")} عدد`}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
@@ -255,13 +323,32 @@ const CartPage = () => {
                             )}
 
                             <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
-                              {item.requiresCooling ? (
-                                <Snowflake size={14} aria-hidden="true" />
+                              {item.shippingPolicyScope === "pickup_only" ? (
+                                <PackageCheck size={14} aria-hidden="true" />
                               ) : (
                                 <Truck size={14} aria-hidden="true" />
                               )}
-                              {item.requiresCooling ? "ارسال یخچالی" : "ارسال سراسری"}
+                              {shippingLabel}
                             </span>
+
+                            {item.requiresCooling && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-900">
+                                <Snowflake size={14} aria-hidden="true" />
+                                نیازمند شرایط سرد
+                              </span>
+                            )}
+
+                            {item.availabilityMode === "made_to_order" && (
+                              <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
+                                آماده‌سازی پس از سفارش
+                              </span>
+                            )}
+
+                            {item.selectedVariant?.packageQuantity && (
+                              <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
+                                {item.selectedVariant.packageQuantity.toLocaleString("fa-IR")} عدد در بسته
+                              </span>
+                            )}
                           </div>
 
                           <div className="mt-5 flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-end sm:justify-between">
@@ -270,7 +357,11 @@ const CartPage = () => {
                                 type="button"
                                 onClick={() => updateQuantity(item.id, item.quantity - 1, variantId)}
                                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-card transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                disabled={item.quantity <= 1 || isUnavailable}
+                                disabled={
+                                  item.quantity <= minimumOrder ||
+                                  isUnavailable ||
+                                  !inventoryVerified
+                                }
                                 aria-label="کم کردن تعداد"
                               >
                                 <Minus size={15} aria-hidden="true" />
@@ -282,20 +373,47 @@ const CartPage = () => {
                                 type="button"
                                 onClick={() => updateQuantity(item.id, item.quantity + 1, variantId)}
                                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-card transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-                                disabled={isUnavailable || isAtStockLimit || hasQuantityIssue}
+                                disabled={
+                                  isUnavailable ||
+                                  !inventoryVerified ||
+                                  isAtMaximum ||
+                                  aboveMaximum
+                                }
                                 aria-label="زیاد کردن تعداد"
                               >
                                 <Plus size={15} aria-hidden="true" />
                               </button>
                             </div>
 
-                            {hasQuantityIssue && (
+                            {belowMinimum && (
                               <button
                                 type="button"
-                                onClick={() => updateQuantity(item.id, stock, variantId)}
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.id,
+                                    minimumOrder,
+                                    variantId,
+                                  )
+                                }
                                 className="text-sm font-bold text-amber-800 hover:underline"
                               >
-                                تنظیم روی موجودی فعلی
+                                تنظیم روی حداقل مجاز
+                              </button>
+                            )}
+
+                            {aboveMaximum && maximumOrder > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.id,
+                                    maximumOrder,
+                                    variantId,
+                                  )
+                                }
+                                className="text-sm font-bold text-amber-800 hover:underline"
+                              >
+                                تنظیم روی حداکثر مجاز
                               </button>
                             )}
 

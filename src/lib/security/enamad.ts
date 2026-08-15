@@ -1,5 +1,4 @@
 export interface EnamadBadgeUrls {
-  html: string;
   image: string;
   verification: string;
 }
@@ -116,7 +115,6 @@ export const extractOfficialEnamadBadge = (
     if (new Set(providedCodes).size > 1) return null;
 
     return {
-      html: code,
       image: image.toString(),
       verification: verification.toString(),
     };

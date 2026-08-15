@@ -7,11 +7,11 @@ const badgeCode = "OfficialMarkupTestCode123";
 const officialMarkup =
   `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=${badgeId}&Code=${badgeCode}'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=${badgeId}&Code=${badgeCode}' alt='' style='cursor:pointer' code='${badgeCode}'></a>`;
 
-test("official eNAMAD markup is returned byte-for-byte without reconstruction", () => {
+test("official eNAMAD markup is parsed into verified URLs without raw HTML execution", () => {
   const badge = extractOfficialEnamadBadge(officialMarkup);
 
   assert.ok(badge);
-  assert.equal(badge.html, officialMarkup);
+  assert.equal("html" in badge, false);
   assert.equal(
     badge.verification,
     `https://trustseal.enamad.ir/?id=${badgeId}&Code=${badgeCode}`,

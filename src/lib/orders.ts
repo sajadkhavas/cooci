@@ -144,6 +144,11 @@ export const mapBackendOrder = (order: BackendOrder): LocalOrder => {
       quantity: item.quantity,
       stock: item.quantity,
       requiresCooling: item.requiresCooling,
+
+      // A historical order is not proof of current sellable inventory.
+      // Exact catalog reconciliation must establish current truth.
+      inventoryVerified: false,
+
       image: "",
       availability: "available",
       selectedVariant: {
@@ -151,6 +156,7 @@ export const mapBackendOrder = (order: BackendOrder): LocalOrder => {
         name: item.variantName,
         priceToman: item.unitPriceToman,
         stock: item.quantity,
+        inventoryVerified: false,
       },
     })),
     subtotal: order.totals.subtotalToman,
