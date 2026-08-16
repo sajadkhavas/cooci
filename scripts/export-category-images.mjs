@@ -21,7 +21,7 @@ const categoryImages = [
   },
   {
     slug: "diet",
-    name: "رژیمی و بدون قند افزوده",
+    name: "انتخاب‌های رژیمی",
     source: "src/assets/cookies/lifestyle-twine.jpg",
   },
   {

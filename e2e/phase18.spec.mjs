@@ -96,7 +96,7 @@ test("catalog renders backend staging products and search narrows results", asyn
   assertNoPageErrors();
 });
 
-test("legacy diet URLs and category links resolve to clean unified-shop routes", async ({ page, request }) => {
+test("legacy diet URLs follow published category truth and category links resolve to clean unified-shop routes", async ({ page, request }) => {
   const assertNoPageErrors = attachPageErrorGuard(page);
   const response = await request.get(`${apiOrigin}/api/catalog/categories`, {
     headers: {
@@ -105,8 +105,11 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
     },
   });
   expect(response.ok()).toBeTruthy();
+
   const payload = await response.json();
-  const category = payload.data.find(
+  const categories = Array.isArray(payload.data) ? payload.data : [];
+  const dietCategory = categories.find((item) => item.slug === "diet");
+  const category = categories.find(
     (item) =>
       item.slug !== "diet" &&
       !item.name.includes("رژیمی") &&
@@ -115,13 +118,23 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
-  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
-  await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /رژیمی و بدون قند افزوده/,
-    }),
-  ).toBeVisible();
+
+  if (dietCategory) {
+    await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: dietCategory.name,
+        exact: true,
+      }),
+    ).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(/\/products$/);
+  }
+
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("diet"))
+    .toBeNull();
 
   const categoryNavigation = page.getByRole("navigation", {
     name: "دسته‌بندی محصولات",

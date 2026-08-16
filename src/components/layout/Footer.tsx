@@ -16,8 +16,11 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { brandConfig } from "@/config/brand";
+import { categoryContents } from "@/data/categoriesContent";
+import { useCatalogCategories } from "@/hooks/useCatalog";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const footerLinks = {
   quickLinks: [
@@ -28,19 +31,6 @@ const footerLinks = {
     { name: "نظرهای تأییدشده", href: "/reviews" },
     { name: "راهنماها", href: "/blog" },
     { name: "تماس با ما", href: "/contact" },
-  ],
-  categories: [
-    { name: "همه محصولات", href: "/products" },
-    { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
-    { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-    {
-      name: "رژیمی و بدون قند افزوده",
-      href: "/products/category/diet-diabetic",
-    },
-    { name: "کیک و دسر", href: "/products/category/cakes" },
-    { name: "چیزکیک", href: "/products/category/cheesecakes" },
-    { name: "رول و کروسان", href: "/products/category/pastry" },
-    { name: "باکس هدیه", href: "/products/category/gift-boxes" },
   ],
   services: [
     { name: "مناطق منتشرشده ارسال", href: "/locations" },
@@ -93,6 +83,17 @@ const FooterColumn = ({
 
 export const Footer = () => {
   const { settings } = useStorefrontSettings();
+  const { categories } = useCatalogCategories();
+
+  const categoryLinks = [
+    { name: "همه محصولات", href: "/products" },
+    ...buildVisibleCatalogCategories(categoryContents, categories).map(
+      (category) => ({
+        name: category.name,
+        href: `/products/category/${category.routeSlug}`,
+      }),
+    ),
+  ];
   const scrollToTop = () =>
     window.scrollTo({
       top: 0,
@@ -233,7 +234,7 @@ export const Footer = () => {
           </div>
 
           <FooterColumn title="کشف وینیمی" links={footerLinks.quickLinks} />
-          <FooterColumn title="دسته‌بندی‌ها" links={footerLinks.categories} />
+          <FooterColumn title="دسته‌بندی‌ها" links={categoryLinks} />
           <FooterColumn title="خدمات و مناطق" links={footerLinks.services} />
         </div>
 

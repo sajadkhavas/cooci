@@ -1,5 +1,7 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
 import { categoryContents } from "@/data/categoriesContent";
+import { isBackendEnabled } from "@/lib/api";
+import { fetchCatalogCategories } from "@/lib/catalog-api";
 import { loadShopPublicData } from "@/lib/public-loaders.server";
 import ProductsPage from "../pages/ProductsPage";
 
@@ -11,6 +13,10 @@ const resolveEditorialSlug = (catalogSlug: string) =>
       category.slug === catalogSlug ||
       category.productCategorySlug === catalogSlug,
   )?.slug || catalogSlug;
+
+const resolveBackendCategorySlug = (routeSlug: string) =>
+  categoryContents.find((category) => category.slug === routeSlug)
+    ?.productCategorySlug || routeSlug;
 
 export const loader = async (args: LoaderFunctionArgs) => {
   const url = new URL(args.request.url);
@@ -35,6 +41,18 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const targetSlug = legacyDiet
     ? "diet-diabetic"
     : resolveEditorialSlug(legacyCategory || "");
+
+  if (isBackendEnabled) {
+    const categories = await fetchCatalogCategories();
+    const backendSlug = resolveBackendCategorySlug(targetSlug);
+    const isPublished = categories.some(
+      (category) => category.slug === backendSlug,
+    );
+
+    if (!isPublished) {
+      return redirect(shopUrl, 301);
+    }
+  }
 
   return redirect(
     `/products/category/${encodeURIComponent(targetSlug)}${query ? `?${query}` : ""}`,
