@@ -68,6 +68,7 @@ const mapVariant = (variant: BackendProductVariant): ProductVariant => ({
   stock: variant.stock,
   regularPriceToman: variant.regularPriceToman,
   salePriceToman: variant.salePriceToman || undefined,
+  packagingFeeToman: variant.packagingFeeToman,
   available: variant.available,
   lowStock: variant.lowStock,
   isDefault: variant.isDefault,

@@ -167,8 +167,8 @@ const ProductDetailPage = () => {
   const activeCode = selectedVariant?.productCode ?? product.productCode;
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText = product.requiresCooling
-    ? "این انتخاب نیازمند روش تحویل سرد است. محدوده و ظرفیت نهایی در Checkout و بک‌اند تأیید می‌شود."
-    : "روش تحویل قابل انتخاب بر اساس شهر مقصد و تنظیمات فعال Checkout نمایش داده می‌شود.";
+    ? "این محصول در آماده‌سازی و حمل به مراقبت دمایی نیاز دارد؛ شیوه حمل توسط فروشگاه هماهنگ می‌شود."
+    : "ارسال توسط فروشگاه هماهنگ می‌شود و هزینه پیک هنگام تحویل مستقیماً پرداخت خواهد شد.";
   const stockPresentation = getStockPresentation(
     activeStock,
     inventoryVerified,
@@ -253,6 +253,7 @@ const ProductDetailPage = () => {
               id: selectedVariant.id,
               name: selectedVariant.name,
               priceToman: activePrice,
+              packagingFeeToman: selectedVariant.packagingFeeToman ?? 0,
               stock: activeStock,
             }
           : undefined,

@@ -80,6 +80,7 @@ export const backendProductVariantSchema = z
     priceToman: z.number().int().nonnegative(),
     regularPriceToman: z.number().int().nonnegative(),
     salePriceToman: z.number().int().nonnegative().nullable(),
+    packagingFeeToman: z.number().int().nonnegative(),
     stock: z.number().int().nonnegative(),
     available: z.boolean(),
     lowStock: z.boolean(),

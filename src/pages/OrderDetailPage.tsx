@@ -32,7 +32,7 @@ import {
 } from "@/lib/orders";
 
 const deliveryLabel = {
-  standard: "ارسال استاندارد",
+  standard: "ارسال توسط فروشگاه",
   chilled: "ارسال سرد",
   pickup: "تحویل حضوری",
 };
@@ -218,7 +218,33 @@ const OrderDetailPage = () => {
                   <div className="flex justify-between"><span>مبلغ محصولات</span><span>{formatToman(order.subtotal)}</span></div>
                   {order.discount > 0 && <div className="flex justify-between text-emerald-700"><span>تخفیف</span><span>- {formatToman(order.discount)}</span></div>}
                   <div className="flex justify-between"><span>بسته‌بندی</span><span>{formatToman(order.packagingFee)}</span></div>
-                  <div className="flex justify-between"><span>{deliveryLabel[order.deliveryMethod]}</span><span>{formatToman(order.deliveryFee)}</span></div>
+                  <div className="flex justify-between">
+                    <span>روش ارسال</span>
+                    <span>{deliveryLabel[order.deliveryMethod]}</span>
+                  </div>
+
+                  {order.deliveryMethod === "standard" ? (
+                    <>
+                      <div className="flex justify-between">
+                        <span>هزینه ارسال</span>
+                        <span className="font-bold">
+                          پرداخت هنگام تحویل
+                        </span>
+                      </div>
+                      <p className="rounded-xl bg-secondary/60 p-3 text-xs leading-6 text-muted-foreground">
+                        {order.deliveryNotice}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span>هزینه ارسال ثبت‌شده</span>
+                      <span className="font-bold">
+                        {order.deliveryFee > 0
+                          ? formatToman(order.deliveryFee)
+                          : "بدون مبلغ ثبت‌شده"}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t border-border pt-3 text-lg"><span className="font-bold">مبلغ کل</span><span className="font-black text-primary">{formatToman(order.total)}</span></div>
                 </div>
               </section>

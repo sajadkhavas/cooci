@@ -138,6 +138,9 @@ export const backendOrderSchema = z
       methodLabel: z.string().max(160),
       requiresCooling: z.boolean(),
       feeToman: money,
+      feePayment: z.literal("pay_on_delivery_to_courier"),
+      feeIncludedInOrder: z.literal(false),
+      notice: z.literal("هزینه ارسال در مبلغ سفارش محاسبه نشده و هنگام تحویل مستقیماً به پیک پرداخت می‌شود."),
       zone: z
         .object({
           id: safeIdentifier,
@@ -200,10 +203,15 @@ export const backendOrderSchema = z
       (sum, item) => sum + item.lineTotalToman,
       0,
     );
+    const historicalDeliveryFee =
+      order.delivery.method === "standard"
+        ? 0
+        : order.totals.deliveryFeeToman;
+
     const expectedTotal =
       order.totals.subtotalToman +
-      order.totals.deliveryFeeToman +
-      order.totals.packagingFeeToman -
+      order.totals.packagingFeeToman +
+      historicalDeliveryFee -
       order.totals.discountToman;
 
     if (order.itemCount !== itemCount) {
@@ -225,6 +233,19 @@ export const backendOrderSchema = z
         code: z.ZodIssueCode.custom,
         path: ["delivery", "feeToman"],
         message: "delivery fee is inconsistent",
+      });
+    }
+    if (
+      order.delivery.method === "standard" &&
+      (
+        order.delivery.feeToman !== 0 ||
+        order.totals.deliveryFeeToman !== 0
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["totals", "deliveryFeeToman"],
+        message: "new standard delivery must not be charged online",
       });
     }
     if (order.totals.grandTotalToman !== expectedTotal) {
@@ -274,31 +295,51 @@ export const backendOrderSchema = z
     }
   });
 
-export const backendDeliveryOptionsSchema = z.object({
-  zone: z
-    .object({
-      id: safeIdentifier,
-      name: z.string().trim().min(1).max(160),
-      minimumOrderToman: money.nullable(),
-      freeDeliveryThresholdToman: money.nullable(),
-      packagingFeeToman: money,
-      preparation: z.object({
-        minDays: z.number().int().nonnegative().max(365),
-        maxDays: z.number().int().nonnegative().max(365),
-      }),
-    })
-    .nullable(),
-  methods: z
-    .array(
-      z.object({
-        method: z.enum(["standard", "chilled", "pickup"]),
-        label: z.string().max(160),
-        enabled: z.boolean(),
-        feeToman: money,
-      }),
-    )
-    .max(10),
-});
+export const backendDeliveryOptionsSchema = z
+  .object({
+    feePayment: z.literal("pay_on_delivery_to_courier"),
+    feeIncludedInOrder: z.literal(false),
+    notice: z.literal("هزینه ارسال در مبلغ سفارش محاسبه نشده و هنگام تحویل مستقیماً به پیک پرداخت می‌شود."),
+    zone: z
+      .object({
+        id: safeIdentifier,
+        name: z.string().trim().min(1).max(160),
+        minimumOrderToman: money.nullable(),
+        freeDeliveryThresholdToman: money.nullable(),
+        packagingFeeToman: money,
+        preparation: z.object({
+          minDays: z.number().int().nonnegative().max(365),
+          maxDays: z.number().int().nonnegative().max(365),
+        }),
+      })
+      .nullable(),
+    methods: z
+      .array(
+        z.object({
+          method: z.enum(["standard", "chilled", "pickup"]),
+          label: z.string().max(160),
+          enabled: z.boolean(),
+          feeToman: money,
+        }),
+      )
+      .max(10),
+  })
+  .superRefine((delivery, context) => {
+    const enabled = delivery.methods.filter((method) => method.enabled);
+
+    const valid =
+      enabled.length === 1 &&
+      enabled[0]?.method === "standard" &&
+      enabled[0]?.feeToman === 0;
+
+    if (!valid) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["methods"],
+        message: "new checkout must expose one zero-fee standard delivery method",
+      });
+    }
+  });
 
 export const backendCheckoutResultSchema = z.object({
   order: backendOrderSchema,

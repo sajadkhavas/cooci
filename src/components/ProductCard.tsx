@@ -39,8 +39,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem, items } = useCart();
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingLabel = product.requiresCooling
-    ? "نیازمند روش تحویل سرد"
-    : "روش تحویل در Checkout تعیین می‌شود";
+    ? "نیازمند مراقبت دمایی در آماده‌سازی و حمل"
+    : "ارسال توسط فروشگاه؛ هزینه پیک هنگام تحویل";
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const regularPrice = getProductRegularPrice(product);
   const salePrice = getProductSalePrice(product);

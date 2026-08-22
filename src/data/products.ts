@@ -51,6 +51,7 @@ export interface Product {
     id: string;
     name: string;
     price?: number;
+    packagingFeeToman?: number;
     weight?: string;
     productCode?: string;
     description?: string;

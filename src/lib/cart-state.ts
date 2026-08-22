@@ -129,6 +129,7 @@ export const syncCartItemWithCatalog = (
           name: selectedVariant.name,
           priceToman:
             currentPrice ?? item.selectedVariant?.priceToman ?? item.priceToman,
+          packagingFeeToman: selectedVariant.packagingFeeToman ?? 0,
           stock,
         }
       : undefined,

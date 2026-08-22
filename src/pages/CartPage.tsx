@@ -36,7 +36,6 @@ const CartPage = () => {
     regularSubtotal,
     savings,
     packagingFee,
-    estimatedDeliveryFee,
     estimatedTotal,
     hasCoolingItems,
     hasUnavailableItems,
@@ -150,7 +149,7 @@ const CartPage = () => {
                   <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
                     <Snowflake size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
                     <p className="text-sm leading-7">
-                      سبد شما شامل محصول یخچالی است؛ ارسال سرد فقط برای تهران، کرج و اندیشه امکان‌پذیر خواهد بود.
+                      برخی اقلام سبد به مراقبت دمایی نیاز دارند؛ فروشگاه شیوه حمل مناسب را هنگام آماده‌سازی هماهنگ می‌کند.
                     </p>
                   </div>
                 )}
@@ -260,7 +259,9 @@ const CartPage = () => {
                               ) : (
                                 <Truck size={14} aria-hidden="true" />
                               )}
-                              {item.requiresCooling ? "ارسال یخچالی" : "ارسال سراسری"}
+                              {item.requiresCooling
+                                ? "نیازمند مراقبت دمایی"
+                                : "ارسال توسط فروشگاه"}
                             </span>
                           </div>
 
@@ -354,8 +355,8 @@ const CartPage = () => {
                       <span className="font-bold">{formatToman(packagingFee)}</span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="text-muted-foreground">برآورد هزینه ارسال</span>
-                      <span className="font-bold">{formatToman(estimatedDeliveryFee)}</span>
+                      <span className="text-muted-foreground">هزینه ارسال</span>
+                      <span className="font-bold">{"پرداخت هنگام تحویل"}</span>
                     </div>
                   </div>
 

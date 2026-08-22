@@ -6,6 +6,7 @@ import {
 } from "../../src/lib/catalog-contract-schema.ts";
 import {
   MAX_CART_ITEMS,
+  calculateCartSummary,
   parseStoredCart,
   sanitizeCartItem,
   type CartItem,
@@ -67,6 +68,7 @@ const backendProductFixture = {
       priceToman: 120_000,
       regularPriceToman: 150_000,
       salePriceToman: 120_000,
+      packagingFeeToman: 5_000,
       stock: 5,
       available: true,
       lowStock: true,
@@ -123,6 +125,7 @@ const catalogProductFixture = {
       stock: 0,
       regularPriceToman: 150_000,
       salePriceToman: 120_000,
+      packagingFeeToman: 3_000,
       available: false,
       isDefault: true,
     },
@@ -134,6 +137,7 @@ const catalogProductFixture = {
       stock: 3,
       regularPriceToman: 140_000,
       salePriceToman: 110_000,
+      packagingFeeToman: 7_000,
       available: true,
       isDefault: false,
     },
@@ -253,7 +257,37 @@ test("exact Variant reconciliation refreshes price, discount and stock", () => {
   assert.equal(synchronized.regularPriceToman, 140_000);
   assert.equal(synchronized.stock, 3);
   assert.equal(synchronized.selectedVariant?.stock, 3);
+  assert.equal(synchronized.selectedVariant?.packagingFeeToman, 7_000);
   assert.equal(synchronized.availability, "available");
+});
+
+test("cart packaging total follows the selected Variant and quantity", () => {
+  const item = sanitizeCartItem({
+    ...storedCartCandidate,
+    stock: 5,
+    availability: "available",
+    selectedVariant: {
+      id: "variant-six",
+      name: "Pack of six",
+      priceToman: 120_000,
+      packagingFeeToman: 5_000,
+      stock: 5,
+    },
+  });
+
+  assert.ok(item);
+
+  const summary = calculateCartSummary([
+    {
+      ...item,
+      quantity: 2,
+    },
+  ]);
+
+  assert.equal(summary.subtotal, 240_000);
+  assert.equal(summary.packagingFee, 10_000);
+  assert.equal(summary.estimatedDeliveryFee, 0);
+  assert.equal(summary.estimatedTotal, 250_000);
 });
 
 test("unknown catalog stock is zero and preferred Variant must be available", () => {

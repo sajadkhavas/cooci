@@ -18,6 +18,7 @@ import {
   loadDeliveryOptions,
   normalizeEnglishDigits,
   saveCheckoutDraft,
+  PAY_ON_DELIVERY_NOTICE,
   type CheckoutCustomerInput,
 } from "@/lib/checkout";
 import type { DeliveryMethod } from "@/lib/orders";
@@ -37,7 +38,13 @@ const emptyRecipient = (fullName: string, mobile: string): ManualRecipient => ({
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, subtotal, hasCoolingItems, isReadyForCheckout } = useCart();
+  const {
+    items,
+    subtotal,
+    packagingFee,
+    hasCoolingItems,
+    isReadyForCheckout,
+  } = useCart();
   const draft = useMemo(() => loadCheckoutDraft(), []);
   const paymentMode = getPaymentMode();
   const idempotencyKeyRef = useRef(createIdempotencyKey("CHK"));
@@ -49,9 +56,8 @@ const CheckoutPage = () => {
     ...emptyRecipient(user?.fullName || "", user?.mobile || ""),
     ...draft?.customer,
   }));
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>(
-    draft?.deliveryMethod || (hasCoolingItems ? "chilled" : "standard"),
-  );
+  const [deliveryMethod, setDeliveryMethod] =
+    useState<DeliveryMethod>("standard");
   const [submitting, setSubmitting] = useState(false);
 
   const addressesQuery = useQuery({
@@ -99,29 +105,31 @@ const CheckoutPage = () => {
   });
 
   const developmentOptions: BackendDeliveryOptions = {
+    feePayment: "pay_on_delivery_to_courier",
+    feeIncludedInOrder: false,
+    notice: PAY_ON_DELIVERY_NOTICE,
     zone: null,
     methods: [
-      { method: "standard", label: "ارسال استاندارد", enabled: !hasCoolingItems, feeToman: 0 },
-      { method: "chilled", label: "ارسال سرد", enabled: true, feeToman: 0 },
-      { method: "pickup", label: "تحویل حضوری", enabled: true, feeToman: 0 },
+      {
+        method: "standard",
+        label: "ارسال توسط فروشگاه",
+        enabled: true,
+        feeToman: 0,
+      },
     ],
   };
   const deliveryOptions = paymentMode === "mock" ? developmentOptions : deliveryQuery.data;
   const methods = deliveryOptions?.methods ?? [];
-  const selectedMethod = methods.find((method) => method.method === deliveryMethod);
-  const packagingFee = deliveryOptions?.zone?.packagingFeeToman ?? 0;
-  const deliveryFee = selectedMethod?.feeToman ?? 0;
-  const estimatedTotal = subtotal + packagingFee + deliveryFee;
+  const selectedMethod = methods.find(
+    (method) => method.method === "standard",
+  );
+  const estimatedTotal = subtotal + packagingFee;
 
   useEffect(() => {
-    if (methods.length === 0) return;
-    if (selectedMethod?.enabled) return;
-    const preferred = methods.find(
-      (method) => method.enabled && (hasCoolingItems ? method.method === "chilled" : method.method === "standard"),
-    );
-    const fallback = preferred || methods.find((method) => method.enabled);
-    if (fallback) setDeliveryMethod(fallback.method);
-  }, [hasCoolingItems, methods, selectedMethod?.enabled]);
+    if (selectedMethod?.enabled) {
+      setDeliveryMethod("standard");
+    }
+  }, [selectedMethod?.enabled]);
 
   useEffect(() => {
     saveCheckoutDraft({
@@ -136,7 +144,6 @@ const CheckoutPage = () => {
   };
 
   const validateRecipient = (): string | null => {
-    if (deliveryMethod === "pickup") return null;
     if (addressMode === "saved") {
       return selectedAddress ? null : "یک آدرس ذخیره‌شده معتبر انتخاب کنید.";
     }
@@ -178,37 +185,29 @@ const CheckoutPage = () => {
           ? selectedAddress.mobile
           : normalizeEnglishDigits(recipient.mobile || user.mobile),
       province:
-        deliveryMethod === "pickup"
-          ? ""
-          : addressMode === "saved" && selectedAddress
-            ? selectedAddress.province
-            : recipient.province,
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.province
+          : recipient.province,
       city:
-        deliveryMethod === "pickup"
-          ? ""
-          : addressMode === "saved" && selectedAddress
-            ? selectedAddress.city
-            : recipient.city,
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.city
+          : recipient.city,
       address:
-        deliveryMethod === "pickup"
-          ? ""
-          : addressMode === "saved" && selectedAddress
-            ? selectedAddress.address
-            : recipient.address,
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.address
+          : recipient.address,
       postalCode:
-        deliveryMethod === "pickup"
-          ? undefined
-          : addressMode === "saved" && selectedAddress
-            ? selectedAddress.postalCode || undefined
-            : recipient.postalCode
-              ? normalizeEnglishDigits(recipient.postalCode)
-              : undefined,
+        addressMode === "saved" && selectedAddress
+          ? selectedAddress.postalCode || undefined
+          : recipient.postalCode
+            ? normalizeEnglishDigits(recipient.postalCode)
+            : undefined,
       notes: recipient.notes.trim() || undefined,
     };
 
     const result = await createCheckoutSession({
       addressId:
-        deliveryMethod !== "pickup" && addressMode === "saved"
+        addressMode === "saved"
           ? selectedAddressId
           : undefined,
       customer: normalizedRecipient,
@@ -246,7 +245,7 @@ const CheckoutPage = () => {
           <div className="mb-8 text-right">
             <h1 className="text-3xl font-black text-foreground md:text-4xl">تکمیل سفارش</h1>
             <p className="mt-3 leading-8 text-muted-foreground">
-              قیمت، موجودی، محدوده ارسال و مبلغ نهایی هنگام ثبت سفارش دوباره توسط سرور محاسبه می‌شوند.
+              قیمت، موجودی، هزینه بسته‌بندی و مبلغ آنلاین سفارش هنگام ثبت توسط سرور دوباره محاسبه می‌شوند.
             </p>
           </div>
 
@@ -260,6 +259,21 @@ const CheckoutPage = () => {
             <div className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert">
               <LockKeyhole size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
               ثبت سفارش به اتصال بک‌اند نیاز دارد.
+            </div>
+          )}
+
+          {deliveryOptions?.notice && (
+            <div
+              className="mb-6 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm leading-7 text-foreground"
+              role="note"
+            >
+              <Truck size={20} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <p className="font-bold">هزینه ارسال: پرداخت هنگام تحویل</p>
+                <p className="mt-1 text-muted-foreground">
+                  {deliveryOptions.notice}
+                </p>
+              </div>
             </div>
           )}
 
@@ -354,7 +368,7 @@ const CheckoutPage = () => {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">محصولات</span><strong>{formatToman(subtotal)}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">بسته‌بندی</span><strong>{formatToman(packagingFee)}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">تحویل</span><strong>{formatToman(deliveryFee)}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">تحویل</span><strong>پرداخت هنگام تحویل</strong></div>
                 <div className="flex justify-between gap-3 border-t border-border pt-4 text-lg"><span className="font-black">جمع تخمینی</span><strong className="text-primary">{formatToman(estimatedTotal)}</strong></div>
               </div>
               <p className="mt-4 text-xs leading-6 text-muted-foreground">عدد قطعی از پاسخ ثبت سفارش می‌آید؛ هیچ مبلغی از مرورگر برای بک‌اند معتبر نیست.</p>

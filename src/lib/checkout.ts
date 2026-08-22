@@ -48,6 +48,9 @@ const CHECKOUT_DRAFT_KEY = "winimi_checkout_draft_v1";
 const MAX_CHECKOUT_DRAFT_LENGTH = 20_000;
 const CHECKOUT_DRAFT_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
+export const PAY_ON_DELIVERY_NOTICE =
+  "هزینه ارسال در مبلغ سفارش محاسبه نشده و هنگام تحویل مستقیماً به پیک پرداخت می‌شود.";
+
 export type PaymentMode = "backend" | "mock" | "disabled";
 export type PaymentResultState = "success" | "failed" | "cancelled" | "unknown";
 export interface CheckoutCustomerInput extends OrderCustomer {}
@@ -117,7 +120,7 @@ const sanitizeCheckoutDraft = (value: unknown): CheckoutDraft | null => {
   }
   const customer = candidate.customer || {};
   return {
-    deliveryMethod: candidate.deliveryMethod as DeliveryMethod,
+    deliveryMethod: "standard",
     addressId: cleanText(candidate.addressId, 180) || undefined,
     customer: {
       fullName: cleanText(customer.fullName, 160) || undefined,
@@ -159,15 +162,14 @@ export const getDeliveryFee = () => 0;
 
 export const validateDeliveryMethod = ({
   method,
-  hasCoolingItems,
 }: {
   method: DeliveryMethod;
   city?: string;
   hasCoolingItems: boolean;
 }): string | null =>
-  hasCoolingItems && method === "standard"
-    ? "این سبد به ارسال سرد یا تحویل حضوری نیاز دارد."
-    : null;
+  method === "standard"
+    ? null
+    : "ثبت سفارش جدید فقط با ارسال توسط فروشگاه انجام می‌شود.";
 
 export const loadCheckoutDraft = (): CheckoutDraft | null => {
   if (typeof window === "undefined") return null;
@@ -294,6 +296,12 @@ const createBackendCheckout = async (
   request: CheckoutRequest,
 ): Promise<CheckoutSessionResult> => {
   validateCheckoutItems(request.items);
+
+  if (request.deliveryMethod !== "standard") {
+    throw new Error(
+      "روش تحویل سفارش جدید با قرارداد فعلی فروشگاه سازگار نیست.",
+    );
+  }
   const addressPayload = request.addressId
     ? {
         addressId: request.addressId,
@@ -307,7 +315,7 @@ const createBackendCheckout = async (
     idempotencyKey: request.idempotencyKey,
     body: {
       ...addressPayload,
-      deliveryMethod: request.deliveryMethod,
+      deliveryMethod: "standard",
       items: request.items.map((item) => ({
         variantId: item.selectedVariant?.id,
         quantity: item.quantity,
@@ -395,6 +403,12 @@ const createLocalMockOrder = (request: CheckoutRequest): LocalOrder => {
       (item.selectedVariant?.priceToman || item.priceToman) * item.quantity,
     0,
   );
+  const packagingFee = request.items.reduce(
+    (sum, item) =>
+      sum + (item.selectedVariant?.packagingFeeToman ?? 0) * item.quantity,
+    0,
+  );
+
   const order: LocalOrder = {
     id: generateOrderId(),
     createdAt: now,
@@ -402,11 +416,14 @@ const createLocalMockOrder = (request: CheckoutRequest): LocalOrder => {
     customer: request.customer,
     items: request.items,
     subtotal,
-    packagingFee: 0,
-    deliveryMethod: request.deliveryMethod,
+    packagingFee,
+    deliveryMethod: "standard",
     deliveryFee: 0,
+    deliveryFeePayment: "pay_on_delivery_to_courier",
+    deliveryFeeIncludedInOrder: false,
+    deliveryNotice: PAY_ON_DELIVERY_NOTICE,
     discount: 0,
-    total: subtotal,
+    total: subtotal + packagingFee,
     status: "awaiting_payment",
     paymentStatus: "unpaid",
     paymentAttempts: [],

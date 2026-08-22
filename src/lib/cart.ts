@@ -14,6 +14,7 @@ export interface CartVariantSnapshot {
   id: string;
   name: string;
   priceToman: number;
+  packagingFeeToman?: number;
   stock: number;
 }
 
@@ -37,6 +38,7 @@ export interface CartVariantInput {
   id: string;
   name: string;
   priceToman: number;
+  packagingFeeToman?: number;
   stock?: number;
 }
 
@@ -102,6 +104,11 @@ export const calculateCartSummary = (items: CartItem[]): CartSummary => {
     (sum, item) => sum + getCartRegularUnitPrice(item) * item.quantity,
     0,
   );
+  const packagingFee = items.reduce(
+    (sum, item) =>
+      sum + (item.selectedVariant?.packagingFeeToman ?? 0) * item.quantity,
+    0,
+  );
   const hasCoolingItems = items.some((item) => item.requiresCooling);
   const hasUnavailableItems = items.some(
     (item) => item.availability !== "available" || getCartItemStock(item) <= 0,
@@ -116,9 +123,9 @@ export const calculateCartSummary = (items: CartItem[]): CartSummary => {
     subtotal,
     regularSubtotal,
     savings: Math.max(0, regularSubtotal - subtotal),
-    packagingFee: 0,
+    packagingFee,
     estimatedDeliveryFee: 0,
-    estimatedTotal: subtotal,
+    estimatedTotal: subtotal + packagingFee,
     hasCoolingItems,
     hasUnavailableItems,
     hasStockIssues,
@@ -198,6 +205,10 @@ const sanitizeVariant = (value: unknown): CartVariantSnapshot | undefined => {
     id,
     name,
     priceToman,
+    packagingFeeToman: toNonNegativeInteger(
+      value.packagingFeeToman,
+      0,
+    ),
     stock: toNonNegativeInteger(value.stock, 0),
   };
 };

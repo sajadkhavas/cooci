@@ -36,6 +36,7 @@ export interface BackendProductVariant {
   priceToman: number;
   regularPriceToman: number;
   salePriceToman: number | null;
+  packagingFeeToman: number;
   stock: number;
   available: boolean;
   lowStock: boolean;
@@ -198,6 +199,9 @@ export interface BackendOrder {
     methodLabel: string;
     requiresCooling: boolean;
     feeToman: number;
+    feePayment: "pay_on_delivery_to_courier";
+    feeIncludedInOrder: false;
+    notice: string;
     zone: { id: string; name: string } | null;
   };
   totals: {
@@ -244,6 +248,9 @@ export interface BackendOrder {
 }
 
 export interface BackendDeliveryOptions {
+  feePayment: "pay_on_delivery_to_courier";
+  feeIncludedInOrder: false;
+  notice: string;
   zone: {
     id: string;
     name: string;

@@ -53,6 +53,9 @@ export interface LocalOrder {
   packagingFee: number;
   deliveryMethod: DeliveryMethod;
   deliveryFee: number;
+  deliveryFeePayment: "pay_on_delivery_to_courier";
+  deliveryFeeIncludedInOrder: false;
+  deliveryNotice: string;
   discount: number;
   total: number;
   status: OrderStatus;
@@ -157,6 +160,9 @@ export const mapBackendOrder = (order: BackendOrder): LocalOrder => {
     packagingFee: order.totals.packagingFeeToman,
     deliveryMethod: order.delivery.method,
     deliveryFee: order.totals.deliveryFeeToman,
+    deliveryFeePayment: order.delivery.feePayment,
+    deliveryFeeIncludedInOrder: order.delivery.feeIncludedInOrder,
+    deliveryNotice: order.delivery.notice,
     discount: order.totals.discountToman,
     total: order.totals.grandTotalToman,
     status: order.status,
@@ -332,7 +338,7 @@ export const statusLabels: Record<OrderStatus, string> = {
   paid: "پرداخت‌شده",
   confirmed: "تأییدشده",
   preparing: "در حال آماده‌سازی",
-  ready: "آماده ارسال یا تحویل",
+  ready: "آماده ارسال",
   dispatched: "ارسال‌شده",
   delivered: "تحویل‌شده",
   cancelled: "لغوشده",

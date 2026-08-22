@@ -60,6 +60,9 @@ const orderFixture = {
     methodLabel: "Standard",
     requiresCooling: false,
     feeToman: 0,
+    feePayment: "pay_on_delivery_to_courier",
+    feeIncludedInOrder: false,
+    notice: "هزینه ارسال در مبلغ سفارش محاسبه نشده و هنگام تحویل مستقیماً به پیک پرداخت می‌شود.",
     zone: null,
   },
   totals: {
@@ -253,6 +256,35 @@ test("payment redirects allow only the approved gateway and callback routes", ()
 
 test("runtime order contract accepts gateway string codes", () => {
   assert.equal(backendOrderSchema.safeParse(orderFixture).success, true);
+});
+
+test("runtime order contract rejects online courier fee inclusion", () => {
+  const wrongFee = structuredClone(orderFixture);
+  wrongFee.delivery.feeToman = 20_000;
+  wrongFee.totals.deliveryFeeToman = 20_000;
+  wrongFee.totals.grandTotalToman = 140_000;
+
+  assert.equal(
+    backendOrderSchema.safeParse(wrongFee).success,
+    false,
+  );
+});
+
+test("runtime order contract preserves a historical chilled delivery fee", () => {
+  const historicalOrder = structuredClone(orderFixture);
+
+  historicalOrder.delivery.method = "chilled";
+  historicalOrder.delivery.methodLabel = "Chilled";
+  historicalOrder.delivery.requiresCooling = true;
+  historicalOrder.delivery.feeToman = 20_000;
+
+  historicalOrder.totals.deliveryFeeToman = 20_000;
+  historicalOrder.totals.grandTotalToman = 140_000;
+
+  assert.equal(
+    backendOrderSchema.safeParse(historicalOrder).success,
+    true,
+  );
 });
 
 test("runtime order contract rejects client-visible total and cancellation contradictions", () => {
