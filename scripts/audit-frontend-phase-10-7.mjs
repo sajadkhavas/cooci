@@ -82,7 +82,7 @@ requireText("cityPage", "createCityLocalServiceSchema", "city service structured
 requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub");
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");
 requireText("aboutPage", "createAboutPageSchema", "AboutPage entity");
-requireText("footer", 'name: "مناطق منتشرشده ارسال"', "authoritative local hub label");
+requireText("footer", 'name: "مناطق ارسال"', "authoritative local hub label");
 requireText("footer", 'href: "/locations"', "authoritative local hub URL");
 forbidText("footer", 'href: "/city/tehran"', "hard-coded Tehran city link");
 forbidText("footer", 'href: "/city/karaj"', "hard-coded Karaj city link");
