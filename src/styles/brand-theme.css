@@ -124,3 +124,75 @@ header [role="dialog"] [class*="bg-black"] {
   background: #D0E596;
   color: #27390C;
 }
+
+
+/* Home palette restoration: pastel green leads, terracotta supports. */
+.home-color-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-color-wash::before {
+  content: "";
+  position: absolute;
+  inset: -5rem -8vw;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 34%, hsl(var(--brand-pastel) / 0.26), transparent 22rem),
+    radial-gradient(circle at 88% 70%, hsl(var(--interactive-accent) / 0.11), transparent 18rem);
+}
+
+.home-color-wash:nth-of-type(even)::before {
+  background:
+    radial-gradient(circle at 82% 28%, hsl(var(--brand-pastel) / 0.23), transparent 24rem),
+    radial-gradient(circle at 12% 76%, hsl(var(--interactive-accent) / 0.09), transparent 17rem);
+}
+
+.home-color-wash > .container-custom {
+  position: relative;
+  z-index: 1;
+}
+
+.category-showcase-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.category-showcase-wash::before {
+  content: "";
+  position: absolute;
+  inset: -3.5rem -4vw;
+  z-index: -1;
+  border-radius: 4rem;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 78% 26%, hsl(var(--brand-pastel) / 0.34), transparent 21rem),
+    radial-gradient(circle at 14% 82%, hsl(var(--interactive-accent) / 0.10), transparent 17rem);
+}
+
+.winimi-pastel-footer {
+  background:
+    radial-gradient(circle at 12% 18%, hsl(var(--interactive-accent) / 0.14), transparent 24rem),
+    radial-gradient(circle at 88% 74%, hsl(var(--brand-pastel-soft) / 0.85), transparent 30rem),
+    #d0e596 !important;
+  color: #27390c !important;
+}
+
+.winimi-pastel-footer [class*="text-[#f7e4dc]"],
+.winimi-pastel-footer [class*="text-[#fffaf6]"] {
+  color: rgb(39 57 12 / 0.72) !important;
+}
+
+.winimi-pastel-footer [class*="border-[#f7e4dc]"] {
+  border-color: rgb(39 57 12 / 0.15) !important;
+}
+
+.winimi-pastel-footer a:hover,
+.winimi-pastel-footer button:hover {
+  color: #27390c;
+}
+
+.winimi-pastel-footer > .container-custom > div:last-child {
+  color: rgb(39 57 12 / 0.055) !important;
+}

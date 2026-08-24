@@ -99,7 +99,7 @@ export const Footer = () => {
     });
 
   return (
-    <footer className="site-footer relative z-10 overflow-hidden bg-[#563128] text-[#fffaf6]">
+    <footer className="winimi-pastel-footer site-footer relative z-10 overflow-hidden text-[#27390c]">
       <div className="border-b border-[#f7e4dc]/15 bg-[#f7e4dc] text-[#46271f]">
         <div className="container-custom grid gap-5 py-7 md:grid-cols-[1fr_auto] md:items-center">
           <div className="flex items-start gap-3">

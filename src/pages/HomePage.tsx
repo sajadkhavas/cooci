@@ -142,7 +142,7 @@ const HomePage = () => {
         description="محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کنید؛ تصویر، قیمت، موجودی و شرایط هر انتخاب را ببینید و آنلاین سفارش دهید."
       />
 
-      <section className="relative overflow-hidden pb-16 pt-8 sm:pb-24 lg:pt-16">
+      <section className="home-color-wash relative overflow-hidden pb-16 pt-8 sm:pb-24 lg:pt-16">
         <div className="soft-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
         <div className="container-custom relative">
           <div className="grid min-h-[74svh] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
@@ -239,7 +239,7 @@ const HomePage = () => {
 
       <DraggableMarquee items={marqueeItems} />
 
-      <section className="section-padding relative overflow-hidden">
+      <section className="home-color-wash section-padding relative overflow-hidden">
         <div className="container-custom">
           <CategoryShowcase
             limit={6}
@@ -250,7 +250,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section-padding relative overflow-hidden bg-secondary/25">
+      <section className="home-color-wash section-padding relative overflow-hidden bg-secondary/25">
         <div className="container-custom">
           <Reveal className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -319,7 +319,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section-padding pt-10">
+      <section className="home-color-wash section-padding pt-10">
         <div className="container-custom">
           <Reveal className="mb-10 text-center">
             <span className="editorial-label mb-5">انتخاب براساس موقعیت</span>
@@ -374,7 +374,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section-padding overflow-hidden bg-secondary/20">
+      <section className="home-color-wash section-padding overflow-hidden bg-secondary/20">
         <div className="container-custom">
           <Reveal className="mx-auto mb-10 max-w-3xl text-center">
             <span className="editorial-label mb-5">مسیر سفارش</span>
@@ -411,7 +411,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section-padding">
+      <section className="home-color-wash section-padding">
         <div className="container-custom">
           <Reveal className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
@@ -449,7 +449,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section-padding pt-8">
+      <section className="home-color-wash section-padding pt-8">
         <div className="container-custom">
           <Reveal className="home-category-cta-lines relative overflow-hidden rounded-[2.5rem] border border-[#d88972]/35 bg-[linear-gradient(125deg,#f7e4dc_0%,#fffdf8_58%,#d0e596_145%)] p-6 shadow-card sm:p-10 lg:p-14">
             <div className="relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">

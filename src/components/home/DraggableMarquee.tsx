@@ -43,18 +43,18 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
   const repeatedItems = [...items, ...items];
 
   return (
-    <div className="relative overflow-hidden border-y border-[#d88972]/35 bg-[#f7e4dc] py-3 text-[#46271f]">
+    <div className="relative overflow-hidden border-y border-[#27390c]/15 bg-[#d0e596] py-3.5 text-[#27390c] shadow-[inset_0_1px_0_rgba(255,255,255,0.32)]">
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#f7e4dc] to-transparent sm:w-24"
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#d0e596] to-transparent sm:w-24"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#f7e4dc] to-transparent sm:w-24"
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#d0e596] to-transparent sm:w-24"
         aria-hidden="true"
       />
       <div
         ref={viewportRef}
-        className="marquee-scrollbar flex cursor-grab select-none gap-3 overflow-x-auto px-6 active:cursor-grabbing sm:gap-4 sm:px-10"
+        className="marquee-scrollbar flex cursor-grab select-none gap-7 overflow-x-auto px-6 active:cursor-grabbing sm:gap-10 sm:px-10"
         dir="ltr"
         role="region"
         aria-label="دسترسی سریع به محصولات و خدمات وینیمی؛ برای مرور، نوار را بکشید"
@@ -97,7 +97,7 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
         {repeatedItems.map((item, index) => (
           <span
             key={`${item}-${index}`}
-            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[#d88972]/30 bg-white/55 px-5 text-sm font-black shadow-sm"
+            className="inline-flex min-h-10 shrink-0 items-center gap-2 px-2 text-sm font-black sm:text-base"
             dir="rtl"
             aria-hidden={index >= items.length}
           >
