@@ -386,8 +386,8 @@
 }
 
 .reveal {
-  opacity: 0;
-  transform: translateY(28px) scale(0.985);
+  opacity: 1;
+  transform: none;
   transition:
     opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
@@ -407,6 +407,24 @@
 
 .marquee-track:hover {
   animation-play-state: paused;
+}
+
+.marquee-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+}
+
+.marquee-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.home-category-cta-lines {
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+    linear-gradient(125deg, #f7e4dc 0%, #fffdf8 58%, #d0e596 145%);
+  background-size: 34px 34px, 34px 34px, auto;
 }
 
 .float-slow {

@@ -168,9 +168,9 @@ requireText("sitemap", "loadPosts", "authoritative blog sitemap source");
 requireText("urlPolicy", "LEGACY_EXACT_REDIRECTS", "central redirect registry");
 requireText("urlPolicy", '"noindex,follow"', "filtered page index policy");
 
-requireText("home", "سفارش آنلاین کوکی،", "product-led homepage H1");
+requireText("home", "طعم خوب برای", "product-led homepage H1");
 requireText("home", "<CategoryShowcase", "homepage category discovery");
-requireText("home", "خرید بر اساس موقعیت", "occasion-led homepage section");
+requireText("home", "برای چه لحظه‌ای انتخاب می‌کنی؟", "occasion-led homepage section");
 forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
 forbidText("home", "وضعیت داده", "developer-facing homepage copy");

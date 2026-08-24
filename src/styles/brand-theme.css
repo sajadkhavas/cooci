@@ -88,8 +88,7 @@ body {
   color: hsl(var(--brand-pastel)) !important;
 }
 
-header a[aria-label*="صفحه اصلی"] > span:first-child,
-footer a[href="/"][class*="inline-flex"] > span:first-child {
+header a[aria-label*="صفحه اصلی"] > span:first-child {
   overflow: hidden;
   border-radius: 9999px !important;
   background-color: #D0E596 !important;
@@ -101,27 +100,19 @@ footer a[href="/"][class*="inline-flex"] > span:first-child {
   box-shadow: 0 16px 36px -18px hsl(var(--brand-deep) / 0.45) !important;
 }
 
-header a[aria-label*="صفحه اصلی"] > span:first-child > *,
-footer a[href="/"][class*="inline-flex"] > span:first-child > * {
+header a[aria-label*="صفحه اصلی"] > span:first-child > * {
   opacity: 0 !important;
 }
 
-header [role="dialog"] .text-white,
-footer .text-white {
+header [role="dialog"] .text-white {
   color: hsl(var(--primary-foreground)) !important;
 }
 
-footer .whitespace-nowrap[class*="text-white"] {
-  color: hsl(var(--primary-foreground) / 0.06) !important;
-}
-
-header [role="dialog"] [class*="border-white"],
-footer [class*="border-white"] {
+header [role="dialog"] [class*="border-white"] {
   border-color: hsl(var(--primary-foreground) / 0.14) !important;
 }
 
-header [role="dialog"] [class*="bg-white"],
-footer [class*="bg-white"] {
+header [role="dialog"] [class*="bg-white"] {
   background-color: hsl(var(--primary-foreground) / 0.055) !important;
 }
 

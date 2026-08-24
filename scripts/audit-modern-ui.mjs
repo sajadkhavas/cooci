@@ -76,12 +76,12 @@ requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
 
 for (const requirement of [
   "<Reveal",
-  "marquee-track",
+  "<DraggableMarquee",
   "<CategoryShowcase",
   "occasionCards",
   "modern-section-title",
-  "سفارش آنلاین کوکی،",
-  "خرید بر اساس موقعیت",
+  "طعم خوب برای",
+  "برای چه لحظه‌ای انتخاب می‌کنی؟",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
 }
@@ -103,9 +103,9 @@ for (const requirement of [
 
 for (const requirement of [
   "categoryVisuals",
-  "backendCategory?.image",
+  "category.image || visual.image",
   "productCount",
-  "group-hover:scale-105",
+  "group-hover:scale-[1.035]",
   "rounded-[2rem]",
   "modern-section-title",
 ]) {
@@ -118,7 +118,7 @@ for (const requirement of [
   "isProductInventoryVerified",
   "isProductMediaVerified",
   "rounded-[2rem]",
-  "group-hover:scale-[1.07]",
+  "group-hover:scale-[1.035]",
 ]) {
   requireText("productCard", requirement, `modern product-card contract: ${requirement}`);
 }

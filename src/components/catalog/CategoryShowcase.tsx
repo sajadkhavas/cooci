@@ -1,10 +1,17 @@
-import { ArrowUpLeft, Cookie, Gift, Package, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowUpLeft,
+  Cookie,
+  Gift,
+  Package,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { Link } from "react-router";
+import categoryCookies from "@/assets/cookies/category-homemade-cookies-v2.webp";
 import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
 import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";
 import heroImage from "@/assets/cookies/hero-main.jpg";
-import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
 import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
 import { categoryContents } from "@/data/categoriesContent";
@@ -13,7 +20,7 @@ import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility
 import { Reveal } from "@/components/motion/Reveal";
 
 const categoryVisuals = {
-  cookies: { image: lifestyleBreaking, icon: Cookie },
+  cookies: { image: categoryCookies, icon: Cookie },
   "mini-cookies": { image: galleryBaking, icon: Sparkles },
   "diet-diabetic": { image: lifestyleTwine, icon: ShieldCheck },
   cakes: { image: heroImage, icon: Package },
@@ -34,10 +41,10 @@ interface CategoryShowcaseProps {
 }
 
 export const CategoryShowcase = ({
-  title = "دسته‌ای را انتخاب کن که به چیزی که می‌خواهی نزدیک‌تر است",
+  title = "از دسته‌ای شروع کن که به انتخابت نزدیک‌تر است",
   description =
-    "از کوکی و مینی‌کوکی تا کیک، چیزکیک، محصولات خمیری و باکس هدیه؛ هر دسته مسیر کوتاه‌تری برای رسیدن به انتخاب مناسب می‌سازد.",
-  eyebrow = "Browse by category",
+    "هر دسته محصولات مرتبط را کنار هم می‌گذارد تا تصویر، قیمت، موجودی و شرایط سفارش را ساده‌تر مقایسه کنی.",
+  eyebrow = "دسته‌های فعال فروشگاه",
   limit,
   excludeSlug,
   showHeader = true,
@@ -51,6 +58,7 @@ export const CategoryShowcase = ({
   )
     .filter((category) => category.routeSlug !== excludeSlug)
     .slice(0, limit);
+  const isSingleCategory = visibleCategories.length === 1;
 
   if (visibleCategories.length === 0) return null;
 
@@ -68,9 +76,9 @@ export const CategoryShowcase = ({
           {showAllLink && (
             <Link
               to="/products"
-              className="group inline-flex items-center gap-2 self-start font-black text-primary lg:self-auto"
+              className="group inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[#d88972]/35 bg-[#f7e4dc] px-5 font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white lg:self-auto"
             >
-              مشاهده همه دسته‌بندی‌ها در فروشگاه
+              مشاهده همه دسته‌بندی‌ها
               <ArrowUpLeft
                 size={18}
                 className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
@@ -83,7 +91,11 @@ export const CategoryShowcase = ({
 
       <div
         className={`grid gap-5 ${
-          compact ? "sm:grid-cols-2 xl:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-3"
+          isSingleCategory
+            ? "grid-cols-1"
+            : compact
+              ? "sm:grid-cols-2 xl:grid-cols-3"
+              : "sm:grid-cols-2 lg:grid-cols-3"
         }`}
       >
         {visibleCategories.map((category, index) => {
@@ -98,57 +110,66 @@ export const CategoryShowcase = ({
             <Reveal key={category.routeSlug} delay={(index % 3) * 70}>
               <Link
                 to={`/products/category/${category.routeSlug}`}
-                className={`group relative block overflow-hidden rounded-[2rem] border border-border/70 bg-card shadow-soft transition duration-500 hover:-translate-y-1 hover:border-primary/25 hover:shadow-card ${
-                  compact ? "min-h-[19rem]" : "min-h-[22rem]"
+                className={`group grid h-full overflow-hidden rounded-[2rem] border border-[#d88972]/25 bg-card shadow-card transition duration-500 hover:-translate-y-1 hover:border-[#d88972]/60 hover:shadow-hover ${
+                  isSingleCategory
+                    ? "lg:grid-cols-[1.35fr_0.65fr]"
+                    : "grid-cols-1"
                 }`}
                 aria-label={`مشاهده دسته ${category.name}`}
               >
-                <img
-                  src={category.image || visual.image}
-                  alt={`تصویر دسته ${category.name}`}
-                  className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                  decoding="async"
-                  width={900}
-                  height={900}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/62 to-primary/5" />
                 <div
-                  className={`relative flex h-full flex-col justify-between p-6 text-primary-foreground sm:p-7 ${
-                    compact ? "min-h-[19rem]" : "min-h-[22rem]"
+                  className={`relative overflow-hidden bg-muted ${
+                    isSingleCategory
+                      ? "min-h-[22rem] lg:min-h-[30rem]"
+                      : compact
+                        ? "aspect-[4/3]"
+                        : "aspect-[5/4]"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em]">
-                      {editorial?.eyebrow || "Catalog"}
+                  <img
+                    src={category.image || visual.image}
+                    alt={`تصویر دسته ${category.name}`}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+                    loading="lazy"
+                    decoding="async"
+                    width={1200}
+                    height={900}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#321d17]/55 via-transparent to-white/5" />
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-white sm:p-6">
+                    <span className="rounded-full border border-white/25 bg-black/30 px-3 py-1.5 text-[10px] font-black backdrop-blur-md">
+                      {editorial?.eyebrow || "فروشگاه وینیمی"}
                     </span>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-xl">
-                      <Icon size={20} aria-hidden="true" />
-                    </span>
-                  </div>
-
-                  <div className="mt-20">
                     {typeof category.productCount === "number" &&
                       category.productCount > 0 && (
-                        <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                        <span className="rounded-full border border-white/25 bg-black/30 px-3 py-1.5 text-xs font-black backdrop-blur-md">
                           {category.productCount.toLocaleString("fa-IR")} محصول فعال
                         </span>
                       )}
-                    <h3 className="text-2xl font-black leading-tight sm:text-3xl">
+                  </div>
+                </div>
+
+                <div className="flex min-h-[18rem] flex-col justify-between bg-[linear-gradient(145deg,#fffdf8_0%,#f7e4dc_135%)] p-6 sm:p-8">
+                  <div>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d88972] text-[#321d17] shadow-lg">
+                      <Icon size={22} aria-hidden="true" />
+                    </span>
+                    <h3 className="mt-7 text-2xl font-black leading-tight text-foreground sm:text-3xl">
                       {category.name}
                     </h3>
-                    <p className="mt-3 max-w-xl text-sm leading-7 text-primary-foreground/72">
-                      {category.description || "محصولات فعال این دسته را بررسی کن."}
+                    <p className="mt-4 text-sm leading-8 text-muted-foreground">
+                      {category.description ||
+                        "محصولات فعال این دسته را ببین و جزئیات هر انتخاب را مقایسه کن."}
                     </p>
-                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-accent">
-                      دیدن این دسته
-                      <ArrowUpLeft
-                        size={17}
-                        className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
-                        aria-hidden="true"
-                      />
-                    </span>
                   </div>
+                  <span className="mt-8 inline-flex items-center gap-2 font-black text-[#9b5545]">
+                    دیدن محصولات این دسته
+                    <ArrowUpLeft
+                      size={18}
+                      className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
+                      aria-hidden="true"
+                    />
+                  </span>
                 </div>
               </Link>
             </Reveal>

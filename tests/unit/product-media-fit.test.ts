@@ -23,17 +23,13 @@ test("product detail gallery preserves the complete managed image", () => {
   );
 });
 
-test("catalog cards preserve the subject over a filled adaptive backdrop", () => {
+test("catalog cards use a full-bleed product image without a blurred duplicate", () => {
   assert.ok(
     cardSource.includes(
-      'className="h-full w-full scale-110 object-cover opacity-35 blur-2xl transition duration-700 group-hover:scale-125 group-hover:opacity-45"',
+      'className="relative z-[1] h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"',
     ),
   );
-  assert.ok(
-    cardSource.includes(
-      'className="relative z-[1] h-full w-full object-contain p-3 transition duration-700 group-hover:scale-[1.04] sm:p-4"',
-    ),
-  );
-  assert.ok(cardSource.includes('aria-hidden="true" className="absolute inset-0 overflow-hidden"'));
+  assert.doesNotMatch(cardSource, /object-contain p-3/);
+  assert.doesNotMatch(cardSource, /opacity-35 blur-2xl/);
   assert.ok(cardSource.includes('import { OptimizedImage } from "@/components/media/OptimizedImage";'));
 });

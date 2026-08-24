@@ -27,6 +27,7 @@ import {
 
 interface ProductCardProps {
   product: Product;
+  variant?: "default" | "featured";
 }
 
 const stockToneClasses = {
@@ -35,12 +36,15 @@ const stockToneClasses = {
   success: "border-emerald-300/70 bg-emerald-50/80 text-emerald-900",
 };
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({
+  product,
+  variant = "default",
+}: ProductCardProps) => {
   const { addItem, items } = useCart();
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingLabel = product.requiresCooling
     ? "نیازمند روش تحویل سرد"
-    : "روش تحویل در Checkout تعیین می‌شود";
+    : "روش‌های تحویل در مرحله سفارش نمایش داده می‌شوند";
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const regularPrice = getProductRegularPrice(product);
   const salePrice = getProductSalePrice(product);
@@ -99,39 +103,37 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-border/65 bg-card/75 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-primary/25 hover:shadow-hover focus-within:border-primary/40 focus-within:shadow-hover">
+    <article
+      className={`group relative h-full min-w-0 overflow-hidden rounded-[2rem] border border-border/65 bg-card/85 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-[#d88972]/55 hover:shadow-hover focus-within:border-[#d88972]/70 focus-within:shadow-hover ${
+        variant === "featured"
+          ? "md:grid md:grid-cols-[1.2fr_0.8fr]"
+          : "flex flex-col"
+      }`}
+    >
       <Link
         to={`/products/${encodeURIComponent(product.slug)}`}
-        className="relative isolate block aspect-[1.12/1] overflow-hidden bg-gradient-to-br from-card via-secondary/70 to-muted"
+        className={`relative isolate block overflow-hidden bg-gradient-to-br from-card via-secondary/70 to-muted ${
+          variant === "featured"
+            ? "aspect-[4/3] md:min-h-[31rem] md:aspect-auto"
+            : "aspect-[4/3]"
+        }`}
         aria-label={`مشاهده جزئیات ${product.name}`}
       >
         {product.images[0]?.url ? (
-          <>
-            <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
-              <OptimizedImage
-                src={product.images[0].url}
-                alt=""
-                className="h-full w-full scale-110 object-cover opacity-35 blur-2xl transition duration-700 group-hover:scale-125 group-hover:opacity-45"
-                loading="lazy"
-                fetchPriority="low"
-                sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
-                width={640}
-                height={570}
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/35 via-transparent to-primary/20" />
-            </div>
-
-            <OptimizedImage
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
-              className="relative z-[1] h-full w-full object-contain p-3 transition duration-700 group-hover:scale-[1.04] sm:p-4"
-              loading="lazy"
-              fetchPriority="low"
-              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
-              width={640}
-              height={570}
-            />
-          </>
+          <OptimizedImage
+            src={product.images[0].url}
+            alt={product.images[0].alt || product.name}
+            className="relative z-[1] h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+            loading="lazy"
+            fetchPriority="low"
+            sizes={
+              variant === "featured"
+                ? "(min-width: 768px) 60vw, 100vw"
+                : "(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 100vw"
+            }
+            width={900}
+            height={675}
+          />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-secondary to-muted text-muted-foreground">
             <ImageIcon size={42} aria-hidden="true" />
@@ -178,7 +180,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         )}
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+      <div
+        className={`flex min-w-0 flex-1 flex-col p-5 sm:p-6 ${
+          variant === "featured" ? "md:justify-center md:p-9 lg:p-12" : ""
+        }`}
+      >
         <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
           <Link
             to={`/products/category/${encodeURIComponent(product.categorySlug)}`}
@@ -192,7 +198,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         </div>
 
         <Link to={`/products/${encodeURIComponent(product.slug)}`} className="rounded-xl">
-          <h2 className="line-clamp-2 text-xl font-black leading-8 text-foreground transition-colors group-hover:text-primary">
+          <h2
+            className={`line-clamp-2 font-black text-foreground transition-colors group-hover:text-[#9b5545] ${
+              variant === "featured"
+                ? "text-3xl leading-[1.35] lg:text-4xl"
+                : "text-xl leading-8"
+            }`}
+          >
             {product.name}
           </h2>
         </Link>
