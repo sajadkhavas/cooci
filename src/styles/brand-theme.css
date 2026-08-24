@@ -196,3 +196,99 @@ header [role="dialog"] [class*="bg-black"] {
 .winimi-pastel-footer > .container-custom > div:last-child {
   color: rgb(39 57 12 / 0.055) !important;
 }
+
+
+/* Cross-project synthesis: LBB decision hierarchy, SOLE interaction,
+ * and Rosta structured guidance — translated into Winimi's visual language. */
+.winimi-snap-nav {
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.winimi-snap-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.marquee-scrollbar {
+  touch-action: pan-x;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.marquee-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.winimi-decision-panel {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.82);
+  border-radius: 2.5rem;
+  background:
+    linear-gradient(hsl(var(--brand-deep) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--brand-deep) / 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, hsl(var(--card) / 0.94), hsl(var(--brand-pastel-soft) / 0.72));
+  background-size: 34px 34px, 34px 34px, auto;
+  box-shadow: var(--shadow-card);
+}
+
+.winimi-decision-panel::before {
+  content: "";
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 999px;
+  background: hsl(var(--interactive-accent) / 0.12);
+  filter: blur(64px);
+  inset: auto -8rem -10rem auto;
+  pointer-events: none;
+}
+
+.winimi-decision-panel__intro,
+.winimi-decision-panel__faq {
+  position: relative;
+  z-index: 1;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.winimi-decision-panel__faq {
+  border-top: 1px solid hsl(var(--border) / 0.75);
+  background: hsl(var(--card) / 0.68);
+}
+
+.winimi-decision-panel details {
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.winimi-decision-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .winimi-decision-panel {
+    grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 0.75fr);
+  }
+
+  .winimi-decision-panel__faq {
+    border-top: 0;
+    border-right: 1px solid hsl(var(--border) / 0.75);
+  }
+}
+
+@media (hover: hover) {
+  .winimi-decision-panel a:hover {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winimi-decision-panel *,
+  .marquee-scrollbar {
+    scroll-behavior: auto !important;
+  }
+}
