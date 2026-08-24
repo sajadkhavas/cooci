@@ -21,6 +21,11 @@
   --border: 76 30% 80%;
   --input: 76 30% 80%;
   --ring: 82 58% 30%;
+  --interactive-accent: 14 55% 65%;
+  --interactive-accent-foreground: 151 38% 12%;
+  --interactive-accent-soft: 18 63% 92%;
+  --interactive-accent-strong: 11 43% 52%;
+  --interactive-focus: 11 43% 43%;
   --cream: 72 55% 97%;
   --cocoa: var(--brand-deep);
   --cocoa-light: 76 54% 65%;
@@ -59,6 +64,11 @@
   --border: 84 14% 23%;
   --input: 84 14% 23%;
   --ring: var(--brand-pastel);
+  --interactive-accent: 14 55% 68%;
+  --interactive-accent-foreground: 151 38% 9%;
+  --interactive-accent-soft: 14 24% 20%;
+  --interactive-accent-strong: 14 56% 72%;
+  --interactive-focus: 14 65% 76%;
 }
 
 body {

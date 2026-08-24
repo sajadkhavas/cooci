@@ -75,7 +75,8 @@ export const Header = () => {
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const previousOverflow = document.body.style.overflow;
+      const previousOverflow = document.body.style.overflow;
+      document.documentElement.dataset.mobileMenuOpen = "true";
     const drawer = drawerRef.current;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
@@ -107,7 +108,8 @@ export const Header = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+        document.body.style.overflow = previousOverflow;
+        delete document.documentElement.dataset.mobileMenuOpen;
       window.removeEventListener("keydown", handleKeyDown);
       if (restoreMenuFocusRef.current) {
         window.requestAnimationFrame(() => menuButtonRef.current?.focus());
@@ -161,8 +163,8 @@ export const Header = () => {
                   aria-current={active ? "page" : undefined}
                   className={`relative rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     active
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-foreground/70 hover:bg-background/80 hover:text-primary"
+                        ? "bg-interactive text-interactive-foreground shadow-lg"
+                        : "text-foreground/70 hover:bg-interactive-soft hover:text-interactive-strong"
                   }`}
                 >
                   {link.name}
@@ -220,7 +222,7 @@ export const Header = () => {
                 restoreMenuFocusRef.current = true;
                 setIsOpen(true);
               }}
-              className="touch-target flex items-center justify-center rounded-full border border-border/70 bg-card/65 text-foreground shadow-soft backdrop-blur-xl transition hover:bg-card xl:hidden"
+                className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-interactive-soft text-interactive-strong shadow-soft transition-colors hover:bg-interactive/20 xl:hidden"
               aria-label="باز کردن منوی اصلی"
               aria-expanded={isOpen}
               aria-controls="mobile-navigation-dialog"
@@ -256,7 +258,7 @@ export const Header = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-navigation-title"
-            className="absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-white/15 bg-primary text-primary-foreground shadow-2xl"
+              className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-interactive/20 bg-interactive-soft text-foreground shadow-2xl"
           >
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <span className="absolute -right-24 top-16 h-60 w-60 rounded-full bg-accent/20 blur-[80px]" />
@@ -268,7 +270,7 @@ export const Header = () => {
                 <p id="mobile-navigation-title" className="text-xl font-black">
                   {settings.brand.name}
                 </p>
-                <p className="mt-1 text-xs text-primary-foreground/55">
+                  <p className="mt-1 text-xs text-muted-foreground">
                   منوی سریع فروشگاه
                 </p>
               </div>
@@ -279,7 +281,7 @@ export const Header = () => {
                   restoreMenuFocusRef.current = true;
                   setIsOpen(false);
                 }}
-                className="touch-target flex items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/15"
+                  className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-card text-interactive-strong transition-colors hover:bg-interactive/15"
                 aria-label="بستن منوی اصلی"
               >
                 <X size={22} aria-hidden="true" />
@@ -293,9 +295,9 @@ export const Header = () => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
                 }}
-                className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-xl"
+                  className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-interactive/25 bg-card/85 p-4 shadow-soft"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-interactive text-interactive-foreground">
                   <User size={22} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -304,7 +306,7 @@ export const Header = () => {
                       ? user?.fullName || "حساب کاربری"
                       : "ورود به حساب"}
                   </strong>
-                  <span className="mt-1 block truncate text-xs text-primary-foreground/55">
+                    <span className="mt-1 block truncate text-xs text-muted-foreground">
                     {isAuthenticated
                       ? user?.mobile
                       : "سفارش‌ها، پروفایل و پیگیری"}
@@ -331,8 +333,8 @@ export const Header = () => {
                       aria-current={active ? "page" : undefined}
                       className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
-                          ? "bg-accent text-accent-foreground"
-                          : "border border-white/10 bg-white/[0.055] text-white hover:bg-white/10"
+                            ? "bg-interactive text-interactive-foreground shadow-soft"
+                            : "border border-border bg-card/70 text-foreground hover:border-interactive/30 hover:bg-interactive/10"
                       }`}
                     >
                       <span className="flex items-center gap-3">
@@ -352,14 +354,14 @@ export const Header = () => {
               </nav>
             </div>
 
-            <div className="mobile-sticky-bar relative grid gap-3 border-t border-white/10 bg-black/10 p-5">
+              <div className="mobile-sticky-bar relative grid gap-3 border-t border-interactive/20 bg-card/92 p-5">
               <Link
                 to="/categories"
                 onClick={() => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
                 }}
-                className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-black text-accent-foreground"
+                  className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-interactive px-5 py-3.5 font-black text-interactive-foreground shadow-soft transition-colors hover:bg-interactive-strong hover:text-white"
               >
                 <ShoppingBag size={19} aria-hidden="true" />
                 انتخاب از دسته‌بندی‌ها

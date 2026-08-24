@@ -100,7 +100,7 @@ export const Footer = () => {
     });
 
   return (
-    <footer className="relative z-10 mt-12 overflow-hidden rounded-t-[3rem] bg-primary text-primary-foreground sm:mt-20 sm:rounded-t-[4.5rem]">
+      <footer className="site-footer relative z-10 mt-12 overflow-hidden rounded-t-[3rem] bg-primary text-primary-foreground sm:mt-20 sm:rounded-t-[4.5rem]">
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
