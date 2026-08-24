@@ -22,6 +22,19 @@ No dark streetwear palette, shoe-specific interaction, coffee-specific taxonomy,
 | Rosta | Structured guides, FAQ blocks, topical content that bridges education and commerce | Add visible FAQ content and matching FAQPage JSON-LD | Adopt |
 | Rosta | Roast, origin, grinder and brewing taxonomy | Not relevant to Winimi | Reject |
 
+## Global shell and commerce review
+
+The navigation, mobile bottom navigation, product card and footer implementations were also compared. Winimi's current versions already provide stronger domain correctness for live stock, cooling requirements, price ranges, cart limits, safe-area spacing, mobile drawer coordination and business contact data. They remain the canonical implementation.
+
+Patterns retained as review criteria—but not copied as new code—are:
+
+- active-route clarity and explicit ARIA labelling from LBB and SOLE;
+- minimum touch-target sizing and safe-area behavior from SOLE;
+- readable product-media hierarchy from LBB;
+- content-to-commerce links from Rosta.
+
+This avoids replacing production-aware Winimi components with visually interesting but less complete demo components.
+
 ## Implemented synthesis
 
 1. Added `DecisionSupportPanel`:
