@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
+import { DecisionSupportPanel, homeDecisionFaqSchema } from "@/components/home/DecisionSupportPanel";
 import { DraggableMarquee } from "@/components/home/DraggableMarquee";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
@@ -140,6 +141,7 @@ const HomePage = () => {
       <SEO
         title="خرید کوکی، کیک و باکس هدیه"
         description="محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کنید؛ تصویر، قیمت، موجودی و شرایط هر انتخاب را ببینید و آنلاین سفارش دهید."
+        schema={homeDecisionFaqSchema}
       />
 
       <section className="home-color-wash relative overflow-hidden pb-16 pt-8 sm:pb-24 lg:pt-16">
@@ -193,14 +195,14 @@ const HomePage = () => {
               {visibleCategories.length > 0 && (
                 <Reveal delay={290}>
                   <nav
-                    className="mt-8 flex max-w-2xl flex-wrap gap-2"
+                    className="winimi-snap-nav mt-8 flex max-w-2xl snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:overflow-visible sm:pb-0"
                     aria-label="دسته‌های فعال فروشگاه"
                   >
                     {visibleCategories.map((category) => (
                       <Link
                         key={category.routeSlug}
                         to={`/products/category/${category.routeSlug}`}
-                        className="inline-flex min-h-10 items-center rounded-full border border-border bg-white/70 px-4 text-xs font-black text-foreground transition hover:border-[#d88972] hover:text-[#9b5545]"
+                        className="inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border border-border bg-white/70 px-4 text-xs font-black text-foreground transition hover:border-[#d88972] hover:text-[#9b5545] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b96552]"
                       >
                         {category.name}
                       </Link>
@@ -410,6 +412,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      <DecisionSupportPanel />
 
       <section className="home-color-wash section-padding">
         <div className="container-custom">
