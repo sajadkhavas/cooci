@@ -103,15 +103,19 @@ for (const requirement of [
 
 for (const requirement of [
   "categoryVisuals",
-  "category.image ||",
+  "getCuratedCategoryImage",
+  "resolvedLimit",
+  ".slice(0, resolvedLimit)",
+  "desktopColumns",
+  "lg:grid-cols-5",
+  "lg:grid-cols-6",
   "winimi-snap-nav",
   "snap-mandatory",
-  "lg:grid-cols-6",
   "basis-[44%]",
   "hover:bg-[#d0e596]/70",
-  "group-hover:scale-[1.035]",
-  "rounded-[2rem]",
-  "modern-section-title",
+  "group-hover:scale-[1.03]",
+  "rounded-[1.15rem]",
+  "text-2xl",
 ]) {
   requireText(
     "categoryShowcase",
