@@ -143,16 +143,16 @@ const HomePage = () => {
         <div className="float-slower pointer-events-none absolute -right-24 top-16 h-56 w-56 rounded-full bg-[#d0e596]/25 blur-3xl" aria-hidden="true" />
         <div className="float-slow pointer-events-none absolute -left-20 bottom-12 h-48 w-48 rounded-full bg-[#f3c9b9]/25 blur-3xl" aria-hidden="true" />
         <div className="container-custom relative">
-          <div className="grid items-center gap-9 lg:min-h-[68svh] lg:grid-cols-[0.94fr_1.06fr] lg:gap-14">
+          <div className="grid items-center gap-6 sm:gap-8 lg:min-h-[68svh] lg:grid-cols-[1fr_1fr] lg:gap-14">
             <div className="relative z-10 order-1">
               <Reveal>
-                <span className="editorial-label mb-5 sm:mb-6">
+                <span className="editorial-label mb-5 border-[#b8cf79]/60 bg-white/85 text-[#667c22] shadow-[0_10px_30px_-22px_rgba(46,70,15,0.65)] sm:mb-6">
                   <Sparkles size={15} className="text-[#b96552]" aria-hidden="true" />
                   شیرینی دست‌ساز برای لحظه‌های شما
                 </span>
               </Reveal>
               <Reveal delay={80}>
-                <h1 className="max-w-5xl text-[clamp(2.55rem,6.2vw,6.25rem)] font-black leading-[1.04] tracking-[-0.055em] text-foreground">
+                <h1 className="max-w-5xl text-[clamp(2.55rem,6.2vw,6.25rem)] font-black leading-[1.04] tracking-[-0.055em] text-foreground lg:max-w-[12ch] lg:text-[clamp(4rem,5.25vw,5.75rem)]">
                   طعم خوب برای
                   <span className="block text-[#b96552]">
                     هدیه، پذیرایی و حال خوب.

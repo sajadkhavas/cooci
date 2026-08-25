@@ -86,9 +86,13 @@ for (const requirement of [
   "product-rail-background.webp",
   "<HomeProductRail",
   "rgba(255, 253, 247, 0.58)",
-  "lg:min-h-[68svh]",
-  "aspect-[4/3.15]",
-  "مشاهده محصولات",
+      "lg:min-h-[68svh]",
+      "lg:grid-cols-[1fr_1fr]",
+      "gap-6 sm:gap-8",
+      "aspect-[4/3.15]",
+      "text-[#667c22]",
+      "lg:max-w-[12ch]",
+      "مشاهده محصولات",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
 }
