@@ -363,6 +363,25 @@
 
 اگر شاهد جدید با سند تعارض داشت، Git/سرور زنده برتری دارد و سند فوراً Version جدید می‌گیرد.
 
+### به‌روزرسانی ۲۰۲۶-۰۸-۲۵ — سکشن دسته‌بندی
+
+- مرجع انتخابی کارفرما: ردیف ساده «Shop by Category» با تصویر و نام زیر آن.
+- پیاده‌سازی Git: حداکثر ۶ دسته فعال، یک ردیف ۶ ستونه در دسکتاپ و Rail افقی Snap/Touch در موبایل.
+- روی تصویر هیچ عنوان، Count، Badge یا توضیحی قرار نمی‌گیرد؛ نام دسته زیر تصویر است.
+- دور پنل و کارت Hairline ظریف دارد؛ Hover کارت سبز پاستیلی `#D0E596` است.
+- CTA کلی: «مشاهده همه محصولات».
+- H2: «دسته‌بندی محصولات وینیمی».
+- Intro: «دسته موردنظرت را انتخاب کن و محصولات فعال، قیمت و جزئیات سفارش را ببین.»
+- فایل‌ها:
+  - `src/components/catalog/CategoryShowcase.tsx`
+  - `src/pages/HomePage.tsx`
+  - `scripts/audit-content-integrity.mjs`
+  - `scripts/audit-modern-ui.mjs`
+- Code commit: `66cc2a80400b594f664042ab6802311ea84c9c00`
+- Frontend CI: PASS — run `32833365870`.
+- Production activation: انجام نشده.
+- Next: Build/Candidate ایزوله و Visual acceptance همین سکشن؛ بعد انتخاب طراحی Product shelf.
+
 ## 16) Checkpoint
 
 ```yaml
@@ -385,7 +404,7 @@ locked_mobile_drawer: do_not_change
 brand_primary: "#D0E596"
 accent_terracotta: "#D88972"
 current_locked_section: category_compact_horizontal_rail
-current_next_action: global_foundation_then_hero_options
+current_next_action: isolated_category_candidate_then_visual_acceptance
 production_mutation_authorized: false
 preflight_required: true
 ```
