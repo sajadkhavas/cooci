@@ -22,9 +22,7 @@ import {
   generateWhatsAppUrl,
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
-import { useCatalogCategories, useCatalogProducts } from "@/hooks/useCatalog";
-import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
-import { categoryContents } from "@/data/categoriesContent";
+import { useCatalogProducts } from "@/hooks/useCatalog";
 import heroImage from "@/assets/cookies/hero-main.jpg";
 import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
@@ -127,15 +125,10 @@ const guideCards = [
 
 const HomePage = () => {
   const { products, isLoading, error } = useCatalogProducts();
-  const { categories } = useCatalogCategories();
   const featuredProducts = products
     .filter((product) => product.isFeatured)
     .slice(0, 6);
   const visualProducts = products.slice(0, 3);
-  const visibleCategories = buildVisibleCatalogCategories(
-    categoryContents,
-    categories,
-  ).slice(0, 3);
 
   return (
     <>
@@ -145,19 +138,21 @@ const HomePage = () => {
         schema={homeDecisionFaqSchema}
       />
 
-      <section className="home-color-wash relative overflow-hidden pb-16 pt-8 sm:pb-24 lg:pt-16">
+      <section className="home-color-wash relative overflow-hidden pb-12 pt-7 sm:pb-18 sm:pt-10 lg:pb-20 lg:pt-14">
         <div className="soft-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
+        <div className="float-slower pointer-events-none absolute -right-24 top-16 h-56 w-56 rounded-full bg-[#d0e596]/25 blur-3xl" aria-hidden="true" />
+        <div className="float-slow pointer-events-none absolute -left-20 bottom-12 h-48 w-48 rounded-full bg-[#f3c9b9]/25 blur-3xl" aria-hidden="true" />
         <div className="container-custom relative">
-          <div className="grid min-h-[74svh] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
-            <div className="relative z-10 order-2 lg:order-1">
+          <div className="grid items-center gap-9 lg:min-h-[68svh] lg:grid-cols-[0.94fr_1.06fr] lg:gap-14">
+            <div className="relative z-10 order-1">
               <Reveal>
-                <span className="editorial-label mb-6">
+                <span className="editorial-label mb-5 sm:mb-6">
                   <Sparkles size={15} className="text-[#b96552]" aria-hidden="true" />
                   شیرینی دست‌ساز برای لحظه‌های شما
                 </span>
               </Reveal>
               <Reveal delay={80}>
-                <h1 className="max-w-5xl text-[clamp(3rem,7vw,7rem)] font-black leading-[1.02] tracking-[-0.06em] text-foreground">
+                <h1 className="max-w-5xl text-[clamp(2.55rem,6.2vw,6.25rem)] font-black leading-[1.04] tracking-[-0.055em] text-foreground">
                   طعم خوب برای
                   <span className="block text-[#b96552]">
                     هدیه، پذیرایی و حال خوب.
@@ -165,19 +160,19 @@ const HomePage = () => {
                 </h1>
               </Reveal>
               <Reveal delay={150}>
-                <p className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg sm:leading-9">
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:mt-7 sm:text-lg sm:leading-9">
                   محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کن؛ تصویر،
                   قیمت، موجودی و شرایط هر انتخاب را ببین و با خیال روشن‌تر سفارش
                   بده.
                 </p>
               </Reveal>
               <Reveal delay={220}>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                   <Link
                     to="/products"
                     className="btn-primary group inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-7 text-base font-black sm:px-9"
                   >
-                    ورود به فروشگاه
+                    مشاهده محصولات
                     <ArrowLeft
                       size={20}
                       className="transition-transform group-hover:-translate-x-1"
@@ -193,32 +188,14 @@ const HomePage = () => {
                   </Link>
                 </div>
               </Reveal>
-              {visibleCategories.length > 0 && (
-                <Reveal delay={290}>
-                  <nav
-                    className="winimi-snap-nav mt-8 flex max-w-2xl snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:overflow-visible sm:pb-0"
-                    aria-label="دسته‌های فعال فروشگاه"
-                  >
-                    {visibleCategories.map((category) => (
-                      <Link
-                        key={category.routeSlug}
-                        to={`/products/category/${category.routeSlug}`}
-                        className="inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border border-border bg-white/70 px-4 text-xs font-black text-foreground transition hover:border-[#d88972] hover:text-[#9b5545] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b96552]"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                  </nav>
-                </Reveal>
-              )}
             </div>
 
-            <Reveal className="order-1 lg:order-2" delay={100}>
-              <figure className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-[2.4rem] border border-white/40 bg-card shadow-[0_46px_120px_-50px_hsl(var(--foreground)/0.55)] sm:rounded-[3.2rem] lg:max-w-none">
+            <Reveal className="order-2" delay={100}>
+              <figure className="group/hero relative mx-auto w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/55 bg-card shadow-[0_38px_100px_-48px_hsl(var(--foreground)/0.5)] sm:rounded-[3rem] lg:max-w-none">
                 <img
                   src={heroImage}
                   alt="کوکی شکلاتی تازه وینیمی"
-                  className="aspect-[4/4.8] h-full w-full object-cover sm:aspect-[5/4.5] lg:aspect-[4/5]"
+                  className="aspect-[4/3.15] h-full w-full object-cover transition duration-700 group-hover/hero:scale-[1.025] sm:aspect-[5/4] lg:aspect-[4/4.7]"
                   loading="eager"
                   fetchPriority="high"
                   decoding="async"
@@ -226,7 +203,7 @@ const HomePage = () => {
                   height={1450}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#321d17]/80 via-transparent to-white/5" />
-                <figcaption className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+                <figcaption className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-8">
                   <span className="text-xs font-black tracking-[0.12em] text-[#f7e4dc]">
                     انتخاب روشن، سفارش ساده
                   </span>

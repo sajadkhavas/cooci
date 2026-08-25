@@ -86,12 +86,17 @@ for (const requirement of [
   "product-rail-background.webp",
   "<HomeProductRail",
   "rgba(255, 253, 247, 0.58)",
+  "lg:min-h-[68svh]",
+  "aspect-[4/3.15]",
+  "مشاهده محصولات",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
 }
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
 forbidText("home", 'to="/categories"', "standalone category-index link");
+forbidText("home", 'aria-label="دسته‌های فعال فروشگاه"', "duplicated category chips inside the hero");
+forbidText("home", "min-h-[74svh]", "oversized legacy hero height");
 
 for (const requirement of [
   "group/rail",
