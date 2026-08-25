@@ -14,7 +14,7 @@ import {
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import { DecisionSupportPanel, homeDecisionFaqSchema } from "@/components/home/DecisionSupportPanel";
 import { DraggableMarquee } from "@/components/home/DraggableMarquee";
-import { ProductCard } from "@/components/ProductCard";
+import { HomeProductRail } from "@/components/home/HomeProductRail";
 import { Reveal } from "@/components/motion/Reveal";
 import { SEO } from "@/components/SEO";
 import {
@@ -31,6 +31,7 @@ import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
 import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
 import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";
 import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
+import productRailBackground from "@/assets/product-rail-background.webp";
 
 const marqueeItems = [
   "کوکی‌های خانگی",
@@ -252,17 +253,30 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="home-color-wash section-padding relative overflow-hidden bg-secondary/25">
-        <div className="container-custom">
-          <Reveal className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <section
+        className="relative overflow-hidden border-y border-primary/8 bg-[#fbf8ef] py-12 sm:py-14 lg:py-16"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 253, 247, 0.76), rgba(255, 253, 247, 0.8)), url(${productRailBackground})`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
+        aria-labelledby="home-products-heading"
+      >
+        <div className="container-custom relative">
+          <Reveal className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="editorial-label mb-5">انتخاب‌های پیشنهادی</span>
-              <h2 className="modern-section-title">چند انتخاب برای شروع</h2>
+              <span className="editorial-label mb-3">انتخاب‌های پیشنهادی</span>
+              <h2
+                id="home-products-heading"
+                className="text-3xl font-black leading-tight text-foreground sm:text-4xl"
+              >
+                چند انتخاب برای شروع
+              </h2>
             </div>
             <div className="max-w-xl lg:text-left">
-              <p className="leading-8 text-muted-foreground">
-                محصولات منتخب فروشگاه را ببین و برای تصویر کامل، قیمت، موجودی و
-                جزئیات وارد صفحه محصول شو.
+              <p className="text-sm leading-7 text-muted-foreground sm:text-base">
+                محصول، قیمت و موجودی را سریع مقایسه کن؛ برای انتخاب نوع یا دیدن
+                جزئیات بیشتر، پیش‌نمایش را باز کن.
               </p>
               <Link
                 to="/products"
@@ -279,11 +293,18 @@ const HomePage = () => {
           </Reveal>
 
           {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
-              {Array.from({ length: 3 }, (_, index) => (
-                <div key={index} className="bento-card overflow-hidden">
-                  <div className="aspect-[4/3] animate-pulse bg-muted" />
-                  <div className="space-y-3 p-5">
+            <div
+              className="flex gap-4 overflow-hidden"
+              aria-busy="true"
+              aria-label="در حال دریافت محصولات پیشنهادی"
+            >
+              {Array.from({ length: 4 }, (_, index) => (
+                <div
+                  key={index}
+                  className="basis-[86%] shrink-0 overflow-hidden rounded-[1.35rem] border border-border/60 bg-white/80 sm:basis-[48%] lg:basis-[31%] xl:basis-[23.5%]"
+                >
+                  <div className="aspect-[5/4] animate-pulse bg-muted" />
+                  <div className="space-y-3 p-4">
                     <div className="h-6 w-3/4 animate-pulse rounded-full bg-muted" />
                     <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
                     <div className="h-12 w-full animate-pulse rounded-2xl bg-muted" />
@@ -291,16 +312,8 @@ const HomePage = () => {
                 </div>
               ))}
             </div>
-          ) : featuredProducts.length === 1 ? (
-            <ProductCard product={featuredProducts[0]} variant="featured" />
-          ) : featuredProducts.length > 1 ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {featuredProducts.map((product, index) => (
-                <Reveal key={product.id} delay={(index % 3) * 80}>
-                  <ProductCard product={product} />
-                </Reveal>
-              ))}
-            </div>
+          ) : featuredProducts.length > 0 ? (
+            <HomeProductRail products={featuredProducts} />
           ) : (
             <div className="bento-card p-12 text-center">
               <Cookie className="mx-auto mb-4 text-[#b96552]" size={48} aria-hidden="true" />

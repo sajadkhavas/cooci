@@ -1,13 +1,20 @@
 import {
   ArrowUpLeft,
+  Eye,
   ImageIcon,
   ShoppingCart,
-  Snowflake,
-  Truck,
 } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { OptimizedImage } from "@/components/media/OptimizedImage";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/data/products";
@@ -27,7 +34,7 @@ import {
 
 interface ProductCardProps {
   product: Product;
-  variant?: "default" | "featured";
+  variant?: "default" | "featured" | "rail";
 }
 
 const stockToneClasses = {
@@ -41,10 +48,6 @@ export const ProductCard = ({
   variant = "default",
 }: ProductCardProps) => {
   const { addItem, items } = useCart();
-  const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
-  const shippingLabel = product.requiresCooling
-    ? "نیازمند روش تحویل سرد"
-    : "روش‌های تحویل در مرحله سفارش نمایش داده می‌شوند";
   const hasVariants = (product.variants?.length ?? 0) > 0;
   const regularPrice = getProductRegularPrice(product);
   const salePrice = getProductSalePrice(product);
@@ -64,6 +67,7 @@ export const ProductCard = ({
   const isCartAtStockLimit = Boolean(
     cartItem && stock > 0 && cartItem.quantity >= stock,
   );
+  const isRail = variant === "rail";
 
   const handleAdd = () => {
     if (hasVariants) {
@@ -104,7 +108,9 @@ export const ProductCard = ({
 
   return (
     <article
-      className={`group relative h-full min-w-0 overflow-hidden rounded-[2rem] border border-border/65 bg-card/85 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-[#d88972]/55 hover:shadow-hover focus-within:border-[#d88972]/70 focus-within:shadow-hover ${
+      className={`group relative h-full min-w-0 overflow-hidden border border-border/65 bg-card/90 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:border-[#d88972]/55 hover:shadow-hover focus-within:border-[#d88972]/70 focus-within:shadow-hover ${
+        isRail ? "rounded-[1.35rem]" : "rounded-[2rem]"
+      } ${
         variant === "featured"
           ? "md:grid md:grid-cols-[1.2fr_0.8fr]"
           : "flex flex-col"
@@ -115,7 +121,9 @@ export const ProductCard = ({
         className={`relative isolate block overflow-hidden bg-gradient-to-br from-card via-secondary/70 to-muted ${
           variant === "featured"
             ? "aspect-[4/3] md:min-h-[31rem] md:aspect-auto"
-            : "aspect-[4/3]"
+            : isRail
+              ? "aspect-[5/4]"
+              : "aspect-[4/3]"
         }`}
         aria-label={`مشاهده جزئیات ${product.name}`}
       >
@@ -180,12 +188,120 @@ export const ProductCard = ({
         )}
       </Link>
 
+      <Dialog>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            className="absolute left-3 top-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-white/88 text-primary opacity-100 shadow-lg backdrop-blur-xl transition hover:scale-105 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f] sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+            aria-label={`پیش‌نمایش سریع ${product.name}`}
+          >
+            <Eye size={18} aria-hidden="true" />
+          </button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-border/70 bg-background/98 p-0 sm:max-w-3xl">
+          <div className="grid md:grid-cols-[0.95fr_1.05fr]">
+            <div className="relative min-h-72 overflow-hidden bg-secondary md:min-h-[31rem]">
+              {product.images[0]?.url ? (
+                <OptimizedImage
+                  src={product.images[0].url}
+                  alt={product.images[0].alt || product.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  sizes="(min-width: 768px) 40vw, 100vw"
+                  width={900}
+                  height={900}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                  <ImageIcon size={48} aria-hidden="true" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col p-6 sm:p-8">
+              <span className="mb-3 text-xs font-black text-[#9b5545]">
+                {product.category}
+              </span>
+              <DialogTitle className="text-2xl font-black leading-9 text-foreground sm:text-3xl">
+                {product.name}
+              </DialogTitle>
+              <DialogDescription className="mt-3 text-sm leading-7 text-muted-foreground">
+                {publicSummary}
+              </DialogDescription>
+
+              <div
+                className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-bold ${stockToneClasses[stockPresentation.tone]}`}
+              >
+                {stockPresentation.label}
+              </div>
+
+              <div className="mt-6">
+                {displayPrice ? (
+                  <>
+                    {salePrice && regularPrice && (
+                      <p className="text-sm text-muted-foreground line-through">
+                        {formatToman(regularPrice)}
+                      </p>
+                    )}
+                    <p className="mt-1 text-2xl font-black text-primary">
+                      {formatToman(displayPrice)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-bold text-muted-foreground">قیمت با استعلام</p>
+                )}
+              </div>
+
+              <div className="mt-auto grid gap-3 pt-7 sm:grid-cols-2">
+                <DialogClose asChild>
+                  <Link
+                    to={`/products/${encodeURIComponent(product.slug)}`}
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-primary/20 px-5 text-sm font-black text-primary transition hover:bg-primary/5"
+                  >
+                    مشاهده جزئیات
+                  </Link>
+                </DialogClose>
+
+                {hasVariants ? (
+                  <DialogClose asChild>
+                    <Link
+                      to={`/products/${encodeURIComponent(product.slug)}`}
+                      className="btn-primary inline-flex min-h-12 items-center justify-center rounded-full px-5 text-sm font-black"
+                    >
+                      انتخاب نوع
+                    </Link>
+                  </DialogClose>
+                ) : (
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      onClick={handleAdd}
+                      disabled={isOutOfStock || isCartAtStockLimit || !displayPrice}
+                      className="btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <ShoppingCart size={17} aria-hidden="true" />
+                      {isOutOfStock
+                        ? "ناموجود"
+                        : isCartAtStockLimit
+                          ? "حد موجودی"
+                          : "افزودن به سبد"}
+                    </button>
+                  </DialogClose>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div
-        className={`flex min-w-0 flex-1 flex-col p-5 sm:p-6 ${
+        className={`flex min-w-0 flex-1 flex-col ${
+          isRail ? "p-4" : "p-5 sm:p-6"
+        } ${
           variant === "featured" ? "md:justify-center md:p-9 lg:p-12" : ""
         }`}
       >
-        <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
+        <div className={`${isRail ? "mb-2" : "mb-4"} flex min-w-0 items-center justify-between gap-3`}>
           <Link
             to={`/products/category/${encodeURIComponent(product.categorySlug)}`}
             className="inline-flex min-h-8 items-center rounded-full border border-primary/12 bg-primary/8 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-primary transition hover:bg-primary/12"
@@ -202,7 +318,9 @@ export const ProductCard = ({
             className={`line-clamp-2 font-black text-foreground transition-colors group-hover:text-[#9b5545] ${
               variant === "featured"
                 ? "text-3xl leading-[1.35] lg:text-4xl"
-                : "text-xl leading-8"
+                : isRail
+                  ? "text-lg leading-7"
+                  : "text-xl leading-8"
             }`}
           >
             {product.name}
@@ -213,26 +331,16 @@ export const ProductCard = ({
           {publicSummary}
         </p>
 
-        <div className="mt-5 grid gap-2">
+        <div className={`${isRail ? "mt-3" : "mt-5"} grid gap-2`}>
           <div
-            className={`flex min-w-0 items-center gap-2 rounded-2xl border px-3.5 py-2.5 text-[11px] font-bold backdrop-blur-md ${
-              product.requiresCooling
-                ? "border-sky-200 bg-sky-50/80 text-sky-900"
-                : "border-primary/10 bg-primary/7 text-primary"
-            }`}
-          >
-            <ShippingIcon size={15} className="shrink-0" aria-hidden="true" />
-            <span className="line-clamp-2">{shippingLabel}</span>
-          </div>
-          <div
-            className={`rounded-2xl border px-3.5 py-2.5 text-[11px] font-bold ${stockToneClasses[stockPresentation.tone]}`}
+            className={`rounded-xl border px-3 py-2 text-[11px] font-bold ${stockToneClasses[stockPresentation.tone]}`}
             aria-label={`وضعیت موجودی: ${stockPresentation.label}`}
           >
             {stockPresentation.label}
           </div>
         </div>
 
-        <div className="my-5 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
+        <div className={`${isRail ? "my-3" : "my-5"} h-px bg-gradient-to-l from-transparent via-border to-transparent`} />
 
         <div className="mt-auto flex min-w-0 items-end justify-between gap-4">
           {displayPrice ? (

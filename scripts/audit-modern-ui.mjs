@@ -13,6 +13,7 @@ const files = {
   home: "src/pages/HomePage.tsx",
   products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
+  homeProductRail: "src/components/home/HomeProductRail.tsx",
   productCard: "src/components/ProductCard.tsx",
   reveal: "src/components/motion/Reveal.tsx",
   progress: "src/components/layout/ScrollProgress.tsx",
@@ -82,6 +83,8 @@ for (const requirement of [
   "modern-section-title",
   "طعم خوب برای",
   "برای چه لحظه‌ای انتخاب می‌کنی؟",
+  "product-rail-background.webp",
+  "<HomeProductRail",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
 }
@@ -136,8 +139,38 @@ for (const requirement of [
   "isProductMediaVerified",
   "rounded-[2rem]",
   "group-hover:scale-[1.035]",
+  'variant?: "default" | "featured" | "rail"',
+  "پیش‌نمایش سریع",
+  "<DialogContent",
+  "افزودن به سبد",
 ]) {
   requireText("productCard", requirement, `modern product-card contract: ${requirement}`);
+}
+forbidText(
+  "productCard",
+  "روش‌های تحویل در مرحله سفارش نمایش داده می‌شوند",
+  "verbose delivery-stage product-card copy",
+);
+
+for (const requirement of [
+  "AUTOPLAY_DELAY = 6000",
+  "IntersectionObserver",
+  "prefers-reduced-motion: reduce",
+  "visibilitychange",
+  "onMouseEnter={stopAutoPlay}",
+  "onFocusCapture={stopAutoPlay}",
+  "onPointerDown={stopAutoPlay}",
+  "onTouchStart={stopAutoPlay}",
+  "basis-[86%]",
+  "xl:basis-[23.5%]",
+  'aria-live="off"',
+  "توقف حرکت خودکار",
+]) {
+  requireText(
+    "homeProductRail",
+    requirement,
+    `accessible shoppable product-rail contract: ${requirement}`,
+  );
 }
 
 requireText("reveal", "IntersectionObserver", "dependency-free reveal observer");
