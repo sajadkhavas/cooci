@@ -57,6 +57,8 @@ for (const requirement of [
   "نیازمند نگهداری سرد",
   "مشاهده محصول",
   "برای دیدن محصولات دیگر، تصویر را بکشید",
+  "lg:grid-cols-[minmax(0,1fr)_15.5rem]",
+  "#e5f0d6_100%",
 ]) {
   requireText(
     "homeColdGallery",

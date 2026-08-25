@@ -172,7 +172,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
             {`محصول ${activeIndex + 1} از ${galleryProducts.length}: ${activeProduct.name}`}
           </p>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_10.5rem] lg:gap-4">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_15.5rem] lg:gap-5">
             <article className="cold-gallery-stage relative isolate overflow-hidden rounded-[2rem] border border-white/65 bg-[#e5eee8] shadow-[0_42px_100px_-45px_rgba(31,66,50,0.72)] sm:rounded-[2.75rem] lg:min-h-[42rem]">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#dbe6df] sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto">
                 {image?.url ? (
@@ -199,7 +199,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
                 <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/40" aria-hidden="true" />
               </div>
 
-              <div className="relative z-10 mx-3 -mt-5 mb-3 rounded-[1.5rem] border border-[#b9cbbf]/55 bg-[#f9fbf6] p-5 text-[#254535] shadow-[0_24px_70px_-35px_rgba(14,38,28,0.75)] sm:mx-5 sm:-mt-8 sm:mb-5 sm:p-6 lg:absolute lg:bottom-8 lg:right-8 lg:top-8 lg:m-0 lg:w-[22rem] lg:border-white/35 lg:bg-[#f9fbf6]/94 lg:p-7 lg:backdrop-blur-2xl">
+              <div className="relative z-10 mx-3 -mt-5 mb-3 rounded-[1.5rem] border border-[#b9cbbf]/55 bg-[linear-gradient(145deg,#ffffff_0%,#f4f9ef_58%,#e5f0d6_100%)] p-5 text-[#254535] shadow-[0_24px_70px_-35px_rgba(14,38,28,0.75)] sm:mx-5 sm:-mt-8 sm:mb-5 sm:p-6 lg:absolute lg:bottom-8 lg:right-8 lg:top-8 lg:m-0 lg:w-[22rem] lg:border-white/35 lg:bg-[#f9fbf6]/94 lg:p-7 lg:backdrop-blur-2xl">
                 <div className="flex items-center justify-between gap-3">
                   <span className="rounded-full border border-[#91aa83]/35 bg-white/70 px-3 py-1 text-[10px] font-black text-[#5f7750]">
                     {activeProduct.category}
@@ -267,8 +267,8 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
                           className="h-full w-full object-cover transition duration-700 group-hover/peek:scale-105"
                           loading="lazy"
                           fetchPriority="low"
-                          sizes="168px"
-                          width={336}
+                          sizes="248px"
+                          width={496}
                           height={520}
                         />
                       ) : (
