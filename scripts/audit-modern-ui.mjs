@@ -103,14 +103,27 @@ for (const requirement of [
 
 for (const requirement of [
   "categoryVisuals",
-  "category.image || visual.image",
-  "productCount",
+  "category.image ||",
+  "winimi-snap-nav",
+  "snap-mandatory",
+  "lg:grid-cols-6",
+  "basis-[44%]",
+  "hover:bg-[#d0e596]/70",
   "group-hover:scale-[1.035]",
   "rounded-[2rem]",
   "modern-section-title",
 ]) {
-  requireText("categoryShowcase", requirement, `modern category-card contract: ${requirement}`);
+  requireText(
+    "categoryShowcase",
+    requirement,
+    `compact accessible category-rail contract: ${requirement}`,
+  );
 }
+forbidText(
+  "categoryShowcase",
+  "category.productCount",
+  "legacy category count badge",
+);
 
 for (const requirement of [
   "getPublicProductBadges",
