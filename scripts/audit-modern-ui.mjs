@@ -85,12 +85,30 @@ for (const requirement of [
   "برای چه لحظه‌ای انتخاب می‌کنی؟",
   "product-rail-background.webp",
   "<HomeProductRail",
+  "rgba(255, 253, 247, 0.58)",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
 }
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
 forbidText("home", 'to="/categories"', "standalone category-index link");
+
+for (const requirement of [
+  "group/rail",
+  "group-hover/rail:opacity-100",
+  "bg-[#31520f]",
+  "وضعیت نمایش محصولات پیشنهادی",
+]) {
+  requireText("homeProductRail", requirement, `refined product rail controls: ${requirement}`);
+}
+
+for (const requirement of [
+  "productRailBackground",
+  "bg-[#fffdf7]",
+  "sm:max-w-4xl",
+]) {
+  requireText("productCard", requirement, `branded quick-view surface: ${requirement}`);
+}
 
 for (const requirement of [
   "<CategoryShowcase",

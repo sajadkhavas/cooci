@@ -256,7 +256,7 @@ const HomePage = () => {
       <section
         className="relative overflow-hidden border-y border-primary/8 bg-[#fbf8ef] py-12 sm:py-14 lg:py-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(255, 253, 247, 0.76), rgba(255, 253, 247, 0.8)), url(${productRailBackground})`,
+          backgroundImage: `linear-gradient(rgba(255, 253, 247, 0.58), rgba(255, 253, 247, 0.66)), url(${productRailBackground})`,
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}

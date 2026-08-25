@@ -149,41 +149,25 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
   return (
     <div
       ref={rootRef}
-      className="relative"
+      className="group/rail relative"
       onMouseEnter={stopAutoPlay}
       onFocusCapture={stopAutoPlay}
       onPointerDown={stopAutoPlay}
       onWheel={stopAutoPlay}
     >
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2" aria-label="کنترل محصولات پیشنهادی">
-          <button
-            type="button"
-            onClick={() => {
-              stopAutoPlay();
-              scrollToIndex(activeIndex - 1);
-            }}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/15 bg-white/80 text-primary shadow-sm transition hover:border-[#91b33f]/55 hover:bg-[#d0e596]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
-            aria-label="محصول قبلی"
-          >
-            <ArrowRight size={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              stopAutoPlay();
-              scrollToIndex(activeIndex + 1);
-            }}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/15 bg-white/80 text-primary shadow-sm transition hover:border-[#91b33f]/55 hover:bg-[#d0e596]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
-            aria-label="محصول بعدی"
-          >
-            <ArrowLeft size={18} aria-hidden="true" />
-          </button>
+      <div className="mb-4 flex justify-end">
+        <div
+          className="inline-flex min-h-10 items-center overflow-hidden rounded-full border border-[#31520f]/20 bg-[#31520f] text-white shadow-[0_10px_28px_-14px_rgba(49,82,15,0.85)]"
+          aria-label="وضعیت نمایش محصولات پیشنهادی"
+        >
+          <span className="px-4 text-xs font-black tabular-nums">
+            {(activeIndex + 1).toLocaleString("fa-IR")} / {products.length.toLocaleString("fa-IR")}
+          </span>
           {canAutoPlay && (
             <button
               type="button"
               onClick={() => setIsAutoPlaying((current) => !current)}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3 text-xs font-black text-primary shadow-sm transition hover:border-[#91b33f]/55 hover:bg-[#d0e596]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
+              className="inline-flex min-h-10 items-center justify-center gap-2 border-r border-white/20 bg-white/10 px-3 text-xs font-black text-white transition hover:bg-[#d0e596] hover:text-[#263b12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
               aria-label={isAutoPlaying ? "توقف حرکت خودکار" : "شروع حرکت خودکار"}
             >
               {isAutoPlaying ? (
@@ -195,11 +179,34 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
             </button>
           )}
         </div>
-
-        <span className="rounded-full border border-primary/10 bg-white/70 px-3 py-1.5 text-xs font-black text-primary/70">
-          {(activeIndex + 1).toLocaleString("fa-IR")} / {products.length.toLocaleString("fa-IR")}
-        </span>
       </div>
+
+      {products.length > 1 && (
+        <div className="pointer-events-none absolute inset-x-[-1.35rem] top-1/2 z-30 hidden -translate-y-1/2 items-center justify-between lg:flex">
+          <button
+            type="button"
+            onClick={() => {
+              stopAutoPlay();
+              scrollToIndex(activeIndex + 1);
+            }}
+            className="pointer-events-auto inline-flex h-12 w-12 translate-x-2 items-center justify-center rounded-full border border-[#31520f]/15 bg-[#fffdf7]/95 text-[#31520f] opacity-0 shadow-[0_12px_35px_-14px_rgba(38,59,18,0.6)] backdrop-blur-xl transition duration-300 hover:scale-105 hover:border-[#91b33f]/65 hover:bg-[#d0e596] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#31520f] group-hover/rail:translate-x-0 group-hover/rail:opacity-100"
+            aria-label="محصول بعدی"
+          >
+            <ArrowLeft size={21} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              stopAutoPlay();
+              scrollToIndex(activeIndex - 1);
+            }}
+            className="pointer-events-auto inline-flex h-12 w-12 -translate-x-2 items-center justify-center rounded-full border border-[#31520f]/15 bg-[#fffdf7]/95 text-[#31520f] opacity-0 shadow-[0_12px_35px_-14px_rgba(38,59,18,0.6)] backdrop-blur-xl transition duration-300 hover:scale-105 hover:border-[#91b33f]/65 hover:bg-[#d0e596] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#31520f] group-hover/rail:translate-x-0 group-hover/rail:opacity-100"
+            aria-label="محصول قبلی"
+          >
+            <ArrowRight size={21} aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
       <ul
         ref={railRef}

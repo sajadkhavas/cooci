@@ -7,6 +7,7 @@ import {
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { OptimizedImage } from "@/components/media/OptimizedImage";
+import productRailBackground from "@/assets/product-rail-background.webp";
 import {
   Dialog,
   DialogClose,
@@ -198,7 +199,10 @@ export const ProductCard = ({
             <Eye size={18} aria-hidden="true" />
           </button>
         </DialogTrigger>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-border/70 bg-background/98 p-0 sm:max-w-3xl">
+        <DialogContent
+          dir="rtl"
+          className="max-h-[90vh] overflow-y-auto border-[#b8c98d]/45 bg-[#fffdf7] p-0 text-[#263b12] shadow-[0_32px_90px_-28px_rgba(28,45,12,0.55)] [&>button]:left-3 [&>button]:right-auto [&>button]:top-3 [&>button]:z-30 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:text-[#496a16] [&>button]:opacity-100 sm:max-w-4xl"
+        >
           <div className="grid md:grid-cols-[0.95fr_1.05fr]">
             <div className="relative min-h-72 overflow-hidden bg-secondary md:min-h-[31rem]">
               {product.images[0]?.url ? (
@@ -218,76 +222,85 @@ export const ProductCard = ({
               )}
             </div>
 
-            <div className="flex flex-col p-6 sm:p-8">
-              <span className="mb-3 text-xs font-black text-[#9b5545]">
-                {product.category}
-              </span>
-              <DialogTitle className="text-2xl font-black leading-9 text-foreground sm:text-3xl">
-                {product.name}
-              </DialogTitle>
-              <DialogDescription className="mt-3 text-sm leading-7 text-muted-foreground">
-                {publicSummary}
-              </DialogDescription>
+            <div
+              className="relative flex flex-col overflow-hidden p-6 sm:p-8"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255, 253, 247, 0.88), rgba(255, 253, 247, 0.92)), url(${productRailBackground})`,
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+              }}
+            >
+              <div className="relative z-10 flex h-full flex-col">
+                <span className="mb-3 text-xs font-black text-[#9b5545]">
+                  {product.category}
+                </span>
+                <DialogTitle className="text-2xl font-black leading-9 text-[#263b12] sm:text-3xl">
+                  {product.name}
+                </DialogTitle>
+                <DialogDescription className="mt-3 text-sm leading-7 text-[#5f6d4c]">
+                  {publicSummary}
+                </DialogDescription>
 
-              <div
-                className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-bold ${stockToneClasses[stockPresentation.tone]}`}
-              >
-                {stockPresentation.label}
-              </div>
+                <div
+                  className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-bold ${stockToneClasses[stockPresentation.tone]}`}
+                >
+                  {stockPresentation.label}
+                </div>
 
-              <div className="mt-6">
-                {displayPrice ? (
-                  <>
-                    {salePrice && regularPrice && (
-                      <p className="text-sm text-muted-foreground line-through">
-                        {formatToman(regularPrice)}
+                <div className="mt-6">
+                  {displayPrice ? (
+                    <>
+                      {salePrice && regularPrice && (
+                        <p className="text-sm text-[#7d866e] line-through">
+                          {formatToman(regularPrice)}
+                        </p>
+                      )}
+                      <p className="mt-1 text-2xl font-black text-[#496a16]">
+                        {formatToman(displayPrice)}
                       </p>
-                    )}
-                    <p className="mt-1 text-2xl font-black text-primary">
-                      {formatToman(displayPrice)}
-                    </p>
-                  </>
-                ) : (
-                  <p className="font-bold text-muted-foreground">قیمت با استعلام</p>
-                )}
-              </div>
+                    </>
+                  ) : (
+                    <p className="font-bold text-[#687456]">قیمت با استعلام</p>
+                  )}
+                </div>
 
-              <div className="mt-auto grid gap-3 pt-7 sm:grid-cols-2">
-                <DialogClose asChild>
-                  <Link
-                    to={`/products/${encodeURIComponent(product.slug)}`}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-primary/20 px-5 text-sm font-black text-primary transition hover:bg-primary/5"
-                  >
-                    مشاهده جزئیات
-                  </Link>
-                </DialogClose>
-
-                {hasVariants ? (
+                <div className="mt-auto grid gap-3 pt-7 sm:grid-cols-2">
                   <DialogClose asChild>
                     <Link
                       to={`/products/${encodeURIComponent(product.slug)}`}
-                      className="btn-primary inline-flex min-h-12 items-center justify-center rounded-full px-5 text-sm font-black"
+                      className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#496a16]/25 bg-white/55 px-5 text-sm font-black text-[#31520f] transition hover:bg-[#d0e596]/45"
                     >
-                      انتخاب نوع
+                      مشاهده جزئیات
                     </Link>
                   </DialogClose>
-                ) : (
-                  <DialogClose asChild>
-                    <button
-                      type="button"
-                      onClick={handleAdd}
-                      disabled={isOutOfStock || isCartAtStockLimit || !displayPrice}
-                      className="btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <ShoppingCart size={17} aria-hidden="true" />
-                      {isOutOfStock
-                        ? "ناموجود"
-                        : isCartAtStockLimit
-                          ? "حد موجودی"
-                          : "افزودن به سبد"}
-                    </button>
-                  </DialogClose>
-                )}
+
+                  {hasVariants ? (
+                    <DialogClose asChild>
+                      <Link
+                        to={`/products/${encodeURIComponent(product.slug)}`}
+                        className="btn-primary inline-flex min-h-12 items-center justify-center rounded-full px-5 text-sm font-black"
+                      >
+                        انتخاب نوع
+                      </Link>
+                    </DialogClose>
+                  ) : (
+                    <DialogClose asChild>
+                      <button
+                        type="button"
+                        onClick={handleAdd}
+                        disabled={isOutOfStock || isCartAtStockLimit || !displayPrice}
+                        className="btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <ShoppingCart size={17} aria-hidden="true" />
+                        {isOutOfStock
+                          ? "ناموجود"
+                          : isCartAtStockLimit
+                            ? "حد موجودی"
+                            : "افزودن به سبد"}
+                      </button>
+                    </DialogClose>
+                  )}
+                </div>
               </div>
             </div>
           </div>
