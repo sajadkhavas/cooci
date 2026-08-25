@@ -186,7 +186,23 @@ requireText(
 requireText("productsPage", '"@type": "CollectionPage"', "shop and category CollectionPage schema");
 requireText("productsPage", "content?.catalogSearch", "subcategory search mapping");
 requireText("productsPage", "hasNonCanonicalFilters", "filtered-page robots policy");
-requireText("categoryShowcase", "productCount", "backend category count support");
+requireText(
+  "categoryShowcase",
+  'aria-label="دسته‌بندی محصولات وینیمی"',
+  "semantic category-list label",
+);
+requireText("categoryShowcase", "lg:grid-cols-6", "six-column desktop category rail");
+requireText("categoryShowcase", "basis-[44%]", "touch-friendly mobile category rail");
+requireText(
+  "categoryShowcase",
+  "hover:bg-[#d0e596]/70",
+  "pastel-green category hover state",
+);
+forbidText(
+  "categoryShowcase",
+  "category.productCount",
+  "legacy category count badge",
+);
 requireText("categoryShowcase", 'to="/products"', "all-shop destination");
 requireText("runtimeE2e", "shop unifies categories and filters", "unified-shop browser acceptance");
 requireText(
