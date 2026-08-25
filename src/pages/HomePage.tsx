@@ -241,7 +241,7 @@ const HomePage = () => {
 
       <DraggableMarquee items={marqueeItems} />
 
-      <section className="home-color-wash section-padding relative overflow-hidden">
+      <section className="home-color-wash relative overflow-hidden py-10 sm:py-12 lg:py-14">
         <div className="container-custom">
           <CategoryShowcase
             limit={6}
