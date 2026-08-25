@@ -18,9 +18,29 @@ const categoryVisuals = {
   "diet-diabetic": lifestyleTwine,
   cakes: heroImage,
   cheesecakes: lifestyleMilk,
-  pastry: galleryBakery,
+  pastry: galleryBaking,
   "gift-boxes": galleryGiftBoxes,
 } as const;
+
+const getCuratedCategoryImage = (
+  routeSlug: string,
+  name: string,
+  backendImage?: string,
+) => {
+  const curated =
+    categoryVisuals[routeSlug as keyof typeof categoryVisuals];
+
+  if (curated) return curated;
+  if (/رول|کروسان|خمیر/.test(name)) return categoryVisuals.pastry;
+  if (/مینی/.test(name)) return categoryVisuals["mini-cookies"];
+  if (/رژیمی|قند/.test(name)) return categoryVisuals["diet-diabetic"];
+  if (/چیزکیک/.test(name)) return categoryVisuals.cheesecakes;
+  if (/کیک|دسر/.test(name)) return categoryVisuals.cakes;
+  if (/هدیه|باکس/.test(name)) return categoryVisuals["gift-boxes"];
+  if (/کوکی/.test(name)) return categoryVisuals.cookies;
+
+  return backendImage || galleryBakery;
+};
 
 interface CategoryShowcaseProps {
   title?: string;
@@ -55,14 +75,29 @@ export const CategoryShowcase = ({
 
   if (visibleCategories.length === 0) return null;
 
+  const desktopColumns =
+    visibleCategories.length >= 6
+      ? "lg:grid-cols-6"
+      : visibleCategories.length === 5
+        ? "lg:grid-cols-5"
+        : visibleCategories.length === 4
+          ? "lg:grid-cols-4"
+          : visibleCategories.length === 3
+            ? "lg:grid-cols-3"
+            : visibleCategories.length === 2
+              ? "lg:grid-cols-2"
+              : "lg:grid-cols-1";
+
   return (
-    <div className="category-showcase-wash rounded-[2rem] border border-foreground/10 bg-white/55 p-4 shadow-[0_18px_55px_-46px_hsl(var(--foreground)/0.45)] sm:p-6 lg:p-7">
+    <div className="category-showcase-wash rounded-[1.5rem] border border-foreground/10 bg-white/55 p-4 shadow-[0_16px_46px_-42px_hsl(var(--foreground)/0.42)] sm:p-5 lg:p-6">
       {showHeader && (
-        <Reveal className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <span className="editorial-label mb-4">{eyebrow}</span>
-            <h2 className="modern-section-title">{title}</h2>
-            <p className="mt-4 max-w-2xl leading-8 text-muted-foreground">
+        <Reveal className="mb-5 flex flex-col gap-3 sm:mb-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <span className="editorial-label mb-2">{eyebrow}</span>
+            <h2 className="text-2xl font-black leading-tight text-foreground sm:text-3xl">
+              {title}
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
               {description}
             </p>
           </div>
@@ -70,11 +105,11 @@ export const CategoryShowcase = ({
           {showAllLink && (
             <Link
               to="/products"
-              className="group inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[#d88972]/35 bg-[#f7e4dc]/80 px-5 font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b96552] focus-visible:ring-offset-2 lg:self-auto"
+              className="group inline-flex min-h-10 items-center gap-2 self-start rounded-full border border-[#d88972]/30 bg-[#f7e4dc]/70 px-4 text-sm font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b96552] focus-visible:ring-offset-2 lg:self-auto"
             >
               مشاهده همه محصولات
               <ArrowUpLeft
-                size={18}
+                size={17}
                 className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
                 aria-hidden="true"
               />
@@ -84,16 +119,15 @@ export const CategoryShowcase = ({
       )}
 
       <ul
-        className="winimi-snap-nav -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pb-0"
+        className={`winimi-snap-nav -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 lg:mx-0 lg:grid ${desktopColumns} lg:overflow-visible lg:px-0 lg:pb-0`}
         aria-label="دسته‌بندی محصولات وینیمی"
       >
         {visibleCategories.map((category, index) => {
-          const image =
-            category.image ||
-            categoryVisuals[
-              category.routeSlug as keyof typeof categoryVisuals
-            ] ||
-            categoryVisuals.cookies;
+          const image = getCuratedCategoryImage(
+            category.routeSlug,
+            category.name,
+            category.image,
+          );
 
           return (
             <li
@@ -103,25 +137,25 @@ export const CategoryShowcase = ({
               <Reveal className="h-full" delay={(index % 6) * 45}>
                 <Link
                   to={`/products/category/${category.routeSlug}`}
-                  className={`group flex h-full flex-col rounded-[1.5rem] border border-foreground/10 bg-white/70 ${
-                    compact ? "p-2" : "p-2.5"
-                  } transition duration-300 hover:-translate-y-0.5 hover:border-[#91b33f]/60 hover:bg-[#d0e596]/70 hover:shadow-[0_18px_40px_-30px_hsl(var(--foreground)/0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f] focus-visible:ring-offset-2`}
+                  className={`group flex h-full flex-col rounded-[1.15rem] border border-foreground/10 bg-white/72 ${
+                    compact ? "p-1.5" : "p-2"
+                  } transition duration-300 hover:-translate-y-0.5 hover:border-[#91b33f]/55 hover:bg-[#d0e596]/70 hover:shadow-[0_16px_34px_-28px_hsl(var(--foreground)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f] focus-visible:ring-offset-2`}
                   aria-label={`مشاهده محصولات دسته ${category.name}`}
                 >
-                  <span className="block overflow-hidden rounded-[1.1rem] bg-[#f7f9ee]">
+                  <span className="block overflow-hidden rounded-[0.85rem] bg-[#f7f9ee]">
                     <img
                       src={image}
                       alt={`محصولات دسته ${category.name} وینیمی`}
-                      className="aspect-[4/3] h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+                      className="aspect-[5/4] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                       loading="lazy"
                       decoding="async"
                       width={640}
-                      height={480}
+                      height={512}
                     />
                   </span>
 
                   <span
-                    className={`flex min-h-14 items-center justify-center px-2 text-center font-black leading-6 text-foreground ${
+                    className={`flex min-h-11 items-center justify-center px-1.5 py-1 text-center font-black leading-5 text-foreground ${
                       compact ? "text-xs sm:text-sm" : "text-sm sm:text-base"
                     }`}
                   >
