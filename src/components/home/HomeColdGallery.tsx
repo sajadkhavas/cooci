@@ -39,7 +39,12 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
     [products],
   );
   const [activeIndex, setActiveIndex] = useState(0);
-  const pointerStartX = useRef<number | null>(null);
+  const pointerStart = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const suppressNextClick = useRef(false);
   const activeProduct = galleryProducts[activeIndex];
 
   const selectIndex = useCallback(
@@ -73,16 +78,34 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType === "mouse") return;
-    pointerStartX.current = event.clientX;
+    pointerStart.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    suppressNextClick.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
-    if (pointerStartX.current === null) return;
-    const distance = event.clientX - pointerStartX.current;
-    pointerStartX.current = null;
+    const start = pointerStart.current;
+    if (!start || start.pointerId !== event.pointerId) return;
 
-    if (Math.abs(distance) < SWIPE_THRESHOLD) return;
-    selectIndex(activeIndex + (distance < 0 ? 1 : -1));
+    const distanceX = event.clientX - start.x;
+    const distanceY = event.clientY - start.y;
+    pointerStart.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (
+      Math.abs(distanceX) < SWIPE_THRESHOLD ||
+      Math.abs(distanceX) <= Math.abs(distanceY) * 1.15
+    ) return;
+
+    suppressNextClick.current = true;
+    selectIndex(activeIndex + (distanceX < 0 ? 1 : -1));
   };
 
   if (!activeProduct) return null;
@@ -94,7 +117,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
     isProductInventoryVerified(activeProduct),
   );
   const mediaVerified = isProductMediaVerified(activeProduct);
-  const image = activeProduct.images[0];
+  const image = mediaVerified ? activeProduct.images[0] : undefined;
   const nextProducts = [1, 2]
     .map((offset) => galleryProducts[(activeIndex + offset) % galleryProducts.length])
     .filter((product, index, list): product is Product =>
@@ -129,7 +152,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
         </header>
 
         <div
-          className="group/cold-gallery relative outline-none"
+          className="group/cold-gallery relative touch-pan-y select-none outline-none"
           role="region"
           aria-roledescription="carousel"
           aria-label="محصولات یخچالی وینیمی"
@@ -137,39 +160,46 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
           onKeyDown={handleKeyDown}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
-          onPointerCancel={() => { pointerStartX.current = null; }}
+          onPointerCancel={() => { pointerStart.current = null; }}
+          onClickCapture={(event) => {
+            if (!suppressNextClick.current) return;
+            event.preventDefault();
+            event.stopPropagation();
+            suppressNextClick.current = false;
+          }}
         >
           <p className="sr-only" aria-live="polite" aria-atomic="true">
             {`محصول ${activeIndex + 1} از ${galleryProducts.length}: ${activeProduct.name}`}
           </p>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_7.5rem] lg:gap-4">
-            <article className="cold-gallery-stage relative isolate min-h-[34rem] overflow-hidden rounded-[2rem] border border-white/65 bg-[#dbe6df] shadow-[0_42px_100px_-45px_rgba(31,66,50,0.72)] sm:min-h-[39rem] sm:rounded-[2.75rem] lg:min-h-[42rem]">
-              {image?.url ? (
-                <OptimizedImage
-                  key={`${activeProduct.id}-${image.url}`}
-                  src={image.url}
-                  alt={image.alt || activeProduct.name}
-                  className="cold-gallery-image absolute inset-0 h-full w-full object-cover"
-                  loading={activeIndex === 0 ? "eager" : "lazy"}
-                  fetchPriority={activeIndex === 0 ? "high" : "low"}
-                  sizes="(min-width: 1024px) 72vw, 100vw"
-                  width={1400}
-                  height={1050}
-                />
-              ) : (
-                <div className="absolute inset-0 bg-[linear-gradient(145deg,#dce8e1,#f8faf4)]" />
-              )}
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(17,45,33,0.06)_0%,rgba(13,32,25,0.08)_44%,rgba(11,28,22,0.82)_100%)] lg:bg-[linear-gradient(90deg,rgba(13,32,25,0.05)_0%,rgba(13,32,25,0.08)_48%,rgba(13,32,25,0.72)_100%)]" />
-              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/40" aria-hidden="true" />
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_10.5rem] lg:gap-4">
+            <article className="cold-gallery-stage relative isolate overflow-hidden rounded-[2rem] border border-white/65 bg-[#e5eee8] shadow-[0_42px_100px_-45px_rgba(31,66,50,0.72)] sm:rounded-[2.75rem] lg:min-h-[42rem]">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#dbe6df] sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto">
+                {image?.url ? (
+                  <OptimizedImage
+                    key={`${activeProduct.id}-${image.url}`}
+                    src={image.url}
+                    alt={image.alt || activeProduct.name}
+                    className="cold-gallery-image absolute inset-0 h-full w-full object-cover"
+                    loading={activeIndex === 0 ? "eager" : "lazy"}
+                    fetchPriority={activeIndex === 0 ? "high" : "low"}
+                    sizes="(min-width: 1024px) 72vw, 100vw"
+                    width={1400}
+                    height={1050}
+                  />
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.9),transparent_38%),linear-gradient(145deg,#dce8e1,#f8faf4)] text-center text-[#557263]">
+                    <span className="grid gap-3 px-6 text-xs font-black">
+                      <Snowflake className="mx-auto" size={34} aria-hidden="true" />
+                      تصویر واقعی محصول پس از تأیید رسانه نمایش داده می‌شود
+                    </span>
+                  </div>
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#102b20]/25 via-transparent to-white/5 lg:bg-[linear-gradient(90deg,rgba(13,32,25,0.05)_0%,rgba(13,32,25,0.08)_48%,rgba(11,28,22,0.72)_100%)]" />
+                <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/40" aria-hidden="true" />
+              </div>
 
-              {!mediaVerified && image?.url && (
-                <span className="absolute left-5 top-5 z-10 rounded-full border border-white/30 bg-[#173629]/68 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur-xl">
-                  تصویر نمایشی
-                </span>
-              )}
-
-              <div className="absolute inset-x-4 bottom-4 z-10 rounded-[1.5rem] border border-white/30 bg-[#f9fbf6]/92 p-5 text-[#254535] shadow-[0_24px_70px_-35px_rgba(14,38,28,0.75)] backdrop-blur-2xl sm:inset-x-6 sm:bottom-6 sm:p-6 lg:bottom-8 lg:right-8 lg:left-auto lg:top-8 lg:w-[22rem] lg:p-7">
+              <div className="relative z-10 mx-3 -mt-5 mb-3 rounded-[1.5rem] border border-[#b9cbbf]/55 bg-[#f9fbf6] p-5 text-[#254535] shadow-[0_24px_70px_-35px_rgba(14,38,28,0.75)] sm:mx-5 sm:-mt-8 sm:mb-5 sm:p-6 lg:absolute lg:bottom-8 lg:right-8 lg:top-8 lg:m-0 lg:w-[22rem] lg:border-white/35 lg:bg-[#f9fbf6]/94 lg:p-7 lg:backdrop-blur-2xl">
                 <div className="flex items-center justify-between gap-3">
                   <span className="rounded-full border border-[#91aa83]/35 bg-white/70 px-3 py-1 text-[10px] font-black text-[#5f7750]">
                     {activeProduct.category}
@@ -230,17 +260,21 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
                       className="group/peek relative min-h-0 overflow-hidden rounded-[1.75rem] border border-white/60 bg-[#dbe6df] shadow-[0_24px_55px_-35px_rgba(31,66,50,0.75)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#557b68] focus-visible:ring-offset-2"
                       aria-label={`${index === 0 ? "محصول بعدی" : "محصول پس از آن"}: ${product.name}`}
                     >
-                      {product.images[0]?.url && (
+                      {isProductMediaVerified(product) && product.images[0]?.url ? (
                         <OptimizedImage
                           src={product.images[0].url}
                           alt=""
                           className="h-full w-full object-cover transition duration-700 group-hover/peek:scale-105"
                           loading="lazy"
                           fetchPriority="low"
-                          sizes="120px"
-                          width={240}
+                          sizes="168px"
+                          width={336}
                           height={520}
                         />
+                      ) : (
+                        <span className="absolute inset-0 grid place-items-center bg-[linear-gradient(145deg,#dce8e1,#f8faf4)] text-[#557263]">
+                          <Snowflake size={25} aria-hidden="true" />
+                        </span>
                       )}
                       <span className="absolute inset-0 bg-gradient-to-t from-[#173629]/65 via-transparent to-white/10" aria-hidden="true" />
                       <span className="absolute inset-x-2 bottom-3 line-clamp-2 text-center text-[10px] font-black leading-5 text-white">
