@@ -98,6 +98,11 @@ for (const requirement of [
   "group-hover/rail:opacity-100",
   "bg-[#31520f]",
   "وضعیت نمایش محصولات پیشنهادی",
+  'role="region"',
+  'aria-roledescription="carousel"',
+  'aria-labelledby="home-products-heading"',
+  'aria-controls="home-product-rail"',
+  'id="home-product-rail"',
 ]) {
   requireText("homeProductRail", requirement, `refined product rail controls: ${requirement}`);
 }

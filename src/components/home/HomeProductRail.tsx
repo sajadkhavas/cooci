@@ -150,6 +150,9 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
     <div
       ref={rootRef}
       className="group/rail relative"
+      role="region"
+      aria-roledescription="carousel"
+      aria-labelledby="home-products-heading"
       onMouseEnter={stopAutoPlay}
       onFocusCapture={stopAutoPlay}
       onPointerDown={stopAutoPlay}
@@ -191,6 +194,7 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
             }}
             className="pointer-events-auto inline-flex h-12 w-12 translate-x-2 items-center justify-center rounded-full border border-[#31520f]/15 bg-[#fffdf7]/95 text-[#31520f] opacity-0 shadow-[0_12px_35px_-14px_rgba(38,59,18,0.6)] backdrop-blur-xl transition duration-300 hover:scale-105 hover:border-[#91b33f]/65 hover:bg-[#d0e596] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#31520f] group-hover/rail:translate-x-0 group-hover/rail:opacity-100"
             aria-label="محصول بعدی"
+            aria-controls="home-product-rail"
           >
             <ArrowLeft size={21} aria-hidden="true" />
           </button>
@@ -202,6 +206,7 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
             }}
             className="pointer-events-auto inline-flex h-12 w-12 -translate-x-2 items-center justify-center rounded-full border border-[#31520f]/15 bg-[#fffdf7]/95 text-[#31520f] opacity-0 shadow-[0_12px_35px_-14px_rgba(38,59,18,0.6)] backdrop-blur-xl transition duration-300 hover:scale-105 hover:border-[#91b33f]/65 hover:bg-[#d0e596] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#31520f] group-hover/rail:translate-x-0 group-hover/rail:opacity-100"
             aria-label="محصول قبلی"
+            aria-controls="home-product-rail"
           >
             <ArrowRight size={21} aria-hidden="true" />
           </button>
@@ -209,6 +214,7 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
       )}
 
       <ul
+        id="home-product-rail"
         ref={railRef}
         className="winimi-snap-nav -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-5 sm:-mx-5 sm:px-5 lg:mx-0 lg:px-0"
         onScroll={handleScroll}
