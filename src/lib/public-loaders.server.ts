@@ -6,6 +6,7 @@ import {
   fetchCatalogCategories,
   fetchCatalogProduct,
   fetchCatalogProducts,
+  type CatalogPage,
   type CatalogQuery,
 } from "@/lib/catalog-api";
 import {
@@ -21,6 +22,7 @@ import {
   toPublicSsrResponse,
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
+import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
 import {
   getContentTopicPath,
   normalizeContentTopic,
@@ -113,17 +115,32 @@ const loadOptionalRelatedPosts = async (post: BackendPostDetail) => {
   }
 };
 
+const loadOptionalChilledCatalog = async (): Promise<CatalogPage | undefined> => {
+  try {
+    return await fetchCatalogProducts(HOME_CHILLED_QUERY);
+  } catch (error) {
+    reportOptionalPublicSsrFailure(error, "Homepage chilled catalog");
+    return undefined;
+  }
+};
+
 export const loadHomePublicData = async (): Promise<PublicSsrLoaderData> => {
   if (!isBackendEnabled) return disabledData();
   const query: CatalogQuery = {};
 
   try {
-    const [catalog, categories] = await Promise.all([
+    const [catalog, chilledCatalog, categories] = await Promise.all([
       fetchCatalogProducts(query),
+      loadOptionalChilledCatalog(),
       fetchCatalogCategories(),
     ]);
     return {
-      catalogs: { [catalogLoaderKey(query)]: catalog },
+      catalogs: {
+        [catalogLoaderKey(query)]: catalog,
+        ...(chilledCatalog
+          ? { [catalogLoaderKey(HOME_CHILLED_QUERY)]: chilledCatalog }
+          : {}),
+      },
       categories,
     };
   } catch (error) {

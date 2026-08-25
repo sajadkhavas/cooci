@@ -14,6 +14,7 @@ import {
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import { DecisionSupportPanel, homeDecisionFaqSchema } from "@/components/home/DecisionSupportPanel";
 import { DraggableMarquee } from "@/components/home/DraggableMarquee";
+import { HomeColdGallery } from "@/components/home/HomeColdGallery";
 import { HomeProductRail } from "@/components/home/HomeProductRail";
 import { Reveal } from "@/components/motion/Reveal";
 import { SEO } from "@/components/SEO";
@@ -23,6 +24,7 @@ import {
   SUPPORT_WHATSAPP_MESSAGE,
 } from "@/config/brand";
 import { useCatalogProducts } from "@/hooks/useCatalog";
+import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
 import heroImage from "@/assets/cookies/hero-main.jpg";
 import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
@@ -125,6 +127,10 @@ const guideCards = [
 
 const HomePage = () => {
   const { products, isLoading, error } = useCatalogProducts();
+  const {
+    products: chilledProducts,
+    isLoading: chilledProductsLoading,
+  } = useCatalogProducts(HOME_CHILLED_QUERY);
   const featuredProducts = products
     .filter((product) => product.isFeatured)
     .slice(0, 6);
@@ -310,6 +316,21 @@ const HomePage = () => {
           )}
         </div>
       </section>
+
+      {chilledProductsLoading ? (
+        <section
+          className="cold-gallery-shell border-y border-[#9eb9a5]/25 py-14"
+          aria-busy="true"
+          aria-label="در حال دریافت محصولات یخچالی"
+        >
+          <div className="container-custom">
+            <div className="mx-auto mb-8 h-12 w-72 animate-pulse rounded-full bg-[#cfded3]" />
+            <div className="h-[34rem] animate-pulse rounded-[2rem] bg-[#c6d8cd]" />
+          </div>
+        </section>
+      ) : (
+        <HomeColdGallery products={chilledProducts} />
+      )}
 
       <section className="home-color-wash section-padding pt-10">
         <div className="container-custom">

@@ -11,6 +11,7 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   home: "src/pages/HomePage.tsx",
+  homeColdGallery: "src/components/home/HomeColdGallery.tsx",
   products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   homeProductRail: "src/components/home/HomeProductRail.tsx",
@@ -46,6 +47,28 @@ for (const requirement of [
 ]) {
   requireText("index", requirement);
 }
+
+for (const requirement of [
+  'aria-roledescription="carousel"',
+  'aria-label="محصولات یخچالی وینیمی"',
+  'aria-live="polite"',
+  "onKeyDown={handleKeyDown}",
+  "selectColdGalleryProducts",
+  "نیازمند نگهداری سرد",
+  "مشاهده محصول",
+  "برای دیدن محصولات دیگر، تصویر را بکشید",
+]) {
+  requireText(
+    "homeColdGallery",
+    requirement,
+    `accessible refrigerated gallery contract: ${requirement}`,
+  );
+}
+forbidText(
+  "homeColdGallery",
+  "setInterval",
+  "automatic refrigerated-gallery rotation",
+);
 
 requireText("main", 'import "./styles/modern-pages.css"', "modern routed-page stylesheet");
 requireText("layout", "<ScrollProgress", "global scroll progress");
