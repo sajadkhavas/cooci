@@ -84,10 +84,8 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
             viewportRef.current?.scrollTo({ left: 0, behavior: "smooth" });
           }
         }}
-        onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => {
           dragState.current.active = false;
-          setPaused(false);
         }}
         onFocus={() => setPaused(true)}
         onBlur={() => setPaused(false)}
@@ -98,6 +96,7 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
           }
           const viewport = viewportRef.current;
           if (!viewport) return;
+          event.preventDefault();
           dragState.current = {
             active: true,
             startX: event.clientX,
@@ -120,6 +119,10 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
           setPaused(false);
         }}
         onPointerCancel={() => {
+          dragState.current.active = false;
+          setPaused(false);
+        }}
+        onLostPointerCapture={() => {
           dragState.current.active = false;
           setPaused(false);
         }}

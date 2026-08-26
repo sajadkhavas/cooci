@@ -126,8 +126,8 @@ export const Header = () => {
       <div
         className={`mx-auto max-w-[92rem] rounded-[1.6rem] border transition-all duration-500 ${
           scrolled
-            ? "border-border/70 bg-background/78 shadow-[0_18px_60px_-34px_hsl(var(--foreground)/0.65)] backdrop-blur-2xl"
-            : "border-transparent bg-background/35 backdrop-blur-md"
+            ? "border-[#27390c]/15 bg-[#d0e596]/88 shadow-[0_18px_60px_-34px_hsl(var(--foreground)/0.65)] backdrop-blur-2xl"
+            : "border-[#27390c]/10 bg-[#d0e596]/72 backdrop-blur-xl"
         }`}
       >
         <div className="flex min-h-16 items-center justify-between gap-3 px-3 sm:px-5 lg:min-h-20 lg:px-6">

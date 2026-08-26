@@ -4,6 +4,7 @@ import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
+import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { NetworkStatus } from "@/components/network/NetworkStatus";
 import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
@@ -34,6 +35,7 @@ export const SiteLayout = () => {
       <TrustStrip />
       <Footer />
       <MobileBottomNavigation />
+      <BackToTopButton />
       <FloatingWhatsApp />
       <PwaUpdatePrompt />
     </div>
