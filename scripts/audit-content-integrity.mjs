@@ -25,6 +25,7 @@ const files = {
   routes: "src/routes.ts",
   categoriesRedirect: "src/routes/categories-redirect.tsx",
   home: "src/pages/HomePage.tsx",
+  occasionSelector: "src/components/home/OccasionSelector.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   categoriesContent: "src/data/categoriesContent.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
@@ -170,7 +171,12 @@ requireText("urlPolicy", '"noindex,follow"', "filtered page index policy");
 
 requireText("home", "طعم خوب برای", "product-led homepage H1");
 requireText("home", "<CategoryShowcase", "homepage category discovery");
-requireText("home", "برای چه لحظه‌ای انتخاب می‌کنی؟", "occasion-led homepage section");
+requireText("home", "<OccasionSelector", "occasion-led homepage component");
+requireText(
+  "occasionSelector",
+  "برای چه لحظه‌ای انتخاب می‌کنی؟",
+  "occasion-led homepage section",
+);
 forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
 forbidText("home", "وضعیت داده", "developer-facing homepage copy");

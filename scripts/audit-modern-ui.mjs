@@ -11,6 +11,7 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   home: "src/pages/HomePage.tsx",
+  occasionSelector: "src/components/home/OccasionSelector.tsx",
   homeColdGallery: "src/components/home/HomeColdGallery.tsx",
   products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
@@ -104,10 +105,8 @@ for (const requirement of [
   "<Reveal",
   "<DraggableMarquee",
   "<CategoryShowcase",
-  "occasionCards",
-  "modern-section-title",
+  "<OccasionSelector",
   "طعم خوب برای",
-  "برای چه لحظه‌ای انتخاب می‌کنی؟",
   "product-rail-background.webp",
   "<HomeProductRail",
   "rgba(255, 253, 247, 0.58)",
@@ -120,6 +119,18 @@ for (const requirement of [
       "مشاهده محصولات",
 ]) {
   requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
+}
+for (const requirement of [
+  "const occasions",
+  "modern-section-title",
+  "برای چه لحظه‌ای انتخاب می‌کنی؟",
+  'aria-pressed={active}',
+]) {
+  requireText(
+    "occasionSelector",
+    requirement,
+    `modern occasion-selector contract: ${requirement}`,
+  );
 }
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
