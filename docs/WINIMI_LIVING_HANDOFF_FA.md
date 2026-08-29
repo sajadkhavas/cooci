@@ -1,6 +1,6 @@
 # سند مرجع زنده پروژه وینیمی
 
-آخرین به‌روزرسانی: ۲۰۲۶-۰۸-۲۵ (UTC)  
+آخرین به‌روزرسانی: ۲۰۲۶-۰۸-۲۹ (UTC)
 وضعیت: مرجع ادامه کار بین چت‌ها  
 زبان: فارسی / RTL
 
@@ -10,19 +10,21 @@
 
 - فروشگاه آنلاین است و فرانت‌اند و بک‌اند واقعی به هم متصل‌اند.
 - مشکل دائمی تصاویر بسته شده: Nginx رسانه را مستقیم از Shared Storage تحویل می‌دهد و به symlink داخل Release وابسته نیست.
-- آخرین Production مشاهده‌شده فرانت‌اند: `/var/www/winimi/frontend/releases/39016edc1dc90c709b3e`. قبل از اقدام حتماً دوباره تأیید شود.
-- Phase 27 ساخته و با API واقعی به‌صورت Candidate ایزوله تست شده، ولی فعال نشده است:
+- Production فرانت‌اند در ممیزی زنده ۲۰۲۶-۰۸-۲۹:
+  - Release: `/var/www/winimi/frontend/releases/bab4c34db478713465d1`
+  - Source SHA: `d9e44edc13c24427c2f4741b19ac4db98f257160`
   - Branch: `phase-27/cross-project-design-synthesis`
-  - Source SHA: `4cddcbec64548cceb77e8ac07a0e6bc2fad68cc3`
-  - Release ID: `2097904371803eb7f1ef`
-  - Candidate: `/var/www/winimi/frontend/candidates/2097904371803eb7f1ef`
-  - Origin: `http://127.0.0.1:4174`
-  - Build، Performance Budget، SSR، Assets، Routes و Real Backend Contract: PASS
-  - Production activated: NO
-- تصمیم فعلی: Phase 27 فعلاً فعال نشود. Redesign و SEO/AEO/GEO به‌صورت بخش‌به‌بخش بررسی، انتخاب و ثبت شوند؛ سپس در Milestone کنترل‌شده پیاده‌سازی و استقرار شوند.
+  - Process CWD با Release فعال منطبق، سرویس فعال و HTTP=200
+- Production بک‌اند در همان ممیزی:
+  - Release: `/var/www/winimi/backend/releases/eb002a6d5f093e7780d3`
+  - Source SHA: `eb002a6d5f093e7780d3cf6333b3e5f83f96e57b`
+  - Branch: `phase-25/f5-zarinpal-production`
+  - Queue/Scheduler CWD منطبق، Health و Ready برابر 200
+- هر دو SHA بالا در GitHub موجود و tip همان Branchها هستند. هیچ Source delta معتبرِ ثبت‌نشده روی Production یافت نشد.
+- تصمیم فعلی: Redesign و SEO/AEO/GEO تمام صفحات به‌صورت صفحه‌به‌صفحه و هم‌زمان انجام شوند.
 - برای هر سکشن ۲ تا ۳ گزینه واقعی ارائه می‌شود؛ کاربر انتخاب می‌کند؛ انتخاب ثبت می‌شود؛ سپس پیاده‌سازی انجام می‌شود. اجرای یک‌جای تمام صفحه ممنوع است.
 
-**CURRENT_NEXT_ACTION:** بازبینی صفحه اصلی از Global Foundation (فاصله‌ها، خطوط و Palette) و سپس Hero. تا انتخاب کاربر هیچ تغییر کد یا Production انجام نشود.
+**CURRENT_NEXT_ACTION:** از Baseline ثبت‌شده Production، Route inventory نهایی شود؛ سپس Redesign + SEO صفحه‌به‌صفحه و فاز Google Login اجرا شود. OTP حذف نشود و فقط با Feature Flag غیرفعال بماند.
 
 ## 2) هویت فنی
 
@@ -60,8 +62,8 @@
 
 | نقش | Release / SHA | وضعیت ثبت‌شده |
 |---|---|---|
-| آخرین Production مشاهده‌شده | `39016edc1dc90c709b3e` | سالم؛ قبل از اقدام دوباره تأیید شود |
-| Candidate Phase 27 | Release `2097904371803eb7f1ef` / SHA `4cddcbec...` | Candidate PASS؛ فعال نشده |
+| Production قطعی ۲۰۲۶-۰۸-۲۹ | Release `bab4c34db478713465d1` / SHA `d9e44edc...` | فعال، SSR/Routes/HTTP سالم |
+| Candidate تاریخی Phase 27 | Release `2097904371803eb7f1ef` / SHA `4cddcbec...` | Candidate تاریخی؛ با نسخه نهایی جایگزین شد |
 | Redesign قبلی | Release `ca1d7173da45854a4c90` / SHA `3819215d...` | قبلاً اتمیک فعال و Smoke-test شده |
 | Baseline قدیمی | `769edcde704785917d52` | Release سالم تاریخی/Rollback قدیمی |
 | Palette source | SHA `7dfc74d6904bb4e57b73fca43fa4f042d1ca09f4` | منبع مرحله‌ای که به `39016...` منتهی شد |
@@ -87,20 +89,23 @@
 - Media release gate: `/usr/local/sbin/winimi-media-release-gate` با `root:root:750`.
 - Release جدید نباید تحویل تصاویر را دوباره به symlink داخل Release وابسته کند.
 
-### پرداخت و OTP
+### پرداخت، OTP و ورود موقت
 
 - پرداخت واقعی زرین‌پال در Audit به `paid/verified` رسید.
 - برای Callback تکراری Replay زنده انجام نشد.
 - تست Idempotency ایزوله شکاف ابزار داشت: ابتدا `artisan test` و سپس PHPUnit binary موجود نبود. تا شاهد جدید، «Test Harness نیازمند تکمیل» است.
-- کاوه‌نگار و Templateهای OTP در حساب فعلی عملیاتی شدند.
-- قبل از تحویل نهایی، حساب/اعتبارنامه کاوه‌نگار با حساب کارفرما جایگزین شود؛ Credential داخل Git یا سند ممنوع.
+- پرداخت زرین‌پال انجام شده و توسعه مجدد ندارد؛ فقط Regression نهایی موفق/ناموفق/Callback/Idempotency باقی است.
+- زیرساخت OTP حفظ می‌شود، اما تا تکمیل ثبت‌نام کاوه‌نگار کارفرما با Feature Flag در UI و Backend غیرفعال خواهد شد؛ حذف کد یا Migration برگشتی ممنوع است.
+- تحویل موقت Auth با Google Login انجام می‌شود. کاربر جدید بعد از ورود Google باید شماره موبایل ایران را وارد کند؛ تا OTP موفق، `phone_verified_at` خالی و شماره «تأییدنشده» است.
+- اتصال خودکار حساب‌ها صرفاً با ایمیل یا شماره تکراری ممنوع است؛ Provider ID معتبر و جریان امن Linking لازم است.
+- OAuth Client و Credentialهای Google/Kavenegar باید متعلق به حساب کارفرما و خارج از Git باشند.
 - مهاجرت به sms.ir تصمیم قطعی نیست.
 
 ### Redesign و SEO
 
 - Redesign اولیه صفحه اصلی/Navigation پیاده و مستقر شد؛ Media، API، SSR، Assets و Smoke PASS بودند.
 - Palette سبز پاستیلی/آجری اصلاح شد و Release `39016...` در Production مشاهده شد.
-- Candidate Phase 27 PASS شد، اما برای بازبینی بخش‌به‌بخش فعال نشد.
+- نسخه نهایی صفحه اصلی Phase 27 در Release `bab4c34db478713465d1` فعال و در ممیزی ۲۰۲۶-۰۸-۲۹ سالم تأیید شد.
 - Redesign و SEO از اینجا یک فاز مشترک‌اند: UI، Copy، Heading، Internal link و Schema با هم طراحی می‌شوند.
 - Blueprint SEO/AEO/GEO تحقیق شده، ولی Implementation و Acceptance نهایی باقی است.
 - رتبه ۱ تضمین نمی‌شود؛ هدف Foundation فنی، محتوایی و UX قابل دفاع است.
