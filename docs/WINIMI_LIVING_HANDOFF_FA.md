@@ -385,8 +385,8 @@
   - `scripts/audit-modern-ui.mjs`
 - Code commit: `66cc2a80400b594f664042ab6802311ea84c9c00`
 - Frontend CI: PASS — run `32833365870`.
-- Production activation: انجام نشده.
-- Next: Build/Candidate ایزوله و Visual acceptance همین سکشن؛ بعد انتخاب طراحی Product shelf.
+- Production activation: این تغییر در زنجیره نسخه نهایی `d9e44edc...` و Release فعال `bab4c34db478713465d1` قرار دارد.
+- Next تاریخی این سکشن بسته شده است؛ ادامه کار از Checkpoint بخش ۱۶ انجام شود.
 
 ## 16) Checkpoint
 
