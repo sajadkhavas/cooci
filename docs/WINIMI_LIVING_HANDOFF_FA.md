@@ -20,7 +20,7 @@
   - Source SHA: `eb002a6d5f093e7780d3cf6333b3e5f83f96e57b`
   - Branch: `phase-25/f5-zarinpal-production`
   - Queue/Scheduler CWD منطبق، Health و Ready برابر 200
-- هر دو SHA بالا در GitHub موجود و tip همان Branchها هستند. هیچ Source delta معتبرِ ثبت‌نشده روی Production یافت نشد.
+- هر دو Source SHA بالا در تاریخچه Branchهای GitHub موجود و ancestor قطعی Commitهای مستندات هستند. هیچ Source delta معتبرِ ثبت‌نشده روی Production یافت نشد.
 - تصمیم فعلی: Redesign و SEO/AEO/GEO تمام صفحات به‌صورت صفحه‌به‌صفحه و هم‌زمان انجام شوند.
 - برای هر سکشن ۲ تا ۳ گزینه واقعی ارائه می‌شود؛ کاربر انتخاب می‌کند؛ انتخاب ثبت می‌شود؛ سپس پیاده‌سازی انجام می‌شود. اجرای یک‌جای تمام صفحه ممنوع است.
 
@@ -329,7 +329,8 @@
 - [ ] تکمیل SEO/AEO/GEO روی Home و Templateها
 - [ ] Admin fieldهای Product/Category/Article/Global SEO/Redirect
 - [ ] تکمیل Test harness پرداخت/Idempotency
-- [ ] جایگزینی حساب کاوه‌نگار با حساب کارفرما
+- [ ] Google Login، تکمیل اجباری شماره و Feature Flag غیرفعال OTP
+- [ ] تکمیل حساب کاوه‌نگار کارفرما و فعال‌سازی/تأیید OTP در فاز بعدی
 - [ ] تأیید اطلاعات تماس، محدوده، ارسال و Policy
 - [ ] Accessibility/Responsive/Cross-browser
 - [ ] Performance/CWV
@@ -340,7 +341,7 @@
 
 ## 14) ممنوع‌ها و هشدارها
 
-- Candidate Phase 27 بدون تصمیم‌های جدید فعال نشود.
+- Release فعال صفحه اصلی بدون Candidate، QA و Rollback gate با تغییر جدید جایگزین نشود.
 - Screenshot قدیمی وضعیت فعلی فرض نشود.
 - Mobile hamburger drawer تغییر نکند.
 - ادعای ساختگی درباره ارسال، امنیت، رضایت، مواد یا محدوده خدمات ممنوع.
@@ -391,25 +392,32 @@
 
 ```yaml
 project: winimi-bakery
-status_date_utc: 2026-08-25
+status_date_utc: 2026-08-29
 public_site: https://winimibakery.com
 public_api: https://api.winimibakery.com
 frontend_repo: sajadkhavas/cooci
 backend_repo: sajadkhavas/winimi-bakery-backend
-last_observed_production_frontend_release: 39016edc1dc90c709b3e
-phase27:
+production_frontend:
   branch: phase-27/cross-project-design-synthesis
-  source_sha: 4cddcbec64548cceb77e8ac07a0e6bc2fad68cc3
-  release_id: 2097904371803eb7f1ef
-  candidate_acceptance: PASS
-  production_activated: false
-decision_mode: section_by_section
+  source_sha: d9e44edc13c24427c2f4741b19ac4db98f257160
+  release_id: bab4c34db478713465d1
+  production_activated: true
+  acceptance: PASS
+production_backend:
+  branch: phase-25/f5-zarinpal-production
+  source_sha: eb002a6d5f093e7780d3cf6333b3e5f83f96e57b
+  release_id: eb002a6d5f093e7780d3
+  acceptance: PASS
+decision_mode: page_by_page
 combined_phase: redesign_plus_seo_aeo_geo
 locked_mobile_drawer: do_not_change
 brand_primary: "#D0E596"
 accent_terracotta: "#D88972"
-current_locked_section: category_compact_horizontal_rail
-current_next_action: isolated_category_candidate_then_visual_acceptance
+payment: implemented_regression_only
+temporary_auth: google_login
+phone_onboarding: required_unverified_until_otp
+otp: retained_but_feature_flag_disabled_until_client_kavenegar
+current_next_action: route_inventory_then_page_redesign_seo_and_google_auth
 production_mutation_authorized: false
 preflight_required: true
 ```
