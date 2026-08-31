@@ -12,6 +12,7 @@ import {
   type JsonLdNode,
 } from "@/lib/seo/brand-entity";
 import { resolveMetaDescription } from "@/lib/seo/meta-description";
+import { resolveMetaTitle } from "@/lib/seo/meta-title";
 import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
 
@@ -144,9 +145,11 @@ export const SEO = ({
         totalPages: getPaginationTotal(location.pathname, matches),
       })
     : undefined;
-  const siteTitle = title
-    ? title + " | " + brandConfig.brandName
-    : brandConfig.defaultMeta.title;
+  const siteTitle = resolveMetaTitle(
+    title,
+    brandConfig.brandName,
+    brandConfig.defaultMeta.title,
+  );
   const siteDescription = resolveMetaDescription(
     description,
     brandConfig.defaultMeta.description,
