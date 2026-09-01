@@ -23,6 +23,7 @@ import {
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
 import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
+import { resolveBlogIndexability } from "@/lib/seo/content-indexability";
 import {
   getContentTopicPath,
   normalizeContentTopic,
@@ -235,6 +236,20 @@ export const loadBlogListPublicData = async ({
       totalPages: posts.pagination?.totalPages,
     });
     if (policy.redirectPath) return redirect(policy.redirectPath, 301);
+    const indexability = resolveBlogIndexability(
+      posts.pagination?.total ?? posts.posts.length,
+    );
+    if (!indexability.indexable) {
+      return data(
+        { posts, contentTopics },
+        {
+          headers: {
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-Robots-Tag": indexability.robots,
+          },
+        },
+      );
+    }
     return crawlResponse({ posts, contentTopics }, policy);
   } catch (error) {
     throw toPublicSsrResponse(error, "Blog");

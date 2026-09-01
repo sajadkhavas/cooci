@@ -5,6 +5,7 @@ import {
 import { ApiError } from "@/lib/api";
 import { loadContentPage, loadPosts } from "@/lib/content";
 import { categoryContents } from "@/data/categoriesContent";
+import { resolveBlogIndexability } from "@/lib/seo/content-indexability";
 import { getContentTopicPath } from "@/lib/seo/content-topics";
 import { getCityPagePath } from "@/lib/seo/local-seo";
 import { collectPublishedCityPages } from "@/lib/seo/local-seo.server";
@@ -166,8 +167,11 @@ export const generateDynamicSitemap = async (siteOrigin: string) => {
         ...cities.map((city) => ({ path: getCityPagePath(city.slug) })),
       ]
     : [];
+  const blogIndexability = resolveBlogIndexability(content.posts.length);
   const entries: SitemapEntry[] = [
-    ...CRAWLABLE_STATIC_PATHS.map((path) => ({ path })),
+    ...CRAWLABLE_STATIC_PATHS.filter(
+      (path) => path !== "/blog" || blogIndexability.includeInSitemap,
+    ).map((path) => ({ path })),
     ...managedContent,
     ...categories.map((category) => ({
       path: `/products/category/${encodeURIComponent(
