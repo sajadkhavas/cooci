@@ -14,7 +14,9 @@ import type {
 import type {
   ProductReviewsResult,
   StoreCityPage,
+  StoreGalleryItem,
   StorePostsResult,
+  StoreReviewWallResult,
 } from "@/lib/content";
 import type { ContentTopicSummary } from "@/lib/seo/content-topics";
 
@@ -31,6 +33,8 @@ export interface PublicSsrLoaderData {
   contentTopic?: ContentTopicSummary;
   city?: StoreCityPage;
   cities?: StoreCityPage[];
+  galleryItems?: StoreGalleryItem[];
+  reviewWall?: StoreReviewWallResult;
 }
 
 export const catalogLoaderKey = (query: CatalogQuery = {}) => {
