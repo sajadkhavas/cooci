@@ -155,23 +155,27 @@ test("homepage is product-led and exposes the category architecture", async ({
 }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
+  await expect(page.locator("#main-content h1").first()).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /سفارش آنلاین کوکی، کیک و باکس هدیه/,
-    }),
+    page.getByRole("link", { name: "مشاهده محصولات" }).first(),
+  ).toHaveAttribute("href", "/products");
+  await expect(
+    page.getByRole("heading", { name: "دسته‌بندی محصولات وینیمی" }),
   ).toBeVisible();
+
+  const categoryList = page.getByRole("list", {
+    name: "دسته‌بندی محصولات وینیمی",
+  });
+  await expect(categoryList).toBeVisible();
+  const firstCategory = categoryList.getByRole("link").first();
+  await expect(firstCategory).toBeVisible();
+  await expect(firstCategory).toHaveAttribute(
+    "href",
+    /^\/products\/category\/[^/]+$/,
+  );
+
   await expect(
-    page.getByRole("heading", { name: /اول دسته را پیدا کن/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /مشاهده همه دسته‌بندی‌ها/ }),
-  ).toBeAttached();
-  await expect(
-    page.getByRole("link", { name: /مشاهده دسته کوکی‌های خانگی/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: /خرید بر اساس موقعیت/ }),
+    page.getByRole("heading", { name: /از نیازت شروع کن/ }),
   ).toBeVisible();
 
   await assertNoHorizontalOverflow(page);
