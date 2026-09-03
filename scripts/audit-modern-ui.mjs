@@ -114,7 +114,8 @@ for (const validPath of [
 ]) {
   requireText("footer", validPath, `valid modern footer link ${validPath}`);
 }
-forbidText("footer", "/categories", "duplicate category-index footer link");
+forbidText("footer", 'to="/categories"', "duplicate category-index footer CTA");
+forbidText("footer", 'href: "/categories"', "duplicate category-index footer link");
 requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
 requireText("gift", 'to="/products"', "gift page safe shop fallback CTA");
 forbidText(
