@@ -39,7 +39,9 @@ const waitForStableDocument = async (page) => {
       previousHeight = currentHeight;
     }
 
-    throw new Error("Document height did not stabilize before runtime profiling");
+    throw new Error(
+      "Document height did not stabilize before runtime profiling",
+    );
   });
 };
 
@@ -113,15 +115,15 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
 
   await expect(navigation).toBeVisible();
   await expect(navigation.getByRole("link")).toHaveCount(5);
-  await expect(
-    navigation.getByRole("link", { name: "خانه" }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(
-    navigation.getByRole("link", { name: "فروشگاه" }),
-  ).toBeVisible();
-  await expect(
-    navigation.getByRole("link", { name: "حساب" }),
-  ).toHaveAttribute("href", "/account/login");
+  await expect(navigation.getByRole("link", { name: "خانه" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(navigation.getByRole("link", { name: "فروشگاه" })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "حساب" })).toHaveAttribute(
+    "href",
+    "/account/login",
+  );
 
   const viewport = page.viewportSize();
   const navigationBox = await navigation.boundingBox();
@@ -209,13 +211,12 @@ test("shop unifies categories and filters while editorial slugs map to Laravel",
     ["کیک و دسر", "/products/category/cakes"],
     ["چیزکیک", "/products/category/cheesecakes"],
     ["رول و کروسان", "/products/category/pastry"],
-    ["باکس هدیه", "/products/category/gift-boxes"],
+    ["باکس هدیه", "/gift"],
   ];
   for (const [name, href] of expectedDestinations) {
-    await expect(categoryNavigation.getByRole("link", { name })).toHaveAttribute(
-      "href",
-      href,
-    );
+    await expect(
+      categoryNavigation.getByRole("link", { name }),
+    ).toHaveAttribute("href", href);
   }
 
   await Promise.all([
@@ -322,7 +323,10 @@ test("profiles production scrolling on desktop and mobile", async ({
       };
       profiles.push(profile);
 
-      expect(profile.maxScroll, `${route.path} must be scrollable`).toBeGreaterThan(0);
+      expect(
+        profile.maxScroll,
+        `${route.path} must be scrollable`,
+      ).toBeGreaterThan(0);
       expect(
         Math.abs(profile.initialScrollHeight - profile.scrollHeight),
         `${route.path} must keep a stable document height during profiling`,

@@ -9,7 +9,7 @@ import {
   loadPosts,
   loadReviewWall,
 } from "@/lib/content";
-import { categoryContents } from "@/data/categoriesContent";
+import { resolveCategoryRouteSlug } from "@/data/categoriesContent";
 import {
   resolveBlogIndexability,
   resolveConditionalContentIndexability,
@@ -58,11 +58,6 @@ const readOptionalUpdatedAt = (product: object) => {
   const value = Reflect.get(product, "updatedAt");
   return typeof value === "string" ? value : undefined;
 };
-
-const resolveCategoryRouteSlug = (catalogSlug: string) =>
-  categoryContents.find(
-    (category) => category.productCategorySlug === catalogSlug,
-  )?.slug || catalogSlug;
 
 const collectProductEntries = async (): Promise<SitemapEntry[]> => {
   const entries: SitemapEntry[] = [];

@@ -7,6 +7,8 @@ const files = {
   package: "package.json",
   contract: "src/lib/seo/release-candidate.ts",
   productCard: "src/components/ProductCard.tsx",
+
+  categoriesContent: "src/data/categoriesContent.ts",
   unit: "tests/unit/seo-release-candidate.test.ts",
   e2e: "e2e/phase10-9-seo-release-candidate.spec.mjs",
   playwright: "e2e/playwright.config.mjs",
@@ -31,27 +33,73 @@ for (const [name, path] of Object.entries(files)) {
   sources[name] = fs.readFileSync(path, "utf8");
 }
 const requireText = (file, text, label = text) => {
-  if (!sources[file]?.includes(text)) errors.push(`${files[file]}: missing ${label}`);
+  if (!sources[file]?.includes(text))
+    errors.push(`${files[file]}: missing ${label}`);
 };
 const forbidText = (file, text, label = text) => {
-  if (sources[file]?.includes(text)) errors.push(`${files[file]}: contains forbidden ${label}`);
+  if (sources[file]?.includes(text))
+    errors.push(`${files[file]}: contains forbidden ${label}`);
 };
 
 requireText("docs", "seo_release_candidate=ready", "final Phase 10.9 marker");
-requireText("roadmap", "Phase 10.9 — SEO acceptance and release candidate — complete");
-requireText("readme", "SEO acceptance and release candidate | Complete in Phase 10.9");
+requireText(
+  "roadmap",
+  "Phase 10.9 — SEO acceptance and release candidate — complete",
+);
+requireText(
+  "readme",
+  "SEO acceptance and release candidate | Complete in Phase 10.9",
+);
 requireText("contract", "winimi-seo-acceptance-v1", "acceptance report format");
-requireText("contract", "winimi-seo-release-candidate-v1", "release candidate format");
+requireText(
+  "contract",
+  "winimi-seo-release-candidate-v1",
+  "release candidate format",
+);
 requireText("contract", "desktop-chromium", "desktop acceptance requirement");
 requireText("contract", "mobile-chromium", "mobile acceptance requirement");
 requireText("contract", "2026-07-20-phase-16", "frozen backend contract");
-requireText("productCard", "/products/category/${encodeURIComponent(product.categorySlug)}", "direct canonical product category link");
-forbidText("productCard", "/products?category=", "legacy product category query link");
-requireText("unit", "matching desktop and mobile evidence", "viewport evidence unit gate");
-requireText("unit", "locks hashes, production origins and backend boundary", "attestation unit gate");
+requireText(
+  "productCard",
+  "resolveCategoryRouteSlug",
+  "central category route resolver usage",
+);
+requireText(
+  "productCard",
+  "/products/category/${encodeURIComponent(categoryRouteSlug)}",
+  "direct canonical editorial product category link",
+);
+requireText(
+  "categoriesContent",
+  "export const resolveCategoryRouteSlug",
+  "central canonical category route resolver",
+);
+forbidText(
+  "productCard",
+  "/products?category=",
+  "legacy product category query link",
+);
+requireText(
+  "unit",
+  "matching desktop and mobile evidence",
+  "viewport evidence unit gate",
+);
+requireText(
+  "unit",
+  "locks hashes, production origins and backend boundary",
+  "attestation unit gate",
+);
 
-requireText("e2e", "every sitemap URL passes raw HTML", "sitemap-driven crawl suite");
-requireText("e2e", "expect(canonicalTags).toHaveLength(1)", "canonical uniqueness gate");
+requireText(
+  "e2e",
+  "every sitemap URL passes raw HTML",
+  "sitemap-driven crawl suite",
+);
+requireText(
+  "e2e",
+  "expect(canonicalTags).toHaveLength(1)",
+  "canonical uniqueness gate",
+);
 requireText("e2e", "h1Count", "H1 acceptance gate");
 requireText("e2e", "extractJsonLd", "JSON-LD parser");
 requireText("e2e", "Organization", "brand entity gate");
@@ -59,24 +107,82 @@ requireText("e2e", "WebSite", "website entity gate");
 requireText("e2e", "broken internal link", "internal link integrity gate");
 requireText("e2e", "noindex,follow", "filtered URL gate");
 requireText("e2e", "noindex, nofollow", "private and missing URL gate");
-requireText("e2e", "seo-acceptance-${testInfo.project.name}.json", "per-project evidence");
-requireText("e2e", 'href.startsWith("/products?category=")', "legacy category query rejection");
+requireText(
+  "e2e",
+  "seo-acceptance-${testInfo.project.name}.json",
+  "per-project evidence",
+);
+requireText(
+  "e2e",
+  'href.startsWith("/products?category=")',
+  "legacy category query rejection",
+);
 requireText("e2e", "toBe(false)", "legacy URL rejection assertion");
+requireText("e2e", "publishedCityPaths", "published city redirect selection");
+forbidText(
+  "e2e",
+  "staging-tehran",
+  "synthetic unpublished city redirect fixture",
+);
 
-requireText("mergeReports", "validateMergedSeoAcceptance", "desktop/mobile merge validation");
-requireText("createCandidate", "releaseManifestSha256", "release manifest attestation");
-requireText("createCandidate", "acceptanceReportSha256", "acceptance report attestation");
+requireText(
+  "mergeReports",
+  "validateMergedSeoAcceptance",
+  "desktop/mobile merge validation",
+);
+requireText(
+  "createCandidate",
+  "releaseManifestSha256",
+  "release manifest attestation",
+);
+requireText(
+  "createCandidate",
+  "acceptanceReportSha256",
+  "acceptance report attestation",
+);
 requireText("verifyCandidate", "digest mismatch", "tamper verification");
-requireText("deploymentSnapshot", "seo-deployment-acceptance.json", "deployment SEO evidence");
-requireText("releaseCreate", "release-manifest.json", "deterministic release manifest");
-requireText("releaseVerify", "SHA-256 mismatch", "release file integrity verification");
+requireText(
+  "deploymentSnapshot",
+  "seo-deployment-acceptance.json",
+  "deployment SEO evidence",
+);
+requireText(
+  "releaseCreate",
+  "release-manifest.json",
+  "deterministic release manifest",
+);
+requireText(
+  "releaseVerify",
+  "SHA-256 mismatch",
+  "release file integrity verification",
+);
 
-requireText("playwright", "phase10-9-seo-release-candidate.spec.mjs", "Playwright Phase 10.9 registration");
-requireText("frontendCi", "Frontend SEO acceptance and release candidate Phase 10.9", "CI Phase 10.9 gate");
+requireText(
+  "playwright",
+  "phase10-9-seo-release-candidate.spec.mjs",
+  "Playwright Phase 10.9 registration",
+);
+requireText(
+  "frontendCi",
+  "Frontend SEO acceptance and release candidate Phase 10.9",
+  "CI Phase 10.9 gate",
+);
 requireText("deployment", "audit:phase10-9", "deployment Phase 10.9 audit");
-requireText("deployment", "Verify SEO release candidate deployment snapshot", "deployment snapshot gate");
-requireText("phase18", "Run Phase 10.9 SEO acceptance and release candidate", "Laravel Phase 10.9 browser gate");
-requireText("phase18", "Create and verify SEO release candidate attestation", "final candidate attestation gate");
+requireText(
+  "deployment",
+  "Verify SEO release candidate deployment snapshot",
+  "deployment snapshot gate",
+);
+requireText(
+  "phase18",
+  "Run Phase 10.9 SEO acceptance and release candidate",
+  "Laravel Phase 10.9 browser gate",
+);
+requireText(
+  "phase18",
+  "Create and verify SEO release candidate attestation",
+  "final candidate attestation gate",
+);
 requireText("package", '"audit:phase10-9"', "Phase 10.9 audit command");
 requireText("package", '"seo:acceptance:merge"', "acceptance merge command");
 requireText("package", '"seo:rc:create"', "candidate creation command");
@@ -87,9 +193,14 @@ const report = {
   passed: errors.length === 0,
   errors,
 };
-fs.writeFileSync("frontend-phase10-9-audit.json", `${JSON.stringify(report, null, 2)}\n`);
+fs.writeFileSync(
+  "frontend-phase10-9-audit.json",
+  `${JSON.stringify(report, null, 2)}\n`,
+);
 if (errors.length) {
-  console.error(`Frontend Phase 10.9 audit failed with ${errors.length} issue(s):`);
+  console.error(
+    `Frontend Phase 10.9 audit failed with ${errors.length} issue(s):`,
+  );
   errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
