@@ -15,7 +15,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { categoryContents } from "@/data/categoriesContent";
+import { useCatalogCategories } from "@/hooks/useCatalog";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const footerGroups = [
   {
@@ -92,6 +95,23 @@ const FooterLinkList = ({
 
 export const Footer = () => {
   const { settings } = useStorefrontSettings();
+  const { categories } = useCatalogCategories();
+  const visibleCategoryHrefs = new Set(
+    buildVisibleCatalogCategories(categoryContents, categories).map(
+      (category) => `/products/category/${category.routeSlug}`,
+    ),
+  );
+  const resolvedFooterGroups = footerGroups.map((group) =>
+    group.title === "دسته‌بندی‌ها"
+      ? {
+          ...group,
+          links: group.links.filter(
+            (link) =>
+              link.href === "/gift" || visibleCategoryHrefs.has(link.href),
+          ),
+        }
+      : group,
+  );
   const socialLinks = [
     {
       href: settings.contact.instagramUrl,
@@ -190,7 +210,7 @@ export const Footer = () => {
           </div>
 
           <div className="hidden grid-cols-3 divide-x divide-x-reverse divide-[#27390c]/12 lg:grid">
-            {footerGroups.map((group) => (
+            {resolvedFooterGroups.map((group) => (
               <div key={group.title} className="px-7 first:pr-10 last:pl-0">
                 <h3 className="mb-5 text-xs font-black tracking-[0.08em] text-[#6f3e33]">
                   {group.title}
@@ -201,7 +221,7 @@ export const Footer = () => {
           </div>
 
           <Accordion type="single" collapsible className="pt-4 lg:hidden">
-            {footerGroups.map((group) => (
+            {resolvedFooterGroups.map((group) => (
               <AccordionItem
                 key={group.title}
                 value={group.title}
