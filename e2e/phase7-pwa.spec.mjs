@@ -86,7 +86,7 @@ test("production PWA fails closed on a real network failure and recovers after r
     "",
   );
 
-  // Network restoration returns to the live server-rendered application.
+  // network restoration returns to the live server-rendered application
   // Keep the recovery assertion structural so editorial homepage copy can evolve
   // without weakening the PWA fail-closed/service-worker contract.
   await page.goto("/", { waitUntil: "domcontentloaded" });
