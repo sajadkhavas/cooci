@@ -106,12 +106,17 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   });
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
+  const dietCategory = payload.data.find(
+    (item) =>
+      item.name.includes("رژیمی") || item.name.includes("بدون قند"),
+  );
   const category = payload.data.find(
     (item) =>
       item.slug !== "diet" &&
       !item.name.includes("رژیمی") &&
       !item.name.includes("بدون قند"),
   );
+  expect(dietCategory).toBeTruthy();
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
@@ -119,7 +124,8 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /رژیمی و بدون قند افزوده/,
+      name: dietCategory.name,
+      exact: true,
     }),
   ).toBeVisible();
 
