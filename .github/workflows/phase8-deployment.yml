@@ -190,9 +190,7 @@ jobs:
       - name: Verify Core Web Vitals media and RUM runtime
         run: |
           grep -Eqi '<link[^>]+rel="preload"[^>]+as="image"' ssr-home.html
-          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+loading="eager"' ssr-home.html
-          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+fetchpriority="high"' ssr-home.html
-          grep -Eqi '<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+width="1200"[^>]+height="1450"' ssr-home.html
+          grep -Eqi '<img[^>]+alt="[^"]+"[^>]+loading="eager"[^>]+fetchpriority="high"[^>]+width="1200"[^>]+height="1450"' ssr-home.html
           VITAL_STATUS=$(curl --silent --output web-vitals-body.txt --dump-header web-vitals-headers.txt --write-out '%{http_code}' \
             --request POST http://127.0.0.1:4178/__web_vitals \
             --header 'Content-Type: application/json' \
