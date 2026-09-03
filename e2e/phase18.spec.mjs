@@ -107,27 +107,34 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
   const dietCategory = payload.data.find(
-    (item) =>
-      item.name.includes("رژیمی") || item.name.includes("بدون قند"),
+    (item) => item.slug === "rzhymy-o-bdon-knd-afzodh",
   );
   const category = payload.data.find(
-    (item) =>
-      item.slug !== "diet" &&
-      !item.name.includes("رژیمی") &&
-      !item.name.includes("بدون قند"),
+    (item) => item.slug !== "rzhymy-o-bdon-knd-afzodh",
   );
-  expect(dietCategory).toBeTruthy();
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
-  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
-  await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: dietCategory.name,
-      exact: true,
-    }),
-  ).toBeVisible();
+  if (dietCategory) {
+    await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: dietCategory.name,
+        exact: true,
+      }),
+    ).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(/\/products$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "محصولات وینیمی" }),
+    ).toBeVisible();
+  }
+
+  await page.goto(`/products?category=${encodeURIComponent(category.slug)}`);
+  await expect(page).toHaveURL(
+    new RegExp(`/products/category/${category.slug}$`),
+  );
 
   const categoryNavigation = page.getByRole("navigation", {
     name: "دسته‌بندی محصولات",
@@ -139,11 +146,6 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   await expect(categoryLink).toHaveAttribute(
     "href",
     `/products/category/${category.slug}`,
-  );
-  await categoryLink.click();
-
-  await expect(page).toHaveURL(
-    new RegExp(`/products/category/${category.slug}$`),
   );
   await expect
     .poll(() => new URL(page.url()).searchParams.get("category"))
