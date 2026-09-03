@@ -86,15 +86,16 @@ test("production PWA fails closed on a real network failure and recovers after r
     "",
   );
 
-  // network restoration returns to the live server-rendered application
+  // Network restoration returns to the live server-rendered application.
+  // Keep the recovery assertion structural so editorial homepage copy can evolve
+  // without weakening the PWA fail-closed/service-worker contract.
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator('html[lang="fa-IR"][dir="rtl"]')).toHaveCount(1);
   await expect(page.locator("#main-content")).toBeVisible();
+  await expect(page.locator("#main-content h1").first()).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      name: /سفارش آنلاین کوکی، کیک و باکس هدیه/,
-    }),
-  ).toBeVisible();
+    page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
+  ).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
