@@ -11,6 +11,7 @@ import { isBackendEnabled } from "@/lib/api";
 import { loadPosts } from "@/lib/content";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import { createBlogCollectionSchema } from "@/lib/seo/content-schema";
+import { resolveBlogIndexability } from "@/lib/seo/content-indexability";
 
 const configuredOrigin =
   (import.meta.env.VITE_SITE_ORIGIN as string | undefined) || brandConfig.website;
@@ -46,6 +47,8 @@ const BlogListPage = () => {
   const posts = query.data?.posts ?? [];
   const pagination = query.data?.pagination;
   const topics = loaderData?.contentTopics ?? [];
+  const publishedPostCount = pagination?.total ?? posts.length;
+  const indexability = resolveBlogIndexability(publishedPostCount);
 
   const handlePageChange = (nextPage: number) => {
     const next = new URLSearchParams(searchParams);
@@ -69,7 +72,12 @@ const BlogListPage = () => {
 
   return (
     <>
-      <SEO title={title} description={description} schema={schema} />
+      <SEO
+        title={title}
+        description={description}
+        schema={schema}
+        robots={indexability.indexable ? undefined : indexability.robots}
+      />
       <section className="bg-gradient-to-b from-secondary/40 to-background section-padding">
         <div className="container-custom max-w-5xl">
           <Breadcrumbs

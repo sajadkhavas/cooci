@@ -11,6 +11,7 @@ const files = {
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
   home: "src/pages/HomePage.tsx",
+  gift: "src/pages/GiftPage.tsx",
   occasionSelector: "src/components/home/OccasionSelector.tsx",
   homeColdGallery: "src/components/home/HomeColdGallery.tsx",
   products: "src/pages/ProductsPage.tsx",
@@ -73,7 +74,11 @@ forbidText(
   "automatic refrigerated-gallery rotation",
 );
 
-requireText("main", 'import "./styles/modern-pages.css"', "modern routed-page stylesheet");
+requireText(
+  "main",
+  'import "./styles/modern-pages.css"',
+  "modern routed-page stylesheet",
+);
 requireText("layout", "<ScrollProgress", "global scroll progress");
 requireText("layout", "ambient-layer", "ambient backdrop markup");
 requireText("layout", "page-enter", "route transition wrapper");
@@ -85,21 +90,39 @@ for (const requirement of [
   'aria-controls="mobile-navigation-dialog"',
   "backdrop-blur-2xl",
 ]) {
-  requireText("header", requirement, `modern accessible navigation contract: ${requirement}`);
+  requireText(
+    "header",
+    requirement,
+    `modern accessible navigation contract: ${requirement}`,
+  );
 }
-requireText("header", 'href: "/products"', "single shop desktop/mobile navigation");
-forbidText("header", 'href: "/categories"', "duplicate category-index navigation");
+requireText(
+  "header",
+  'href: "/products"',
+  "single shop desktop/mobile navigation",
+);
+forbidText(
+  "header",
+  'href: "/categories"',
+  "duplicate category-index navigation",
+);
 
 for (const validPath of [
   "/products",
   "/products/category/diet-diabetic",
   "/products/category/cakes",
-  "/products/category/gift-boxes",
 ]) {
   requireText("footer", validPath, `valid modern footer link ${validPath}`);
 }
-forbidText("footer", "/categories", "duplicate category-index footer link");
+forbidText("footer", 'to="/categories"', "duplicate category-index footer CTA");
+forbidText("footer", 'href: "/categories"', "duplicate category-index footer link");
 requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
+requireText("gift", 'to="/products"', "gift page safe shop fallback CTA");
+forbidText(
+  "gift",
+  "/products/category/gift-boxes",
+  "unpublished gift category CTA",
+);
 
 for (const requirement of [
   "<Reveal",
@@ -110,21 +133,25 @@ for (const requirement of [
   "product-rail-background.webp",
   "<HomeProductRail",
   "rgba(255, 253, 247, 0.58)",
-      "lg:min-h-[68svh]",
-      "lg:grid-cols-[1fr_1fr]",
-      "gap-6 sm:gap-8",
-      "aspect-[4/3.15]",
-      "text-[#667c22]",
-      "lg:max-w-[12ch]",
-      "مشاهده محصولات",
+  "lg:min-h-[68svh]",
+  "lg:grid-cols-[1fr_1fr]",
+  "gap-6 sm:gap-8",
+  "aspect-[4/3.15]",
+  "text-[#667c22]",
+  "lg:max-w-[12ch]",
+  "مشاهده محصولات",
 ]) {
-  requireText("home", requirement, `modern product-led homepage contract: ${requirement}`);
+  requireText(
+    "home",
+    requirement,
+    `modern product-led homepage contract: ${requirement}`,
+  );
 }
 for (const requirement of [
   "const occasions",
   "modern-section-title",
   "برای چه لحظه‌ای انتخاب می‌کنی؟",
-  'aria-pressed={active}',
+  "aria-pressed={active}",
 ]) {
   requireText(
     "occasionSelector",
@@ -135,7 +162,11 @@ for (const requirement of [
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
 forbidText("home", 'to="/categories"', "standalone category-index link");
-forbidText("home", 'aria-label="دسته‌های فعال فروشگاه"', "duplicated category chips inside the hero");
+forbidText(
+  "home",
+  'aria-label="دسته‌های فعال فروشگاه"',
+  "duplicated category chips inside the hero",
+);
 forbidText("home", "min-h-[74svh]", "oversized legacy hero height");
 
 for (const requirement of [
@@ -149,7 +180,11 @@ for (const requirement of [
   'aria-controls="home-product-rail"',
   'id="home-product-rail"',
 ]) {
-  requireText("homeProductRail", requirement, `refined product rail controls: ${requirement}`);
+  requireText(
+    "homeProductRail",
+    requirement,
+    `refined product rail controls: ${requirement}`,
+  );
 }
 
 for (const requirement of [
@@ -157,7 +192,11 @@ for (const requirement of [
   "bg-[#fffdf7]",
   "sm:max-w-4xl",
 ]) {
-  requireText("productCard", requirement, `branded quick-view surface: ${requirement}`);
+  requireText(
+    "productCard",
+    requirement,
+    `branded quick-view surface: ${requirement}`,
+  );
 }
 
 for (const requirement of [
@@ -212,7 +251,11 @@ for (const requirement of [
   "<DialogContent",
   "افزودن به سبد",
 ]) {
-  requireText("productCard", requirement, `modern product-card contract: ${requirement}`);
+  requireText(
+    "productCard",
+    requirement,
+    `modern product-card contract: ${requirement}`,
+  );
 }
 forbidText(
   "productCard",
@@ -241,9 +284,21 @@ for (const requirement of [
   );
 }
 
-requireText("reveal", "IntersectionObserver", "dependency-free reveal observer");
-requireText("reveal", "prefers-reduced-motion", "reveal reduced-motion support");
-requireText("progress", 'aria-hidden="true"', "decorative progress accessibility");
+requireText(
+  "reveal",
+  "IntersectionObserver",
+  "dependency-free reveal observer",
+);
+requireText(
+  "reveal",
+  "prefers-reduced-motion",
+  "reveal reduced-motion support",
+);
+requireText(
+  "progress",
+  'aria-hidden="true"',
+  "decorative progress accessibility",
+);
 requireText(
   "modernPages",
   'nav[aria-label="مراحل ثبت سفارش"]',

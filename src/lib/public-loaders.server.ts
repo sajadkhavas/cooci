@@ -1,5 +1,8 @@
 import { data, redirect, type LoaderFunctionArgs } from "react-router";
-import { getCategoryContent } from "@/data/categoriesContent";
+import {
+  getCategoryContent,
+  resolveCategoryRouteSlug,
+} from "@/data/categoriesContent";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import type { BackendPostDetail } from "@/lib/backend-contract";
 import {
@@ -11,9 +14,11 @@ import {
 } from "@/lib/catalog-api";
 import {
   loadCityPage,
+  loadGallery,
   loadPost,
   loadPosts,
   loadProductReviews,
+  loadReviewWall,
   type ProductReviewsResult,
 } from "@/lib/content";
 import {
@@ -23,6 +28,10 @@ import {
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
 import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
+import {
+  resolveBlogIndexability,
+  resolveConditionalContentIndexability,
+} from "@/lib/seo/content-indexability";
 import {
   getContentTopicPath,
   normalizeContentTopic,
@@ -59,13 +68,18 @@ const buildShopQuery = (request: Request, slug?: string): CatalogQuery => {
   const sortCandidate = url.searchParams.get("sort") as CatalogQuery["sort"];
   const shipping = url.searchParams.get("shipping") ?? "all";
   const content = slug ? getCategoryContent(slug) : undefined;
-  const search = content?.catalogSearch || url.searchParams.get("q")?.trim() || undefined;
+  const search =
+    content?.catalogSearch || url.searchParams.get("q")?.trim() || undefined;
 
   return {
     category: resolveCatalogCategorySlug(slug),
     search,
     requiresCooling:
-      shipping === "chilled" ? true : shipping === "nationwide" ? false : undefined,
+      shipping === "chilled"
+        ? true
+        : shipping === "nationwide"
+          ? false
+          : undefined,
     inStock: url.searchParams.get("stock") === "true" || undefined,
     sort: allowedSorts.has(sortCandidate) ? sortCandidate : "featured",
     page: parsePositivePage(url.searchParams.get("page")),
@@ -87,6 +101,24 @@ const crawlResponse = (
         }
       : undefined,
   });
+
+const conditionalContentResponse = (
+  payload: PublicSsrLoaderData,
+  publishedContentCount: number,
+) => {
+  const indexability = resolveConditionalContentIndexability(
+    publishedContentCount,
+  );
+
+  if (indexability.indexable) return payload;
+
+  return data(payload, {
+    headers: {
+      "Cache-Control": "no-cache, must-revalidate",
+      "X-Robots-Tag": indexability.robots,
+    },
+  });
+};
 
 const resourceNotFound = (message: string) =>
   new ApiError({
@@ -115,7 +147,9 @@ const loadOptionalRelatedPosts = async (post: BackendPostDetail) => {
   }
 };
 
-const loadOptionalChilledCatalog = async (): Promise<CatalogPage | undefined> => {
+const loadOptionalChilledCatalog = async (): Promise<
+  CatalogPage | undefined
+> => {
   try {
     return await fetchCatalogProducts(HOME_CHILLED_QUERY);
   } catch (error) {
@@ -167,8 +201,22 @@ export const loadShopPublicData = async ({
       const backendCategory = categories.some(
         (category) => category.slug === catalogSlug,
       );
+
       if (!backendCategory) {
         throw resourceNotFound("Category not found.");
+      }
+
+      if (!getCategoryContent(slug)) {
+        const publicRouteSlug = resolveCategoryRouteSlug(catalogSlug);
+
+        if (publicRouteSlug !== slug) {
+          const requestUrl = new URL(request.url);
+
+          return redirect(
+            `/products/category/${encodeURIComponent(publicRouteSlug)}${requestUrl.search}`,
+            301,
+          );
+        }
       }
     }
 
@@ -198,7 +246,10 @@ export const loadProductPublicData = async ({
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
   if (!slug) {
-    throw toPublicSsrResponse(resourceNotFound("Product not found."), "Product");
+    throw toPublicSsrResponse(
+      resourceNotFound("Product not found."),
+      "Product",
+    );
   }
 
   try {
@@ -235,6 +286,20 @@ export const loadBlogListPublicData = async ({
       totalPages: posts.pagination?.totalPages,
     });
     if (policy.redirectPath) return redirect(policy.redirectPath, 301);
+    const indexability = resolveBlogIndexability(
+      posts.pagination?.total ?? posts.posts.length,
+    );
+    if (!indexability.indexable) {
+      return data(
+        { posts, contentTopics },
+        {
+          headers: {
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-Robots-Tag": indexability.robots,
+          },
+        },
+      );
+    }
     return crawlResponse({ posts, contentTopics }, policy);
   } catch (error) {
     throw toPublicSsrResponse(error, "Blog");
@@ -283,10 +348,7 @@ export const loadBlogTopicPublicData = async ({
       return redirect(policy.canonicalPath, 301);
     }
 
-    return crawlResponse(
-      { posts, contentTopics, contentTopic },
-      policy,
-    );
+    return crawlResponse({ posts, contentTopics, contentTopic }, policy);
   } catch (error) {
     throw toPublicSsrResponse(error, "Content topic");
   }
@@ -298,10 +360,7 @@ export const loadBlogDetailPublicData = async ({
   if (!isBackendEnabled) return disabledData();
   const slug = params.slug?.trim();
   if (!slug) {
-    throw toPublicSsrResponse(
-      resourceNotFound("Post not found."),
-      "Blog post",
-    );
+    throw toPublicSsrResponse(resourceNotFound("Post not found."), "Blog post");
   }
 
   try {
@@ -313,13 +372,46 @@ export const loadBlogDetailPublicData = async ({
   }
 };
 
-export const loadLocationsPublicData = async (): Promise<PublicSsrLoaderData> => {
-  if (!isBackendEnabled) return disabledData();
+export const loadReviewsPublicData = async () => {
+  if (!isBackendEnabled) {
+    return conditionalContentResponse({ reviewWall: undefined }, 0);
+  }
+
+  try {
+    const reviewWall = await loadReviewWall();
+
+    return conditionalContentResponse(
+      { reviewWall },
+      reviewWall.publishedReviewCount,
+    );
+  } catch (error) {
+    throw toPublicSsrResponse(error, "Reviews");
+  }
+};
+
+export const loadGalleryPublicData = async () => {
+  if (!isBackendEnabled) {
+    return conditionalContentResponse({ galleryItems: [] }, 0);
+  }
+
+  try {
+    const galleryItems = await loadGallery();
+
+    return conditionalContentResponse({ galleryItems }, galleryItems.length);
+  } catch (error) {
+    throw toPublicSsrResponse(error, "Gallery");
+  }
+};
+
+export const loadLocationsPublicData = async () => {
+  if (!isBackendEnabled) {
+    return conditionalContentResponse({ cities: [] }, 0);
+  }
 
   try {
     const cities = await collectPublishedCityPages();
-    if (!cities.length) throw resourceNotFound("Location pages not found.");
-    return { cities };
+
+    return conditionalContentResponse({ cities }, cities.length);
   } catch (error) {
     throw toPublicSsrResponse(error, "Location pages");
   }
