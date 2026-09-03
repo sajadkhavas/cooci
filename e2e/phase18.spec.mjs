@@ -346,7 +346,7 @@ test("persisted inquiry, query-free canonical and disabled eNAMAD trust slot rem
 
   await expect(
     page.getByText(
-      "جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش داده می‌شود.",
+      "اطلاعات مجوزهای فروشگاه پس از فعال‌سازی رسمی در همین جایگاه نمایش داده می‌شود.",
       { exact: true },
     ),
   ).toBeVisible();
