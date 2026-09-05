@@ -23,6 +23,26 @@ test("already branded backend product title is not branded again", () => {
   );
 });
 
+test("repeated trailing backend brand suffixes collapse to one canonical suffix", () => {
+  assert.equal(
+    resolveMetaTitle(
+      "خرید کوکی شکلاتی گردویی ۷۰ گرمی | وینیمی بیکری | وینیمی بیکری",
+      brandName,
+      fallback,
+    ),
+    "خرید کوکی شکلاتی گردویی ۷۰ گرمی | وینیمی بیکری",
+  );
+
+  assert.equal(
+    resolveMetaTitle(
+      "خرید کوکی شکلاتی گردویی ۷۰ گرمی|وینیمی بیکری   |   وینیمی بیکری",
+      brandName,
+      fallback,
+    ),
+    "خرید کوکی شکلاتی گردویی ۷۰ گرمی | وینیمی بیکری",
+  );
+});
+
 test("managed content title containing the brand is not duplicated", () => {
   assert.equal(
     resolveMetaTitle(
