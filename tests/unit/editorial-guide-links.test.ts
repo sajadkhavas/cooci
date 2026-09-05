@@ -13,11 +13,14 @@ test("home editorial cards link to dedicated canonical guide articles", () => {
     "/blog/cookie-storage-guide",
     "/blog/cookies-per-guest-guide",
   ]) {
-    assert.match(source, new RegExp(`href: \\"${path.replaceAll("/", "\\/")}\\"`));
+    assert.ok(source.includes(`href: "${path}"`), `missing dedicated guide destination: ${path}`);
   }
 });
 
 test("individual editorial cards no longer use the generic blog hub destination", () => {
-  const guideArray = source.slice(source.indexOf("const guides = ["), source.indexOf("] as const;") + 11);
+  const guideArray = source.slice(
+    source.indexOf("const guides = ["),
+    source.indexOf("] as const;") + 11,
+  );
   assert.doesNotMatch(guideArray, /href:\s*["']\/blog["']/);
 });
