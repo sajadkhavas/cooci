@@ -1,0 +1,4 @@
+export { loadReviewsPublicData as loader } from "@/lib/public-loaders.server";
+export { passPublicSsrHeaders as headers } from "@/lib/public-ssr";
+export { default } from "@/pages/ReviewsPage";
+export { default as ErrorBoundary } from "@/routes/PublicRouteErrorBoundary";

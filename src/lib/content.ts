@@ -1,4 +1,5 @@
 import { apiRequest } from "@/lib/api";
+import { fetchCatalogProducts } from "@/lib/catalog-api";
 import type {
   BackendInquiryInput,
   BackendPostDetail,
@@ -48,6 +49,17 @@ export interface ProductReviewsResult {
     total: number;
     hasMore: boolean;
   };
+}
+
+export interface StoreReviewWallItem extends BackendReview {
+  productName: string;
+  productSlug: string;
+}
+
+export interface StoreReviewWallResult {
+  reviews: StoreReviewWallItem[];
+  publishedReviewCount: number;
+  productCount: number;
 }
 
 export const loadStoreSettings = async (): Promise<BackendStoreSettings> => {
@@ -158,6 +170,119 @@ export const loadProductReviews = async (
         }
       : undefined,
   };
+};
+
+const REVIEW_WALL_PAGE_SIZE = 48;
+const REVIEW_WALL_MAX_PRODUCTS = 96;
+const REVIEW_WALL_BATCH_SIZE = 8;
+const REVIEW_WALL_CACHE_TTL_MS = 60_000;
+
+let reviewWallCache:
+  | {
+      expiresAt: number;
+      promise: Promise<StoreReviewWallResult>;
+    }
+  | undefined;
+
+const loadReviewWallFresh = async (): Promise<StoreReviewWallResult> => {
+  const products = [];
+  let page = 1;
+  let totalPages = 1;
+  let totalProducts = 0;
+
+  do {
+    const catalog = await fetchCatalogProducts({
+      page,
+      perPage: REVIEW_WALL_PAGE_SIZE,
+      sort: "featured",
+    });
+
+    totalPages = Math.max(1, catalog.pagination.totalPages);
+
+    totalProducts = Math.max(totalProducts, catalog.pagination.total);
+
+    if (
+      totalProducts > REVIEW_WALL_MAX_PRODUCTS ||
+      totalPages > Math.ceil(REVIEW_WALL_MAX_PRODUCTS / REVIEW_WALL_PAGE_SIZE)
+    ) {
+      throw new Error(
+        "Review wall catalog exceeds the safe aggregation limit; a dedicated backend review-wall endpoint is required.",
+      );
+    }
+
+    products.push(...catalog.products);
+    page += 1;
+  } while (page <= totalPages);
+
+  const results: Array<{
+    product: (typeof products)[number];
+    result: ProductReviewsResult;
+  }> = [];
+
+  for (
+    let offset = 0;
+    offset < products.length;
+    offset += REVIEW_WALL_BATCH_SIZE
+  ) {
+    const batch = products.slice(offset, offset + REVIEW_WALL_BATCH_SIZE);
+
+    const batchResults = await Promise.all(
+      batch.map(async (product) => ({
+        product,
+        result: await loadProductReviews(product.slug, 1, 20),
+      })),
+    );
+
+    results.push(...batchResults);
+  }
+
+  const reviews = results.flatMap(({ product, result }) =>
+    result.reviews.map((review) => ({
+      ...review,
+      productName: product.name,
+      productSlug: product.slug,
+    })),
+  );
+
+  const publishedReviewCount = results.reduce(
+    (total, { result }) =>
+      total +
+      (result.pagination?.total ??
+        result.summary.count ??
+        result.reviews.length),
+    0,
+  );
+
+  return {
+    reviews,
+    publishedReviewCount,
+    productCount: products.length,
+  };
+};
+
+export const loadReviewWall = async (): Promise<StoreReviewWallResult> => {
+  const now = Date.now();
+
+  if (reviewWallCache && reviewWallCache.expiresAt > now) {
+    return reviewWallCache.promise;
+  }
+
+  const promise: Promise<StoreReviewWallResult> = loadReviewWallFresh().catch(
+    (error) => {
+      if (reviewWallCache?.promise === promise) {
+        reviewWallCache = undefined;
+      }
+
+      throw error;
+    },
+  );
+
+  reviewWallCache = {
+    expiresAt: now + REVIEW_WALL_CACHE_TTL_MS,
+    promise,
+  };
+
+  return promise;
 };
 
 export const submitInquiry = async (

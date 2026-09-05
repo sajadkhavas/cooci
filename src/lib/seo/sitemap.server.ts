@@ -3,8 +3,17 @@ import {
   fetchCatalogProducts,
 } from "@/lib/catalog-api";
 import { ApiError } from "@/lib/api";
-import { loadContentPage, loadPosts } from "@/lib/content";
-import { categoryContents } from "@/data/categoriesContent";
+import {
+  loadContentPage,
+  loadGallery,
+  loadPosts,
+  loadReviewWall,
+} from "@/lib/content";
+import { resolveCategoryRouteSlug } from "@/data/categoriesContent";
+import {
+  resolveBlogIndexability,
+  resolveConditionalContentIndexability,
+} from "@/lib/seo/content-indexability";
 import { getContentTopicPath } from "@/lib/seo/content-topics";
 import { getCityPagePath } from "@/lib/seo/local-seo";
 import { collectPublishedCityPages } from "@/lib/seo/local-seo.server";
@@ -39,10 +48,7 @@ const normalizeLastModified = (value?: string | null) => {
   return new Date(value).toISOString();
 };
 
-const latestLastModified = (
-  first?: string,
-  second?: string,
-) => {
+const latestLastModified = (first?: string, second?: string) => {
   if (!first) return second;
   if (!second) return first;
   return Date.parse(second) > Date.parse(first) ? second : first;
@@ -52,11 +58,6 @@ const readOptionalUpdatedAt = (product: object) => {
   const value = Reflect.get(product, "updatedAt");
   return typeof value === "string" ? value : undefined;
 };
-
-const resolveCategoryRouteSlug = (catalogSlug: string) =>
-  categoryContents.find(
-    (category) => category.productCategorySlug === catalogSlug,
-  )?.slug || catalogSlug;
 
 const collectProductEntries = async (): Promise<SitemapEntry[]> => {
   const entries: SitemapEntry[] = [];
@@ -126,7 +127,9 @@ const collectContentEntries = async (): Promise<CollectedContentEntries> => {
   };
 };
 
-const collectPublishedManagedContentEntries = async (): Promise<SitemapEntry[]> => {
+const collectPublishedManagedContentEntries = async (): Promise<
+  SitemapEntry[]
+> => {
   const resolved = await Promise.all(
     MANAGED_CONTENT_PATHS.map(async ({ path, slug }) => {
       try {
@@ -146,18 +149,29 @@ const collectPublishedManagedContentEntries = async (): Promise<SitemapEntry[]> 
   );
 
   return resolved.filter(
-    (entry): entry is NonNullable<(typeof resolved)[number]> => entry !== undefined,
+    (entry): entry is NonNullable<(typeof resolved)[number]> =>
+      entry !== undefined,
   );
 };
 
 export const generateDynamicSitemap = async (siteOrigin: string) => {
   const origin = new URL(siteOrigin).origin;
-  const [categories, products, content, cities, managedContent] = await Promise.all([
+  const [
+    categories,
+    products,
+    content,
+    cities,
+    managedContent,
+    reviewWall,
+    galleryItems,
+  ] = await Promise.all([
     fetchCatalogCategories(),
     collectProductEntries(),
     collectContentEntries(),
     collectPublishedCityPages(),
     collectPublishedManagedContentEntries(),
+    loadReviewWall(),
+    loadGallery(),
   ]);
 
   const localEntries: SitemapEntry[] = cities.length
@@ -166,8 +180,27 @@ export const generateDynamicSitemap = async (siteOrigin: string) => {
         ...cities.map((city) => ({ path: getCityPagePath(city.slug) })),
       ]
     : [];
+  const blogIndexability = resolveBlogIndexability(content.posts.length);
+  const reviewsIndexability = resolveConditionalContentIndexability(
+    reviewWall.publishedReviewCount,
+  );
+  const galleryIndexability = resolveConditionalContentIndexability(
+    galleryItems.length,
+  );
+
   const entries: SitemapEntry[] = [
-    ...CRAWLABLE_STATIC_PATHS.map((path) => ({ path })),
+    ...CRAWLABLE_STATIC_PATHS.filter((path) => {
+      if (path === "/blog") {
+        return blogIndexability.includeInSitemap;
+      }
+      if (path === "/reviews") {
+        return reviewsIndexability.includeInSitemap;
+      }
+      if (path === "/gallery") {
+        return galleryIndexability.includeInSitemap;
+      }
+      return true;
+    }).map((path) => ({ path })),
     ...managedContent,
     ...categories.map((category) => ({
       path: `/products/category/${encodeURIComponent(
