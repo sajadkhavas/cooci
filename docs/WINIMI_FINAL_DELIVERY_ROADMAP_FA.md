@@ -1,6 +1,6 @@
 # نقشه نهایی تحویل پروژه وینیمی
 
-تاریخ ثبت: ۲۰۲۶-۰۹-۰۵  
+آخرین به‌روزرسانی: ۲۰۲۶-۰۹-۰۵  
 Project: **WINIMI / COOCI**  
 Repository: `sajadkhavas/cooci`
 
@@ -16,19 +16,125 @@ Repository: `sajadkhavas/cooci`
 - PR: `#37`
 - Merge SHA into Phase 27: `76085a078e3068be479461582258a828f32496c6`
 - Closure record: `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md`
-- Final required gates on exact head: Frontend CI, Phase 8, Phase 18 and Phase 19 package all PASS.
-- Production deployment of the Phase 28 chain has **not yet been recorded as completed**.
+- Frontend CI، Phase 8، Phase 18 و Phase 19 package روی exact head همگی PASS شده‌اند.
+- Production deployment زنجیره Phase 28 هنوز با evidence زنده سرور به‌عنوان تحویل نهایی ثبت نشده است.
 
 ### Current Git stack
 
-- Current integration branch: `phase-27/cross-project-design-synthesis`
-- PR `#36` is still **OPEN / DRAFT** and targets `phase-26/uir1-home-navigation-redesign`.
-- The Phase 27 chain, including merged Phase 28, is not yet closed into `main`.
-- Therefore final production delivery must not claim that `main` is the source of truth until Mainline Closure is completed.
+- Integration branch: `phase-27/cross-project-design-synthesis`
+- PR `#36` هنوز **OPEN / DRAFT** و target آن `phase-26/uir1-home-navigation-redesign` است.
+- Phase 27 شامل Phase 28 merge‌شده است، اما stack نهایی هنوز به `main` بسته نشده است.
+- بنابراین تا F30، `main` منبع نهایی release نیست.
 
-## باقی‌مانده تا تحویل نهایی
+## تصمیم جدید پس از Phase 28
 
-Five execution phases remain.
+Phase 28 Technical SEO و Route Architecture را بست، اما Content SEO و Topical Authority کامل نشده‌اند. به همین دلیل قبل از Google Login یک فاز مستقل اضافه شد:
+
+`F29S — SEO Content Strategy & Topical Authority`
+
+مرجع کامل این فاز:
+
+`docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
+
+این تصمیم Phase 28 را reopen نمی‌کند؛ F29S لایه بعدی SEO است.
+
+# باقی‌مانده تا تحویل نهایی
+
+**Six execution phases remain.**
+
+1. **F29S — SEO Content Strategy & Topical Authority**
+2. **F29 — Google Login & Auth Closure**
+3. **F30 — Mainline / Git Stack Closure**
+4. **Phase 19B — Live Server Execution**
+5. **Phase 20 — External Activation**
+6. **F31 — Final Acceptance & Handoff**
+
+---
+
+# F29S — SEO Content Strategy & Topical Authority
+
+هدف: تکمیل بخش‌هایی از SEO که Phase 28 عمداً نبسته بود: Keyword Intelligence، Content Authority، Guide/Article strategy، Topic Clusters، Commercial Keyword Mapping، Product SEO audit، Local/Merchant/Trust content و Internal Linking.
+
+## مراحل
+
+1. **Keyword Intelligence**
+   - بازار فارسی/ایران
+   - Transactional / Commercial / Informational / Local / Brand intent
+   - Secondary و Long-tail queries
+   - SERP/competitor evidence
+
+2. **Keyword-to-URL Map**
+   - Home
+   - Products
+   - Categories
+   - Product detail
+   - Gift
+   - Corporate
+   - Guides/Topics
+   - FAQ/About/Quality/Shipping/Contact
+   - Local routes فقط با داده واقعی
+
+3. **Topic Cluster Architecture**
+   - کوکی و انتخاب محصول
+   - هدیه و باکس هدیه
+   - پذیرایی و تعداد سفارش
+   - نگهداری/ماندگاری/ارسال سرد
+   - کیک/چیزکیک
+   - رژیمی/بدون قند افزوده
+   - سفارش سازمانی
+   - Cluster نهایی فقط براساس تحقیق انتخاب می‌شود.
+
+4. **Guide / Article Foundation**
+   - فعال‌کردن واقعی `/blog`, `/blog/topic/:topic`, `/blog/:slug`
+   - انتشار محتوای Backend/CMS واقعی
+   - SSR، Article schema، author/date، breadcrumbs، related guides
+   - Home Editorial Guides به مقاله/Hub اختصاصی واقعی لینک شوند، نه placeholder عمومی `/blog`
+
+5. **Commercial Content SEO**
+   - بازنگری Home/Products/Categories/Gift/Corporate بر اساس Keyword Map واقعی
+   - Title/H1/description/copy/internal links/schema/cannibalization
+
+6. **Product SEO Audit**
+   - محصولات منتشرشده واقعی
+   - SEO metadata، description، images، Product/Offer، inventory truth، duplicate/thin content
+
+7. **Local / Merchant / Trust Content**
+   - city pages فقط در صورت evidence واقعی
+   - Shipping/Return/About/Quality/Contact/FAQ/Reviews policy
+   - doorway pages و claim ساختگی ممنوع
+
+8. **Internal Linking / Information Architecture**
+   - Home ↔ Guide ↔ Category/Product
+   - Topic hub ↔ supporting guides
+   - anchor strategy
+   - no broken links / no cannibalization
+
+9. **Measurement Plan**
+   - Search Console mapping
+   - sitemap/URL Inspection set
+   - query/page tracking matrix
+   - refresh policy
+
+10. **QA / CI / Merge / Registration**
+   - intent documented
+   - unique metadata/H1
+   - SSR/canonical/robots/status/schema
+   - crawl/internal links
+   - mobile/accessibility/performance
+   - CI green
+   - PR/Merge/Register
+
+### Gate پایان F29S
+
+- Keyword Intelligence و URL Map ثبت شده باشد.
+- Topic Cluster architecture نهایی باشد.
+- حداقل یک Cluster اولویت‌دار با محتوای واقعی و supporting guideهای لازم فعال باشد.
+- Home guide cards به مقصد اختصاصی معتبر برسند.
+- Commercial/Product/Local/Merchant decisions ثبت و Audit شده باشند.
+- Internal-link/no-cannibalization/crawl/CI gateها PASS باشند.
+- PR Merge و Phase Registration انجام شده باشد.
+
+مرجع جزئیات: `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
 
 ---
 
@@ -42,51 +148,30 @@ Five execution phases remain.
    - OAuth Client متعلق به کارفرما
    - Production redirect URI
    - Client secret فقط در server environment
-
 2. Backend Google identity
-   - provider
-   - provider user id
-   - account identity uniqueness
-   - safe persistence
-
+   - provider / provider user id / uniqueness / persistence
 3. Secure account linking
-   - عدم link خودکار صرفاً با email یا phone
+   - عدم link خودکار صرفاً با email/phone
    - جلوگیری از account takeover
-   - explicit secure linking flow
-
 4. OAuth callback + Sanctum session
-   - state validation
-   - callback handling
-   - authenticated session
-   - logout / invalid callback
-
+   - state validation / callback / session / logout
 5. New user phone completion
-   - کاربر Google جدید شماره موبایل ایران وارد کند
-   - تا OTP واقعی، `phone_verified_at` خالی بماند
-
+   - شماره موبایل ایران
+   - `phone_verified_at` تا OTP واقعی خالی
 6. OTP feature flag
-   - کد OTP حذف نشود
-   - UI/Backend قابلیت فعال‌سازی مجدد داشته باشند
-   - تا آماده‌شدن provider می‌تواند disabled بماند
-
+   - حذف زیرساخت ممنوع
+   - قابلیت فعال‌سازی مجدد
 7. Frontend Auth UX
-   - login
-   - loading/error/cancel
-   - post-login redirect
-   - account bootstrap
-
+   - login/loading/error/cancel/redirect/account bootstrap
 8. QA / CI / Merge / Registration
-   - new user
-   - existing user
+   - new/existing user
    - duplicate identity
-   - logout/login
    - tampered callback
    - CSRF/session
-   - Frontend + Backend CI
 
 ### Gate پایان F29
 
-Google Login واقعی، Sanctum session امن، phone completion و OTP feature-flag همگی PASS و ثبت شده باشند.
+Google Login واقعی، Sanctum session امن، phone completion و OTP feature flag همگی PASS و ثبت شده باشند.
 
 ---
 
@@ -97,18 +182,18 @@ Google Login واقعی، Sanctum session امن، phone completion و OTP featu
 ## مراحل
 
 1. Freeze SHAهای نهایی Frontend/Backend.
-2. بستن PR و CI فاز Auth.
+2. بستن PR و CI فاز F29S و Auth.
 3. بررسی و بستن PR #36 / Phase 27 روی Phase 26.
-4. بستن زنجیره Phase 26/27/28/Auth تا `main`.
+4. بستن زنجیره Phase 26/27/28/F29S/Auth تا `main`.
 5. حل conflict فقط surgical؛ بدون force-push/rebase مخرب.
-6. اجرای release gates روی exact head نهایی:
+6. exact-head release gates:
    - Frontend CI
-   - Phase 8 Deployment Readiness
-   - Phase 18 End-to-End
-   - Phase 19 Production Package
+   - Phase 8
+   - Phase 18
+   - Phase 19 package
    - Backend quality gates
 7. Merge نهایی به `main`.
-8. ثبت Frontend END_SHA، Backend END_SHA، PRها، CI run IDs و release hashes.
+8. ثبت END_SHAها، PRها، CI run IDs و release hashes.
 
 ### Gate پایان F30
 
@@ -125,91 +210,30 @@ Server: `hwsrv-1332134`
 ## مراحل
 
 1. Live server read-only preflight
-   - hostname/repository/SHA locks
-   - current symlinks
-   - active releases
-   - systemd/Nginx/Node/PHP
-   - disk and runtime environment
-   - API ready/health
-
+   - hostname/repository/SHA/current/service/runtime/API locks
 2. Backup point
-   - database backup
-   - media backup
-   - checksums
-   - previous release IDs
-   - rollback target
-
-3. Backend re-attestation / deployment if Auth introduced backend delta
-   - migrations
-   - env linkage
-   - config/route cache
-   - queue
-   - scheduler
-   - readiness
-
+   - DB/media/checksums/rollback targets
+3. Backend re-attestation/deployment if new backend delta exists
+   - migrations/env/cache/queue/scheduler/readiness
 4. Frontend deterministic production build
-   - `npm ci`
-   - full checks
-   - production build
-   - release create
-   - manifest SHA-256
-   - release verify
-
-5. Candidate SSR acceptance before Production mutation
-   - SSR health
-   - home/products
-   - sitemap/robots
-   - canonical
-   - API connectivity
-
+   - npm ci/check/build/release create/manifest/release verify
+5. Candidate SSR acceptance before mutation
+   - health/home/products/sitemap/robots/canonical/API
 6. Atomic activation
-   - immutable release
-   - atomic `current`
-   - frontend service restart
-   - health check
-   - automatic rollback on activation failure
-
+   - immutable release/current/service/health/auto rollback
 7. Public Production smoke
-   - Home
-   - Products/Product
-   - Account/Login
-   - Cart/Checkout
-   - Blog/Gift/Locations
-   - 404
-   - frontend health
-   - backend ready
-
+   - Home/Products/Product/Login/Cart/Checkout/Guides/Gift/Locations/404/health/ready
 8. Production SEO verification
-   - sitemap
-   - robots
-   - canonical
-   - index/noindex
-   - structured data
-   - internal links
-   - conditional publication policies
-
+   - sitemap/robots/canonical/indexability/schema/internal links/content routes
 9. Services and reboot survival
-   - frontend
-   - PHP-FPM
-   - queue
-   - scheduler
-   - Nginx
-
 10. Backup + isolated restore drill
-
 11. Frontend and migration-aware backend rollback drill
-
 12. Monitoring + Search activation
-   - 5xx/service failures
-   - queue/backup/disk
-   - CWV logs
-   - Search Console ownership
-   - sitemap submission
-   - representative URL inspection
+   - logs/5xx/queue/backup/disk/CWV/Search Console/sitemap/URL inspection
 
 ### Gate پایان Phase 19B
 
-`production_deployed=ready` فقط بعد از PASS شدن تمام شواهد فوق.
+`production_deployed=ready` فقط بعد از PASS تمام شواهد فوق.
 
 ---
 
@@ -219,116 +243,41 @@ Server: `hwsrv-1332134`
 
 ## مراحل
 
-1. Google Production OAuth credentials
-   - production client
-   - authorized domain/redirect
-   - live login validation
-
+1. Google Production OAuth credentials + live validation
 2. Zarinpal final live regression
-   - low-value successful payment
-   - cancel/fail
-   - retry
-   - callback verify
-   - duplicate callback
-   - order state
-   - stock once-only
-   - idempotency/reconciliation
-
-3. eNAMAD
-   - official badge code
-   - safe rendering
-   - production domain verification
-
-4. Kavenegar / SMS when credentials are available
-   - API key
-   - approved OTP template
-   - OTP send/resend/expiry/rate-limit
-   - order notification
-   - if unavailable, OTP infrastructure remains disabled by feature flag
-
+   - success/fail/retry/callback/duplicate/idempotency/reconciliation
+3. eNAMAD official badge + safe rendering
+4. Kavenegar/SMS when credentials are available
+   - OTP send/resend/expiry/rate-limit/order notifications
 5. Secret audit
-   - secrets only in server env
-   - no Git/build leakage
-   - config cache/restart/health
-
+   - server env only / no Git or build leakage
 6. Provider evidence
-   - timestamp
-   - transaction/message identifier
-   - sanitized evidence
-   - rollback/deactivation procedure
+   - timestamp/identifier/sanitized evidence/deactivation procedure
 
 ### Gate پایان Phase 20
 
-تمام providerهای آماده فعال و live-regression شده باشند؛ providerهای تحویل‌نشده از سمت کارفرما باید با feature flag امن disabled و به‌عنوان external dependency ثبت شوند.
+Providerهای آماده live-regression شده باشند؛ providerهای تحویل‌نشده با feature flag امن disabled و به‌عنوان external dependency ثبت شوند.
 
 ---
 
 # F31 — Final Acceptance & Handoff
 
-هدف: آخرین QA، عملیات، مستندات و freeze تحویل.
+هدف: آخرین QA، عملیات، SEO measurement، مستندات و freeze تحویل.
 
 ## مراحل
 
-1. End-to-end customer journey
-   - Home → Product → Cart → Login → Address → Delivery → Checkout → Payment → Order → Account
-   - Desktop + Mobile
-
+1. End-to-end customer journey — Desktop + Mobile
 2. Admin / Filament acceptance
-   - product/category
-   - stock
-   - order/payment
-   - content/gallery/review/inquiry
-   - users/audit visibility
-
 3. Security regression
-   - CSRF/Sanctum
-   - authorization/IDOR
-   - OAuth state/linking
-   - payment callback replay
-   - rate limits
-   - secret leakage
-
 4. Final SEO acceptance
-   - sitemap/robots/canonical
-   - Product/Organization/WebSite schemas
-   - noindex private routes
-   - real 404
-   - Search Console evidence
-
+   - sitemap/robots/canonical/schema/noindex/404/Search Console/content indexation evidence
 5. Operational acceptance
-   - reboot
-   - services
-   - backups
-   - restore
-   - rollback
-   - TLS renewal
-   - log rotation
-   - capacity
-
+   - reboot/services/backups/restore/rollback/TLS/log rotation/capacity
 6. Final evidence pack
-   - Frontend SHA
-   - Backend SHA
-   - release IDs
-   - manifest hashes
-   - migration state
-   - production URLs
-   - service state
-   - backup checksum
-   - restore result
-   - rollback result
-   - CI run IDs
-   - Search Console evidence
-
+   - Frontend/Backend SHA، release IDs، manifest hashes، migrations، production URLs، service state، backup/restore/rollback، CI، Search Console
 7. Documentation / handoff
-   - Living Handoff
-   - deployment/rollback runbooks
-   - credential ownership
-   - provider state
-   - backup/restore
-   - known limitations
-
 8. Final freeze
-   - final release/tag
+   - final tag
    - `main` clean
    - related open PRs = 0
    - unresolved review threads = 0
@@ -347,6 +296,13 @@ HANDOFF=COMPLETE
 
 ## ترتیب قطعی ادامه
 
-`F29 Google Login → F30 Mainline Closure → Phase 19B Production → Phase 20 External Activation → F31 Final Acceptance & Handoff`
+```text
+F29S SEO Content Strategy
+  -> F29 Google Login
+  -> F30 Mainline Closure
+  -> Phase19B Production
+  -> Phase20 External Activation
+  -> F31 Final Acceptance & Handoff
+```
 
-پیشنهاد اجرایی ثبت‌شده: اگر هدف تحویل نهایی سریع است، Phase 28 به‌تنهایی deploy نشود؛ ابتدا F29 و F30 بسته شوند و سپس یک release نهایی تمیز از `main` به Production برود، مگر اینکه کاربر صراحتاً interim deployment بخواهد.
+پیشنهاد اجرایی ثبت‌شده: Phase 28 به‌تنهایی deploy نشود. ابتدا F29S، F29 و F30 بسته شوند و سپس یک Release نهایی تمیز از `main` به Production برود، مگر اینکه کاربر صراحتاً interim deployment بخواهد.
