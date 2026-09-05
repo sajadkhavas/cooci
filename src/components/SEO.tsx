@@ -11,6 +11,7 @@ import {
   createBrandGraphSchema,
   type JsonLdNode,
 } from "@/lib/seo/brand-entity";
+import { resolveCommercialSeoMeta } from "@/lib/seo/commercial-content";
 import { resolveMetaDescription } from "@/lib/seo/meta-description";
 import { resolveMetaTitle } from "@/lib/seo/meta-title";
 import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
@@ -145,13 +146,14 @@ export const SEO = ({
         totalPages: getPaginationTotal(location.pathname, matches),
       })
     : undefined;
-  const siteTitle = resolveMetaTitle(
+  const commercialMeta = resolveCommercialSeoMeta(location.pathname);
+  const siteTitle = commercialMeta?.title ?? resolveMetaTitle(
     title,
     brandConfig.brandName,
     brandConfig.defaultMeta.title,
   );
   const siteDescription = resolveMetaDescription(
-    description,
+    commercialMeta?.description ?? description,
     brandConfig.defaultMeta.description,
   );
   const siteImage = resolvePublicMediaUrl(
