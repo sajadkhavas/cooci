@@ -383,4 +383,22 @@ const AccountPage = () => {
                         <span className="text-xs text-muted-foreground">
                           {order.items
                             .reduce((sum, item) => sum + item.quantity, 0)
-                            .toLocaleString("fa-IR")}{" 
+                            .toLocaleString("fa-IR")} قلم
+                        </span>
+                        <strong className="block text-lg text-primary">
+                          {formatToman(order.total)}
+                        </strong>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default AccountPage;
