@@ -1,36 +1,21 @@
+import { ArrowLeft, Cookie, Gift, Sparkles } from "lucide-react";
 import { Link } from "react-router";
-import {
-  ArrowLeft,
-  Cookie,
-  Gift,
-  Sparkles,
-} from "lucide-react";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
-import { DecisionSupportPanel, homeDecisionFaqSchema } from "@/components/home/DecisionSupportPanel";
+import { DecisionSupportPanel } from "@/components/home/DecisionSupportPanel";
 import { DraggableMarquee } from "@/components/home/DraggableMarquee";
+import { EditorialGuides } from "@/components/home/EditorialGuides";
 import { HomeColdGallery } from "@/components/home/HomeColdGallery";
 import { HomeProductRail } from "@/components/home/HomeProductRail";
 import { OccasionSelector } from "@/components/home/OccasionSelector";
-import { EditorialGuides } from "@/components/home/EditorialGuides";
 import { Reveal } from "@/components/motion/Reveal";
 import { SEO } from "@/components/SEO";
 import { useCatalogProducts } from "@/hooks/useCatalog";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
-import heroImage from "@/assets/cookies/hero-main.jpg";
 import productRailBackground from "@/assets/product-rail-background.webp";
 
-const marqueeItems = [
-  "کوکی‌های خانگی",
-  "مینی‌کوکی برای پذیرایی",
-  "کیک و چیزکیک",
-  "رول و کروسان",
-  "باکس هدیه",
-  "راهنمای انتخاب هدیه",
-  "سفارش سازمانی",
-  "پشتیبانی وینیمی",
-];
-
 const HomePage = () => {
+  const { content } = useStorefrontSettings();
   const { products, isLoading, error } = useCatalogProducts();
   const {
     products: chilledProducts,
@@ -39,14 +24,11 @@ const HomePage = () => {
   const featuredProducts = products
     .filter((product) => product.isFeatured)
     .slice(0, 6);
+  const home = content.home;
 
   return (
     <>
-      <SEO
-        title="خرید کوکی، کیک و باکس هدیه"
-        description="محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کنید؛ تصویر، قیمت، موجودی و شرایط هر انتخاب را ببینید و آنلاین سفارش دهید."
-        schema={homeDecisionFaqSchema}
-      />
+      <SEO title={home.metaTitle} description={home.metaDescription} />
 
       <section className="home-color-wash relative overflow-hidden pb-12 pt-7 sm:pb-18 sm:pt-10 lg:pb-20 lg:pt-14">
         <div className="soft-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
@@ -58,43 +40,37 @@ const HomePage = () => {
               <Reveal>
                 <span className="editorial-label mb-5 border-[#b8cf79]/60 bg-white/85 text-[#667c22] shadow-[0_10px_30px_-22px_rgba(46,70,15,0.65)] sm:mb-6">
                   <Sparkles size={15} className="text-[#b96552]" aria-hidden="true" />
-                  شیرینی دست‌ساز برای لحظه‌های شما
+                  {home.hero.eyebrow}
                 </span>
               </Reveal>
               <Reveal delay={80}>
                 <h1 className="max-w-5xl text-[clamp(2.55rem,6.2vw,6.25rem)] font-black leading-[1.04] tracking-[-0.055em] text-foreground lg:max-w-[12ch] lg:text-[clamp(4rem,5.25vw,5.75rem)]">
-                  طعم خوب برای
+                  {home.hero.titleLine1}
                   <span className="block text-[#b96552]">
-                    هدیه، پذیرایی و حال خوب.
+                    {home.hero.titleLine2}
                   </span>
                 </h1>
               </Reveal>
               <Reveal delay={150}>
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:mt-7 sm:text-lg sm:leading-9">
-                  محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کن؛ تصویر،
-                  قیمت، موجودی و شرایط هر انتخاب را ببین و با خیال روشن‌تر سفارش
-                  بده.
+                  {home.hero.description}
                 </p>
               </Reveal>
               <Reveal delay={220}>
                 <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                   <Link
-                    to="/products"
+                    to={home.hero.primary.href}
                     className="btn-primary group inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-7 text-base font-black sm:px-9"
                   >
-                    مشاهده محصولات
-                    <ArrowLeft
-                      size={20}
-                      className="transition-transform group-hover:-translate-x-1"
-                      aria-hidden="true"
-                    />
+                    {home.hero.primary.label}
+                    <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" aria-hidden="true" />
                   </Link>
                   <Link
-                    to="/gift"
+                    to={home.hero.secondary.href}
                     className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full border border-[#d88972]/45 bg-[#f7e4dc] px-7 text-base font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white sm:px-9"
                   >
                     <Gift size={19} aria-hidden="true" />
-                    راهنمای انتخاب هدیه
+                    {home.hero.secondary.label}
                   </Link>
                 </div>
               </Reveal>
@@ -103,8 +79,8 @@ const HomePage = () => {
             <Reveal className="order-2" delay={100}>
               <figure className="group/hero relative mx-auto w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/55 bg-card shadow-[0_38px_100px_-48px_hsl(var(--foreground)/0.5)] sm:rounded-[3rem] lg:max-w-none">
                 <img
-                  src={heroImage}
-                  alt="کوکی شکلاتی تازه وینیمی"
+                  src={home.hero.imageUrl}
+                  alt={home.hero.imageAlt}
                   className="aspect-[4/3.15] h-full w-full object-cover transition duration-700 group-hover/hero:scale-[1.025] sm:aspect-[5/4] lg:aspect-[4/4.7]"
                   loading="eager"
                   fetchPriority="high"
@@ -115,10 +91,10 @@ const HomePage = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#321d17]/80 via-transparent to-white/5" />
                 <figcaption className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-8">
                   <span className="text-xs font-black tracking-[0.12em] text-[#f7e4dc]">
-                    انتخاب روشن، سفارش ساده
+                    {home.hero.captionLabel}
                   </span>
                   <p className="mt-2 max-w-lg text-xl font-black leading-8 sm:text-2xl">
-                    یک انتخاب شیرین، با جزئیاتی که پیش از سفارش می‌بینی.
+                    {home.hero.captionText}
                   </p>
                 </figcaption>
               </figure>
@@ -127,15 +103,15 @@ const HomePage = () => {
         </div>
       </section>
 
-      <DraggableMarquee items={marqueeItems} />
+      <DraggableMarquee items={home.marquee} />
 
       <section className="home-color-wash relative overflow-hidden py-10 sm:py-12 lg:py-14">
         <div className="container-custom">
           <CategoryShowcase
             limit={6}
-            eyebrow="دسته‌های فعال فروشگاه"
-            title="دسته‌بندی محصولات وینیمی"
-            description="دسته موردنظرت را انتخاب کن و محصولات فعال، قیمت و جزئیات سفارش را ببین."
+            eyebrow={home.categories.eyebrow}
+            title={home.categories.title}
+            description={home.categories.description}
           />
         </div>
       </section>
@@ -152,44 +128,29 @@ const HomePage = () => {
         <div className="container-custom relative">
           <Reveal className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="editorial-label mb-3">انتخاب‌های پیشنهادی</span>
-              <h2
-                id="home-products-heading"
-                className="text-3xl font-black leading-tight text-foreground sm:text-4xl"
-              >
-                چند انتخاب برای شروع
+              <span className="editorial-label mb-3">{home.featured.eyebrow}</span>
+              <h2 id="home-products-heading" className="text-3xl font-black leading-tight text-foreground sm:text-4xl">
+                {home.featured.title}
               </h2>
             </div>
             <div className="max-w-xl lg:text-left">
               <p className="text-sm leading-7 text-muted-foreground sm:text-base">
-                محصول، قیمت و موجودی را سریع مقایسه کن؛ برای انتخاب نوع یا دیدن
-                جزئیات بیشتر، پیش‌نمایش را باز کن.
+                {home.featured.description}
               </p>
               <Link
-                to="/products"
+                to={home.featured.cta.href}
                 className="group mt-4 inline-flex items-center gap-2 font-black text-[#9b5545]"
               >
-                مشاهده همه محصولات
-                <ArrowLeft
-                  size={18}
-                  className="transition-transform group-hover:-translate-x-1"
-                  aria-hidden="true"
-                />
+                {home.featured.cta.label}
+                <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" aria-hidden="true" />
               </Link>
             </div>
           </Reveal>
 
           {isLoading ? (
-            <div
-              className="flex gap-4 overflow-hidden"
-              aria-busy="true"
-              aria-label="در حال دریافت محصولات پیشنهادی"
-            >
+            <div className="flex gap-4 overflow-hidden" aria-busy="true" aria-label="در حال دریافت محصولات پیشنهادی">
               {Array.from({ length: 4 }, (_, index) => (
-                <div
-                  key={index}
-                  className="basis-[86%] shrink-0 overflow-hidden rounded-[1.35rem] border border-border/60 bg-white/80 sm:basis-[48%] lg:basis-[31%] xl:basis-[23.5%]"
-                >
+                <div key={index} className="basis-[86%] shrink-0 overflow-hidden rounded-[1.35rem] border border-border/60 bg-white/80 sm:basis-[48%] lg:basis-[31%] xl:basis-[23.5%]">
                   <div className="aspect-[5/4] animate-pulse bg-muted" />
                   <div className="space-y-3 p-4">
                     <div className="h-6 w-3/4 animate-pulse rounded-full bg-muted" />
@@ -207,8 +168,8 @@ const HomePage = () => {
               <h3 className="text-xl font-black text-foreground">
                 هنوز محصول پیشنهادی فعالی ثبت نشده است
               </h3>
-              <Link to="/products" className="mt-4 inline-flex font-black text-[#9b5545]">
-                مشاهده فروشگاه
+              <Link to={home.featured.cta.href} className="mt-4 inline-flex font-black text-[#9b5545]">
+                {home.featured.cta.label}
               </Link>
             </div>
           )}
@@ -222,11 +183,7 @@ const HomePage = () => {
       </section>
 
       {chilledProductsLoading ? (
-        <section
-          className="cold-gallery-shell border-y border-[#9eb9a5]/25 py-14"
-          aria-busy="true"
-          aria-label="در حال دریافت محصولات یخچالی"
-        >
+        <section className="cold-gallery-shell border-y border-[#9eb9a5]/25 py-14" aria-busy="true" aria-label="در حال دریافت محصولات یخچالی">
           <div className="container-custom">
             <div className="mx-auto mb-8 h-12 w-72 animate-pulse rounded-full bg-[#cfded3]" />
             <div className="h-[34rem] animate-pulse rounded-[2rem] bg-[#c6d8cd]" />
@@ -237,9 +194,7 @@ const HomePage = () => {
       )}
 
       <OccasionSelector />
-
       <DecisionSupportPanel />
-
       <EditorialGuides />
     </>
   );
