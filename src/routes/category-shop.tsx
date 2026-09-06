@@ -1,5 +1,7 @@
-import { redirect, type LoaderFunctionArgs } from "react-router";
-import { loadShopPublicData } from "@/lib/public-loaders.server";
+import { redirect, useParams, type LoaderFunctionArgs } from "react-router";
+import { CategoryGuideLinks } from "@/components/content/CategoryGuideLinks";
+import { loadManagedCategoryShop } from "@/lib/category-shop-loader.server";
+import ProductsPage from "@/pages/ProductsPage";
 
 const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -10,9 +12,20 @@ export const loader = async (args: LoaderFunctionArgs) => {
     return redirect(`/products${url.search}`, 301);
   }
 
-  return loadShopPublicData(args);
+  return loadManagedCategoryShop(args);
+};
+
+const CategoryShopRoute = () => {
+  const { slug } = useParams<{ slug: string }>();
+
+  return (
+    <>
+      <ProductsPage />
+      <CategoryGuideLinks slug={slug} />
+    </>
+  );
 };
 
 export { passPublicSsrHeaders as headers } from "@/lib/public-ssr";
 export { default as ErrorBoundary } from "@/routes/PublicRouteErrorBoundary";
-export { default } from "../pages/ProductsPage";
+export default CategoryShopRoute;

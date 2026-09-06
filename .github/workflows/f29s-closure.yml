@@ -1,0 +1,52 @@
+name: F29S SEO Closure
+
+on:
+  push:
+    branches:
+      - 'phase-29s-j/**'
+      - 'phase-29s/**'
+  pull_request:
+    branches:
+      - 'phase-29s/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: f29s-closure-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  closure:
+    name: Validate F29S closure contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run deterministic F29S closure audit
+        run: node scripts/audit-f29s-closure.mjs
+
+      - name: Run unit gates
+        run: npm run test:unit
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: F29S closure summary
+        run: |
+          echo 'F29S_J_CLOSURE_GATE=PASS'
+          echo "EXACT_HEAD=${GITHUB_SHA}"
+          echo 'PRODUCTION_MUTATION=NO'

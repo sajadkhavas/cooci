@@ -1,0 +1,60 @@
+name: F29 Auth Closure
+
+on:
+  push:
+    branches:
+      - "phase-29/google-login-auth-closure"
+  pull_request:
+    branches:
+      - "phase-29s/seo-content-strategy-authority"
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-f29-auth-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: https://winimibakery.com
+  VITE_SITE_ORIGIN: https://winimibakery.com
+  VITE_USE_BACKEND: "true"
+  VITE_API_BASE_URL: https://api.winimibakery.com
+  VITE_ALLOW_DEV_MOCKS: "false"
+  VITE_AUTH_MODE: disabled
+  VITE_PAYMENT_MODE: disabled
+
+jobs:
+  auth:
+    name: Google UX, mobile completion and auth regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Existing auth security audit
+        run: npm run audit:phase2
+
+      - name: Unit regression including F29 boundaries
+        run: npm run test:unit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build

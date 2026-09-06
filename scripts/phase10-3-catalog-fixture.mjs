@@ -205,6 +205,10 @@ const server = http.createServer((request, response) => {
     );
     return;
   }
+  if (url.pathname === "/api/store/gallery") {
+    response.end(JSON.stringify(envelope([])));
+    return;
+  }
   if (url.pathname === "/api/store/posts") {
     const categoryFilter = url.searchParams.get("category")?.trim() || "";
     const filtered = categoryFilter

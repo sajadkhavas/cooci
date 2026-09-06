@@ -24,6 +24,9 @@ export const loadDevelopmentCatalog = async (): Promise<DevelopmentCatalogData> 
         id: `mock-${category.slug}`,
         name: category.name,
         slug: category.slug,
+        seo: {
+          title: category.name,
+        },
       })),
   };
 };

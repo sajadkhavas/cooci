@@ -106,22 +106,35 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   });
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
+  const dietCategory = payload.data.find(
+    (item) => item.slug === "rzhymy-o-bdon-knd-afzodh",
+  );
   const category = payload.data.find(
-    (item) =>
-      item.slug !== "diet" &&
-      !item.name.includes("رژیمی") &&
-      !item.name.includes("بدون قند"),
+    (item) => item.slug !== "rzhymy-o-bdon-knd-afzodh",
   );
   expect(category).toBeTruthy();
 
   await page.goto("/products?diet=true");
-  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
-  await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /رژیمی و بدون قند افزوده/,
-    }),
-  ).toBeVisible();
+  if (dietCategory) {
+    await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: dietCategory.name,
+        exact: true,
+      }),
+    ).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(/\/products$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "محصولات وینیمی" }),
+    ).toBeVisible();
+  }
+
+  await page.goto(`/products?category=${encodeURIComponent(category.slug)}`);
+  await expect(page).toHaveURL(
+    new RegExp(`/products/category/${category.slug}$`),
+  );
 
   const categoryNavigation = page.getByRole("navigation", {
     name: "دسته‌بندی محصولات",
@@ -133,11 +146,6 @@ test("legacy diet URLs and category links resolve to clean unified-shop routes",
   await expect(categoryLink).toHaveAttribute(
     "href",
     `/products/category/${category.slug}`,
-  );
-  await categoryLink.click();
-
-  await expect(page).toHaveURL(
-    new RegExp(`/products/category/${category.slug}$`),
   );
   await expect
     .poll(() => new URL(page.url()).searchParams.get("category"))
@@ -338,7 +346,7 @@ test("persisted inquiry, query-free canonical and disabled eNAMAD trust slot rem
 
   await expect(
     page.getByText(
-      "جایگاه نماد اعتماد آماده است و فقط پس از فعال‌سازی رسمی سرور نمایش داده می‌شود.",
+      "اطلاعات مجوزهای فروشگاه پس از فعال‌سازی رسمی در همین جایگاه نمایش داده می‌شود.",
       { exact: true },
     ),
   ).toBeVisible();

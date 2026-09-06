@@ -13,13 +13,9 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { StructuredText } from "@/components/content/StructuredText";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
-import {
-  brandConfig,
-  generatePhoneUrl,
-  generateWhatsAppUrl,
-  SUPPORT_WHATSAPP_MESSAGE,
-} from "@/config/brand";
+import { brandConfig } from "@/config/brand";
 import { useCatalogProducts } from "@/hooks/useCatalog";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import { loadCityPage } from "@/lib/content";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
@@ -51,6 +47,7 @@ const CityPage = () => {
     staleTime: 5 * 60_000,
   });
   const catalog = useCatalogProducts({ featured: true, perPage: 6 });
+  const { settings } = useStorefrontSettings();
 
   if (cityQuery.error instanceof ApiError && cityQuery.error.status === 404) {
     return <NotFoundPage />;
@@ -130,7 +127,7 @@ const CityPage = () => {
                 مشاهده محصولات
               </Link>
               <a
-                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
+                href={settings.contact.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-whatsapp px-6 py-3 font-bold text-white"
@@ -152,28 +149,28 @@ const CityPage = () => {
             <h2 className="text-lg font-black">هویت و ارتباط برند</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               این صفحه محدوده خدمت‌رسانی را معرفی می‌کند و به معنی وجود شعبه فیزیکی
-              {` ${brandConfig.brandName} `}
+              {` ${settings.brand.name} `}
               در {city.city} نیست.
             </p>
             <p className="mt-5 flex items-start gap-2 text-sm leading-7 text-muted-foreground">
               <MapPin className="mt-1 shrink-0 text-primary" size={17} aria-hidden="true" />
-              {brandConfig.address}
+              {settings.contact.address}
             </p>
             <a
-              href={generatePhoneUrl()}
+              href={settings.contact.phoneUrl}
               className="mt-4 flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-bold text-primary"
               dir="ltr"
             >
               <Phone size={17} aria-hidden="true" />
-              {brandConfig.phone}
+              {settings.contact.phone}
             </a>
             <a
-              href={`mailto:${brandConfig.email}`}
+              href={`mailto:${settings.contact.email}`}
               className="mt-3 flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold text-primary"
               dir="ltr"
             >
               <Mail size={17} aria-hidden="true" />
-              {brandConfig.email}
+              {settings.contact.email}
             </a>
           </aside>
         </div>

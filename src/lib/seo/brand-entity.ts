@@ -1,5 +1,9 @@
 import { brandConfig } from "@/config/brand";
 import { resolvePublicMediaUrl } from "@/lib/security/seo";
+import {
+  resolveStorefrontSettings,
+  type StorefrontSettings,
+} from "@/lib/storefront-settings";
 
 export type JsonLdNode = Record<string, unknown>;
 
@@ -29,15 +33,16 @@ export const getBrandEntityIds = (siteOrigin: string) => {
 
 export const createBrandOrganizationEntity = (
   siteOrigin: string,
+  storefrontSettings: StorefrontSettings = resolveStorefrontSettings(),
 ): JsonLdNode => {
   const ids = getBrandEntityIds(siteOrigin);
-  const telephone = toInternationalPhone(brandConfig.phoneClean);
+  const telephone = toInternationalPhone(storefrontSettings.contact.phone);
 
   return {
     "@type": "Organization",
     "@id": ids.organization,
-    name: brandConfig.brandName,
-    alternateName: brandConfig.brandNameEn,
+    name: storefrontSettings.brand.name,
+    alternateName: storefrontSettings.brand.nameEn,
     url: ids.origin,
     description: brandConfig.defaultMeta.description,
     logo: {
@@ -45,32 +50,37 @@ export const createBrandOrganizationEntity = (
       url: resolvePublicMediaUrl(brandConfig.logoPath, ids.origin),
     },
     ...(telephone ? { telephone } : {}),
-    email: brandConfig.email,
+    email: storefrontSettings.contact.email,
     address: {
       "@type": "PostalAddress",
-      addressLocality: brandConfig.city,
-      addressRegion: brandConfig.region,
+      addressLocality: storefrontSettings.contact.city,
+      addressRegion: storefrontSettings.contact.region,
       addressCountry: "IR",
     },
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
       ...(telephone ? { telephone } : {}),
-      email: brandConfig.email,
+      email: storefrontSettings.contact.email,
       availableLanguage: ["fa"],
     },
-    sameAs: [brandConfig.instagramUrl],
+    sameAs: storefrontSettings.contact.instagramUrl
+      ? [storefrontSettings.contact.instagramUrl]
+      : [],
   };
 };
 
-export const createBrandWebsiteEntity = (siteOrigin: string): JsonLdNode => {
+export const createBrandWebsiteEntity = (
+  siteOrigin: string,
+  storefrontSettings: StorefrontSettings = resolveStorefrontSettings(),
+): JsonLdNode => {
   const ids = getBrandEntityIds(siteOrigin);
   return {
     "@type": "WebSite",
     "@id": ids.website,
     url: ids.origin,
-    name: brandConfig.brandName,
-    alternateName: brandConfig.brandNameEn,
+    name: storefrontSettings.brand.name,
+    alternateName: storefrontSettings.brand.nameEn,
     inLanguage: "fa-IR",
     publisher: { "@id": ids.organization },
   };
@@ -99,13 +109,16 @@ const flattenSchemaNodes = (
 export const createBrandGraphSchema = ({
   siteOrigin,
   pageSchema,
+  storefrontSettings,
 }: {
   siteOrigin: string;
   pageSchema?: JsonLdNode | JsonLdNode[];
+  storefrontSettings?: StorefrontSettings;
 }) => {
+  const authoritativeSettings = storefrontSettings ?? resolveStorefrontSettings();
   const nodes = [
-    createBrandOrganizationEntity(siteOrigin),
-    createBrandWebsiteEntity(siteOrigin),
+    createBrandOrganizationEntity(siteOrigin, authoritativeSettings),
+    createBrandWebsiteEntity(siteOrigin, authoritativeSettings),
     ...flattenSchemaNodes(pageSchema),
   ];
   const seenIds = new Set<string>();

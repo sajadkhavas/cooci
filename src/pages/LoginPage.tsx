@@ -14,9 +14,11 @@ import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useAuth } from "@/context/AuthContext";
 import {
+  consumeGoogleReturnPath,
   isValidIranianMobile,
   normalizeMobile,
   normalizeOtpCode,
+  peekGoogleReturnPath,
 } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 import { sanitizeInternalReturnPath } from "@/lib/security/navigation";
@@ -38,15 +40,38 @@ const describeLoginError = (error: unknown, fallback: string) => {
   return error instanceof Error ? error.message : fallback;
 };
 
+const describeGoogleError = (code: string | null) => {
+  switch (code) {
+    case "access_denied":
+      return "ورود با گوگل لغو شد.";
+    case "invalid_state":
+      return "پاسخ ورود با گوگل معتبر نبود. برای امنیت، دوباره تلاش کنید.";
+    case "account_link_required":
+      return "این ایمیل قبلاً در وینیمی استفاده شده است. ابتدا با روش فعلی همان حساب وارد شوید و سپس گوگل را از داخل حساب متصل کنید.";
+    case "unverified_identity":
+      return "حساب گوگل باید یک ایمیل تأییدشده معتبر داشته باشد.";
+    case "account_unavailable":
+      return "امکان ورود به این حساب وجود ندارد.";
+    case "google_unavailable":
+      return "ورود با گوگل هنوز فعال نشده است.";
+    default:
+      return "ورود با گوگل کامل نشد. دوباره تلاش کنید.";
+  }
+};
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
+    user,
     isAuthenticated,
     isLoading: authLoading,
+    capabilitiesLoading,
+    capabilities,
     mode,
     sendOtp,
     confirmOtp,
+    startGoogleLogin,
   } = useAuth();
   const [step, setStep] = useState<"mobile" | "code">("mobile");
   const [mobile, setMobile] = useState("");
@@ -56,20 +81,44 @@ const LoginPage = () => {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [expiryCountdown, setExpiryCountdown] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const handledGoogleResult = useRef(false);
 
   const destination = useMemo(() => {
     const state = location.state as LoginLocationState | null;
-    return sanitizeInternalReturnPath(state?.from);
+    return (
+      peekGoogleReturnPath() ?? sanitizeInternalReturnPath(state?.from)
+    );
   }, [location.state]);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      navigate(destination, { replace: true });
+    if (handledGoogleResult.current) return;
+    const params = new URLSearchParams(location.search);
+    const google = params.get("google");
+    if (!google) return;
+
+    handledGoogleResult.current = true;
+    if (google === "error") {
+      setError(describeGoogleError(params.get("code")));
+    } else if (google === "success") {
+      toast.success("ورود با گوگل انجام شد");
     }
-  }, [authLoading, destination, isAuthenticated, navigate]);
+  }, [location.search]);
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+
+    if (user?.requiresMobileCompletion) {
+      navigate("/account", { replace: true });
+      return;
+    }
+
+    const storedDestination = consumeGoogleReturnPath();
+    navigate(storedDestination ?? destination, { replace: true });
+  }, [authLoading, destination, isAuthenticated, navigate, user]);
 
   useEffect(() => {
     if (resendCountdown <= 0 && expiryCountdown <= 0) return undefined;
@@ -82,17 +131,34 @@ const LoginPage = () => {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
+      if (!capabilities.otpEnabled && mode !== "mock") return;
       if (step === "mobile") mobileInputRef.current?.focus();
       else codeInputRef.current?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [step]);
+  }, [capabilities.otpEnabled, mode, step]);
 
   const focusCurrentInput = () => {
     window.requestAnimationFrame(() => {
       if (step === "mobile") mobileInputRef.current?.focus();
       else codeInputRef.current?.focus();
     });
+  };
+
+  const startGoogle = () => {
+    if (googleSubmitting) return;
+    setError(undefined);
+    setGoogleSubmitting(true);
+    try {
+      startGoogleLogin(destination);
+    } catch (googleError) {
+      setGoogleSubmitting(false);
+      setError(
+        googleError instanceof Error
+          ? googleError.message
+          : "شروع ورود با گوگل ناموفق بود.",
+      );
+    }
   };
 
   const requestCode = async () => {
@@ -174,7 +240,7 @@ const LoginPage = () => {
     setError(undefined);
   };
 
-  if (authLoading) {
+  if (authLoading || capabilitiesLoading) {
     return (
       <section className="section-padding">
         <div
@@ -187,7 +253,7 @@ const LoginPage = () => {
             size={44}
             aria-hidden="true"
           />
-          <p className="font-bold">در حال بررسی نشست کاربری…</p>
+          <p className="font-bold">در حال آماده‌سازی ورود امن…</p>
         </div>
       </section>
     );
@@ -197,6 +263,8 @@ const LoginPage = () => {
   const inputClass =
     "input-field min-h-12 bg-background px-11 py-3.5 disabled:opacity-60";
   const challengeExpired = step === "code" && expiryCountdown <= 0;
+  const otpAvailable = capabilities.otpEnabled || mode === "mock";
+  const googleAvailable = capabilities.googleEnabled && mode === "backend";
 
   return (
     <>
@@ -213,59 +281,69 @@ const LoginPage = () => {
                   ورود امن به حساب
                 </h1>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  برای مشاهده سفارش‌ها و پرداخت مجدد، شماره موبایل خود را تأیید کنید.
+                  برای مشاهده سفارش‌ها و مدیریت حساب وارد شوید.
                 </p>
               </div>
             </div>
 
-            {mode === "disabled" ? (
+            {mode === "mock" && (
               <div
-                className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5"
+                className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950"
                 role="alert"
               >
-                <div className="flex items-start gap-3 text-destructive">
-                  <AlertTriangle
-                    size={20}
-                    className="mt-0.5 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <p className="font-bold">ورود کاربران هنوز فعال نیست</p>
-                    <p className="mt-2 text-sm leading-7">
-                      سرویس OTP باید از بک‌اند Laravel و با Cookie امن فعال شود. کلید سرویس پیامک نباید در فرانت‌اند قرار بگیرد.
-                    </p>
-                  </div>
-                </div>
+                <AlertTriangle
+                  size={19}
+                  className="mt-0.5 shrink-0"
+                  aria-hidden="true"
+                />
+                <p className="text-sm leading-7">
+                  حالت آزمایشی ورود فعال است و پیامک واقعی ارسال نمی‌شود. این حالت فقط برای توسعه است.
+                </p>
               </div>
-            ) : (
+            )}
+
+            {error && (
+              <div
+                id="login-form-error"
+                className="mb-5 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm leading-7 text-destructive"
+                role="alert"
+                aria-live="assertive"
+              >
+                {error}
+              </div>
+            )}
+
+            {googleAvailable && (
+              <button
+                type="button"
+                onClick={startGoogle}
+                disabled={googleSubmitting}
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 py-3.5 font-bold text-foreground shadow-soft transition hover:border-primary/50 disabled:opacity-50"
+              >
+                {googleSubmitting ? (
+                  <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <span
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm font-black text-slate-800 shadow-sm"
+                    aria-hidden="true"
+                  >
+                    G
+                  </span>
+                )}
+                {googleSubmitting ? "در حال انتقال…" : "ادامه با Google"}
+              </button>
+            )}
+
+            {googleAvailable && otpAvailable && (
+              <div className="my-6 flex items-center gap-3" aria-hidden="true">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">یا</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+            )}
+
+            {otpAvailable && (
               <>
-                {mode === "mock" && (
-                  <div
-                    className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950"
-                    role="alert"
-                  >
-                    <AlertTriangle
-                      size={19}
-                      className="mt-0.5 shrink-0"
-                      aria-hidden="true"
-                    />
-                    <p className="text-sm leading-7">
-                      حالت آزمایشی ورود فعال است و پیامک واقعی ارسال نمی‌شود. این حالت فقط برای توسعه است.
-                    </p>
-                  </div>
-                )}
-
-                {error && (
-                  <div
-                    id="login-form-error"
-                    className="mb-5 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm leading-7 text-destructive"
-                    role="alert"
-                    aria-live="assertive"
-                  >
-                    {error}
-                  </div>
-                )}
-
                 {step === "mobile" ? (
                   <form
                     onSubmit={(event) => {
@@ -280,7 +358,7 @@ const LoginPage = () => {
                         htmlFor="login-mobile"
                         className="mb-2 block text-sm font-bold text-foreground"
                       >
-                        شماره موبایل
+                        ورود با شماره موبایل
                       </label>
                       <p
                         id="login-mobile-help"
@@ -463,6 +541,18 @@ const LoginPage = () => {
                   </form>
                 )}
               </>
+            )}
+
+            {!googleAvailable && !otpAvailable && (
+              <div
+                className="rounded-2xl border border-border bg-muted/40 p-5"
+                role="status"
+              >
+                <p className="font-bold text-foreground">ورود کاربران هنوز فعال نشده است</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  روش‌های ورود فقط پس از فعال‌سازی امن سرویس سمت سرور نمایش داده می‌شوند. هیچ کلید یا اطلاعات محرمانه‌ای در مرورگر نگهداری نمی‌شود.
+                </p>
+              </div>
             )}
           </div>
         </div>

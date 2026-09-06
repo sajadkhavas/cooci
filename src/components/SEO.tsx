@@ -1,5 +1,6 @@
 import { useLocation, useMatches } from "react-router";
 import { brandConfig } from "@/config/brand";
+import type { BackendStoreSettings } from "@/lib/backend-contract";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import { useCspNonce } from "@/lib/security/csp";
 import {
@@ -11,9 +12,12 @@ import {
   createBrandGraphSchema,
   type JsonLdNode,
 } from "@/lib/seo/brand-entity";
+import { resolveCommercialSeoMeta } from "@/lib/seo/commercial-content";
 import { resolveMetaDescription } from "@/lib/seo/meta-description";
+import { resolveMetaTitle } from "@/lib/seo/meta-title";
 import { createProductMerchantSchema } from "@/lib/seo/product-merchant-schema";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
+import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 
 interface SEOProps {
   title?: string;
@@ -28,6 +32,10 @@ interface SEOProps {
   schema?: object | object[];
   noIndex?: boolean;
   robots?: "index,follow" | "noindex,follow" | "noindex,nofollow";
+}
+
+interface RootStorefrontLoaderData {
+  storeSettings?: BackendStoreSettings;
 }
 
 const configuredOrigin =
@@ -115,6 +123,14 @@ const getProductLoaderData = (matches: ReturnType<typeof useMatches>) =>
     .map((match) => match.data as PublicSsrLoaderData | undefined)
     .find((data) => data?.product);
 
+const getStorefrontSettings = (matches: ReturnType<typeof useMatches>) => {
+  const payload = matches
+    .map((match) => match.data as RootStorefrontLoaderData | undefined)
+    .find((data) => data?.storeSettings)?.storeSettings;
+
+  return resolveStorefrontSettings(payload);
+};
+
 export const SEO = ({
   title,
   description,
@@ -132,6 +148,7 @@ export const SEO = ({
   const location = useLocation();
   const matches = useMatches();
   const nonce = useCspNonce();
+  const storefrontSettings = getStorefrontSettings(matches);
   const supportsPaginationPolicy =
     location.pathname === "/blog" ||
     location.pathname.startsWith("/blog/topic/") ||
@@ -144,11 +161,14 @@ export const SEO = ({
         totalPages: getPaginationTotal(location.pathname, matches),
       })
     : undefined;
-  const siteTitle = title
-    ? title + " | " + brandConfig.brandName
-    : brandConfig.defaultMeta.title;
+  const commercialMeta = resolveCommercialSeoMeta(location.pathname);
+  const siteTitle = commercialMeta?.title ?? resolveMetaTitle(
+    title,
+    storefrontSettings.brand.name,
+    brandConfig.defaultMeta.title,
+  );
   const siteDescription = resolveMetaDescription(
-    description,
+    commercialMeta?.description ?? description,
     brandConfig.defaultMeta.description,
   );
   const siteImage = resolvePublicMediaUrl(
@@ -187,14 +207,17 @@ export const SEO = ({
         product: productLoaderData.product,
         reviews: productLoaderData.productReviews,
         siteOrigin: SITE_ORIGIN,
-        brandName: brandConfig.brandName,
+        brandName: storefrontSettings.brand.name,
       })
     : undefined;
   const pageSchema =
     (authoritativeProductSchema as JsonLdNode | undefined) ||
     (sanitizeSchema(schema) as JsonLdNode | JsonLdNode[] | undefined);
   const serializedBrandSchema = serializeJsonLd(
-    createBrandGraphSchema({ siteOrigin: SITE_ORIGIN }),
+    createBrandGraphSchema({
+      siteOrigin: SITE_ORIGIN,
+      storefrontSettings,
+    }),
   );
   const serializedPageSchema = serializePageSchema(pageSchema);
 
@@ -212,7 +235,7 @@ export const SEO = ({
       <meta property="og:url" content={siteUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:locale" content="fa_IR" />
-      <meta property="og:site_name" content={brandConfig.brandName} />
+      <meta property="og:site_name" content={storefrontSettings.brand.name} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={siteDescription} />

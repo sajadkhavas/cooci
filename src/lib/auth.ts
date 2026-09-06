@@ -1,11 +1,17 @@
 import {
+  API_BASE_URL,
   ApiError,
   apiData,
   areDevelopmentMocksEnabled,
   getFrontendDataMode,
   type ApiRequestOptions,
 } from "@/lib/api";
-import type { BackendOtpChallenge, BackendUser } from "@/lib/backend-contract";
+import type {
+  BackendAuthCapabilities,
+  BackendOtpChallenge,
+  BackendUser,
+} from "@/lib/backend-contract";
+import { sanitizeInternalReturnPath } from "@/lib/security/navigation";
 import {
   isValidIranianMobileNumber,
   normalizeIranianMobile,
@@ -14,6 +20,10 @@ import {
 
 export type AuthMode = "backend" | "mock" | "disabled";
 
+const GOOGLE_LOGIN_PATH = "/auth/google/redirect";
+const GOOGLE_LINK_PATH = "/auth/google/link";
+const GOOGLE_RETURN_PATH_KEY = "winimi_google_return_v1";
+
 const exposeLoopbackAcceptanceOtpCode =
   import.meta.env.VITE_E2E_ACCEPTANCE === "true" &&
   import.meta.env.VITE_SITE_ORIGIN === "https://127.0.0.1:4443" &&
@@ -21,10 +31,12 @@ const exposeLoopbackAcceptanceOtpCode =
 
 export interface AuthUser {
   id: string;
-  mobile: string;
+  mobile: string | null;
   fullName?: string;
   email?: string;
   mobileVerified: boolean;
+  requiresMobileCompletion: boolean;
+  googleLinked: boolean;
   marketingConsent: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -32,6 +44,11 @@ export interface AuthUser {
 
 export interface AuthSession {
   user: AuthUser;
+}
+
+export interface AuthCapabilities {
+  googleEnabled: boolean;
+  otpEnabled: boolean;
 }
 
 export interface OtpRequestResult {
@@ -64,6 +81,8 @@ const mapUser = (user: BackendUser): AuthUser => ({
   fullName: user.fullName || undefined,
   email: user.email || undefined,
   mobileVerified: user.mobileVerified,
+  requiresMobileCompletion: user.requiresMobileCompletion,
+  googleLinked: user.googleLinked,
   marketingConsent: user.marketingConsent,
   createdAt: user.createdAt || undefined,
   updatedAt: user.updatedAt || undefined,
@@ -136,7 +155,7 @@ const readMockSession = (): AuthSession | null => {
     MOCK_SESSION_KEY,
     null,
   );
-  return session?.user?.mobile ? session : null;
+  return session?.user?.id ? session : null;
 };
 
 const writeMockSession = (session: AuthSession | null) => {
@@ -146,6 +165,15 @@ const writeMockSession = (session: AuthSession | null) => {
   } else {
     removeStorageValue(window.sessionStorage, MOCK_SESSION_KEY);
   }
+};
+
+const resolveBackendWebUrl = (path: string): string => {
+  if (!API_BASE_URL) {
+    throw new Error("آدرس API وینیمی تنظیم نشده است.");
+  }
+
+  const base = new URL(API_BASE_URL);
+  return new URL(path, `${base.origin}/`).toString();
 };
 
 export const normalizeMobile = normalizeIranianMobile;
@@ -158,6 +186,87 @@ export const authenticatedRequest = <T>(
   path: string,
   options: ApiRequestOptions = {},
 ) => apiData<T>(path, options);
+
+export const loadAuthCapabilities = async (): Promise<AuthCapabilities> => {
+  const mode = getAuthMode();
+  if (mode === "mock") {
+    assertMockAllowed();
+    return { googleEnabled: false, otpEnabled: true };
+  }
+  if (mode === "disabled") {
+    return { googleEnabled: false, otpEnabled: false };
+  }
+
+  try {
+    const capabilities = await apiData<BackendAuthCapabilities>(
+      "/api/auth/capabilities",
+      { suppressAuthExpiryEvent: true },
+    );
+    const googlePathsAreExpected =
+      capabilities.google.redirectPath === GOOGLE_LOGIN_PATH &&
+      capabilities.google.linkPath === GOOGLE_LINK_PATH;
+
+    return {
+      googleEnabled: capabilities.google.enabled && googlePathsAreExpected,
+      otpEnabled: capabilities.otp.enabled,
+    };
+  } catch {
+    return { googleEnabled: false, otpEnabled: false };
+  }
+};
+
+export const storeGoogleReturnPath = (value: unknown): string => {
+  const safePath = sanitizeInternalReturnPath(value);
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.setItem(GOOGLE_RETURN_PATH_KEY, safePath);
+    } catch {
+      // A blocked sessionStorage must never create an unsafe redirect fallback.
+    }
+  }
+  return safePath;
+};
+
+export const peekGoogleReturnPath = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.sessionStorage.getItem(GOOGLE_RETURN_PATH_KEY);
+    return value ? sanitizeInternalReturnPath(value) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const consumeGoogleReturnPath = (): string | null => {
+  const safePath = peekGoogleReturnPath();
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.removeItem(GOOGLE_RETURN_PATH_KEY);
+    } catch {
+      // Nothing else needs to happen when storage is unavailable.
+    }
+  }
+  return safePath;
+};
+
+export const beginGoogleLogin = (returnPath: unknown): void => {
+  if (getAuthMode() !== "backend") {
+    throw new Error("ورود با گوگل فقط از بک‌اند امن وینیمی قابل انجام است.");
+  }
+  if (typeof window === "undefined") return;
+
+  storeGoogleReturnPath(returnPath);
+  window.location.assign(resolveBackendWebUrl(GOOGLE_LOGIN_PATH));
+};
+
+export const beginGoogleLink = (): void => {
+  if (getAuthMode() !== "backend") {
+    throw new Error("اتصال گوگل فقط از بک‌اند امن وینیمی قابل انجام است.");
+  }
+  if (typeof window === "undefined") return;
+
+  window.location.assign(resolveBackendWebUrl(GOOGLE_LINK_PATH));
+};
 
 export const bootstrapAuth = async (): Promise<AuthSession | null> => {
   const mode = getAuthMode();
@@ -268,6 +377,8 @@ export const verifyOtp = async (input: VerifyOtpInput): Promise<AuthSession> => 
     id: `dev-${randomId().slice(0, 20)}`,
     mobile,
     mobileVerified: true,
+    requiresMobileCompletion: false,
+    googleLinked: false,
     marketingConsent: false,
     createdAt: now,
     updatedAt: now,
@@ -278,6 +389,36 @@ export const verifyOtp = async (input: VerifyOtpInput): Promise<AuthSession> => 
   writeMockSession(session);
   removeStorageValue(window.sessionStorage, MOCK_CHALLENGE_KEY);
   return session;
+};
+
+export const completeAuthMobile = async (rawMobile: string): Promise<AuthUser> => {
+  const mobile = normalizeMobile(rawMobile);
+  if (!isValidIranianMobile(mobile)) {
+    throw new Error("شماره موبایل را به‌صورت 09xxxxxxxxx وارد کنید.");
+  }
+
+  const mode = getAuthMode();
+  if (mode === "backend") {
+    const payload = await apiData<{ user: BackendUser }>("/api/account/mobile", {
+      method: "PATCH",
+      body: { mobile },
+    });
+    return mapUser(payload.user);
+  }
+  if (mode === "disabled") throw new Error("حساب کاربری فعال نیست.");
+
+  assertMockAllowed();
+  const session = readMockSession();
+  if (!session) throw new Error("نشست آزمایشی پیدا نشد.");
+  const user: AuthUser = {
+    ...session.user,
+    mobile,
+    mobileVerified: false,
+    requiresMobileCompletion: false,
+    updatedAt: new Date().toISOString(),
+  };
+  writeMockSession({ user });
+  return user;
 };
 
 export const logoutAuth = async (): Promise<void> => {
@@ -328,7 +469,8 @@ export const updateAuthProfile = async (
     updatedAt: new Date().toISOString(),
   };
   const profiles = readMockProfiles();
-  profiles[user.mobile] = user;
+  const profileKey = user.mobile || user.id;
+  profiles[profileKey] = user;
   writeMockProfiles(profiles);
   writeMockSession({ user });
   return user;

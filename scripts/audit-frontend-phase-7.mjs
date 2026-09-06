@@ -51,13 +51,23 @@ requireText("workerGenerator", '"build/client"', "Framework client output");
 requireText("performance", 'const CLIENT_DIR = "build/client"', "client performance inventory");
 requireText("performance", 'const RUNTIME_DIR = "build/runtime"', "SSR runtime budget");
 
+requireText("pwaE2e", 'page.locator("#main-content")', "live SSR application target");
 requireText(
   "pwaE2e",
-  "network restoration returns to the live server-rendered application",
-  "SSR recovery assertion",
+  'page.locator("#main-content h1").first()',
+  "structural live SSR recovery heading",
+);
+requireText(
+  "pwaE2e",
+  'name: "اتصال اینترنت در دسترس نیست"',
+  "fail-closed offline disclosure",
+);
+requireText(
+  "pwaE2e",
+  "Boolean(navigator.serviceWorker.controller)",
+  "service-worker control after recovery",
 );
 requireText("pwaE2e", 'expect(worker).not.toContain(\'"/index.html"\')', "SPA shell rejection test");
-requireText("pwaE2e", 'page.locator("#main-content")', "live SSR application target");
 forbidText("pwaE2e", 'page.locator("#root")', "retired SPA root assertion");
 requireText("acceptanceWorkflow", "Start internal production SSR storefront");
 requireText("acceptanceWorkflow", "Verify server-rendered source HTML before hydration");

@@ -6,6 +6,7 @@ const files = {
   motion: "src/lib/accessibility/motion.ts",
   header: "src/components/layout/Header.tsx",
   footer: "src/components/layout/Footer.tsx",
+  backToTop: "src/components/layout/BackToTopButton.tsx",
   floatingSupport: "src/components/layout/FloatingWhatsApp.tsx",
   announcer: "src/components/accessibility/RouteAnnouncer.tsx",
   scroll: "src/components/ScrollToTop.tsx",
@@ -98,8 +99,16 @@ requireText(
 forbidText("header", 'match: "categories"', "unsupported navigation match mode");
 forbidText("header", "const isNavLinkActive", "duplicated legacy route matcher");
 
-requireText("footer", "getProgrammaticScrollBehavior", "reduced-motion Footer scroll");
-forbidText("footer", 'behavior: "smooth"', "forced smooth Footer scroll");
+requireText(
+  "backToTop",
+  "getProgrammaticScrollBehavior",
+  "reduced-motion back-to-top scroll",
+);
+forbidText(
+  "backToTop",
+  'behavior: "smooth"',
+  "forced smooth back-to-top scroll",
+);
 requireText(
   "floatingSupport",
   "matchesRoutePrefix",

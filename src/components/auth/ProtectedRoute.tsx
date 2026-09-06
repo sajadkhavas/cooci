@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { Navigate, useLocation } from "react-router";
+import { MobileCompletionGate } from "@/components/auth/MobileCompletionGate";
 import { useAuth } from "@/context/AuthContext";
 
 export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -28,6 +29,10 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
         state={{ from: `${location.pathname}${location.search}` }}
       />
     );
+  }
+
+  if (user?.requiresMobileCompletion) {
+    return <MobileCompletionGate />;
   }
 
   return children;

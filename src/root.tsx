@@ -18,6 +18,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { brandConfig } from "@/config/brand";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { isBackendEnabled } from "@/lib/api";
+import type { BackendStoreSettings } from "@/lib/backend-contract";
+import { loadStoreSettings } from "@/lib/content";
 import { CspNonceProvider } from "@/lib/security/csp";
 import "./index.css";
 import "./styles/modern-pages.css";
@@ -27,7 +30,10 @@ import "./styles/core-web-vitals.css";
 
 interface RootLoaderData {
   cspNonce?: string;
+  storeSettings?: BackendStoreSettings;
 }
+
+const STORE_SETTINGS_QUERY_KEY = ["store", "settings"] as const;
 
 const createQueryClient = () =>
   new QueryClient({
@@ -44,9 +50,25 @@ const createQueryClient = () =>
     },
   });
 
-export const loader = ({ request }: LoaderFunctionArgs): RootLoaderData => ({
-  cspNonce: request.headers.get("x-winimi-csp-nonce") || undefined,
-});
+export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoaderData> => {
+  const base: RootLoaderData = {
+    cspNonce: request.headers.get("x-winimi-csp-nonce") || undefined,
+  };
+
+  if (!isBackendEnabled) return base;
+
+  try {
+    return {
+      ...base,
+      storeSettings: await loadStoreSettings(),
+    };
+  } catch (error) {
+    console.error("Winimi root storefront authority loader failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return base;
+  }
+};
 
 export const shouldRevalidate = () => false;
 
@@ -68,8 +90,6 @@ export const links = () => [
 ];
 
 export const meta = () => [
-  { title: brandConfig.defaultMeta.title },
-  { name: "description", content: brandConfig.defaultMeta.description },
   { name: "theme-color", content: "#D0E596" },
   { name: "color-scheme", content: "light" },
   { name: "application-name", content: brandConfig.brandName },
@@ -78,6 +98,10 @@ export const meta = () => [
 export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   const [queryClient] = useState(createQueryClient);
   const nonce = loaderData?.cspNonce;
+
+  if (loaderData?.storeSettings) {
+    queryClient.setQueryData(STORE_SETTINGS_QUERY_KEY, loaderData.storeSettings);
+  }
 
   return (
     <html lang="fa-IR" dir="rtl">

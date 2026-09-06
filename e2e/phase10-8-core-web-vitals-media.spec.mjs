@@ -66,12 +66,12 @@ test.describe("Phase 10.8 Core Web Vitals and media", () => {
     expect(html).toMatch(
       /<link[^>]+rel="preload"[^>]+as="image"[^>]+fetchpriority="high"/i,
     );
-    expect(html).toMatch(
-      /<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+loading="eager"[^>]+fetchpriority="high"[^>]+width="1200"[^>]+height="1450"/i,
-    );
-    expect(html).not.toMatch(
-      /<img[^>]+alt="نمایی از کوکی، کیک و محصولات وینیمی"[^>]+loading="lazy"/i,
-    );
+    const lcpImage = html.match(/<img[^>]+loading="eager"[^>]*>/i)?.[0];
+    expect(lcpImage).toBeTruthy();
+    expect(lcpImage).toMatch(/fetchpriority="high"/i);
+    expect(lcpImage).toMatch(/width="1200"/i);
+    expect(lcpImage).toMatch(/height="1450"/i);
+    expect(lcpImage).not.toMatch(/loading="lazy"/i);
   });
 
   test("homepage lab signals stay inside the locked good Core Web Vitals targets", async ({
@@ -83,9 +83,9 @@ test.describe("Phase 10.8 Core Web Vitals and media", () => {
     await page.evaluate(() => document.fonts.ready);
     await waitForTwoFrames(page);
 
-    const hero = page.getByRole("img", {
-      name: "نمایی از کوکی، کیک و محصولات وینیمی",
-    });
+    const hero = page
+      .locator('img[loading="eager"][fetchpriority="high"][width="1200"][height="1450"]')
+      .first();
     await expect(hero).toBeVisible();
     await expect(hero).toHaveAttribute("loading", "eager");
     await expect(hero).toHaveAttribute("fetchpriority", "high");

@@ -22,7 +22,22 @@ server {
 server {
     listen __HTTPS_PORT__ ssl http2;
     listen [::]:__HTTPS_PORT__ ssl http2;
-    server_name __SERVER_NAMES__;
+    server_name www.__CANONICAL_HOST__;
+
+    ssl_certificate __TLS_CERTIFICATE__;
+    ssl_certificate_key __TLS_CERTIFICATE_KEY__;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    server_tokens off;
+    include __SECURITY_HEADERS_INCLUDE__;
+
+    return 301 https://__CANONICAL_HOST____HTTPS_REDIRECT_PORT__$request_uri;
+}
+
+server {
+    listen __HTTPS_PORT__ ssl http2;
+    listen [::]:__HTTPS_PORT__ ssl http2;
+    server_name __CANONICAL_HOST__;
 
     root __FRONTEND_ROOT__/current/app/build/client;
 
@@ -49,7 +64,6 @@ server {
         application/xml
         image/svg+xml
         text/css
-        text/html
         text/javascript
         text/plain
         text/xml;
