@@ -1,6 +1,6 @@
 # F29 — Google Login & Auth Closure
 
-Status: **IN PROGRESS**  
+Status: **COMPLETED / MERGED / REGISTERED**  
 Project: **WINIMI / COOCI**  
 Frontend repository: `sajadkhavas/cooci`  
 Backend repository: `sajadkhavas/winimi-bakery-backend`
@@ -13,78 +13,58 @@ Backend repository: `sajadkhavas/winimi-bakery-backend`
 - Backend branch: `phase-29/google-login-auth-closure`
 - Tracker: `sajadkhavas/cooci#48`
 
-## هدف
+## هدف و معماری بسته‌شده
 
-تکمیل Auth نهایی وینیمی با Google Login واقعی در سطح Source/CI و حفظ OTP به‌عنوان زیرساخت قابل فعال‌سازی، بدون قرار دادن credential در Git/Frontend و بدون mutation روی Production.
-
-## معماری Google
-
-Flow انتخاب‌شده Web Server Authorization Code + OpenID Connect است:
+F29 لایه Auth نهایی Source/CI را با Google Login واقعی در سطح Authorization Code + OpenID Connect تکمیل کرد، بدون قرار دادن credential در Git/Frontend و بدون mutation روی Production.
 
 1. Frontend فقط به endpoint ثابت Backend یعنی `/auth/google/redirect` هدایت می‌شود.
-2. Backend یک `state` تصادفی ۲۵۶ بیتی در session ذخیره می‌کند.
-3. Backend کاربر را با scope حداقلی `openid email profile` به Google می‌فرستد.
-4. Callback روی Backend مقدار `state` را با session مقایسه می‌کند و یک‌بار مصرف می‌کند.
-5. Backend authorization code را با Client Secret موجود فقط در server environment مبادله می‌کند.
-6. UserInfo از Google دریافت می‌شود.
-7. شناسه هویتی پایدار Google برابر `sub` است؛ email کلید identity نیست.
-8. Access token و refresh token در دیتابیس وینیمی ذخیره نمی‌شوند.
-9. در login موفق همان guard موجود `customer` استفاده و session بعد از login rotate می‌شود.
+2. Backend `state` تصادفی را در session نگهداری و در callback یک‌بار مصرف اعتبارسنجی می‌کند.
+3. Scope حداقلی `openid email profile` استفاده می‌شود.
+4. شناسه پایدار Google برابر `sub` است؛ email کلید identity نیست.
+5. Access/refresh token در دیتابیس وینیمی ذخیره نمی‌شود.
+6. login موفق از guard موجود `customer` استفاده و session را regenerate می‌کند.
+7. اتصال خودکار بر اساس email/phone ممنوع است؛ existing-email collision با `account_link_required` متوقف می‌شود.
+8. linking فقط از session احرازشده همان Customer انجام می‌شود و یک Google identity نمی‌تواند متعلق به دو Customer باشد.
 
-## Account linking
-
-اتصال خودکار حساب فقط بر اساس email یا phone ممنوع است.
-
-- اگر `(provider=google, sub)` از قبل وجود داشته باشد، همان Customer معتبر وارد می‌شود.
-- اگر identity جدید باشد ولی email از قبل متعلق به Customer دیگری باشد، flow با `account_link_required` متوقف می‌شود.
-- اتصال Google به Customer موجود فقط از داخل session احرازشده همان Customer با `/auth/google/link` انجام می‌شود.
-- identity یک Google account نمی‌تواند به دو Customer متصل شود.
-- هر Customer حداکثر یک identity برای provider `google` دارد.
-
-## Mobile completion
-
-Schema واقعی پروژه `mobile_verified_at` دارد.
+## Mobile completion و OTP
 
 - Customer جدید Google می‌تواند ابتدا `mobile = null` داشته باشد.
-- قبل از دسترسی به protected customer routes، Frontend `MobileCompletionGate` نشان می‌دهد.
+- Frontend برای کاربر Google بدون موبایل، `MobileCompletionGate` را اعمال می‌کند.
 - فقط شماره معتبر ایران با normalization مشترک پذیرفته می‌شود.
-- ثبت شماره هرگز `mobile_verified_at` را پر نمی‌کند.
-- `mobile_verified_at` فقط بعداً توسط OTP واقعی قابل تأیید است.
-- شماره Customerهای active یا soft-deleted قابل claim مجدد نیست.
-
-## OTP feature flag
-
-OTP حذف نشده است.
-
-- `OTP_ENABLED=false` پیش‌فرض امن است.
-- sender/service/challenge/rate-limit/test coverage موجود حفظ می‌شوند.
-- وقتی flag خاموش باشد request/verify با خطای fail-closed `otp_disabled` متوقف می‌شوند.
-- فعال‌سازی SMS credential واقعی در Phase 20 انجام می‌شود.
+- تکمیل موبایل، `mobile_verified_at` را پر نمی‌کند؛ تأیید فقط پس از OTP واقعی مجاز است.
+- OTP infrastructure حذف نشده است.
+- `OTP_ENABLED=false` پیش‌فرض امن باقی مانده و request/verify هنگام خاموش بودن fail-closed است.
+- فعال‌سازی credential واقعی Google و SMS در Phase 20 انجام می‌شود.
 
 ## Frontend security boundary
 
-Frontend هیچ Google Client ID/Secret دریافت نمی‌کند.
-
-- navigation فقط به pathهای ثابت `/auth/google/redirect` و `/auth/google/link` روی origin Backend انجام می‌شود.
-- capability response فقط enabled/disabled را کنترل می‌کند؛ redirect URL دلخواه از Backend یا query اجرا نمی‌شود.
-- return path در `sessionStorage` فقط بعد از `sanitizeInternalReturnPath` نگهداری می‌شود.
-- پس از round-trip مقصد دوباره sanitize و سپس consume می‌شود.
+- هیچ `VITE_GOOGLE_*` credential در Frontend تعریف یا مصرف نمی‌شود.
+- capability response فقط enabled/disabled را کنترل می‌کند و URL دلخواه برای redirect اجرا نمی‌شود.
+- return path قبل و بعد از OAuth round-trip با policy داخلی sanitize می‌شود.
 - callback error codeها فقط به پیام‌های کنترل‌شده UI نگاشت می‌شوند.
+
+## Security dependency closure
+
+در Backend exact-head، Composer audit یک advisory برای `livewire/livewire v3.8.2` شناسایی کرد. Lockfile با Composer و minimal-change به نسخه patched `v3.8.3` ارتقا یافت؛ سپس workflow موقت تولید lock حذف شد. Commit lock:
+
+`044ed8e12f0a5df3babcceba9e9d0eecc234d5cf`
+
+Final Backend source head پس از حذف workflow موقت:
+
+`1bc34ade42b964351b517df9c94c7a79dbbfb781`
+
+روی همین exact head، F29 Auth Closure شامل focused tests، full backend regression و Composer security audit سبز شد.
 
 ## External activation boundary
 
-F29 پیاده‌سازی production-grade و تست‌های واقعی flow boundary را می‌بندد، اما credential واقعی Google متعلق به کارفرماست و در Git وجود ندارد.
-
-بنابراین:
-
 ```text
-GOOGLE_SOURCE_IMPLEMENTATION=F29
+GOOGLE_SOURCE_IMPLEMENTATION=F29_COMPLETE
 GOOGLE_LIVE_CREDENTIAL_ACTIVATION=PHASE20
 PRODUCTION_DEPLOYMENT=PHASE19B
 PRODUCTION_MUTATION_DURING_F29=NO
 ```
 
-F29 فقط در صورتی بسته می‌شود که Backend و Frontend exact-head CI سبز، PRها merge، evidence ثبت و Production mutation همچنان NO باشد. Live validation با credential واقعی در Phase 20 یک Gate جدا و اجباری است و با F29 اشتباه گرفته نمی‌شود.
+Live validation با credential واقعی کارفرما یک Gate جدا در Phase 20 است و جزو ادعای Closure این فاز محسوب نمی‌شود.
 
 ## مراجع رسمی
 
@@ -94,17 +74,28 @@ F29 فقط در صورتی بسته می‌شود که Backend و Frontend exact
 
 ## Closure evidence
 
-این بخش فقط بعد از PASS واقعی CI/Merge تکمیل می‌شود.
-
 ```text
-F29_STATUS=IN_PROGRESS
-FRONTEND_EXACT_HEAD=PENDING
-BACKEND_EXACT_HEAD=PENDING
-FRONTEND_PR=PENDING
-BACKEND_PR=14_OPEN
-FRONTEND_CI=PENDING
-BACKEND_CI=PENDING
+F29_STATUS=PASS_MERGED_REGISTERED
+
+FRONTEND_BASE=2cddf69e3a5e550b5acfff4729beffcb81a0ccea
+FRONTEND_EXACT_HEAD=55fdb43c8a7e43186ffe89139739de7e3c7bfdf7
+FRONTEND_PR=49_MERGED
+FRONTEND_F29_AUTH_RUN=34041798526_SUCCESS
+FRONTEND_FULL_CI_RUN=34041798547_SUCCESS
+FRONTEND_F29S_REGRESSION_RUN=34041798554_SUCCESS
+FRONTEND_MERGE_SHA=3539938dff37d788b11a532097145a2e87569915
+
+BACKEND_BASE=ff6ad79c5c3ef1ffc69f77023a37a0a261ded8b0
+BACKEND_EXACT_HEAD=1bc34ade42b964351b517df9c94c7a79dbbfb781
+BACKEND_PR=14_MERGED
+BACKEND_F29_AUTH_RUN=34041754511_SUCCESS
+BACKEND_F29S_CONTENT_RUN=34041754498_SUCCESS
+BACKEND_F29S_TRUST_RUN=34041754502_SUCCESS
+BACKEND_MERGE_SHA=6c6874dfe3d616f8523601a83b0d2427b1b7f3ee
+LIVEWIRE_PATCHED_VERSION=3.8.3
+
 PRODUCTION_MUTATION=NO
 DEPLOY_PERFORMED=NO
+GOOGLE_LIVE_CREDENTIALS_ACTIVATED=NO_PHASE20
 NEXT_AFTER_F29=F30_MAINLINE_GIT_STACK_CLOSURE
 ```
