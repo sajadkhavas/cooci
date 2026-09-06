@@ -20,51 +20,6 @@ import { useCatalogCategories } from "@/hooks/useCatalog";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
-const footerGroups = [
-  {
-    title: "کشف وینیمی",
-    links: [
-      { name: "خانه", href: "/" },
-      { name: "همه محصولات", href: "/products" },
-      { name: "درباره ما", href: "/about" },
-      { name: "راهنماها", href: "/blog" },
-      { name: "تماس با ما", href: "/contact" },
-    ],
-  },
-  {
-    title: "دسته‌بندی‌ها",
-    links: [
-      { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
-      { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-      {
-        name: "رژیمی و بدون قند افزوده",
-        href: "/products/category/diet-diabetic",
-      },
-      { name: "کیک و دسر", href: "/products/category/cakes" },
-      { name: "چیزکیک", href: "/products/category/cheesecakes" },
-      { name: "رول و کروسان", href: "/products/category/pastry" },
-      { name: "باکس هدیه", href: "/gift" },
-    ],
-  },
-  {
-    title: "خدمات و راهنما",
-    links: [
-      { name: "مناطق ارسال", href: "/locations" },
-      { name: "سفارش سازمانی", href: "/corporate" },
-      { name: "راهنمای هدیه", href: "/gift" },
-      { name: "شرایط ارسال", href: "/shipping" },
-      { name: "سؤالات متداول", href: "/faq" },
-    ],
-  },
-] as const;
-
-const legalLinks = [
-  { name: "سیاست شفافیت", href: "/quality" },
-  { name: "شرایط ارسال", href: "/shipping" },
-  { name: "حریم خصوصی", href: "/privacy" },
-  { name: "شرایط استفاده", href: "/terms" },
-] as const;
-
 const currentYear = new Intl.DateTimeFormat("fa-IR", {
   year: "numeric",
 }).format(new Date());
@@ -94,41 +49,60 @@ const FooterLinkList = ({
 );
 
 export const Footer = () => {
-  const { settings } = useStorefrontSettings();
+  const { settings, content } = useStorefrontSettings();
   const { categories } = useCatalogCategories();
-  const visibleCategoryHrefs = new Set(
-    buildVisibleCatalogCategories(categoryContents, categories).map(
-      (category) => `/products/category/${category.routeSlug}`,
-    ),
-  );
-  const resolvedFooterGroups = footerGroups.map((group) =>
-    group.title === "دسته‌بندی‌ها"
-      ? {
-          ...group,
-          links: group.links.filter(
-            (link) =>
-              link.href === "/gift" || visibleCategoryHrefs.has(link.href),
-          ),
-        }
-      : group,
-  );
+  const categoryLinks = buildVisibleCatalogCategories(
+    categoryContents,
+    categories,
+  ).map((category) => ({
+    name: category.name,
+    href: `/products/category/${category.routeSlug}`,
+  }));
+  const resolvedFooterGroups = [
+    {
+      title: content.footer.discovery.title,
+      links: content.footer.discovery.links.map((link) => ({
+        name: link.label,
+        href: link.href,
+      })),
+    },
+    {
+      title: content.footer.categoryTitle,
+      links: categoryLinks,
+    },
+    {
+      title: content.footer.services.title,
+      links: content.footer.services.links.map((link) => ({
+        name: link.label,
+        href: link.href,
+      })),
+    },
+  ];
+  const legalLinks = content.footer.legal.map((link) => ({
+    name: link.label,
+    href: link.href,
+  }));
   const socialLinks = [
     {
       href: settings.contact.instagramUrl,
-      label: "اینستاگرام وینیمی",
+      label: `اینستاگرام ${settings.brand.name}`,
       Icon: Instagram,
     },
     {
       href: settings.contact.whatsappUrl,
-      label: "واتساپ وینیمی",
+      label: `واتساپ ${settings.brand.name}`,
       Icon: MessageCircle,
     },
     {
       href: `mailto:${settings.contact.email}`,
-      label: "ایمیل وینیمی",
+      label: `ایمیل ${settings.brand.name}`,
       Icon: Mail,
     },
-    { href: settings.contact.phoneUrl, label: "تماس با وینیمی", Icon: Phone },
+    {
+      href: settings.contact.phoneUrl,
+      label: `تماس با ${settings.brand.name}`,
+      Icon: Phone,
+    },
   ];
 
   return (
@@ -147,11 +121,10 @@ export const Footer = () => {
             </span>
             <div>
               <strong className="block text-lg font-black sm:text-xl">
-                برای انتخاب بهتر، کنار شما هستیم
+                {content.footer.supportTitle}
               </strong>
               <p className="mt-1 max-w-2xl text-sm leading-7 text-[#27390c]/65">
-                درباره محصول، تعداد مناسب یا شرایط سفارش سؤال داری؟ مستقیم با
-                وینیمی صحبت کن.
+                {content.footer.supportText}
               </p>
             </div>
           </div>
@@ -160,7 +133,8 @@ export const Footer = () => {
               href={settings.contact.phoneUrl}
               className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#27390c]/15 bg-white/55 px-5 text-sm font-black transition hover:bg-white"
             >
-              <Phone size={17} aria-hidden="true" /> تماس
+              <Phone size={17} aria-hidden="true" />
+              {content.footer.phoneLabel}
             </a>
             <a
               href={settings.contact.whatsappUrl}
@@ -168,7 +142,8 @@ export const Footer = () => {
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#27390c] px-5 text-sm font-black text-[#f8f4e8] transition hover:-translate-y-0.5 hover:bg-[#405d16]"
             >
-              <MessageCircle size={17} aria-hidden="true" /> واتساپ
+              <MessageCircle size={17} aria-hidden="true" />
+              {content.footer.whatsappLabel}
             </a>
           </div>
         </div>
@@ -189,7 +164,7 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="mt-5 max-w-md text-sm leading-8 text-[#27390c]/65">
-              کوکی، کیک، دسر و باکس هدیه؛ با جزئیاتی که پیش از سفارش می‌بینی.
+              {content.footer.aboutText}
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               {socialLinks.map(({ href, label, Icon }) => (
@@ -197,9 +172,7 @@ export const Footer = () => {
                   key={label}
                   href={href}
                   target={href.startsWith("http") ? "_blank" : undefined}
-                  rel={
-                    href.startsWith("http") ? "noopener noreferrer" : undefined
-                  }
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                   className="touch-target flex items-center justify-center rounded-full border border-[#27390c]/15 bg-white/35 transition hover:-translate-y-0.5 hover:bg-white/70"
                   aria-label={label}
                 >
@@ -246,7 +219,7 @@ export const Footer = () => {
               className="shrink-0 text-[#6f3e33]"
               aria-hidden="true"
             />
-            اندیشه، استان تهران
+            {content.footer.locationText || settings.contact.address}
           </span>
           <a
             href={settings.contact.phoneUrl}
@@ -267,7 +240,7 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 py-5 text-xs text-[#27390c]/55 lg:flex-row lg:items-center lg:justify-between">
           <ul className="flex flex-wrap gap-x-5 gap-y-3">
             {legalLinks.map((link) => (
-              <li key={link.href}>
+              <li key={`${link.href}-${link.name}`}>
                 <Link
                   to={link.href}
                   className="font-bold transition hover:text-[#27390c]"
@@ -282,8 +255,10 @@ export const Footer = () => {
               © {currentYear} {settings.brand.name}. تمامی حقوق محفوظ است.
             </p>
             <p>
-              طراحی و توسعه توسط{" "}
-              <span className="font-black text-[#27390c]">SHINETHREE</span>
+              {content.footer.developerLabel}{" "}
+              <span className="font-black text-[#27390c]">
+                {content.footer.developerName}
+              </span>
             </p>
           </div>
         </div>
@@ -291,7 +266,7 @@ export const Footer = () => {
           className="select-none overflow-hidden text-center text-[clamp(2.6rem,9vw,8rem)] font-black leading-[0.72] tracking-[-0.075em] text-[#27390c]/[0.055]"
           aria-hidden="true"
         >
-          WINIMI BAKERY
+          {content.footer.watermark}
         </div>
       </div>
     </footer>
