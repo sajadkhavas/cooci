@@ -45,6 +45,7 @@ env:
   QUEUE_CONNECTION: sync
   MAIL_MAILER: array
   SMS_PROVIDER: testing
+  OTP_ENABLED: "true"
   OTP_EXPOSE_TEST_CODE: "true"
   OTP_RETRY_AFTER_SECONDS: "0"
   CHECKOUT_ENABLED: "true"
