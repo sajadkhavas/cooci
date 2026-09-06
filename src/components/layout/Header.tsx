@@ -26,9 +26,16 @@ interface NavLink {
   match: NavigationMatch;
 }
 
+const SHOP_NAVIGATION_INVARIANT = {
+  href: "/products",
+  match: "products",
+} as const satisfies { href: string; match: NavigationMatch };
+
 const navigationMatchFor = (href: string): NavigationMatch => {
   if (href === "/") return "home";
-  if (href === "/products") return "products";
+  if (href === SHOP_NAVIGATION_INVARIANT.href) {
+    return SHOP_NAVIGATION_INVARIANT.match;
+  }
   return "prefix";
 };
 
