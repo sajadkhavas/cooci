@@ -30,6 +30,7 @@ const files = {
   occasionSelector: "src/components/home/OccasionSelector.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   categoriesContent: "src/data/categoriesContent.ts",
+  storefrontContent: "src/lib/storefront-content.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
   urlPolicy: "src/lib/seo/url-policy.ts",
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
@@ -257,18 +258,28 @@ forbidText("header", 'href: "/categories"', "header category-index navigation");
 forbidText("footer", 'href: "/categories"', "footer category-index navigation");
 forbidText("footer", 'to="/categories"', "footer category-index CTA");
 
-for (const validPath of [
-  "/products/category/cookies",
-  "/products/category/mini-cookies",
-  "/products/category/diet-diabetic",
-  "/products/category/cakes",
-  "/products/category/cheesecakes",
-  "/products/category/pastry",
+requireText(
+  "footer",
+  "buildVisibleCatalogCategories",
+  "backend-authoritative footer category directory",
+);
+requireText(
+  "footer",
+  'href: `/products/category/${category.routeSlug}`',
+  "canonical footer category route builder",
+);
+for (const validSlug of [
+  "cookies",
+  "mini-cookies",
+  "diet-diabetic",
+  "cakes",
+  "cheesecakes",
+  "pastry",
 ]) {
   requireText(
-    "footer",
-    validPath,
-    `valid editorial category link ${validPath}`,
+    "categoriesContent",
+    `slug: "${validSlug}"`,
+    `editorial category fallback ${validSlug}`,
   );
 }
 requireText(
@@ -290,13 +301,27 @@ requireText("sitemap", "loadPosts", "authoritative blog sitemap source");
 requireText("urlPolicy", "LEGACY_EXACT_REDIRECTS", "central redirect registry");
 requireText("urlPolicy", '"noindex,follow"', "filtered page index policy");
 
-requireText("home", "طعم خوب برای", "product-led homepage H1");
+requireText(
+  "home",
+  "home.hero.titleLine1",
+  "backend-driven product-led homepage H1 renderer",
+);
+requireText(
+  "storefrontContent",
+  '"طعم خوب برای"',
+  "product-led homepage H1 fallback",
+);
 requireText("home", "<CategoryShowcase", "homepage category discovery");
 requireText("home", "<OccasionSelector", "occasion-led homepage component");
 requireText(
   "occasionSelector",
-  "برای چه لحظه‌ای انتخاب می‌کنی؟",
-  "occasion-led homepage section",
+  "occasion.title",
+  "backend-driven occasion-led homepage section renderer",
+);
+requireText(
+  "storefrontContent",
+  '"برای چه لحظه‌ای انتخاب می‌کنی؟"',
+  "occasion-led homepage section fallback",
 );
 forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
@@ -413,5 +438,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, canonical collections and the permanent legacy redirect.`,
+  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, Backend-authoritative storefront content, canonical collections and the permanent legacy redirect.`,
 );
