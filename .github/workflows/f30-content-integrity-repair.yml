@@ -1,0 +1,141 @@
+name: F30 Content Integrity Repair
+
+on:
+  push:
+    branches:
+      - 'phase-30-a/storefront-backend-authority'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-30-a/storefront-backend-authority
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Upgrade content-integrity audit to Backend Authority
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/audit-content-integrity.mjs')
+          text = path.read_text()
+
+          file_anchor = '  categoriesContent: "src/data/categoriesContent.ts",\n'
+          file_insert = file_anchor + '  storefrontContent: "src/lib/storefront-content.ts",\n'
+          if 'storefrontContent: "src/lib/storefront-content.ts"' not in text:
+              if file_anchor not in text:
+                  raise SystemExit('content audit file-map anchor missing')
+              text = text.replace(file_anchor, file_insert, 1)
+
+          old_footer = '''for (const validPath of [
+  "/products/category/cookies",
+  "/products/category/mini-cookies",
+  "/products/category/diet-diabetic",
+  "/products/category/cakes",
+  "/products/category/cheesecakes",
+  "/products/category/pastry",
+]) {
+  requireText(
+    "footer",
+    validPath,
+    `valid editorial category link ${validPath}`,
+  );
+}
+'''
+          new_footer = '''requireText(
+  "footer",
+  "buildVisibleCatalogCategories",
+  "backend-authoritative footer category directory",
+);
+requireText(
+  "footer",
+  'href: `/products/category/${category.routeSlug}`',
+  "canonical footer category route builder",
+);
+for (const validSlug of [
+  "cookies",
+  "mini-cookies",
+  "diet-diabetic",
+  "cakes",
+  "cheesecakes",
+  "pastry",
+]) {
+  requireText(
+    "categoriesContent",
+    `slug: "${validSlug}"`,
+    `editorial category fallback ${validSlug}`,
+  );
+}
+'''
+          if old_footer in text:
+              text = text.replace(old_footer, new_footer, 1)
+          elif new_footer not in text:
+              raise SystemExit('footer category audit block missing')
+
+          old_home = 'requireText("home", "طعم خوب برای", "product-led homepage H1");'
+          new_home = '''requireText(
+  "home",
+  "home.hero.titleLine1",
+  "backend-driven product-led homepage H1 renderer",
+);
+requireText(
+  "storefrontContent",
+  '"طعم خوب برای"',
+  "product-led homepage H1 fallback",
+);'''
+          if old_home in text:
+              text = text.replace(old_home, new_home, 1)
+          elif new_home not in text:
+              raise SystemExit('homepage H1 audit anchor missing')
+
+          old_occasion = '''requireText(
+  "occasionSelector",
+  "برای چه لحظه‌ای انتخاب می‌کنی؟",
+  "occasion-led homepage section",
+);'''
+          new_occasion = '''requireText(
+  "occasionSelector",
+  "occasion.title",
+  "backend-driven occasion-led homepage section renderer",
+);
+requireText(
+  "storefrontContent",
+  '"برای چه لحظه‌ای انتخاب می‌کنی؟"',
+  "occasion-led homepage section fallback",
+);'''
+          if old_occasion in text:
+              text = text.replace(old_occasion, new_occasion, 1)
+          elif new_occasion not in text:
+              raise SystemExit('occasion audit anchor missing')
+
+          path.write_text(text)
+          PY
+      - name: Verify upgraded audit
+        run: |
+          npm run audit:content
+          npm run typecheck
+          node scripts/audit-f30-storefront-authority.mjs
+      - name: Commit audit repair
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/audit-content-integrity.mjs
+          git commit -m 'test(f30): audit backend-driven content integrity'
+          git fetch origin phase-30-a/storefront-backend-authority
+          git rebase origin/phase-30-a/storefront-backend-authority
+          git push origin HEAD:phase-30-a/storefront-backend-authority
