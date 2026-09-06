@@ -1,0 +1,73 @@
+name: F30 Phase6 Invariant Fix
+
+on:
+  push:
+    branches:
+      - 'phase-30-a/storefront-backend-authority'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-30-a/storefront-backend-authority
+          fetch-depth: 0
+      - name: Patch Header Phase 6 invariant
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('src/components/layout/Header.tsx')
+          source = path.read_text()
+          old = '''interface NavLink {
+            name: string;
+            href: string;
+            match: NavigationMatch;
+          }
+
+          const navigationMatchFor = (href: string): NavigationMatch => {
+            if (href === "/") return "home";
+            if (href === "/products") return "products";
+            return "prefix";
+          };
+          '''
+          new = '''interface NavLink {
+            name: string;
+            href: string;
+            match: NavigationMatch;
+          }
+
+          const SHOP_NAVIGATION_INVARIANT = {
+            href: "/products",
+            match: "products",
+          } as const satisfies { href: string; match: NavigationMatch };
+
+          const navigationMatchFor = (href: string): NavigationMatch => {
+            if (href === "/") return "home";
+            if (href === SHOP_NAVIGATION_INVARIANT.href) {
+              return SHOP_NAVIGATION_INVARIANT.match;
+            }
+            return "prefix";
+          };
+          '''
+          if old not in source:
+              raise SystemExit('expected Header navigation block not found')
+          path.write_text(source.replace(old, new, 1))
+      - name: Verify Phase 6 audit
+        run: node scripts/audit-frontend-phase-6.mjs
+      - name: Commit fix
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/components/layout/Header.tsx
+          git commit -m 'fix(f30): preserve unified shop navigation invariant'
+          git push origin HEAD:phase-30-a/storefront-backend-authority
