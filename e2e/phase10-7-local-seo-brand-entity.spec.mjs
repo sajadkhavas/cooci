@@ -2,6 +2,12 @@ import { expect, test } from "@playwright/test";
 
 const frontendOrigin =
   process.env.PHASE18_FRONTEND_URL || "http://127.0.0.1:4173";
+const authoritativeNap = {
+  phone: "02100000000",
+  internationalPhone: "+982100000000",
+  email: "staging@winimi.test",
+  address: "محدوده اندیشه، استان تهران",
+};
 
 const extractJsonLd = (html) =>
   Array.from(
@@ -28,7 +34,7 @@ const expectNoInventedPhysicalLocation = (schemas) => {
 };
 
 test.describe("Phase 10.7 local SEO and brand entity", () => {
-  test("location hub exposes only published Laravel city pages and the stable brand entity", async ({ page, request }) => {
+  test("location hub exposes only published Laravel city pages and the backend-authoritative brand entity", async ({ page, request }) => {
     const response = await request.get("/locations");
     const html = await response.text();
     const schemas = extractJsonLd(html);
@@ -45,8 +51,8 @@ test.describe("Phase 10.7 local SEO and brand entity", () => {
     expect(organization).toMatchObject({
       "@id": `${frontendOrigin}/#organization`,
       name: "وینیمی بیکری",
-      telephone: "+989212508746",
-      email: "hello@winimibakery.com",
+      telephone: authoritativeNap.internationalPhone,
+      email: authoritativeNap.email,
     });
     expect(organization.address).toMatchObject({
       "@type": "PostalAddress",
@@ -80,6 +86,7 @@ test.describe("Phase 10.7 local SEO and brand entity", () => {
     const service = findSchema(schemas, "Service");
     const city = findSchema(schemas, "City");
     const webPage = findSchema(schemas, "WebPage");
+    const organization = findSchema(schemas, "Organization");
 
     expect(response.status()).toBe(200);
     expect(html).toContain(
@@ -90,9 +97,11 @@ test.describe("Phase 10.7 local SEO and brand entity", () => {
     });
     expect(service.areaServed).toEqual({ "@id": city["@id"] });
     expect(webPage.mainEntity).toEqual({ "@id": service["@id"] });
-    expect(html).toContain("محدوده اندیشه، استان تهران");
-    expect(html).toContain("09212508746");
-    expect(html).toContain("hello@winimibakery.com");
+    expect(organization.telephone).toBe(authoritativeNap.internationalPhone);
+    expect(organization.email).toBe(authoritativeNap.email);
+    expect(html).toContain(authoritativeNap.address);
+    expect(html).toContain(authoritativeNap.phone);
+    expect(html).toContain(authoritativeNap.email);
     expectNoInventedPhysicalLocation(schemas);
 
     await page.goto("/city/staging-tehran");
@@ -141,10 +150,11 @@ test.describe("Phase 10.7 local SEO and brand entity", () => {
     expect(contactPage.mainEntity).toEqual({
       "@id": `${frontendOrigin}/#organization`,
     });
-    expect(organization.telephone).toBe("+989212508746");
-    expect(html).toContain("09212508746");
-    expect(html).toContain("hello@winimibakery.com");
-    expect(html).toContain("محدوده اندیشه، استان تهران");
+    expect(organization.telephone).toBe(authoritativeNap.internationalPhone);
+    expect(organization.email).toBe(authoritativeNap.email);
+    expect(html).toContain(authoritativeNap.phone);
+    expect(html).toContain(authoritativeNap.email);
+    expect(html).toContain(authoritativeNap.address);
     expectNoInventedPhysicalLocation(schemas);
   });
 });
