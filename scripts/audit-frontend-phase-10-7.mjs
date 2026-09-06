@@ -18,6 +18,7 @@ const files = {
   contactPage: "src/pages/ContactPage.tsx",
   aboutPage: "src/pages/AboutPage.tsx",
   footer: "src/components/layout/Footer.tsx",
+  storefrontContent: "src/lib/storefront-content.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
   unit: "tests/unit/local-seo.test.ts",
   e2e: "e2e/phase10-7-local-seo-brand-entity.spec.mjs",
@@ -82,8 +83,8 @@ requireText("cityPage", "createCityLocalServiceSchema", "city service structured
 requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub");
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");
 requireText("aboutPage", "createAboutPageSchema", "AboutPage entity");
-requireText("footer", 'name: "مناطق ارسال"', "authoritative local hub label");
-requireText("footer", 'href: "/locations"', "authoritative local hub URL");
+requireText("footer", "content.footer.services", "backend-driven footer service group");
+requireText("storefrontContent", '["مناطق ارسال", "/locations"]', "authoritative local hub fallback contract");
 forbidText("footer", 'href: "/city/tehran"', "hard-coded Tehran city link");
 forbidText("footer", 'href: "/city/karaj"', "hard-coded Karaj city link");
 forbidText("footer", 'href: "/city/andisheh"', "hard-coded Andisheh city link");
@@ -115,5 +116,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 10.7 audit passed: stable brand entities, authoritative location hubs, city Service schemas, NAP consistency and local crawl gates are locked.",
+  "Frontend Phase 10.7 audit passed: stable brand entities, backend-driven location hub navigation, city Service schemas, NAP consistency and local crawl gates are locked.",
 );
