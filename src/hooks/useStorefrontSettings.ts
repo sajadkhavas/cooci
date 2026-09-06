@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { isBackendEnabled } from "@/lib/api";
 import { loadStoreSettings } from "@/lib/content";
+import { resolveStorefrontContent } from "@/lib/storefront-content";
 import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 
 export const STORE_SETTINGS_QUERY_KEY = ["store", "settings"] as const;
@@ -16,5 +17,6 @@ export const useStorefrontSettings = () => {
   return {
     query,
     settings: resolveStorefrontSettings(query.data),
+    content: resolveStorefrontContent(query.data),
   };
 };
