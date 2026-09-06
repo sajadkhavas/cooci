@@ -1,169 +1,136 @@
 # وضعیت مرجع پروژه وینیمی
 
-آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۵**  
+آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۶**  
 Project: **WINIMI / COOCI**  
-Repository: `sajadkhavas/cooci`  
+Frontend: `sajadkhavas/cooci`  
+Backend: `sajadkhavas/winimi-bakery-backend`  
 نقش این فایل: **مرجع شماره ۱ برای ادامه کار در هر چت جدید**
 
-> اگر چت جدید شروع شد، ابتدا همین فایل کامل خوانده شود. سپس `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`، `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md` و `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md` خوانده شوند. بعد Remote Git و Production به‌صورت read-only دوباره قفل شوند. هیچ مرحله‌ای از روی حافظه، `main` قدیمی یا Production تاریخی شروع نشود.
+> در چت جدید ابتدا این فایل، سپس `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md` و `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md` خوانده شوند. GitHub و در زمان رسیدن به Phase19B خود سرور باید دوباره read-only تأیید شوند. هیچ مرحله‌ای از روی `main` قدیمی یا checkpoint تاریخی Production شروع نشود.
 
 ## CURRENT_STATUS
 
 ```text
 PROJECT=WINIMI_COOCI
-CURRENT_PHASE=F29S_SEO_CONTENT_STRATEGY_AUTHORITY
-CURRENT_SUBPHASE=F29S_A_KEYWORD_INTELLIGENCE
 PHASE28=COMPLETED_MERGED_REGISTERED
-F29S=REGISTERED_NEXT
-PHASE28_PRODUCTION_DEPLOYMENT=NOT_RECORDED_AS_COMPLETE
+F29S=PASS_MERGED_REGISTERED_CLOSED
+F29=PASS_MERGED_REGISTERED
+CURRENT_PHASE=F30_MAINLINE_GIT_STACK_CLOSURE
 FINAL_DELIVERY=NOT_COMPLETE
+PRODUCTION_MUTATION=NO
+DEPLOY_PERFORMED_FOR_F29S_F29=NO
 ```
 
-## Phase 28 — بسته‌شده
+## F29S — SEO Content Strategy & Topical Authority
 
-- Phase: `Phase 28 — SEO Route Architecture`
-- Status: **COMPLETED / MERGED / REGISTERED**
-- Branch: `phase-28/seo-route-architecture`
-- START_SHA: `ca64abb286a54190cba11bcffd61fa61cd7992e4`
-- Final exact CI head: `26c5ef080b910b9b6cf7177cae401e7fe48bb180`
-- PR: `#37`
-- Merge SHA into Phase 27: `76085a078e3068be479461582258a828f32496c6`
-- Closure record: `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md`
+- Status: **DONE / MERGED / REGISTERED / TRACKER CLOSED**
+- Frontend integration head before F29: `2cddf69e3a5e550b5acfff4729beffcb81a0ccea`
+- Backend F29S integration head before F29: `ff6ad79c5c3ef1ffc69f77023a37a0a261ded8b0`
+- Tracker: `cooci#38` — CLOSED / COMPLETED
+- Production deployment: **NO**
 
-Exact-head release gates before merge:
+## F29 — Google Login & Auth Closure
 
-- Frontend CI `#1479` — PASS
-- Phase 8 Deployment Readiness `#591` — PASS
-- Phase 18 End-to-End Acceptance `#459` — PASS
-- Phase 19 Production Package `#26` — PASS
+- Status: **PASS / MERGED / REGISTERED**
+- Tracker: `cooci#48`
+- Closure record: `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
 
-Phase 28 به‌تنهایی هنوز با evidence زنده‌ی سرور به‌عنوان deploy نهایی ثبت نشده است.
+### Frontend evidence
 
-## تصمیم جدید SEO پس از Phase 28
+- Base: `2cddf69e3a5e550b5acfff4729beffcb81a0ccea`
+- Exact implementation head: `55fdb43c8a7e43186ffe89139739de7e3c7bfdf7`
+- PR: `#49` — MERGED
+- F29 Auth Closure: run `34041798526` — SUCCESS
+- Full Frontend CI: run `34041798547` — SUCCESS
+- F29S SEO regression: run `34041798554` — SUCCESS
+- Merge SHA into `phase-29s/seo-content-strategy-authority`: `3539938dff37d788b11a532097145a2e87569915`
 
-کاربر در ۲۰۲۶-۰۹-۰۵ تأیید کرد که قبل از Google Login یک فاز مستقل برای Content SEO اضافه شود، چون Phase 28 بیشتر Technical SEO/Route Architecture را بسته بود و بخش‌های زیر هنوز کامل نبودند:
+### Backend evidence
 
-- Keyword Research داده‌محور بازار فارسی
-- Keyword-to-URL mapping
-- Guide/Article content واقعی
-- Topic Clusters و Topical Authority
-- Commercial page keyword validation
-- Product SEO audit
-- Local/Merchant/Trust content decisions
-- Internal-link graph و Cannibalization control
-- Measurement/Search Console plan
+- Base: `ff6ad79c5c3ef1ffc69f77023a37a0a261ded8b0`
+- Exact implementation head: `1bc34ade42b964351b517df9c94c7a79dbbfb781`
+- PR: `#14` — MERGED
+- F29 Auth Closure: run `34041754511` — SUCCESS
+- F29S Content regression: run `34041754498` — SUCCESS
+- F29S Trust regression: run `34041754502` — SUCCESS
+- Merge SHA into `phase-29s/seo-content-strategy-authority`: `6c6874dfe3d616f8523601a83b0d2427b1b7f3ee`
+- Composer security audit: PASS
+- `livewire/livewire`: upgraded from vulnerable `3.8.2` to patched `3.8.3`
 
-فاز ثبت‌شده:
+### Auth invariants locked by F29
 
-`F29S — SEO Content Strategy & Topical Authority`
-
-مرجع رسمی:
-
-`docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
-
-F29S Phase 28 را reopen نمی‌کند؛ لایه بعدی SEO است.
+1. Google identity key is provider `sub`, not email.
+2. Existing accounts are never auto-linked merely because email/phone matches.
+3. OAuth state validation is mandatory; no stateless bypass.
+4. Google credentials remain server-env only; Frontend has no `VITE_GOOGLE_*` credentials.
+5. New Google customers complete Iranian mobile; `mobile_verified_at` remains NULL until real OTP.
+6. OTP infrastructure is preserved behind `OTP_ENABLED`, default fail-closed/off.
+7. Production Google credential activation belongs to Phase20.
+8. No Production mutation or deployment occurred in F29.
 
 ## Git stack فعلی
 
-- Integration branch: `phase-27/cross-project-design-synthesis`
-- PR `#36` هنوز **OPEN / DRAFT** است.
-- PR #36 base: `phase-26/uir1-home-navigation-redesign`
-- Phase 27 شامل Phase 28 merge‌شده و مستندات F29S است، اما زنجیره نهایی هنوز به `main` بسته نشده است.
-- بنابراین تا F30، `main` منبع نهایی release نیست.
+- Frontend F29/F29S source is integrated on `phase-29s/seo-content-strategy-authority`.
+- Backend F29/F29S source is integrated on `phase-29s/seo-content-strategy-authority`.
+- Frontend PR `#36` (`phase-27/cross-project-design-synthesis` → `phase-26/uir1-home-navigation-redesign`) remains OPEN / DRAFT and is intentionally handled in F30.
+- Frontend `main` and Backend `main` are still old release baselines; they are **not** the final source yet.
+- F30 must reconcile and close the complete Phase26/27/28/F29S/F29 stack to clean final `main` heads with exact-head CI.
 
-## Production — آخرین وضعیت تاریخی ثبت‌شده
+## Production — historical checkpoint only
 
-Frontend آخرین baseline تاریخی تأییدشده:
+Frontend historical release:
 
-- Release: `/var/www/winimi/frontend/releases/bab4c34db478713465d1`
+- `/var/www/winimi/frontend/releases/bab4c34db478713465d1`
 - Source SHA: `d9e44edc13c24427c2f4741b19ac4db98f257160`
-- Service: `winimi-frontend.service`
 
-Backend آخرین baseline تاریخی تأییدشده:
+Backend historical release:
 
-- Release: `/var/www/winimi/backend/releases/eb002a6d5f093e7780d3`
+- `/var/www/winimi/backend/releases/eb002a6d5f093e7780d3`
 - Source SHA: `eb002a6d5f093e7780d3cf6333b3e5f83f96e57b`
 
-این مقادیر فقط checkpoint تاریخی هستند. قبل از هر Production mutation باید `current`, process CWD, service state, health/ready و Git SHA دوباره از خود سرور خوانده شوند.
-
-## تصمیم‌های قطعی Auth
-
-1. تحویل Auth با **Google Login** انجام می‌شود.
-2. OTP حذف نمی‌شود.
-3. OTP تا آماده‌شدن provider کارفرما با Feature Flag امن غیرفعال می‌ماند.
-4. کاربر جدید Google باید شماره موبایل ایران را تکمیل کند.
-5. تا OTP واقعی، `phone_verified_at` خالی می‌ماند.
-6. Account linking صرفاً با email/phone مشابه خودکار انجام نمی‌شود؛ flow امن لازم است.
-7. OAuth/Kavenegar credentials فقط متعلق به کارفرما و خارج از Git هستند.
+این‌ها فقط checkpoint تاریخی‌اند. قبل از هر mutation در Phase19B باید `current`, process CWD, systemd state, health/ready, Git SHA، DB/media persistence و backup state از خود سرور read-only دوباره تأیید شوند.
 
 ## FINAL DELIVERY ROADMAP
 
-مرجع کامل زیرمرحله‌ها:
-
-`docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`
-
-**شش فاز اجرایی باقی مانده:**
-
-1. **F29S — SEO Content Strategy & Topical Authority**
-2. **F29 — Google Login & Auth Closure**
-3. **F30 — Mainline / Git Stack Closure**
-4. **Phase 19B — Live Server Execution**
-5. **Phase 20 — External Activation**
-6. **F31 — Final Acceptance & Handoff**
-
-ترتیب قطعی:
+ترتیب باقی‌مانده:
 
 ```text
-F29S -> F29 -> F30 -> Phase19B -> Phase20 -> F31
+F30 -> Phase19B -> Phase20 -> F31
 ```
+
+### F30 — Mainline / Git Stack Closure
+
+هدف:
+
+- freeze کردن source نهایی Frontend/Backend؛
+- بستن stack باز Phase26/27/28/F29S/F29؛
+- حل conflict فقط به‌صورت surgical؛
+- اجرای exact-head Frontend CI + Phase8 + Phase18 + Phase19 package؛
+- اجرای Backend quality/security gates؛
+- merge نهایی source به `main` هر دو repository؛
+- ثبت END_SHA / PR / run IDs / hashes؛
+- بدون Production mutation.
+
+پس از F30 فقط source قابل بازتولید روی `main` داریم؛ Deploy واقعی در Phase19B انجام می‌شود.
 
 ## CURRENT_NEXT_ACTION
 
-**شروع F29S-A — Keyword Intelligence & Competitor/SERP Research.**
-
-ترتیب F29S:
-
-1. Keyword Intelligence بازار فارسی/ایران.
-2. Search Intent classification.
-3. SERP/competitor evidence.
-4. Keyword-to-URL map تمام صفحات indexable.
-5. Topic Cluster architecture.
-6. Guide/Article foundation و انتشار حداقل یک Cluster واقعی اولویت‌دار.
-7. اتصال Home Editorial Guides به مقصدهای اختصاصی واقعی.
-8. Commercial page SEO validation.
-9. Product SEO audit.
-10. Local/Merchant/Trust content decisions.
-11. Internal-link graph + Cannibalization gate.
-12. Crawl/SSR/SEO/CI acceptance.
-13. PR/Merge/Register.
-
-### شرط مهم F29S
-
-فاز با صرفاً تهیه یک لیست کلمه بسته نمی‌شود. برای Closure باید حداقل یک Topic Cluster واقعی با محتوای منتشرشده و supporting guideهای لازم فعال باشد و کارت‌های راهنمای Home دیگر به placeholder عمومی `/blog` ختم نشوند.
-
-بعد از F29S، F29 Google Login اجرا می‌شود. پس از F29، F30 stack باز Phase 26/27/28/F29S/Auth را تا `main` می‌بندد و سپس فقط یک release نهایی تمیز از `main` به Production می‌رود، مگر اینکه کاربر صراحتاً interim deployment بخواهد.
-
-## فایل‌هایی که چت بعدی باید بخواند
-
-به این ترتیب:
-
-1. `WINIMI_PROJECT_STATUS_FA.md` ← وضعیت لحظه‌ای و NEXT
-2. `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md` ← تمام فازهای باقی‌مانده و Gateها
-3. `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md` ← Scope کامل فاز فعلی SEO Content
-4. `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md` ← آخرین فاز SEO فنی بسته‌شده
-5. `docs/WINIMI_LIVING_HANDOFF_FA.md` ← تاریخچه فنی/تصمیم‌های پروژه
-6. `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md` ← مرجع رسمی Deploy سرور هنگام رسیدن به 19B
-
-## متن آماده برای چت جدید
-
 ```text
-پروژه WINIMI / COOCI را ادامه بده.
-Repository: sajadkhavas/cooci
-ابتدا فایل WINIMI_PROJECT_STATUS_FA.md را کامل بخوان.
-بعد docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md و docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md را بخوان.
-سپس Git remote/PR stack و Production را read-only دوباره تأیید کن و دقیقاً از CURRENT_NEXT_ACTION ادامه بده.
-هیچ فازی را Done اعلام نکن مگر CI/Merge/Registration/Production evidence مربوط به آن واقعاً کامل شده باشد.
+NEXT=F30_MAINLINE_GIT_STACK_CLOSURE
+PRODUCTION_MUTATION_ALLOWED=NO
 ```
+
+F30 باید ابتدا Git stack هر دو repository را read-only دوباره audit کند، سپس final integration heads را freeze و stack را تا `main` ببندد. PR #36 در همین فاز تعیین تکلیف می‌شود. هیچ deployment زودهنگام انجام نشود.
+
+## فایل‌های مرجع چت بعدی
+
+1. `WINIMI_PROJECT_STATUS_FA.md`
+2. `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`
+3. `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
+4. `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
+5. `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md`
+6. `docs/WINIMI_LIVING_HANDOFF_FA.md`
+7. `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md`
 
 ## Final delivery marker
 
