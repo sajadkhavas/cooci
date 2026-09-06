@@ -39,14 +39,8 @@ jobs:
       - name: Run deterministic F29S closure audit
         run: node scripts/audit-f29s-closure.mjs
 
-      - name: Run focused SEO unit gates
-        run: >-
-          node --test --import tsx
-          tests/unit/f29s-internal-linking.test.ts
-          tests/unit/editorial-guide-links.test.ts
-          tests/unit/commercial-content-seo.test.ts
-          tests/unit/product-merchant-schema.test.ts
-          tests/unit/seo-url-policy.test.ts
+      - name: Run unit gates
+        run: npm run test:unit
 
       - name: Typecheck
         run: npm run typecheck
