@@ -88,6 +88,7 @@ update("src/pages/ContactPage.tsx", (source) => {
 
 update("src/pages/FAQPage.tsx", (source) => {
   let next = source;
+  next = replaceOnce(next, 'import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', 'import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', "FAQ remove static brand import");
   next = replaceOnce(next, 'import { SEO } from "@/components/SEO";\n', 'import { SEO } from "@/components/SEO";\nimport { usePublicShellContent } from "@/hooks/usePublicShellContent";\n', "FAQ shell import");
   next = replaceOnce(next, '  const [openId, setOpenId] = useState<number | null>(null);\n', '  const [openId, setOpenId] = useState<number | null>(null);\n  const shell = usePublicShellContent().faq;\n', "FAQ shell binding");
   const pairs = [
@@ -111,7 +112,7 @@ update("src/pages/GalleryPage.tsx", (source) => {
     ['title="گالری"', 'title={shell.metaTitle}'],
     ['description="تصاویر منتشرشده وینیمی از منبع محتوای فروشگاه."', 'description={shell.metaDescription}'],
     ['<h1 className="heading-1">گالری تصاویر</h1>', '<h1 className="heading-1">{shell.heading}</h1>'],
-    ['              تصاویر مدیریت‌شده محصولات، بسته‌بندی و فرآیند آماده‌سازی', '              {shell.intro}'],
+    ['            تصاویر مدیریت‌شده محصولات، بسته‌بندی و فرآیند آماده‌سازی', '            {shell.intro}'],
   ]) next = replaceOnce(next, oldValue, newValue, `Gallery ${oldValue}`);
   return next;
 });
