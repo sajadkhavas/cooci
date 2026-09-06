@@ -16,6 +16,8 @@ const files = {
   homeColdGallery: "src/components/home/HomeColdGallery.tsx",
   products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
+  categoriesContent: "src/data/categoriesContent.ts",
+  storefrontContent: "src/lib/storefront-content.ts",
   homeProductRail: "src/components/home/HomeProductRail.tsx",
   productCard: "src/components/ProductCard.tsx",
   reveal: "src/components/motion/Reveal.tsx",
@@ -107,17 +109,33 @@ forbidText(
   "duplicate category-index navigation",
 );
 
-for (const validPath of [
-  "/products",
-  "/products/category/diet-diabetic",
-  "/products/category/cakes",
-]) {
-  requireText("footer", validPath, `valid modern footer link ${validPath}`);
+requireText(
+  "footer",
+  "buildVisibleCatalogCategories",
+  "backend-authoritative modern footer category directory",
+);
+requireText(
+  "footer",
+  'href: `/products/category/${category.routeSlug}`',
+  "canonical modern footer category route builder",
+);
+for (const validSlug of ["diet-diabetic", "cakes"]) {
+  requireText(
+    "categoriesContent",
+    `slug: "${validSlug}"`,
+    `modern footer editorial category fallback ${validSlug}`,
+  );
 }
+requireText("footer", "content.footer.watermark", "backend-driven editorial footer wordmark renderer");
+requireText("storefrontContent", '"WINIMI BAKERY"', "editorial footer wordmark fallback");
 forbidText("footer", 'to="/categories"', "duplicate category-index footer CTA");
 forbidText("footer", 'href: "/categories"', "duplicate category-index footer link");
-requireText("footer", "WINIMI BAKERY", "editorial footer wordmark");
-requireText("gift", 'to="/products"', "gift page safe shop fallback CTA");
+requireText("gift", "gift.primary.href", "backend-driven gift page safe shop CTA renderer");
+requireText(
+  "storefrontContent",
+  'internalPath(settings, ["gift", "hero_primary_href"], "/products")',
+  "gift page safe shop fallback CTA",
+);
 forbidText(
   "gift",
   "/products/category/gift-boxes",
@@ -129,7 +147,6 @@ for (const requirement of [
   "<DraggableMarquee",
   "<CategoryShowcase",
   "<OccasionSelector",
-  "طعم خوب برای",
   "product-rail-background.webp",
   "<HomeProductRail",
   "rgba(255, 253, 247, 0.58)",
@@ -139,7 +156,6 @@ for (const requirement of [
   "aspect-[4/3.15]",
   "text-[#667c22]",
   "lg:max-w-[12ch]",
-  "مشاهده محصولات",
 ]) {
   requireText(
     "home",
@@ -147,10 +163,15 @@ for (const requirement of [
     `modern product-led homepage contract: ${requirement}`,
   );
 }
+requireText("home", "home.hero.titleLine1", "backend-driven modern homepage title renderer");
+requireText("home", "home.hero.primary.label", "backend-driven modern homepage primary CTA renderer");
+requireText("storefrontContent", '"طعم خوب برای"', "modern product-led homepage title fallback");
+requireText("storefrontContent", '"مشاهده محصولات"', "modern homepage primary CTA fallback");
+
 for (const requirement of [
-  "const occasions",
+  "occasion.items",
+  "occasion.title",
   "modern-section-title",
-  "برای چه لحظه‌ای انتخاب می‌کنی؟",
   "aria-pressed={active}",
 ]) {
   requireText(
@@ -159,6 +180,11 @@ for (const requirement of [
     `modern occasion-selector contract: ${requirement}`,
   );
 }
+requireText(
+  "storefrontContent",
+  '"برای چه لحظه‌ای انتخاب می‌کنی؟"',
+  "modern occasion-selector title fallback",
+);
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage message");
 forbidText("home", "وضعیت داده", "developer-facing homepage message");
 forbidText("home", 'to="/categories"', "standalone category-index link");
@@ -313,5 +339,5 @@ if (errors.length) {
 }
 
 console.log(
-  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including one category-aware shop UI.`,
+  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including Backend-driven storefront copy and one category-aware shop UI.`,
 );
