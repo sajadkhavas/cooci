@@ -1,4 +1,4 @@
-import { FormEvent, useRef, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Loader2, Phone, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { isValidIranianMobile, normalizeMobile } from "@/lib/auth";
