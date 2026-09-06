@@ -16,6 +16,7 @@ export const useStorefrontSettings = () => {
 
   return {
     query,
+    payload: query.data,
     settings: resolveStorefrontSettings(query.data),
     content: resolveStorefrontContent(query.data),
   };
