@@ -6,6 +6,7 @@ import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { BlogPostCard } from "@/components/content/BlogPostCard";
 import { ContentTopicNav } from "@/components/content/ContentTopicNav";
 import { SEO } from "@/components/SEO";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import { brandConfig } from "@/config/brand";
 import { isBackendEnabled } from "@/lib/api";
 import { loadPosts } from "@/lib/content";
@@ -30,6 +31,7 @@ const parsePage = (value: string | null) => {
 
 const BlogListPage = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const shell = usePublicShellContent().blogIndex;
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parsePage(searchParams.get("page"));
   const initialPosts =
@@ -57,9 +59,8 @@ const BlogListPage = () => {
     setSearchParams(next);
   };
 
-  const title = "راهنماهای وینیمی";
-  const description =
-    "مقاله‌های منتشرشده وینیمی در موضوعات واقعی فروشگاه برای انتخاب، سفارش و نگهداری آگاهانه‌تر.";
+  const title = shell.heading;
+  const description = shell.intro;
   const schemaPath = page <= 1 ? "/blog" : `/blog?page=${page}`;
   const schema = createBlogCollectionSchema({
     siteOrigin: SITE_ORIGIN,
@@ -73,8 +74,8 @@ const BlogListPage = () => {
   return (
     <>
       <SEO
-        title={title}
-        description={description}
+        title={shell.metaTitle}
+        description={shell.metaDescription}
         schema={schema}
         robots={indexability.indexable ? undefined : indexability.robots}
       />

@@ -12,6 +12,7 @@ import {
   StructuredText,
 } from "@/components/content/StructuredText";
 import { SEO } from "@/components/SEO";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import { brandConfig } from "@/config/brand";
 import { ApiError, isBackendEnabled } from "@/lib/api";
 import { loadContentPage } from "@/lib/content";
@@ -41,6 +42,7 @@ export const ManagedContentPage = ({
   schema?: object | object[];
 }) => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const shell = usePublicShellContent().managedPage;
   const initialContentPage =
     loaderData?.contentPage?.slug === slug ? loaderData.contentPage : undefined;
   const query = useQuery({
@@ -238,7 +240,7 @@ export const ManagedContentPage = ({
 
             <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5">
               <h2 className="text-base font-black text-foreground">
-                مسیرهای مرتبط
+                {shell.relatedTitle}
               </h2>
               <div className="mt-4 grid gap-3">
                 <Link
@@ -246,14 +248,14 @@ export const ManagedContentPage = ({
                   className="flex min-h-11 items-center gap-3 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground"
                 >
                   <ShoppingBag size={17} aria-hidden="true" />
-                  مشاهده محصولات
+                  {shell.productsLabel}
                 </Link>
                 <Link
                   to="/contact"
                   className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-black text-foreground transition hover:border-primary/30 hover:text-primary"
                 >
                   <Headphones size={17} aria-hidden="true" />
-                  تماس با پشتیبانی
+                  {shell.contactLabel}
                 </Link>
               </div>
             </div>
@@ -266,11 +268,10 @@ export const ManagedContentPage = ({
           <div className="overflow-hidden rounded-[2rem] bg-primary px-6 py-8 text-primary-foreground shadow-soft sm:px-9 md:flex md:items-center md:justify-between md:gap-8">
             <div>
               <h2 className="text-2xl font-black leading-10">
-                درباره محصولات یا شرایط سفارش سؤال دارید؟
+                {shell.finalTitle}
               </h2>
               <p className="mt-2 max-w-2xl leading-8 text-primary-foreground/75">
-                اطلاعات نهایی هر محصول و وضعیت سفارش را پیش از ثبت درخواست بررسی
-                کنید.
+                {shell.finalDescription}
               </p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-0 md:shrink-0">
@@ -278,13 +279,13 @@ export const ManagedContentPage = ({
                 to="/contact"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary-foreground px-6 py-3 font-black text-primary"
               >
-                ارتباط با وینیمی
+                {shell.finalContactLabel}
               </Link>
               <Link
                 to="/products"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-primary-foreground/25 px-6 py-3 font-black text-primary-foreground transition hover:bg-primary-foreground/10"
               >
-                ورود به فروشگاه
+                {shell.finalShopLabel}
               </Link>
             </div>
           </div>

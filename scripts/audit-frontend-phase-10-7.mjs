@@ -19,6 +19,7 @@ const files = {
   aboutPage: "src/pages/AboutPage.tsx",
   footer: "src/components/layout/Footer.tsx",
   storefrontContent: "src/lib/storefront-content.ts",
+  publicShellContent: "src/lib/public-shell-content.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
   unit: "tests/unit/local-seo.test.ts",
   e2e: "e2e/phase10-7-local-seo-brand-entity.spec.mjs",
@@ -78,7 +79,8 @@ requireText("loaders", "loadLocationsPublicData", "location hub SSR loader");
 requireText("loaders", "getCityPagePath(city.slug)", "authoritative city canonical redirect");
 requireText("publicSsr", "cities?: StoreCityPage[]", "typed city collection SSR payload");
 requireText("locationsPage", "createLocationsCollectionSchema", "location hub structured data");
-requireText("locationsPage", "وجود شعبه فیزیکی", "visible no-branch clarification");
+requireText("locationsPage", "shell.brandInfoDescription", "backend-driven no-branch clarification renderer");
+requireText("publicShellContent", "وجود صفحه شهر به معنی وجود شعبه فیزیکی در آن شهر نیست.", "no-branch clarification fallback");
 requireText("cityPage", "createCityLocalServiceSchema", "city service structured data");
 requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub");
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");

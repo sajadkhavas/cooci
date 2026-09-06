@@ -10,6 +10,7 @@ import { Link } from "react-router";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { SEO } from "@/components/SEO";
 import { brandConfig } from "@/config/brand";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { createContactPageSchema } from "@/lib/seo/local-seo";
 
@@ -26,22 +27,22 @@ const SITE_ORIGIN = (() => {
 
 const ContactPage = () => {
   const { settings } = useStorefrontSettings();
+  const shell = usePublicShellContent().contact;
 
   return (
     <>
       <SEO
-        title="تماس با ما"
-        description="راه‌های ارتباط رسمی با وینیمی و فرم امن ثبت درخواست پشتیبانی و همکاری."
+        title={shell.metaTitle}
+        description={shell.metaDescription}
         url="/contact"
         schema={createContactPageSchema(SITE_ORIGIN)}
       />
 
       <section className="bg-secondary/50 py-10 sm:py-12">
         <div className="container-custom text-center">
-          <h1 className="heading-1 text-foreground">تماس با ما</h1>
+          <h1 className="heading-1 text-foreground">{shell.heading}</h1>
           <p className="body-large mx-auto mt-4 max-w-2xl text-muted-foreground">
-            برای پشتیبانی، همکاری یا پیگیری، درخواست خود را ثبت کنید تا در پنل
-            فروشگاه قابل پیگیری باشد.
+            {shell.intro}
           </p>
         </div>
       </section>
@@ -57,7 +58,7 @@ const ContactPage = () => {
                   aria-hidden="true"
                 />
                 <div className="min-w-0">
-                  <h2 className="font-semibold">تلفن رسمی</h2>
+                  <h2 className="font-semibold">{shell.phoneTitle}</h2>
                   <a
                     href={settings.contact.phoneUrl}
                     className="touch-target inline-flex items-center font-medium text-primary hover:underline"
@@ -74,7 +75,7 @@ const ContactPage = () => {
                   aria-hidden="true"
                 />
                 <div className="min-w-0">
-                  <h2 className="font-semibold">ایمیل رسمی</h2>
+                  <h2 className="font-semibold">{shell.emailTitle}</h2>
                   <a
                     href={`mailto:${settings.contact.email}`}
                     className="touch-target inline-flex items-center font-medium text-primary hover:underline"
@@ -91,7 +92,7 @@ const ContactPage = () => {
                   aria-hidden="true"
                 />
                 <div className="min-w-0">
-                  <h2 className="font-semibold">محدوده اعلام‌شده برند</h2>
+                  <h2 className="font-semibold">{shell.locationTitle}</h2>
                   <p className="mt-1 leading-7 text-muted-foreground">
                     {settings.contact.address}
                   </p>
@@ -101,7 +102,7 @@ const ContactPage = () => {
                     rel="noopener noreferrer"
                     className="touch-target mt-1 inline-flex items-center text-sm font-medium text-primary hover:underline"
                   >
-                    مشاهده محدوده در نقشه
+                    {shell.mapLabel}
                   </a>
                 </div>
               </article>
@@ -112,7 +113,7 @@ const ContactPage = () => {
                   aria-hidden="true"
                 />
                 <div className="min-w-0">
-                  <h2 className="font-semibold">ساعات پاسخ‌گویی</h2>
+                  <h2 className="font-semibold">{shell.hoursTitle}</h2>
                   <p className="mt-1 leading-7 text-muted-foreground">
                     شنبه تا پنج‌شنبه: {settings.contact.workingHours.weekdays}
                   </p>
@@ -120,8 +121,7 @@ const ContactPage = () => {
                     جمعه: {settings.contact.workingHours.weekends}
                   </p>
                   <p className="mt-2 text-xs leading-6 text-muted-foreground">
-                    بازه دقیق و ثابت اعلام نشده است؛ هماهنگی از مسیرهای رسمی
-                    انجام می‌شود.
+                    {shell.hoursNote}
                   </p>
                 </div>
               </article>
@@ -130,14 +130,14 @@ const ContactPage = () => {
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-4 text-center font-bold hover:bg-secondary"
               >
                 <MapPin size={20} aria-hidden="true" />
-                مناطق منتشرشده ارسال
+                {shell.locationsCtaLabel}
               </Link>
               <Link
                 to="/products"
                 className="btn-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-center font-bold"
               >
                 <ShoppingBag size={20} aria-hidden="true" />
-                شروع سفارش از فروشگاه
+                {shell.shopCtaLabel}
               </Link>
               <a
                 href={settings.contact.instagramUrl}
@@ -146,16 +146,16 @@ const ContactPage = () => {
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-4 font-bold hover:bg-secondary"
               >
                 <Instagram size={20} aria-hidden="true" />
-                اینستاگرام رسمی
+                {shell.instagramLabel}
               </a>
             </div>
 
             <InquiryForm
               type="contact"
-              title="ثبت درخواست تماس"
-              description="پیام شما در بک‌اند ذخیره می‌شود و تیم فروشگاه می‌تواند آن را در پنل مدیریت بررسی و پیگیری کند."
-              subjectLabel="موضوع درخواست"
-              messageLabel="پیام شما"
+              title={shell.inquiryTitle}
+              description={shell.inquiryDescription}
+              subjectLabel={shell.inquirySubjectLabel}
+              messageLabel={shell.inquiryMessageLabel}
             />
           </div>
         </div>

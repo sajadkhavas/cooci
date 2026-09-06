@@ -34,6 +34,7 @@ import {
 } from "@/data/categoriesContent";
 import { useCatalogProducts } from "@/hooks/useCatalog";
 import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import type { CatalogQuery } from "@/lib/catalog-api";
 import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
@@ -92,6 +93,7 @@ export const loader = ({ request, params }: LoaderFunctionArgs) => {
 const ProductsPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const shell = usePublicShellContent().catalog;
   const { categories, landings, isLoading: categoriesLoading } = useCatalogDirectory();
   const fallbackContent = slug ? getCategoryContent(slug) : undefined;
   const content = slug
@@ -189,28 +191,36 @@ const ProductsPage = () => {
     });
   };
 
-  const name = isFilteredEditorialCategory
-    ? content?.name || "محصولات وینیمی"
-    : backendCategory?.name || content?.name || "محصولات وینیمی";
-  const heading = isFilteredEditorialCategory
-    ? content?.heading || name
-    : backendCategory?.name || content?.heading || name;
-  const intro = isFilteredEditorialCategory
-    ? content?.intro || "محصولات این مجموعه را بررسی کن."
-    : backendCategory?.description ||
-      content?.intro ||
-      "محصول موردنظرت را با دسته‌بندی، جست‌وجو، مرتب‌سازی و فیلترهای فروشگاه پیدا کن.";
-  const seoTitle = isFilteredEditorialCategory
-    ? content?.seoTitle || name
-    : backendCategory?.seo.title ||
-      content?.seoTitle ||
-      (backendCategory ? `خرید ${backendCategory.name}` : "محصولات");
-  const seoDescription = isFilteredEditorialCategory
-    ? content?.seoDescription || intro
-    : backendCategory?.seo.description ||
-      backendCategory?.description ||
-      content?.seoDescription ||
-      "مشاهده، جست‌وجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور.";
+  const name = slug
+    ? isFilteredEditorialCategory
+      ? content?.name || shell.heading
+      : backendCategory?.name || content?.name || shell.heading
+    : shell.heading;
+  const heading = slug
+    ? isFilteredEditorialCategory
+      ? content?.heading || name
+      : backendCategory?.name || content?.heading || name
+    : shell.heading;
+  const intro = slug
+    ? isFilteredEditorialCategory
+      ? content?.intro || shell.intro
+      : backendCategory?.description || content?.intro || shell.intro
+    : shell.intro;
+  const seoTitle = slug
+    ? isFilteredEditorialCategory
+      ? content?.seoTitle || name
+      : backendCategory?.seo.title ||
+        content?.seoTitle ||
+        (backendCategory ? `خرید ${backendCategory.name}` : shell.metaTitle)
+    : shell.metaTitle;
+  const seoDescription = slug
+    ? isFilteredEditorialCategory
+      ? content?.seoDescription || intro
+      : backendCategory?.seo.description ||
+        backendCategory?.description ||
+        content?.seoDescription ||
+        shell.metaDescription
+    : shell.metaDescription;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -288,8 +298,8 @@ const ProductsPage = () => {
           <div className="container-custom">
             <CategoryShowcase
               showAllLink={false}
-              title="دسته را انتخاب کن یا با فیلترها میان همه محصولات بگرد"
-              description="هر دسته یک URL مستقل و قابل اشتراک دارد، اما انتخاب، فیلتر، مرتب‌سازی و محصولات همگی داخل همین فروشگاه باقی می‌مانند."
+              title={shell.categoriesTitle}
+              description={shell.categoriesDescription}
             />
           </div>
         </section>
@@ -313,7 +323,7 @@ const ProductsPage = () => {
                       : "shrink-0 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground transition hover:bg-muted"
                   }
                 >
-                  همه محصولات
+                  {shell.allProductsLabel}
                 </Link>
                 {categoryNavigation.map((category) => {
                   const isActive = slug === category.routeSlug;

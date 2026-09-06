@@ -3,6 +3,8 @@ import { Loader2, Quote, ShieldCheck } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SEO } from "@/components/SEO";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { brandConfig } from "@/config/brand";
 import { isBackendEnabled } from "@/lib/api";
 import { loadReviewWall } from "@/lib/content";
@@ -11,6 +13,8 @@ import { resolveConditionalContentIndexability } from "@/lib/seo/content-indexab
 
 const ReviewsPage = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const shell = usePublicShellContent().reviews;
+  const { settings } = useStorefrontSettings();
 
   const reviewQuery = useQuery({
     queryKey: ["store", "review-wall"],
@@ -35,7 +39,7 @@ const ReviewsPage = () => {
     ? {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: brandConfig.brandName,
+        name: settings.brand.name,
         aggregateRating: {
           "@type": "AggregateRating",
           ratingValue: average.toFixed(2),
@@ -60,8 +64,8 @@ const ReviewsPage = () => {
   return (
     <>
       <SEO
-        title="نظرهای تأییدشده مشتریان"
-        description="نظرهای خرید تأییدشده و منتشرشده از بک‌اند وینیمی."
+        title={shell.metaTitle}
+        description={shell.metaDescription}
         schema={schema}
         robots={indexability.indexable ? undefined : indexability.robots}
       />
@@ -70,13 +74,13 @@ const ReviewsPage = () => {
         <div className="container-custom max-w-4xl text-center">
           <Breadcrumbs
             className="mb-8 justify-center"
-            items={[{ name: "خانه", href: "/" }, { name: "نظرهای مشتریان" }]}
+            items={[{ name: "خانه", href: "/" }, { name: shell.breadcrumbLabel }]}
           />
 
-          <h1 className="heading-1 mb-4">نظرهای تأییدشده مشتریان</h1>
+          <h1 className="heading-1 mb-4">{shell.heading}</h1>
 
           <p className="mx-auto max-w-2xl leading-8 text-muted-foreground">
-            فقط نظرهای تأییدشده مرتبط با سفارش تحویل‌شده نمایش داده می‌شوند.
+            {shell.intro}
           </p>
 
           {reviews.length > 0 && (

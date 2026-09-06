@@ -128,7 +128,7 @@ update("src/pages/LocationsPage.tsx", (source) => {
   next = replaceOnce(next, '        title={title}\n        description={description}', '        title={shell.metaTitle}\n        description={shell.metaDescription}', "Locations SEO");
   const pairs = [
     ['            صفحات محلی مدیریت‌شده', '            {shell.eyebrow}'],
-    ['                      مشاهده شرایط {city.city}', '                      {shell.cityCtaPrefix} {city.city}'],
+    ['مشاهده شرایط {city.city}', '{shell.cityCtaPrefix} {city.city}'],
     ['<h2 className="heading-2 mb-4">اطلاعات ثابت برند</h2>', '<h2 className="heading-2 mb-4">{shell.brandInfoTitle}</h2>'],
     ['                این اطلاعات برای شناسایی و ارتباط با {brandConfig.brandName} در همه\n                صفحه‌ها یکسان است. وجود صفحه شهر به معنی وجود شعبه فیزیکی در آن شهر\n                نیست.', '                {shell.brandInfoDescription}'],
     ['{brandConfig.address}', '{settings.contact.address}'],

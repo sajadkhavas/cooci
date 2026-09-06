@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { useLoaderData } from "react-router";
 import { SEO } from "@/components/SEO";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import { isBackendEnabled } from "@/lib/api";
 import { loadGallery } from "@/lib/content";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
@@ -9,6 +10,7 @@ import { resolveConditionalContentIndexability } from "@/lib/seo/content-indexab
 
 const GalleryPage = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
+  const shell = usePublicShellContent().gallery;
 
   const query = useQuery({
     queryKey: ["store", "gallery"],
@@ -25,17 +27,17 @@ const GalleryPage = () => {
   return (
     <>
       <SEO
-        title="گالری"
-        description="تصاویر منتشرشده وینیمی از منبع محتوای فروشگاه."
+        title={shell.metaTitle}
+        description={shell.metaDescription}
         robots={indexability.indexable ? undefined : indexability.robots}
       />
 
       <section className="bg-secondary/50 py-12">
         <div className="container-custom text-center">
-          <h1 className="heading-1">گالری تصاویر</h1>
+          <h1 className="heading-1">{shell.heading}</h1>
 
           <p className="body-large mt-4 text-muted-foreground">
-            تصاویر مدیریت‌شده محصولات، بسته‌بندی و فرآیند آماده‌سازی
+            {shell.intro}
           </p>
         </div>
       </section>
