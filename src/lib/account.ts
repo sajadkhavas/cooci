@@ -75,6 +75,9 @@ export const loadAccountOrders = async (
   if (!areDevelopmentMocksEnabled) {
     throw new Error("سفارش‌های مرورگر در production قابل استفاده نیستند.");
   }
+  if (!user.mobile) {
+    return { orders: [], source: "mock" };
+  }
   return {
     orders: getOrdersByMobile(user.mobile).sort(
       (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
@@ -103,7 +106,7 @@ export const loadOwnedOrder = async (
 
   if (!areDevelopmentMocksEnabled) return null;
   const order = getOrderById(orderId);
-  if (!order || order.customer.mobile !== user.mobile) return null;
+  if (!order || !user.mobile || order.customer.mobile !== user.mobile) return null;
   return order;
 };
 
