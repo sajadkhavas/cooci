@@ -14,6 +14,7 @@ import type {
 import type {
   ProductReviewsResult,
   StoreCityPage,
+  StoreFaq,
   StoreGalleryItem,
   StorePostsResult,
   StoreReviewWallResult,
@@ -25,6 +26,7 @@ export interface PublicSsrLoaderData {
   categories?: CatalogCategory[];
   product?: Product;
   productReviews?: ProductReviewsResult;
+  faqs?: StoreFaq[];
   posts?: StorePostsResult;
   post?: BackendPostDetail;
   relatedPosts?: BackendPostSummary[];
