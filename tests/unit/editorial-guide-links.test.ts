@@ -2,25 +2,34 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
-const source = fs.readFileSync(
+const guideSource = fs.readFileSync(
   new URL("../../src/components/home/EditorialGuides.tsx", import.meta.url),
   "utf8",
 );
+const storefrontContentSource = fs.readFileSync(
+  new URL("../../src/lib/storefront-content.ts", import.meta.url),
+  "utf8",
+);
 
-test("home editorial cards link to dedicated canonical guide articles", () => {
-  for (const path of [
-    "/blog/choose-food-gift-box",
-    "/blog/cookie-storage-guide",
-    "/blog/cookies-per-guest-guide",
+test("home editorial cards preserve dedicated canonical guide fallbacks", () => {
+  for (const slug of [
+    "choose-food-gift-box",
+    "cookie-storage-guide",
+    "cookies-per-guest-guide",
   ]) {
-    assert.ok(source.includes(`href: "${path}"`), `missing dedicated guide destination: ${path}`);
+    assert.ok(
+      storefrontContentSource.includes(`"${slug}"`),
+      `missing dedicated guide fallback slug: ${slug}`,
+    );
   }
+
+  assert.match(guideSource, /loaderData\?\.relatedPosts \?\? \[\]/);
+  assert.match(guideSource, /to=\{`\/blog\/\$\{guide\.slug\}`\}/);
 });
 
 test("individual editorial cards no longer use the generic blog hub destination", () => {
-  const guideArray = source.slice(
-    source.indexOf("const guides = ["),
-    source.indexOf("] as const;") + 11,
+  assert.doesNotMatch(
+    guideSource,
+    /<Link\s+to=["']\/blog["'][^>]*className=["']editorial-guide/,
   );
-  assert.doesNotMatch(guideArray, /href:\s*["']\/blog["']/);
 });
