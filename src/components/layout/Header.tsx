@@ -12,9 +12,9 @@ import {
   X,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
-import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import {
   isNavigationTargetActive,
   type NavigationMatch,
@@ -26,13 +26,11 @@ interface NavLink {
   match: NavigationMatch;
 }
 
-const navLinks: NavLink[] = [
-  { name: "خانه", href: "/", match: "home" },
-  { name: "فروشگاه", href: "/products", match: "products" },
-  { name: "هدیه", href: "/gift", match: "prefix" },
-  { name: "راهنماها", href: "/blog", match: "prefix" },
-  { name: "داستان ما", href: "/about", match: "prefix" },
-];
+const navigationMatchFor = (href: string): NavigationMatch => {
+  if (href === "/") return "home";
+  if (href === "/products") return "products";
+  return "prefix";
+};
 
 const focusableSelector = [
   "a[href]",
@@ -49,7 +47,12 @@ export const Header = () => {
   const location = useLocation();
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
-  const { settings } = useStorefrontSettings();
+  const { settings, content } = useStorefrontSettings();
+  const navLinks: NavLink[] = content.navigation.links.map((link) => ({
+    name: link.label,
+    href: link.href,
+    match: navigationMatchFor(link.href),
+  }));
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -75,8 +78,8 @@ export const Header = () => {
   useEffect(() => {
     if (!isOpen) return undefined;
 
-      const previousOverflow = document.body.style.overflow;
-      document.documentElement.dataset.mobileMenuOpen = "true";
+    const previousOverflow = document.body.style.overflow;
+    document.documentElement.dataset.mobileMenuOpen = "true";
     const drawer = drawerRef.current;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
@@ -108,8 +111,8 @@ export const Header = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-        document.body.style.overflow = previousOverflow;
-        delete document.documentElement.dataset.mobileMenuOpen;
+      document.body.style.overflow = previousOverflow;
+      delete document.documentElement.dataset.mobileMenuOpen;
       window.removeEventListener("keydown", handleKeyDown);
       if (restoreMenuFocusRef.current) {
         window.requestAnimationFrame(() => menuButtonRef.current?.focus());
@@ -158,13 +161,13 @@ export const Header = () => {
               const active = isNavigationTargetActive(location.pathname, link);
               return (
                 <Link
-                  key={link.href}
+                  key={`${link.href}-${link.name}`}
                   to={link.href}
                   aria-current={active ? "page" : undefined}
                   className={`relative rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     active
-                        ? "bg-interactive text-interactive-foreground shadow-lg"
-                        : "text-foreground/70 hover:bg-interactive-soft hover:text-interactive-strong"
+                      ? "bg-interactive text-interactive-foreground shadow-lg"
+                      : "text-foreground/70 hover:bg-interactive-soft hover:text-interactive-strong"
                   }`}
                 >
                   {link.name}
@@ -222,7 +225,7 @@ export const Header = () => {
                 restoreMenuFocusRef.current = true;
                 setIsOpen(true);
               }}
-                className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-interactive-soft text-interactive-strong shadow-soft transition-colors hover:bg-interactive/20 xl:hidden"
+              className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-interactive-soft text-interactive-strong shadow-soft transition-colors hover:bg-interactive/20 xl:hidden"
               aria-label="باز کردن منوی اصلی"
               aria-expanded={isOpen}
               aria-controls="mobile-navigation-dialog"
@@ -236,7 +239,7 @@ export const Header = () => {
       {!scrolled && (
         <div className="pointer-events-none absolute left-1/2 top-[calc(100%+0.5rem)] hidden -translate-x-1/2 items-center gap-2 rounded-full border border-border/60 bg-card/65 px-4 py-2 text-[11px] font-bold text-muted-foreground shadow-soft backdrop-blur-xl lg:flex">
           <Sparkles size={14} className="text-gold" aria-hidden="true" />
-          کوکی، کیک و هدیه؛ انتخاب بر اساس دسته و مناسبت
+          {content.navigation.contextLine}
         </div>
       )}
 
@@ -258,7 +261,7 @@ export const Header = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-navigation-title"
-              className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-interactive/20 bg-interactive-soft text-foreground shadow-2xl"
+            className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-interactive/20 bg-interactive-soft text-foreground shadow-2xl"
           >
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <span className="absolute -right-24 top-16 h-60 w-60 rounded-full bg-accent/20 blur-[80px]" />
@@ -270,8 +273,8 @@ export const Header = () => {
                 <p id="mobile-navigation-title" className="text-xl font-black">
                   {settings.brand.name}
                 </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                  منوی سریع فروشگاه
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {content.navigation.mobileSubtitle}
                 </p>
               </div>
               <button
@@ -281,7 +284,7 @@ export const Header = () => {
                   restoreMenuFocusRef.current = true;
                   setIsOpen(false);
                 }}
-                  className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-card text-interactive-strong transition-colors hover:bg-interactive/15"
+                className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-card text-interactive-strong transition-colors hover:bg-interactive/15"
                 aria-label="بستن منوی اصلی"
               >
                 <X size={22} aria-hidden="true" />
@@ -295,21 +298,21 @@ export const Header = () => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
                 }}
-                  className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-interactive/25 bg-card/85 p-4 shadow-soft"
+                className="mb-6 flex min-h-20 items-center gap-4 rounded-[1.5rem] border border-interactive/25 bg-card/85 p-4 shadow-soft"
               >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-interactive text-interactive-foreground">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-interactive text-interactive-foreground">
                   <User size={22} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <strong className="block truncate text-lg">
                     {isAuthenticated
                       ? user?.fullName || "حساب کاربری"
-                      : "ورود به حساب"}
+                      : content.navigation.mobileGuestTitle}
                   </strong>
-                    <span className="mt-1 block truncate text-xs text-muted-foreground">
+                  <span className="mt-1 block truncate text-xs text-muted-foreground">
                     {isAuthenticated
                       ? user?.mobile
-                      : "سفارش‌ها، پروفایل و پیگیری"}
+                      : content.navigation.mobileGuestSubtitle}
                   </span>
                 </span>
                 <ArrowUpLeft size={18} aria-hidden="true" />
@@ -323,7 +326,7 @@ export const Header = () => {
                   );
                   return (
                     <Link
-                      key={link.href}
+                      key={`${link.href}-${link.name}`}
                       to={link.href}
                       aria-label={link.name}
                       onClick={() => {
@@ -333,8 +336,8 @@ export const Header = () => {
                       aria-current={active ? "page" : undefined}
                       className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
-                            ? "bg-interactive text-interactive-foreground shadow-soft"
-                            : "border border-border bg-card/70 text-foreground hover:border-interactive/30 hover:bg-interactive/10"
+                          ? "bg-interactive text-interactive-foreground shadow-soft"
+                          : "border border-border bg-card/70 text-foreground hover:border-interactive/30 hover:bg-interactive/10"
                       }`}
                     >
                       <span className="flex items-center gap-3">
@@ -354,17 +357,17 @@ export const Header = () => {
               </nav>
             </div>
 
-              <div className="mobile-sticky-bar relative grid gap-3 border-t border-interactive/20 bg-card/92 p-5">
+            <div className="mobile-sticky-bar relative grid gap-3 border-t border-interactive/20 bg-card/92 p-5">
               <Link
-                to="/categories"
+                to={content.navigation.categoriesCta.href}
                 onClick={() => {
                   restoreMenuFocusRef.current = false;
                   setIsOpen(false);
                 }}
-                  className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-interactive px-5 py-3.5 font-black text-interactive-foreground shadow-soft transition-colors hover:bg-interactive-strong hover:text-white"
+                className="flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-interactive px-5 py-3.5 font-black text-interactive-foreground shadow-soft transition-colors hover:bg-interactive-strong hover:text-white"
               >
                 <ShoppingBag size={19} aria-hidden="true" />
-                انتخاب از دسته‌بندی‌ها
+                {content.navigation.categoriesCta.label}
               </Link>
               <div className="grid grid-cols-2 gap-3">
                 <a
@@ -374,14 +377,14 @@ export const Header = () => {
                   className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 font-bold"
                 >
                   <MessageCircle size={18} aria-hidden="true" />
-                  واتساپ
+                  {content.navigation.whatsappLabel}
                 </a>
                 <a
                   href={settings.contact.phoneUrl}
                   className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 font-bold"
                 >
                   <Phone size={18} aria-hidden="true" />
-                  تماس
+                  {content.navigation.phoneLabel}
                 </a>
               </div>
             </div>
