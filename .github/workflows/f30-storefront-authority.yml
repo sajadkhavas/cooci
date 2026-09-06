@@ -1,0 +1,52 @@
+name: F30 Storefront Frontend Authority
+
+on:
+  push:
+    branches:
+      - 'phase-30*/**'
+  pull_request:
+    paths:
+      - 'src/root.tsx'
+      - 'src/pages/HomePage.tsx'
+      - 'src/pages/GiftPage.tsx'
+      - 'src/pages/CorporatePage.tsx'
+      - 'src/components/layout/**'
+      - 'src/components/home/**'
+      - 'src/components/content/CategoryGuideLinks.tsx'
+      - 'src/components/catalog/CategoryShowcase.tsx'
+      - 'src/lib/storefront-content.ts'
+      - 'src/lib/storefront-settings.ts'
+      - 'src/lib/catalog-api.ts'
+      - 'src/lib/category-shop-loader.server.ts'
+      - 'src/lib/category-guide-content.ts'
+      - 'src/hooks/useStorefrontSettings.ts'
+      - 'src/hooks/useCatalogDirectory.ts'
+      - 'src/routes/home.tsx'
+      - 'src/routes/category-shop.tsx'
+      - 'src/data/categoriesContent.ts'
+      - 'scripts/audit-f30-storefront-authority.mjs'
+      - '.github/workflows/f30-storefront-authority.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-authority:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: F30 authority audit
+        run: node scripts/audit-f30-storefront-authority.mjs
+      - name: Unit regression
+        run: npm run test:unit
+      - name: TypeScript gate
+        run: npm run typecheck
+      - name: Production build gate
+        run: npm run build
