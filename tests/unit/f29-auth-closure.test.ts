@@ -59,9 +59,17 @@ test("F29 explicit account linking is authenticated UI, not email auto-link UX",
   assert.match(login, /account_link_required/);
 });
 
-test("frontend environment never receives Google OAuth secrets", () => {
+test("frontend environment never receives Google OAuth credentials", () => {
   assert.equal(envExample.includes("GOOGLE_CLIENT_SECRET"), false);
   assert.equal(envExample.includes("GOOGLE_CLIENT_ID"), false);
   assert.equal(envExample.includes("VITE_GOOGLE"), false);
-  assert.match(envExample, /Never expose .*secret/i);
+
+  const viteKeys = [...envExample.matchAll(/^\s*(VITE_[A-Z0-9_]+)=/gm)].map(
+    (match) => match[1],
+  );
+  assert.equal(
+    viteKeys.some((key) => /(GOOGLE|SECRET|CLIENT_ID|CLIENT_SECRET)/.test(key)),
+    false,
+  );
+  assert.match(envExample, /other secret through VITE_\* variables/i);
 });
