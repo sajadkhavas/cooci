@@ -38,6 +38,27 @@ export interface CatalogCategory {
   };
 }
 
+export interface CatalogCategoryLanding {
+  id: string;
+  slug: string;
+  productCategorySlug: string;
+  catalogSearch?: string;
+  name: string;
+  eyebrow: string;
+  cardDescription: string;
+  seoTitle: string;
+  seoDescription: string;
+  heading: string;
+  intro: string;
+  sections: Array<{ title: string; body: string }>;
+  faq: Array<{ question: string; answer: string }>;
+}
+
+export interface CatalogDirectory {
+  categories: CatalogCategory[];
+  landings: CatalogCategoryLanding[];
+}
+
 type ProductVariant = NonNullable<Product["variants"]>[number] & {
   stock: number;
   regularPriceToman: number;
@@ -55,6 +76,71 @@ type MappedProduct = Product & {
   mediaVerified: boolean;
   inventoryVerified: boolean;
   updatedAt?: string;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const requiredText = (value: unknown, field: string) => {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`Invalid category landing field: ${field}`);
+  }
+  return value.trim();
+};
+
+const optionalText = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value.trim() : undefined;
+
+const parseCopyPairs = (
+  value: unknown,
+  first: "title" | "question",
+  second: "body" | "answer",
+) => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const firstValue = optionalText(item[first]);
+    const secondValue = optionalText(item[second]);
+    return firstValue && secondValue
+      ? [{ [first]: firstValue, [second]: secondValue }]
+      : [];
+  }) as Array<Record<typeof first | typeof second, string>>;
+};
+
+const parseCategoryLandings = (value: unknown): CatalogCategoryLanding[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!isRecord(item) || !isRecord(item.seo)) return [];
+    try {
+      return [{
+        id: requiredText(item.id, "id"),
+        slug: requiredText(item.slug, "slug"),
+        productCategorySlug: requiredText(
+          item.catalogCategorySlug,
+          "catalogCategorySlug",
+        ),
+        catalogSearch: optionalText(item.catalogSearch),
+        name: requiredText(item.name, "name"),
+        eyebrow: optionalText(item.eyebrow) ?? "",
+        cardDescription: optionalText(item.cardDescription) ?? "",
+        seoTitle: requiredText(item.seo.title, "seo.title"),
+        seoDescription: requiredText(item.seo.description, "seo.description"),
+        heading: requiredText(item.heading, "heading"),
+        intro: requiredText(item.intro, "intro"),
+        sections: parseCopyPairs(item.sections, "title", "body") as Array<{
+          title: string;
+          body: string;
+        }>,
+        faq: parseCopyPairs(item.faq, "question", "answer") as Array<{
+          question: string;
+          answer: string;
+        }>,
+      }];
+    } catch {
+      return [];
+    }
+  });
 };
 
 const mapVariant = (variant: BackendProductVariant): ProductVariant => ({
@@ -163,21 +249,29 @@ export const fetchCatalogProduct = async (slug: string): Promise<Product> => {
   return mapBackendProduct(parseBackendProduct(response.data));
 };
 
-export const fetchCatalogCategories = async (): Promise<CatalogCategory[]> => {
+export const fetchCatalogDirectory = async (): Promise<CatalogDirectory> => {
   const response = await apiRequest<unknown>("/api/catalog/categories");
   const categories: BackendCategory[] = parseBackendCategories(response.data);
 
-  return categories.map((category) => ({
-    id: category.id,
-    name: category.name,
-    slug: category.slug,
-    description: category.description || undefined,
-    image: category.image || undefined,
-    productCount:
-      typeof category.productCount === "number" ? category.productCount : undefined,
-    seo: {
-      title: category.seo.title,
-      description: category.seo.description || undefined,
-    },
-  }));
+  return {
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description || undefined,
+      image: category.image || undefined,
+      productCount:
+        typeof category.productCount === "number"
+          ? category.productCount
+          : undefined,
+      seo: {
+        title: category.seo.title,
+        description: category.seo.description || undefined,
+      },
+    })),
+    landings: parseCategoryLandings(response.meta.categoryLandings),
+  };
 };
+
+export const fetchCatalogCategories = async (): Promise<CatalogCategory[]> =>
+  (await fetchCatalogDirectory()).categories;
