@@ -8,7 +8,7 @@ import heroImage from "@/assets/cookies/hero-main.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
 import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
 import { categoryContents } from "@/data/categoriesContent";
-import { useCatalogCategories } from "@/hooks/useCatalog";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
 import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 import { Reveal } from "@/components/motion/Reveal";
 
@@ -64,10 +64,11 @@ export const CategoryShowcase = ({
   showAllLink = true,
   compact = false,
 }: CategoryShowcaseProps) => {
-  const { categories } = useCatalogCategories();
+  const { categories, landings } = useCatalogDirectory();
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
   const resolvedLimit = Math.min(Math.max(limit, 0), 6);
   const visibleCategories = buildVisibleCatalogCategories(
-    categoryContents,
+    editorialCategories,
     categories,
   )
     .filter((category) => category.routeSlug !== excludeSlug)

@@ -52,6 +52,7 @@ export interface CatalogCategoryLanding {
   intro: string;
   sections: Array<{ title: string; body: string }>;
   faq: Array<{ question: string; answer: string }>;
+  guides: Array<{ href: string; title: string; description: string }>;
 }
 
 export interface CatalogDirectory {
@@ -107,6 +108,19 @@ const parseCopyPairs = (
   }) as Array<Record<typeof first | typeof second, string>>;
 };
 
+const parseGuideLinks = (value: unknown) => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const href = optionalText(item.href);
+    const title = optionalText(item.title);
+    const description = optionalText(item.description);
+    return href && href.startsWith("/") && !href.startsWith("//") && title && description
+      ? [{ href, title, description }]
+      : [];
+  });
+};
+
 const parseCategoryLandings = (value: unknown): CatalogCategoryLanding[] => {
   if (!Array.isArray(value)) return [];
 
@@ -136,6 +150,7 @@ const parseCategoryLandings = (value: unknown): CatalogCategoryLanding[] => {
           question: string;
           answer: string;
         }>,
+        guides: parseGuideLinks(item.guides),
       }];
     } catch {
       return [];

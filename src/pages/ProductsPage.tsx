@@ -32,10 +32,8 @@ import {
   categoryContents,
   getCategoryContent,
 } from "@/data/categoriesContent";
-import {
-  useCatalogCategories,
-  useCatalogProducts,
-} from "@/hooks/useCatalog";
+import { useCatalogProducts } from "@/hooks/useCatalog";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
 import type { CatalogQuery } from "@/lib/catalog-api";
 import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
@@ -94,8 +92,12 @@ export const loader = ({ request, params }: LoaderFunctionArgs) => {
 const ProductsPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories, isLoading: categoriesLoading } = useCatalogCategories();
-  const content = slug ? getCategoryContent(slug) : undefined;
+  const { categories, landings, isLoading: categoriesLoading } = useCatalogDirectory();
+  const fallbackContent = slug ? getCategoryContent(slug) : undefined;
+  const content = slug
+    ? landings.find((landing) => landing.slug === slug) ?? fallbackContent
+    : undefined;
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
   const catalogCategorySlug = slug
     ? content?.productCategorySlug || slug
     : undefined;
@@ -103,7 +105,7 @@ const ProductsPage = () => {
     (category) => category.slug === catalogCategorySlug,
   );
   const visibleCategories = buildVisibleCatalogCategories(
-    categoryContents,
+    editorialCategories,
     categories,
   );
   const categoryNavigation = visibleCategories.map((category) => ({

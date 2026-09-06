@@ -16,7 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { categoryContents } from "@/data/categoriesContent";
-import { useCatalogCategories } from "@/hooks/useCatalog";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
@@ -50,9 +50,10 @@ const FooterLinkList = ({
 
 export const Footer = () => {
   const { settings, content } = useStorefrontSettings();
-  const { categories } = useCatalogCategories();
+  const { categories, landings } = useCatalogDirectory();
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
   const categoryLinks = buildVisibleCatalogCategories(
-    categoryContents,
+    editorialCategories,
     categories,
   ).map((category) => ({
     name: category.name,
