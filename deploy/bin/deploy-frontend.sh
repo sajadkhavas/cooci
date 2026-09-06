@@ -56,7 +56,7 @@ restart_runtime() {
 }
 check_health() {
   if [[ -n "$FRONTEND_HEALTH_URL" ]]; then
-    curl --fail --silent --show-error --retry 20 --retry-delay 1 "$FRONTEND_HEALTH_URL" >/dev/null
+    curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-connrefused --connect-timeout 2 --max-time 10 "$FRONTEND_HEALTH_URL" >/dev/null
   fi
 }
 

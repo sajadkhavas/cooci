@@ -32,11 +32,11 @@ import {
   categoryContents,
   getCategoryContent,
 } from "@/data/categoriesContent";
-import {
-  useCatalogCategories,
-  useCatalogProducts,
-} from "@/hooks/useCatalog";
+import { useCatalogProducts } from "@/hooks/useCatalog";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
 import type { CatalogQuery } from "@/lib/catalog-api";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const sortOptions: Array<{
   value: NonNullable<CatalogQuery["sort"]>;
@@ -93,26 +93,28 @@ export const loader = ({ request, params }: LoaderFunctionArgs) => {
 const ProductsPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { categories, isLoading: categoriesLoading } = useCatalogCategories();
-  const content = slug ? getCategoryContent(slug) : undefined;
+  const shell = usePublicShellContent().catalog;
+  const { categories, landings, isLoading: categoriesLoading } = useCatalogDirectory();
+  const fallbackContent = slug ? getCategoryContent(slug) : undefined;
+  const content = slug
+    ? landings.find((landing) => landing.slug === slug) ?? fallbackContent
+    : undefined;
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
   const catalogCategorySlug = slug
     ? content?.productCategorySlug || slug
     : undefined;
   const backendCategory = categories.find(
     (category) => category.slug === catalogCategorySlug,
   );
-  const mappedCatalogSlugs = new Set(
-    categoryContents.map((category) => category.productCategorySlug),
+  const visibleCategories = buildVisibleCatalogCategories(
+    editorialCategories,
+    categories,
   );
-  const categoryNavigation = [
-    ...categoryContents.map((category) => ({
-      routeSlug: category.slug,
-      name: category.name,
-    })),
-    ...categories
-      .filter((category) => !mappedCatalogSlugs.has(category.slug))
-      .map((category) => ({ routeSlug: category.slug, name: category.name })),
-  ];
+  const categoryNavigation = visibleCategories.map((category) => ({
+    routeSlug: category.routeSlug,
+    name: category.name,
+  }));
+  const isFilteredEditorialCategory = Boolean(content?.catalogSearch);
 
   const sortParam = searchParams.get("sort") ?? "featured";
   const shippingParam = searchParams.get("shipping") ?? "all";
@@ -189,19 +191,36 @@ const ProductsPage = () => {
     });
   };
 
-  const name = content?.name || backendCategory?.name || "محصولات وینیمی";
-  const heading = content?.heading || backendCategory?.name || "محصولات وینیمی";
-  const intro =
-    content?.intro ||
-    backendCategory?.description ||
-    "محصول موردنظرت را با دسته‌بندی، جست‌وجو، مرتب‌سازی و فیلترهای فروشگاه پیدا کن.";
-  const seoTitle =
-    content?.seoTitle ||
-    (backendCategory ? `خرید ${backendCategory.name}` : "محصولات");
-  const seoDescription =
-    content?.seoDescription ||
-    backendCategory?.description ||
-    "مشاهده، جست‌وجو، فیلتر و خرید آنلاین محصولات فعال وینیمی با قیمت و موجودی دریافت‌شده از سرور.";
+  const name = slug
+    ? isFilteredEditorialCategory
+      ? content?.name || shell.heading
+      : backendCategory?.name || content?.name || shell.heading
+    : shell.heading;
+  const heading = slug
+    ? isFilteredEditorialCategory
+      ? content?.heading || name
+      : backendCategory?.name || content?.heading || name
+    : shell.heading;
+  const intro = slug
+    ? isFilteredEditorialCategory
+      ? content?.intro || shell.intro
+      : backendCategory?.description || content?.intro || shell.intro
+    : shell.intro;
+  const seoTitle = slug
+    ? isFilteredEditorialCategory
+      ? content?.seoTitle || name
+      : backendCategory?.seo.title ||
+        content?.seoTitle ||
+        (backendCategory ? `خرید ${backendCategory.name}` : shell.metaTitle)
+    : shell.metaTitle;
+  const seoDescription = slug
+    ? isFilteredEditorialCategory
+      ? content?.seoDescription || intro
+      : backendCategory?.seo.description ||
+        backendCategory?.description ||
+        content?.seoDescription ||
+        shell.metaDescription
+    : shell.metaDescription;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -274,13 +293,13 @@ const ProductsPage = () => {
         </div>
       </section>
 
-      {!slug && (
+      {!slug && categoryNavigation.length > 0 && (
         <section className="section-padding pb-4">
           <div className="container-custom">
             <CategoryShowcase
               showAllLink={false}
-              title="دسته را انتخاب کن یا با فیلترها میان همه محصولات بگرد"
-              description="هر دسته یک URL مستقل و قابل اشتراک دارد، اما انتخاب، فیلتر، مرتب‌سازی و محصولات همگی داخل همین فروشگاه باقی می‌مانند."
+              title={shell.categoriesTitle}
+              description={shell.categoriesDescription}
             />
           </div>
         </section>
@@ -304,7 +323,7 @@ const ProductsPage = () => {
                       : "shrink-0 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground transition hover:bg-muted"
                   }
                 >
-                  همه محصولات
+                  {shell.allProductsLabel}
                 </Link>
                 {categoryNavigation.map((category) => {
                   const isActive = slug === category.routeSlug;

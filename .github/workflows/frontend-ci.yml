@@ -1,17 +1,20 @@
 name: Frontend CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
       - "feature/**"
       - "agent/**"
+      - "phase-**"
   pull_request:
     branches:
       - main
+      - "phase-**"
 
 concurrency:
-  group: frontend-ci-${{ github.ref }}
+  group: frontend-ci-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 permissions:

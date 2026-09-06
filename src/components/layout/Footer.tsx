@@ -1,284 +1,273 @@
 import {
-  ArrowUp,
   ArrowUpLeft,
   Cookie,
-  Heart,
+  Headphones,
   Instagram,
   Mail,
   MapPin,
   MessageCircle,
   Phone,
-  ShieldCheck,
-  ShoppingBag,
-  ShoppingCart,
-  Sparkles,
-  Truck,
 } from "lucide-react";
 import { Link } from "react-router";
 import {
-  brandConfig,
-  generatePhoneUrl,
-  generateWhatsAppUrl,
-  SUPPORT_WHATSAPP_MESSAGE,
-} from "@/config/brand";
-import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
-
-const footerLinks = {
-  quickLinks: [
-    { name: "خانه", href: "/" },
-    { name: "همه محصولات", href: "/products" },
-    { name: "فروشگاه و دسته‌بندی‌ها", href: "/products" },
-    { name: "درباره ما", href: "/about" },
-    { name: "نظرهای تأییدشده", href: "/reviews" },
-    { name: "راهنماها", href: "/blog" },
-    { name: "تماس با ما", href: "/contact" },
-  ],
-  categories: [
-    { name: "همه محصولات", href: "/products" },
-    { name: "کوکی‌های خانگی", href: "/products/category/cookies" },
-    { name: "مینی کوکی", href: "/products/category/mini-cookies" },
-    { name: "رژیمی و بدون قند افزوده", href: "/products/category/diet-diabetic" },
-    { name: "کیک و دسر", href: "/products/category/cakes" },
-    { name: "چیزکیک", href: "/products/category/cheesecakes" },
-    { name: "رول و کروسان", href: "/products/category/pastry" },
-    { name: "باکس هدیه", href: "/products/category/gift-boxes" },
-  ],
-  services: [
-    { name: "مناطق منتشرشده ارسال", href: "/locations" },
-    { name: "سفارش سازمانی", href: "/corporate" },
-    { name: "راهنمای هدیه", href: "/gift" },
-  ],
-  legal: [
-    { name: "سیاست شفافیت", href: "/quality" },
-    { name: "شرایط ارسال", href: "/shipping" },
-    { name: "حریم خصوصی", href: "/privacy" },
-    { name: "شرایط استفاده", href: "/terms" },
-    { name: "سوالات متداول", href: "/faq" },
-  ],
-};
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { categoryContents } from "@/data/categoriesContent";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const currentYear = new Intl.DateTimeFormat("fa-IR", {
   year: "numeric",
 }).format(new Date());
 
-const FooterColumn = ({
-  title,
+const FooterLinkList = ({
   links,
 }: {
-  title: string;
-  links: { name: string; href: string }[];
+  links: ReadonlyArray<{ name: string; href: string }>;
 }) => (
-  <div>
-    <h3 className="mb-5 text-xs font-black uppercase tracking-[0.14em] text-primary-foreground/45">
-      {title}
-    </h3>
-    <ul className="space-y-3">
-      {links.map((link) => (
-        <li key={`${link.href}-${link.name}`}>
-          <Link
-            to={link.href}
-            className="group inline-flex items-center gap-2 text-sm font-bold text-primary-foreground/72 transition duration-300 hover:translate-x-[-3px] hover:text-accent"
-          >
-            {link.name}
-            <ArrowUpLeft
-              size={13}
-              className="opacity-0 transition group-hover:opacity-100"
-              aria-hidden="true"
-            />
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
+  <ul className="space-y-2.5">
+    {links.map((link) => (
+      <li key={`${link.href}-${link.name}`}>
+        <Link
+          to={link.href}
+          className="group inline-flex min-h-9 items-center gap-2 text-sm font-bold text-[#27390c]/65 transition hover:text-[#27390c]"
+        >
+          {link.name}
+          <ArrowUpLeft
+            size={13}
+            className="opacity-0 transition group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+            aria-hidden="true"
+          />
+        </Link>
+      </li>
+    ))}
+  </ul>
 );
 
 export const Footer = () => {
-  const scrollToTop = () =>
-    window.scrollTo({
-      top: 0,
-      behavior: getProgrammaticScrollBehavior(),
-    });
+  const { settings, content } = useStorefrontSettings();
+  const { categories, landings } = useCatalogDirectory();
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
+  const categoryLinks = buildVisibleCatalogCategories(
+    editorialCategories,
+    categories,
+  ).map((category) => ({
+    name: category.name,
+    href: `/products/category/${category.routeSlug}`,
+  }));
+  const resolvedFooterGroups = [
+    {
+      title: content.footer.discovery.title,
+      links: content.footer.discovery.links.map((link) => ({
+        name: link.label,
+        href: link.href,
+      })),
+    },
+    {
+      title: content.footer.categoryTitle,
+      links: categoryLinks,
+    },
+    {
+      title: content.footer.services.title,
+      links: content.footer.services.links.map((link) => ({
+        name: link.label,
+        href: link.href,
+      })),
+    },
+  ];
+  const legalLinks = content.footer.legal.map((link) => ({
+    name: link.label,
+    href: link.href,
+  }));
+  const socialLinks = [
+    {
+      href: settings.contact.instagramUrl,
+      label: `اینستاگرام ${settings.brand.name}`,
+      Icon: Instagram,
+    },
+    {
+      href: settings.contact.whatsappUrl,
+      label: `واتساپ ${settings.brand.name}`,
+      Icon: MessageCircle,
+    },
+    {
+      href: `mailto:${settings.contact.email}`,
+      label: `ایمیل ${settings.brand.name}`,
+      Icon: Mail,
+    },
+    {
+      href: settings.contact.phoneUrl,
+      label: `تماس با ${settings.brand.name}`,
+      Icon: Phone,
+    },
+  ];
 
   return (
-    <footer className="relative z-10 mt-12 overflow-hidden rounded-t-[3rem] bg-primary text-primary-foreground sm:mt-20 sm:rounded-t-[4.5rem]">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <span className="absolute -right-32 top-8 h-96 w-96 rounded-full bg-accent/12 blur-[110px]" />
-        <span className="absolute -left-40 bottom-0 h-[30rem] w-[30rem] rounded-full bg-gold/10 blur-[130px]" />
-        <div className="soft-grid absolute inset-0 opacity-10" />
+    <footer className="site-footer relative z-10 overflow-hidden border-t border-[#27390c]/12 bg-[#d0e596] text-[#27390c]">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <span className="absolute -right-32 top-12 h-80 w-80 rounded-full bg-white/35 blur-[90px]" />
+        <span className="absolute -left-28 bottom-10 h-72 w-72 rounded-full bg-[#f3c9b9]/35 blur-[90px]" />
+        <span className="soft-grid absolute inset-0 opacity-[0.12]" />
       </div>
 
-      <div className="container-custom relative pt-12 sm:pt-16">
-        <div className="overflow-hidden rounded-[2.2rem] border border-white/12 bg-white/[0.065] p-6 shadow-2xl backdrop-blur-2xl sm:p-9 lg:p-12">
-          <div className="grid items-end gap-8 lg:grid-cols-[1.35fr_0.65fr]">
+      <div className="container-custom relative py-5 sm:py-7">
+        <div className="grid gap-5 rounded-[2rem] border border-[#27390c]/12 bg-white/45 p-5 shadow-soft backdrop-blur-xl sm:p-7 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="flex items-start gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f3c9b9] text-[#6f3e33] shadow-soft">
+              <Headphones size={22} aria-hidden="true" />
+            </span>
             <div>
-              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-black text-accent">
-                <Sparkles size={15} aria-hidden="true" />
-                انتخاب بر اساس دسته و مناسبت
-              </span>
-              <h2 className="max-w-4xl text-3xl font-black leading-[1.12] sm:text-5xl lg:text-6xl">
-                مسیر مناسب را پیدا کن،
-                <span className="block text-accent">بعد جزئیات محصول را ببین.</span>
-              </h2>
-              <p className="mt-5 max-w-2xl text-sm leading-8 text-primary-foreground/62 sm:text-base">
-                {brandConfig.deliveryInfo} اطلاعات نهایی هر محصول از کاتالوگ فعال
-                دریافت می‌شود.
+              <strong className="block text-lg font-black sm:text-xl">
+                {content.footer.supportTitle}
+              </strong>
+              <p className="mt-1 max-w-2xl text-sm leading-7 text-[#27390c]/65">
+                {content.footer.supportText}
               </p>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <Link
-                to="/products"
-                className="group flex min-h-14 items-center justify-between rounded-2xl bg-accent px-5 py-4 font-black text-accent-foreground shadow-xl transition duration-300 hover:-translate-y-1"
-              >
-                <span className="flex items-center gap-2">
-                  <ShoppingBag size={20} aria-hidden="true" />
-                  فروشگاه و دسته‌بندی‌ها
-                </span>
-                <ArrowUpLeft
-                  size={19}
-                  className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
-                  aria-hidden="true"
-                />
-              </Link>
-              <Link
-                to="/cart"
-                className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/8 px-5 py-4 font-black text-white transition hover:bg-white/12"
-              >
-                <ShoppingCart size={19} aria-hidden="true" />
-                مشاهده سبد خرید
-              </Link>
-            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={settings.contact.phoneUrl}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#27390c]/15 bg-white/55 px-5 text-sm font-black transition hover:bg-white"
+            >
+              <Phone size={17} aria-hidden="true" />
+              {content.footer.phoneLabel}
+            </a>
+            <a
+              href={settings.contact.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#27390c] px-5 text-sm font-black text-[#f8f4e8] transition hover:-translate-y-0.5 hover:bg-[#405d16]"
+            >
+              <MessageCircle size={17} aria-hidden="true" />
+              {content.footer.whatsappLabel}
+            </a>
           </div>
         </div>
 
-        <div className="grid gap-12 py-16 lg:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr] lg:gap-10 lg:py-20">
-          <div className="max-w-xl">
+        <div className="grid border-b border-[#27390c]/12 py-10 lg:grid-cols-[1.05fr_1.95fr] lg:py-14">
+          <div className="border-b border-[#27390c]/12 pb-9 lg:border-b-0 lg:border-l lg:pb-0 lg:pl-10">
             <Link to="/" className="inline-flex items-center gap-3 rounded-2xl">
-              <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-xl">
-                <Cookie size={25} aria-hidden="true" />
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#27390c] text-[#d0e596] shadow-soft">
+                <Cookie size={26} aria-hidden="true" />
               </span>
               <span>
                 <strong className="block text-2xl font-black">
-                  {brandConfig.brandName}
+                  {settings.brand.name}
                 </strong>
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground/42">
-                  {brandConfig.brandNameEn}
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#27390c]/45">
+                  {settings.brand.nameEn}
                 </span>
               </span>
             </Link>
-
-            <p className="mt-6 max-w-lg text-sm leading-8 text-primary-foreground/58">
-              {brandConfig.slogan}. روش تحویل به نوع محصول، مقصد و تنظیمات فعال
-              بک‌اند وابسته است.
+            <p className="mt-5 max-w-md text-sm leading-8 text-[#27390c]/65">
+              {content.footer.aboutText}
             </p>
-
-            <div className="mt-6 grid gap-3 text-sm text-primary-foreground/62 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <span className="flex items-start gap-2">
-                <ShieldCheck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
-                اطلاعات حساس فقط پس از تأیید
-              </span>
-              <span className="flex items-start gap-2">
-                <Truck size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" />
-                روش تحویل متناسب با محصول
-              </span>
-            </div>
-
-            <div className="mt-7 flex flex-wrap gap-2.5">
-              <a
-                href={brandConfig.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
-                aria-label="اینستاگرام وینیمی"
-              >
-                <Instagram size={18} aria-hidden="true" />
-              </a>
-              <a
-                href={generateWhatsAppUrl(SUPPORT_WHATSAPP_MESSAGE)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-whatsapp"
-                aria-label="پشتیبانی واتساپ"
-              >
-                <MessageCircle size={18} aria-hidden="true" />
-              </a>
-              <a
-                href={`mailto:${brandConfig.email}`}
-                className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
-                aria-label="ارسال ایمیل"
-              >
-                <Mail size={18} aria-hidden="true" />
-              </a>
-              <a
-                href={generatePhoneUrl()}
-                className="touch-target flex items-center justify-center rounded-full border border-white/12 bg-white/8 transition hover:-translate-y-1 hover:bg-white/13"
-                aria-label="تماس تلفنی"
-              >
-                <Phone size={18} aria-hidden="true" />
-              </a>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {socialLinks.map(({ href, label, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className="touch-target flex items-center justify-center rounded-full border border-[#27390c]/15 bg-white/35 transition hover:-translate-y-0.5 hover:bg-white/70"
+                  aria-label={label}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                </a>
+              ))}
             </div>
           </div>
 
-          <FooterColumn title="کشف وینیمی" links={footerLinks.quickLinks} />
-          <FooterColumn title="دسته‌بندی‌ها" links={footerLinks.categories} />
-          <FooterColumn title="خدمات و مناطق" links={footerLinks.services} />
+          <div className="hidden grid-cols-3 divide-x divide-x-reverse divide-[#27390c]/12 lg:grid">
+            {resolvedFooterGroups.map((group) => (
+              <div key={group.title} className="px-7 first:pr-10 last:pl-0">
+                <h3 className="mb-5 text-xs font-black tracking-[0.08em] text-[#6f3e33]">
+                  {group.title}
+                </h3>
+                <FooterLinkList links={group.links} />
+              </div>
+            ))}
+          </div>
+
+          <Accordion type="single" collapsible className="pt-4 lg:hidden">
+            {resolvedFooterGroups.map((group) => (
+              <AccordionItem
+                key={group.title}
+                value={group.title}
+                className="border-[#27390c]/12"
+              >
+                <AccordionTrigger className="min-h-14 py-3 text-base font-black text-[#27390c] hover:no-underline">
+                  {group.title}
+                </AccordionTrigger>
+                <AccordionContent className="pb-5">
+                  <FooterLinkList links={group.links} />
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
 
-        <div className="border-t border-white/10 py-7">
-          <div className="mb-6 grid gap-3 rounded-2xl border border-white/8 bg-white/[0.045] p-4 text-xs leading-7 text-primary-foreground/55 sm:grid-cols-2 lg:grid-cols-4">
-            <strong className="text-primary-foreground/75">{brandConfig.brandName}</strong>
-            <span className="flex items-center gap-2">
-              <MapPin size={15} className="shrink-0 text-accent" aria-hidden="true" />
-              {brandConfig.address}
-            </span>
-            <a href={generatePhoneUrl()} dir="ltr" className="hover:text-accent">
-              {brandConfig.phone}
-            </a>
-            <a href={`mailto:${brandConfig.email}`} dir="ltr" className="hover:text-accent">
-              {brandConfig.email}
-            </a>
-          </div>
+        <div className="grid gap-3 border-b border-[#27390c]/12 py-5 text-xs leading-7 text-[#27390c]/60 sm:grid-cols-2 lg:grid-cols-4">
+          <strong className="text-[#27390c]">{settings.brand.name}</strong>
+          <span className="flex items-center gap-2">
+            <MapPin
+              size={15}
+              className="shrink-0 text-[#6f3e33]"
+              aria-hidden="true"
+            />
+            {content.footer.locationText || settings.contact.address}
+          </span>
+          <a
+            href={settings.contact.phoneUrl}
+            dir="ltr"
+            className="transition hover:text-[#27390c]"
+          >
+            {settings.contact.phone}
+          </a>
+          <a
+            href={`mailto:${settings.contact.email}`}
+            dir="ltr"
+            className="transition hover:text-[#27390c]"
+          >
+            {settings.contact.email}
+          </a>
+        </div>
 
-          <ul className="mb-6 flex flex-wrap gap-x-5 gap-y-3">
-            {footerLinks.legal.map((link) => (
-              <li key={link.href}>
+        <div className="flex flex-col gap-4 py-5 text-xs text-[#27390c]/55 lg:flex-row lg:items-center lg:justify-between">
+          <ul className="flex flex-wrap gap-x-5 gap-y-3">
+            {legalLinks.map((link) => (
+              <li key={`${link.href}-${link.name}`}>
                 <Link
                   to={link.href}
-                  className="text-xs font-bold text-primary-foreground/46 transition hover:text-accent"
+                  className="font-bold transition hover:text-[#27390c]"
                 >
                   {link.name}
                 </Link>
               </li>
             ))}
           </ul>
-
-          <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-            <p className="flex flex-wrap items-center gap-2 text-xs text-primary-foreground/45">
-              © {currentYear} {brandConfig.brandName}. تمامی حقوق محفوظ است.
-              <span className="inline-flex items-center gap-1">
-                ساخته‌شده با
-                <Heart size={13} className="fill-rose-300 text-rose-300" aria-hidden="true" />
-                برای تجربه بهتر خرید آنلاین
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+            <p>
+              © {currentYear} {settings.brand.name}. تمامی حقوق محفوظ است.
+            </p>
+            <p>
+              {content.footer.developerLabel}{" "}
+              <span className="font-black text-[#27390c]">
+                {content.footer.developerName}
               </span>
             </p>
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className="group flex min-h-11 items-center gap-2 rounded-full border border-white/12 bg-white/8 px-5 text-xs font-black transition hover:bg-accent hover:text-accent-foreground"
-              aria-label="بازگشت به بالای صفحه"
-            >
-              بازگشت به بالا
-              <ArrowUp
-                size={16}
-                className="transition-transform group-hover:-translate-y-1"
-                aria-hidden="true"
-              />
-            </button>
           </div>
         </div>
-
-        <div className="whitespace-nowrap text-center text-[14vw] font-black leading-none tracking-[-0.09em] text-white/[0.035] sm:text-[12vw]">
-          WINIMI BAKERY
+        <div
+          className="select-none overflow-hidden text-center text-[clamp(2.6rem,9vw,8rem)] font-black leading-[0.72] tracking-[-0.075em] text-[#27390c]/[0.055]"
+          aria-hidden="true"
+        >
+          {content.footer.watermark}
         </div>
       </div>
     </footer>

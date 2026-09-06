@@ -60,11 +60,17 @@ requireText(
   "export const loader",
   "legacy query redirect loader",
 );
-requireText(
-  "categoryShop",
-  'export { default } from "../pages/ProductsPage"',
-  "shared category shop implementation",
-);
+
+const categoryShopUsesSharedProductsPage =
+  sources.categoryShop?.includes('export { default } from "../pages/ProductsPage"') ||
+  (sources.categoryShop?.includes('import ProductsPage from "@/pages/ProductsPage"') &&
+    sources.categoryShop?.includes("<ProductsPage />"));
+if (!categoryShopUsesSharedProductsPage) {
+  errors.push(
+    `${files.categoryShop}: missing shared category shop implementation`,
+  );
+}
+
 requireText(
   "categoryShop",
   "SAFE_CATEGORY_SLUG",
@@ -84,11 +90,16 @@ requireText("products", "CatalogPagination", "shared pagination");
 requireText("products", '"@type": "CollectionPage"', "category collection schema");
 forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("header", 'href: "/categories"', "duplicate category header item");
-forbidText("footer", "/categories", "duplicate category footer item");
+forbidText("footer", 'to="/categories"', "duplicate category footer CTA");
+forbidText("footer", 'href: "/categories"', "duplicate category footer item");
 requireText("showcase", 'to="/products"', "unified shop all-link");
 requireText("sitemap", "fetchCatalogCategories", "dynamic category sitemap source");
 requireText("sitemap", "resolveCategoryRouteSlug", "editorial category sitemap mapping");
-requireText("urlPolicy", '["/categories", "/products"]', "redirect-only URL exclusion registry");
+requireText(
+  "urlPolicy",
+  '["/categories", "/products"]',
+  "redirect-only URL exclusion registry",
+);
 requireText("runtimeE2e", "shop unifies categories and filters", "browser acceptance");
 requireText("doc", "unified_shop_categories=ready", "phase marker");
 

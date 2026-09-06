@@ -28,6 +28,6 @@ SCRIPT_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 bash "$SCRIPT_ROOT/deploy/bin/deploy-frontend.sh" "$RELEASE_SOURCE" "$DEPLOY_ROOT"
 
 sudo systemctl is-active --quiet "$SERVICE_NAME"
-curl --fail --silent --show-error --retry 20 --retry-delay 1 "$HEALTH_URL" >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-connrefused --connect-timeout 2 --max-time 10 "$HEALTH_URL" >/dev/null
 
 echo "Production frontend deployment is active and healthy."

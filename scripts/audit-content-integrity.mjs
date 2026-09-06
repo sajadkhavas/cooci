@@ -7,6 +7,8 @@ const files = {
   contentClient: "src/lib/content.ts",
   contentSchema: "src/lib/content-schema.ts",
   reviewsPage: "src/pages/ReviewsPage.tsx",
+
+  publicLoaders: "src/lib/public-loaders.server.ts",
   blogList: "src/pages/BlogListPage.tsx",
   blogDetail: "src/pages/BlogDetailPage.tsx",
   about: "src/pages/AboutPage.tsx",
@@ -25,18 +27,24 @@ const files = {
   routes: "src/routes.ts",
   categoriesRedirect: "src/routes/categories-redirect.tsx",
   home: "src/pages/HomePage.tsx",
+  occasionSelector: "src/components/home/OccasionSelector.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
   categoriesContent: "src/data/categoriesContent.ts",
+  storefrontContent: "src/lib/storefront-content.ts",
   sitemap: "src/lib/seo/sitemap.server.ts",
   urlPolicy: "src/lib/seo/url-policy.ts",
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   phase10Documentation: "docs/FRONTEND_PHASE_10_0_HOME_CATEGORIES.md",
   phase102Documentation: "docs/FRONTEND_PHASE_10_2_UNIFIED_SHOP_CATEGORIES.md",
-  phase104Documentation: "docs/FRONTEND_PHASE_10_4_CRAWL_INDEX_URL_ARCHITECTURE.md",
+  phase104Documentation:
+    "docs/FRONTEND_PHASE_10_4_CRAWL_INDEX_URL_ARCHITECTURE.md",
 };
 
 const sources = Object.fromEntries(
-  Object.entries(files).map(([name, path]) => [name, readFileSync(path, "utf8")]),
+  Object.entries(files).map(([name, path]) => [
+    name,
+    readFileSync(path, "utf8"),
+  ]),
 );
 const requireText = (sourceName, text, description = text) => {
   if (!sources[sourceName].includes(text)) {
@@ -68,27 +76,75 @@ for (const endpoint of [
   "/api/store/cities/",
   "/api/inquiries",
 ]) {
-  requireText("contentClient", endpoint, `backend content endpoint ${endpoint}`);
+  requireText(
+    "contentClient",
+    endpoint,
+    `backend content endpoint ${endpoint}`,
+  );
 }
-requireText("contentClient", "apiRequest<unknown>", "runtime public-content response boundary");
-requireText("contentSchema", 'code: "invalid_content_contract"', "runtime public-content parser");
-requireText("reviewsPage", "loadProductReviews", "published verified-purchase reviews from backend");
+requireText(
+  "contentClient",
+  "apiRequest<unknown>",
+  "runtime public-content response boundary",
+);
+requireText(
+  "contentSchema",
+  'code: "invalid_content_contract"',
+  "runtime public-content parser",
+);
+requireText(
+  "reviewsPage",
+  "loadReviewWall",
+  "SSR-hydrated aggregate published review wall",
+);
+requireText(
+  "reviewsPage",
+  "loaderData?.reviewWall",
+  "SSR review-wall initial data",
+);
+requireText(
+  "publicLoaders",
+  "loadReviewsPublicData",
+  "public reviews SSR loader",
+);
+requireText(
+  "publicLoaders",
+  "const reviewWall = await loadReviewWall()",
+  "backend aggregate review wall in SSR",
+);
+requireText(
+  "publicLoaders",
+  "reviewWall.publishedReviewCount",
+  "published review count indexability truth",
+);
 requireText("reviewsPage", "خرید تأییدشده", "verified-purchase disclosure");
-forbidText("reviewsPage", "نظرات واقعی مشتریان", "unverified real-review claim");
+forbidText(
+  "reviewsPage",
+  "نظرات واقعی مشتریان",
+  "unverified real-review claim",
+);
 requireText("blogList", "loadPosts", "backend post listing");
 requireText("blogDetail", "loadPost", "backend post detail");
 requireText("about", "ManagedContentPage", "managed about content");
 requireText("quality", "ManagedContentPage", "managed quality content");
 requireText("corporate", "InquiryForm", "persisted corporate inquiry");
 requireText("inquiry", "submitInquiry", "persisted public inquiry");
-requireText("trust", "extractOfficialEnamadBadge", "isolated eNAMAD parser usage");
+requireText(
+  "trust",
+  "extractOfficialEnamadBadge",
+  "isolated eNAMAD parser usage",
+);
 requireText(
   "trustSecurity",
   'const ENAMAD_HOST = "trustseal.enamad.ir"',
   "official eNAMAD host allowlist",
 );
 forbidText("trust", "dangerouslySetInnerHTML", "raw badge HTML execution");
-forbidText("trustSecurity", "dangerouslySetInnerHTML", "raw trust-policy HTML execution");
+forbidText(
+  "trustSecurity",
+  "dangerouslySetInnerHTML",
+  "raw trust-policy HTML execution",
+);
 
 for (const claim of [
   "بیش از ۵ سال تجربه",
@@ -115,22 +171,62 @@ for (const claim of ["openingHours", "priceRange", '"@type": "Bakery"']) {
 }
 requireText("seo", "sanitizeSchema", "schema sanitization");
 requireText("seo", "delete cloned.aggregateRating", "rating sanitization");
-requireText("seo", "delete offers.availability", "inventory schema sanitization");
+requireText(
+  "seo",
+  "delete offers.availability",
+  "inventory schema sanitization",
+);
 requireText("seo", "serializeJsonLd", "safe JSON-LD serialization");
-requireText("seo", "resolvePaginationUrlPolicy", "central canonical pagination policy");
+requireText(
+  "seo",
+  "resolvePaginationUrlPolicy",
+  "central canonical pagination policy",
+);
 
 for (const sourceName of ["productCard", "productDetail"]) {
-  requireText(sourceName, "getPublicProductBadges", "filtered public product badges");
-  requireText(sourceName, "getStockPresentation", "inventory presentation policy");
+  requireText(
+    sourceName,
+    "getPublicProductBadges",
+    "filtered public product badges",
+  );
+  requireText(
+    sourceName,
+    "getStockPresentation",
+    "inventory presentation policy",
+  );
 }
-requireText("productCard", "isProductInventoryVerified", "inventory verification flag");
+requireText(
+  "productCard",
+  "isProductInventoryVerified",
+  "inventory verification flag",
+);
 requireText("productCard", "isProductMediaVerified", "media verification flag");
-requireText("productGallery", "تصویر نمایشی کاتالوگ", "product media disclosure");
-requireText("productDetail", "getPublicProductDescription", "public product description policy");
-requireText("productDetail", "getPublicIngredients", "verified ingredient policy");
+requireText(
+  "productGallery",
+  "تصویر نمایشی کاتالوگ",
+  "product media disclosure",
+);
+requireText(
+  "productDetail",
+  "getPublicProductDescription",
+  "public product description policy",
+);
+requireText(
+  "productDetail",
+  "getPublicIngredients",
+  "verified ingredient policy",
+);
 requireText("productDetail", "getPublicAllergens", "verified allergen policy");
-requireText("catalog", "isProductInventoryVerified", "inventory verification helper");
-requireText("catalog", "isProductContentVerified", "content verification helper");
+requireText(
+  "catalog",
+  "isProductInventoryVerified",
+  "inventory verification helper",
+);
+requireText(
+  "catalog",
+  "isProductContentVerified",
+  "content verification helper",
+);
 requireText("catalog", "isProductMediaVerified", "media verification helper");
 
 requireText(
@@ -143,52 +239,152 @@ requireText(
   'route("products/category/:slug", "./routes/category-shop.tsx")',
   "shared shop category route module",
 );
-requireText("routes", 'route("sitemap.xml", "./routes/sitemap.ts")', "dynamic sitemap route");
-requireText("categoriesRedirect", "getLegacyRedirectTarget", "central permanent redirect registry");
-requireText("categoriesRedirect", "status: 301", "permanent /categories redirect");
+requireText(
+  "routes",
+  'route("sitemap.xml", "./routes/sitemap.ts")',
+  "dynamic sitemap route",
+);
+requireText(
+  "categoriesRedirect",
+  "getLegacyRedirectTarget",
+  "central permanent redirect registry",
+);
+requireText(
+  "categoriesRedirect",
+  "status: 301",
+  "permanent /categories redirect",
+);
 forbidText("header", 'href: "/categories"', "header category-index navigation");
 forbidText("footer", 'href: "/categories"', "footer category-index navigation");
 forbidText("footer", 'to="/categories"', "footer category-index CTA");
 
-for (const validPath of [
-  "/products/category/cookies",
-  "/products/category/mini-cookies",
-  "/products/category/diet-diabetic",
-  "/products/category/cakes",
-  "/products/category/cheesecakes",
-  "/products/category/pastry",
-  "/products/category/gift-boxes",
+requireText(
+  "footer",
+  "buildVisibleCatalogCategories",
+  "backend-authoritative footer category directory",
+);
+requireText(
+  "footer",
+  'href: `/products/category/${category.routeSlug}`',
+  "canonical footer category route builder",
+);
+for (const validSlug of [
+  "cookies",
+  "mini-cookies",
+  "diet-diabetic",
+  "cakes",
+  "cheesecakes",
+  "pastry",
 ]) {
-  requireText("footer", validPath, `valid editorial category link ${validPath}`);
+  requireText(
+    "categoriesContent",
+    `slug: "${validSlug}"`,
+    `editorial category fallback ${validSlug}`,
+  );
 }
-requireText("sitemap", "fetchCatalogCategories", "authoritative category sitemap source");
-requireText("sitemap", "resolveCategoryRouteSlug", "editorial category sitemap mapping");
-requireText("sitemap", "fetchCatalogProducts", "authoritative product sitemap source");
+requireText(
+  "sitemap",
+  "fetchCatalogCategories",
+  "authoritative category sitemap source",
+);
+requireText(
+  "sitemap",
+  "resolveCategoryRouteSlug",
+  "editorial category sitemap mapping",
+);
+requireText(
+  "sitemap",
+  "fetchCatalogProducts",
+  "authoritative product sitemap source",
+);
 requireText("sitemap", "loadPosts", "authoritative blog sitemap source");
 requireText("urlPolicy", "LEGACY_EXACT_REDIRECTS", "central redirect registry");
 requireText("urlPolicy", '"noindex,follow"', "filtered page index policy");
 
-requireText("home", "سفارش آنلاین کوکی،", "product-led homepage H1");
+requireText(
+  "home",
+  "home.hero.titleLine1",
+  "backend-driven product-led homepage H1 renderer",
+);
+requireText(
+  "storefrontContent",
+  '"طعم خوب برای"',
+  "product-led homepage H1 fallback",
+);
 requireText("home", "<CategoryShowcase", "homepage category discovery");
-requireText("home", "خرید بر اساس موقعیت", "occasion-led homepage section");
+requireText("home", "<OccasionSelector", "occasion-led homepage component");
+requireText(
+  "occasionSelector",
+  "occasion.title",
+  "backend-driven occasion-led homepage section renderer",
+);
+requireText(
+  "storefrontContent",
+  '"برای چه لحظه‌ای انتخاب می‌کنی؟"',
+  "occasion-led homepage section fallback",
+);
 forbidText("home", 'to="/categories"', "homepage category-index link");
 forbidText("home", "داده نهایی با بک‌اند", "developer-facing homepage copy");
 forbidText("home", "وضعیت داده", "developer-facing homepage copy");
 
 requireText("productsPage", "useParams", "one route-aware shop UI");
-requireText("productsPage", "getCategoryContent", "editorial category SEO mapping");
+requireText(
+  "productsPage",
+  "getCategoryContent",
+  "editorial category SEO mapping",
+);
 requireText("productsPage", "categoryContents", "shop category navigation");
 requireText(
   "productsPage",
   'aria-label="دسته‌بندی محصولات"',
   "crawlable category navigation",
 );
-requireText("productsPage", '"@type": "CollectionPage"', "shop and category CollectionPage schema");
-requireText("productsPage", "content?.catalogSearch", "subcategory search mapping");
-requireText("productsPage", "hasNonCanonicalFilters", "filtered-page robots policy");
-requireText("categoryShowcase", "productCount", "backend category count support");
+requireText(
+  "productsPage",
+  '"@type": "CollectionPage"',
+  "shop and category CollectionPage schema",
+);
+requireText(
+  "productsPage",
+  "content?.catalogSearch",
+  "subcategory search mapping",
+);
+requireText(
+  "productsPage",
+  "hasNonCanonicalFilters",
+  "filtered-page robots policy",
+);
+requireText(
+  "categoryShowcase",
+  'aria-label="دسته‌بندی محصولات وینیمی"',
+  "semantic category-list label",
+);
+requireText(
+  "categoryShowcase",
+  "lg:grid-cols-6",
+  "six-column desktop category rail",
+);
+requireText(
+  "categoryShowcase",
+  "basis-[44%]",
+  "touch-friendly mobile category rail",
+);
+requireText(
+  "categoryShowcase",
+  "hover:bg-[#d0e596]/70",
+  "pastel-green category hover state",
+);
+forbidText(
+  "categoryShowcase",
+  "category.productCount",
+  "legacy category count badge",
+);
 requireText("categoryShowcase", 'to="/products"', "all-shop destination");
-requireText("runtimeE2e", "shop unifies categories and filters", "unified-shop browser acceptance");
+requireText(
+  "runtimeE2e",
+  "shop unifies categories and filters",
+  "unified-shop browser acceptance",
+);
 requireText(
   "phase10Documentation",
   "homepage_and_category_architecture=ready",
@@ -210,14 +406,37 @@ for (const claim of [
   "بدون مواد نگهدارنده",
   "تخفیف ویژه برای سفارش",
 ]) {
-  forbidText("categoriesContent", claim, `unsupported static category claim: ${claim}`);
+  forbidText(
+    "categoriesContent",
+    claim,
+    `unsupported static category claim: ${claim}`,
+  );
 }
 
+requireText(
+  "publicLoaders",
+  "return conditionalContentResponse(",
+  "conditional public-content response helper usage",
+);
+requireText("publicLoaders", "{ cities },", "locations SSR city payload");
+requireText(
+  "publicLoaders",
+  "cities.length",
+  "empty locations stay crawlable while unpublished",
+);
+forbidText(
+  "publicLoaders",
+  'resourceNotFound("Location pages not found.")',
+  "empty locations hard 404",
+);
+
 if (errors.length) {
-  console.error(`Content integrity audit failed with ${errors.length} issue(s):`);
+  console.error(
+    `Content integrity audit failed with ${errors.length} issue(s):`,
+  );
   errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, canonical collections and the permanent legacy redirect.`,
+  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, Backend-authoritative storefront content, canonical collections and the permanent legacy redirect.`,
 );

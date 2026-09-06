@@ -3,6 +3,7 @@ import fs from "node:fs";
 const files = {
   routes: "src/routes.ts",
   loaders: "src/lib/public-loaders.server.ts",
+  categoryLoader: "src/lib/category-shop-loader.server.ts",
   contract: "src/lib/public-ssr.ts",
   catalogQuery: "src/lib/catalog-query.ts",
   catalogQueryTest: "tests/unit/catalog-query.test.ts",
@@ -73,7 +74,12 @@ requireText("catalogHook", "initialData: isBackendEnabled ? initialCatalog", "ca
 requireText("catalogHook", "initialData: isBackendEnabled ? loaderData?.categories", "category initial data");
 requireText("catalogHook", "initialData: isBackendEnabled ? initialProduct", "product initial data");
 requireText("shopRoute", "return loadShopPublicData(args)", "all-products server data loader");
-requireText("categoryRoute", "return loadShopPublicData(args)", "category server data loader");
+requireText("categoryRoute", 'loadManagedCategoryShop', "managed category SSR loader import");
+requireText("categoryRoute", "return loadManagedCategoryShop(args)", "managed category server data loader");
+requireText("categoryLoader", "fetchCatalogDirectory()", "managed category directory SSR fetch");
+requireText("categoryLoader", "fetchCatalogProducts(query)", "managed category products SSR fetch");
+requireText("categoryLoader", "categoryLandings: directory.landings", "managed category SEO landing hydration");
+requireText("categoryLoader", 'throw toPublicSsrResponse', "managed category fail-closed SSR errors");
 requireText("blogList", "initialData: isBackendEnabled ? initialPosts", "blog listing initial data");
 requireText("blogDetail", "initialData: isBackendEnabled ? initialPost", "blog detail initial data");
 requireText("city", "initialData: isBackendEnabled ? initialCity", "city initial data");

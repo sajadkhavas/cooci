@@ -1,25 +1,46 @@
-import { ArrowUpLeft, Cookie, Gift, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpLeft } from "lucide-react";
 import { Link } from "react-router";
+import categoryCookies from "@/assets/cookies/category-homemade-cookies-v2.webp";
 import galleryBakery from "@/assets/cookies/gallery-bakery-interior.jpg";
 import galleryBaking from "@/assets/cookies/gallery-baking-process.jpg";
 import galleryGiftBoxes from "@/assets/cookies/gallery-gift-boxes.jpg";
 import heroImage from "@/assets/cookies/hero-main.jpg";
-import lifestyleBreaking from "@/assets/cookies/lifestyle-breaking.jpg";
 import lifestyleMilk from "@/assets/cookies/lifestyle-milk.jpg";
 import lifestyleTwine from "@/assets/cookies/lifestyle-twine.jpg";
 import { categoryContents } from "@/data/categoriesContent";
-import { useCatalogCategories } from "@/hooks/useCatalog";
+import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
+import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 import { Reveal } from "@/components/motion/Reveal";
 
 const categoryVisuals = {
-  cookies: { image: lifestyleBreaking, icon: Cookie },
-  "mini-cookies": { image: galleryBaking, icon: Sparkles },
-  "diet-diabetic": { image: lifestyleTwine, icon: ShieldCheck },
-  cakes: { image: heroImage, icon: Package },
-  cheesecakes: { image: lifestyleMilk, icon: Package },
-  pastry: { image: galleryBakery, icon: Cookie },
-  "gift-boxes": { image: galleryGiftBoxes, icon: Gift },
+  cookies: categoryCookies,
+  "mini-cookies": galleryBaking,
+  "diet-diabetic": lifestyleTwine,
+  cakes: heroImage,
+  cheesecakes: lifestyleMilk,
+  pastry: galleryBaking,
+  "gift-boxes": galleryGiftBoxes,
 } as const;
+
+const getCuratedCategoryImage = (
+  routeSlug: string,
+  name: string,
+  backendImage?: string,
+) => {
+  const curated =
+    categoryVisuals[routeSlug as keyof typeof categoryVisuals];
+
+  if (curated) return curated;
+  if (/رول|کروسان|خمیر/.test(name)) return categoryVisuals.pastry;
+  if (/مینی/.test(name)) return categoryVisuals["mini-cookies"];
+  if (/رژیمی|قند/.test(name)) return categoryVisuals["diet-diabetic"];
+  if (/چیزکیک/.test(name)) return categoryVisuals.cheesecakes;
+  if (/کیک|دسر/.test(name)) return categoryVisuals.cakes;
+  if (/هدیه|باکس/.test(name)) return categoryVisuals["gift-boxes"];
+  if (/کوکی/.test(name)) return categoryVisuals.cookies;
+
+  return backendImage || galleryBakery;
+};
 
 interface CategoryShowcaseProps {
   title?: string;
@@ -33,40 +54,63 @@ interface CategoryShowcaseProps {
 }
 
 export const CategoryShowcase = ({
-  title = "دسته‌ای را انتخاب کن که به چیزی که می‌خواهی نزدیک‌تر است",
+  title = "دسته‌بندی محصولات وینیمی",
   description =
-    "از کوکی و مینی‌کوکی تا کیک، چیزکیک، محصولات خمیری و باکس هدیه؛ هر دسته مسیر کوتاه‌تری برای رسیدن به انتخاب مناسب می‌سازد.",
-  eyebrow = "Browse by category",
-  limit,
+    "دسته موردنظرت را انتخاب کن و محصولات فعال، قیمت و جزئیات سفارش را ببین.",
+  eyebrow = "دسته‌های فعال فروشگاه",
+  limit = 6,
   excludeSlug,
   showHeader = true,
   showAllLink = true,
   compact = false,
 }: CategoryShowcaseProps) => {
-  const { categories } = useCatalogCategories();
-  const visibleCategories = categoryContents
-    .filter((category) => category.slug !== excludeSlug)
-    .slice(0, limit);
+  const { categories, landings } = useCatalogDirectory();
+  const editorialCategories = landings.length > 0 ? landings : categoryContents;
+  const resolvedLimit = Math.min(Math.max(limit, 0), 6);
+  const visibleCategories = buildVisibleCatalogCategories(
+    editorialCategories,
+    categories,
+  )
+    .filter((category) => category.routeSlug !== excludeSlug)
+    .slice(0, resolvedLimit);
+
+  if (visibleCategories.length === 0) return null;
+
+  const desktopColumns =
+    visibleCategories.length >= 6
+      ? "lg:grid-cols-6"
+      : visibleCategories.length === 5
+        ? "lg:grid-cols-5"
+        : visibleCategories.length === 4
+          ? "lg:grid-cols-4"
+          : visibleCategories.length === 3
+            ? "lg:grid-cols-3"
+            : visibleCategories.length === 2
+              ? "lg:grid-cols-2"
+              : "lg:grid-cols-1";
 
   return (
-    <div>
+    <div className="category-showcase-wash rounded-[1.5rem] border border-foreground/10 bg-white/55 p-4 shadow-[0_16px_46px_-42px_hsl(var(--foreground)/0.42)] sm:p-5 lg:p-6">
       {showHeader && (
-        <Reveal className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <span className="editorial-label mb-5">{eyebrow}</span>
-            <h2 className="modern-section-title">{title}</h2>
-            <p className="mt-5 max-w-2xl leading-8 text-muted-foreground">
+        <Reveal className="mb-5 flex flex-col gap-3 sm:mb-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <span className="editorial-label mb-2">{eyebrow}</span>
+            <h2 className="text-2xl font-black leading-tight text-foreground sm:text-3xl">
+              {title}
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
               {description}
             </p>
           </div>
+
           {showAllLink && (
             <Link
               to="/products"
-              className="group inline-flex items-center gap-2 self-start font-black text-primary lg:self-auto"
+              className="group inline-flex min-h-10 items-center gap-2 self-start rounded-full border border-[#d88972]/30 bg-[#f7e4dc]/70 px-4 text-sm font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b96552] focus-visible:ring-offset-2 lg:self-auto"
             >
-              مشاهده همه دسته‌بندی‌ها در فروشگاه
+              مشاهده همه محصولات
               <ArrowUpLeft
-                size={18}
+                size={17}
                 className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
                 aria-hidden="true"
               />
@@ -75,81 +119,55 @@ export const CategoryShowcase = ({
         </Reveal>
       )}
 
-      <div
-        className={`grid gap-5 ${
-          compact ? "sm:grid-cols-2 xl:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-3"
-        }`}
+      <ul
+        className={`winimi-snap-nav -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 lg:mx-0 lg:grid ${desktopColumns} lg:overflow-visible lg:px-0 lg:pb-0`}
+        aria-label="دسته‌بندی محصولات وینیمی"
       >
-        {visibleCategories.map((content, index) => {
-          const visual =
-            categoryVisuals[content.slug as keyof typeof categoryVisuals] ??
-            categoryVisuals.cookies;
-          const Icon = visual.icon;
-          const backendCategory = categories.find(
-            (category) => category.slug === content.productCategorySlug,
+        {visibleCategories.map((category, index) => {
+          const image = getCuratedCategoryImage(
+            category.routeSlug,
+            category.name,
+            category.image,
           );
-          const productCount = backendCategory?.productCount;
 
           return (
-            <Reveal key={content.slug} delay={(index % 3) * 70}>
-              <Link
-                to={`/products/category/${content.slug}`}
-                className={`group relative block overflow-hidden rounded-[2rem] border border-border/70 bg-card shadow-soft transition duration-500 hover:-translate-y-1 hover:border-primary/25 hover:shadow-card ${
-                  compact ? "min-h-[19rem]" : "min-h-[22rem]"
-                }`}
-                aria-label={`مشاهده دسته ${content.name}`}
-              >
-                <img
-                  src={backendCategory?.image || visual.image}
-                  alt={`تصویر دسته ${content.name}`}
-                  className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  loading="lazy"
-                  decoding="async"
-                  width={900}
-                  height={900}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/62 to-primary/5" />
-                <div
-                  className={`relative flex h-full flex-col justify-between p-6 text-primary-foreground sm:p-7 ${
-                    compact ? "min-h-[19rem]" : "min-h-[22rem]"
-                  }`}
+            <li
+              key={category.routeSlug}
+              className="min-w-0 basis-[44%] shrink-0 snap-start sm:basis-[30%] md:basis-[23%] lg:basis-auto lg:shrink"
+            >
+              <Reveal className="h-full" delay={(index % 6) * 45}>
+                <Link
+                  to={`/products/category/${category.routeSlug}`}
+                  className={`group flex h-full flex-col rounded-[1.15rem] border border-foreground/10 bg-white/72 ${
+                    compact ? "p-1.5" : "p-2"
+                  } transition duration-300 hover:-translate-y-0.5 hover:border-[#91b33f]/55 hover:bg-[#d0e596]/70 hover:shadow-[0_16px_34px_-28px_hsl(var(--foreground)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f] focus-visible:ring-offset-2`}
+                  aria-label={`مشاهده محصولات دسته ${category.name}`}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em]">
-                      {content.eyebrow}
-                    </span>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-xl">
-                      <Icon size={20} aria-hidden="true" />
-                    </span>
-                  </div>
+                  <span className="block overflow-hidden rounded-[0.85rem] bg-[#f7f9ee]">
+                    <img
+                      src={image}
+                      alt={`محصولات دسته ${category.name} وینیمی`}
+                      className="aspect-[5/4] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      loading="lazy"
+                      decoding="async"
+                      width={640}
+                      height={512}
+                    />
+                  </span>
 
-                  <div className="mt-20">
-                    {typeof productCount === "number" && productCount > 0 && (
-                      <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
-                        {productCount.toLocaleString("fa-IR")} محصول فعال
-                      </span>
-                    )}
-                    <h3 className="text-2xl font-black leading-tight sm:text-3xl">
-                      {content.name}
-                    </h3>
-                    <p className="mt-3 max-w-xl text-sm leading-7 text-primary-foreground/72">
-                      {content.cardDescription}
-                    </p>
-                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-accent">
-                      دیدن این دسته
-                      <ArrowUpLeft
-                        size={17}
-                        className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
-                        aria-hidden="true"
-                      />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </Reveal>
+                  <span
+                    className={`flex min-h-11 items-center justify-center px-1.5 py-1 text-center font-black leading-5 text-foreground ${
+                      compact ? "text-xs sm:text-sm" : "text-sm sm:text-base"
+                    }`}
+                  >
+                    {category.name}
+                  </span>
+                </Link>
+              </Reveal>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 };

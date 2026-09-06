@@ -2,7 +2,9 @@ import { ArrowLeft, Mail, MapPin, Phone } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SEO } from "@/components/SEO";
-import { brandConfig, generatePhoneUrl } from "@/config/brand";
+import { brandConfig } from "@/config/brand";
+import { usePublicShellContent } from "@/hooks/usePublicShellContent";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import {
   createLocationsCollectionSchema,
@@ -22,9 +24,10 @@ const SITE_ORIGIN = (() => {
 const LocationsPage = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
   const cities = loaderData?.cities ?? [];
-  const title = "مناطق منتشرشده ارسال وینیمی";
-  const description =
-    "صفحه‌های رسمی و منتشرشده وینیمی برای بررسی شرایط سفارش و ارسال در هر شهر؛ محدوده و روش نهایی تحویل در Checkout تأیید می‌شود.";
+  const shell = usePublicShellContent().locations;
+  const { settings } = useStorefrontSettings();
+  const title = shell.heading;
+  const description = shell.intro;
   const schema = createLocationsCollectionSchema({
     siteOrigin: SITE_ORIGIN,
     cities,
@@ -35,8 +38,8 @@ const LocationsPage = () => {
   return (
     <>
       <SEO
-        title={title}
-        description={description}
+        title={shell.metaTitle}
+        description={shell.metaDescription}
         url="/locations"
         schema={schema}
       />
@@ -49,7 +52,7 @@ const LocationsPage = () => {
           <div className="max-w-3xl">
             <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary">
               <MapPin size={16} aria-hidden="true" />
-              صفحات محلی مدیریت‌شده
+              {shell.eyebrow}
             </span>
             <h1 className="heading-1 mb-5 text-foreground">{title}</h1>
             <p className="body-large leading-9 text-muted-foreground">
@@ -86,7 +89,7 @@ const LocationsPage = () => {
                   to={getCityPagePath(city.slug)}
                   className="mt-6 inline-flex min-h-11 items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground"
                 >
-                  مشاهده شرایط {city.city}
+                  {shell.cityCtaPrefix} {city.city}
                   <ArrowLeft size={18} aria-hidden="true" />
                 </Link>
               </article>
@@ -99,33 +102,31 @@ const LocationsPage = () => {
         <div className="container-custom max-w-5xl">
           <div className="grid gap-6 rounded-3xl border border-border bg-card p-6 shadow-soft md:grid-cols-[1.2fr_0.8fr] md:p-9">
             <div>
-              <h2 className="heading-2 mb-4">اطلاعات ثابت برند</h2>
+              <h2 className="heading-2 mb-4">{shell.brandInfoTitle}</h2>
               <p className="leading-8 text-muted-foreground">
-                این اطلاعات برای شناسایی و ارتباط با {brandConfig.brandName} در همه
-                صفحه‌ها یکسان است. وجود صفحه شهر به معنی وجود شعبه فیزیکی در آن شهر
-                نیست.
+                {shell.brandInfoDescription}
               </p>
               <p className="mt-4 flex items-start gap-2 leading-8 text-muted-foreground">
                 <MapPin className="mt-1 shrink-0 text-primary" size={18} aria-hidden="true" />
-                {brandConfig.address}
+                {settings.contact.address}
               </p>
             </div>
             <div className="grid content-start gap-3">
               <a
-                href={generatePhoneUrl()}
+                href={settings.contact.phoneUrl}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 font-bold text-primary"
                 dir="ltr"
               >
                 <Phone size={18} aria-hidden="true" />
-                {brandConfig.phone}
+                {settings.contact.phone}
               </a>
               <a
-                href={`mailto:${brandConfig.email}`}
+                href={`mailto:${settings.contact.email}`}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 font-bold text-primary"
                 dir="ltr"
               >
                 <Mail size={18} aria-hidden="true" />
-                {brandConfig.email}
+                {settings.contact.email}
               </a>
             </div>
           </div>

@@ -39,7 +39,9 @@ const waitForStableDocument = async (page) => {
       previousHeight = currentHeight;
     }
 
-    throw new Error("Document height did not stabilize before runtime profiling");
+    throw new Error(
+      "Document height did not stabilize before runtime profiling",
+    );
   });
 };
 
@@ -113,29 +115,31 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
 
   await expect(navigation).toBeVisible();
   await expect(navigation.getByRole("link")).toHaveCount(5);
-  await expect(
-    navigation.getByRole("link", { name: "خانه" }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(
-    navigation.getByRole("link", { name: "فروشگاه" }),
-  ).toBeVisible();
-  await expect(
-    navigation.getByRole("link", { name: "حساب" }),
-  ).toHaveAttribute("href", "/account/login");
+  await expect(navigation.getByRole("link", { name: "خانه" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(navigation.getByRole("link", { name: "فروشگاه" })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "حساب" })).toHaveAttribute(
+    "href",
+    "/account/login",
+  );
 
   const viewport = page.viewportSize();
   const navigationBox = await navigation.boundingBox();
-  const whatsappBox = await page
-    .getByRole("link", { name: /بازکردن پشتیبانی واتساپ/ })
-    .boundingBox();
+  const supportLauncher = page.getByRole("button", {
+    name: "نمایش راه‌های ارتباط با پشتیبانی",
+  });
+  await expect(supportLauncher).toBeVisible();
+  const supportBox = await supportLauncher.boundingBox();
   expect(navigationBox).not.toBeNull();
-  expect(whatsappBox).not.toBeNull();
+  expect(supportBox).not.toBeNull();
   const navigationBottom =
     (navigationBox?.y ?? Infinity) + (navigationBox?.height ?? 0);
-  const whatsappBottom =
-    (whatsappBox?.y ?? Infinity) + (whatsappBox?.height ?? 0);
+  const supportBottom =
+    (supportBox?.y ?? Infinity) + (supportBox?.height ?? 0);
   expect(navigationBottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
-  expect(whatsappBottom).toBeLessThanOrEqual((navigationBox?.y ?? 0) + 2);
+  expect(supportBottom).toBeLessThanOrEqual((navigationBox?.y ?? 0) + 2);
 
   await navigation.getByRole("link", { name: "فروشگاه" }).click();
   await expect(page).toHaveURL(/\/products$/);
@@ -153,23 +157,27 @@ test("homepage is product-led and exposes the category architecture", async ({
 }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
+  await expect(page.locator("#main-content h1").first()).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: /سفارش آنلاین کوکی، کیک و باکس هدیه/,
-    }),
+    page.getByRole("link", { name: "مشاهده محصولات" }).first(),
+  ).toHaveAttribute("href", "/products");
+  await expect(
+    page.getByRole("heading", { name: "دسته‌بندی محصولات وینیمی" }),
   ).toBeVisible();
+
+  const categoryList = page.getByRole("list", {
+    name: "دسته‌بندی محصولات وینیمی",
+  });
+  await expect(categoryList).toBeVisible();
+  const firstCategory = categoryList.getByRole("link").first();
+  await expect(firstCategory).toBeVisible();
+  await expect(firstCategory).toHaveAttribute(
+    "href",
+    /^\/products\/category\/[^/]+$/,
+  );
+
   await expect(
-    page.getByRole("heading", { name: /اول دسته را پیدا کن/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /مشاهده همه دسته‌بندی‌ها/ }),
-  ).toBeAttached();
-  await expect(
-    page.getByRole("link", { name: /مشاهده دسته کوکی‌های خانگی/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: /خرید بر اساس موقعیت/ }),
+    page.getByRole("heading", { name: /از نیازت شروع کن/ }),
   ).toBeVisible();
 
   await assertNoHorizontalOverflow(page);
@@ -202,43 +210,47 @@ test("shop unifies categories and filters while editorial slugs map to Laravel",
     categoryNavigation.getByRole("link", { name: "همه محصولات" }),
   ).toHaveAttribute("aria-current", "page");
 
-  const expectedDestinations = [
-    ["کوکی‌های خانگی", "/products/category/cookies"],
-    ["مینی کوکی", "/products/category/mini-cookies"],
-    ["رژیمی و بدون قند افزوده", "/products/category/diet-diabetic"],
-    ["کیک و دسر", "/products/category/cakes"],
-    ["چیزکیک", "/products/category/cheesecakes"],
-    ["رول و کروسان", "/products/category/pastry"],
-    ["باکس هدیه", "/products/category/gift-boxes"],
-  ];
-  for (const [name, href] of expectedDestinations) {
-    await expect(categoryNavigation.getByRole("link", { name })).toHaveAttribute(
-      "href",
-      href,
-    );
+  const publishedCategoryLinks = categoryNavigation.locator(
+    'a[href^="/products/category/"]',
+  );
+  await expect(publishedCategoryLinks.first()).toBeVisible();
+  const publishedHrefs = await publishedCategoryLinks.evaluateAll((links) =>
+    links
+      .map((link) => link.getAttribute("href"))
+      .filter((href) => typeof href === "string"),
+  );
+  expect(publishedHrefs.length).toBeGreaterThan(0);
+  expect(new Set(publishedHrefs).size).toBe(publishedHrefs.length);
+  for (const href of publishedHrefs) {
+    expect(href).toMatch(/^\/products\/category\/[a-z0-9]+(?:-[a-z0-9]+)*$/);
   }
 
+  const firstCategoryHref = publishedHrefs[0];
+  const dietIsPublished = publishedHrefs.includes(
+    "/products/category/diet-diabetic",
+  );
   await Promise.all([
-    page.waitForURL(/\/products\/category\/cookies$/),
-    categoryNavigation.getByRole("link", { name: "کوکی‌های خانگی" }).click(),
+    page.waitForURL((url) => url.pathname === firstCategoryHref),
+    publishedCategoryLinks.first().click(),
   ]);
-  await expect(
-    page.getByRole("heading", { level: 1, name: /کوکی‌های وینیمی/ }),
-  ).toBeVisible();
+  await expect(page.locator("#main-content h1").first()).toBeVisible();
   await expect(
     page
       .getByRole("navigation", { name: "دسته‌بندی محصولات" })
-      .getByRole("link", { name: "کوکی‌های خانگی" }),
-  ).toHaveAttribute("aria-current", "page");
+      .locator('a[aria-current="page"]'),
+  ).toHaveAttribute("href", firstCategoryHref);
 
+  browserCatalogRequests.length = 0;
   const dietResponse = await page.goto("/products?diet=true", {
     waitUntil: "domcontentloaded",
   });
   expect(dietResponse?.status()).toBe(200);
-  await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
-  await expect(
-    page.getByRole("heading", { level: 1, name: /رژیمی و بدون قند افزوده/ }),
-  ).toBeVisible();
+  if (dietIsPublished) {
+    await expect(page).toHaveURL(/\/products\/category\/diet-diabetic$/);
+  } else {
+    await expect(page).toHaveURL(/\/products$/);
+  }
+  await expect(page.locator("#main-content h1").first()).toBeVisible();
   expect(browserCatalogRequests).toEqual([]);
   await assertNoHorizontalOverflow(page);
 });
@@ -322,7 +334,10 @@ test("profiles production scrolling on desktop and mobile", async ({
       };
       profiles.push(profile);
 
-      expect(profile.maxScroll, `${route.path} must be scrollable`).toBeGreaterThan(0);
+      expect(
+        profile.maxScroll,
+        `${route.path} must be scrollable`,
+      ).toBeGreaterThan(0);
       expect(
         Math.abs(profile.initialScrollHeight - profile.scrollHeight),
         `${route.path} must keep a stable document height during profiling`,

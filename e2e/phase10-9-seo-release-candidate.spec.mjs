@@ -21,11 +21,15 @@ const getAttribute = (tag, name) => {
 };
 
 const getTags = (html, tagName) =>
-  Array.from(html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, "gi")), (match) => match[0]);
+  Array.from(
+    html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, "gi")),
+    (match) => match[0],
+  );
 
 const getMetaContent = (html, attribute, value) => {
   const tags = getTags(html, "meta").filter(
-    (tag) => getAttribute(tag, attribute)?.toLowerCase() === value.toLowerCase(),
+    (tag) =>
+      getAttribute(tag, attribute)?.toLowerCase() === value.toLowerCase(),
   );
   return tags.map((tag) => getAttribute(tag, "content") || "");
 };
@@ -74,14 +78,18 @@ const expectedSchemaForPath = (pathname) => {
 
 const inspectIndexableHtml = (html, expectedUrl) => {
   expect(html).toContain('<html lang="fa-IR" dir="rtl">');
-  const titles = Array.from(html.matchAll(/<title>([\s\S]*?)<\/title>/gi), (match) => decodeHtml(match[1].trim()))
-    .filter(Boolean);
+  const titles = Array.from(
+    html.matchAll(/<title>([\s\S]*?)<\/title>/gi),
+    (match) => decodeHtml(match[1].trim()),
+  ).filter(Boolean);
   expect(titles.length).toBeGreaterThan(0);
   const title = titles.at(-1);
   expect(title.length).toBeGreaterThanOrEqual(8);
   expect(title.length).toBeLessThanOrEqual(120);
 
-  const descriptions = getMetaContent(html, "name", "description").filter(Boolean);
+  const descriptions = getMetaContent(html, "name", "description").filter(
+    Boolean,
+  );
   expect(descriptions.length).toBeGreaterThan(0);
   const description = descriptions.at(-1);
   expect(description.length).toBeGreaterThanOrEqual(20);
@@ -91,15 +99,25 @@ const inspectIndexableHtml = (html, expectedUrl) => {
     (tag) => getAttribute(tag, "rel")?.toLowerCase() === "canonical",
   );
   expect(canonicalTags).toHaveLength(1);
-  const canonical = normalizeAbsoluteUrl(getAttribute(canonicalTags[0], "href"));
+  const canonical = normalizeAbsoluteUrl(
+    getAttribute(canonicalTags[0], "href"),
+  );
   expect(canonical).toBe(normalizeAbsoluteUrl(expectedUrl));
 
   const robots = getMetaContent(html, "name", "robots").join(",").toLowerCase();
   expect(robots).not.toContain("noindex");
-  expect(getMetaContent(html, "property", "og:title").filter(Boolean).length).toBeGreaterThan(0);
-  expect(getMetaContent(html, "property", "og:description").filter(Boolean).length).toBeGreaterThan(0);
-  expect(getMetaContent(html, "property", "og:url").map(normalizeAbsoluteUrl)).toContain(canonical);
-  expect(getMetaContent(html, "name", "twitter:card")).toContain("summary_large_image");
+  expect(
+    getMetaContent(html, "property", "og:title").filter(Boolean).length,
+  ).toBeGreaterThan(0);
+  expect(
+    getMetaContent(html, "property", "og:description").filter(Boolean).length,
+  ).toBeGreaterThan(0);
+  expect(
+    getMetaContent(html, "property", "og:url").map(normalizeAbsoluteUrl),
+  ).toContain(canonical);
+  expect(getMetaContent(html, "name", "twitter:card")).toContain(
+    "summary_large_image",
+  );
 
   const h1Count = (html.match(/<h1\b/gi) || []).length;
   expect(h1Count).toBe(1);
@@ -114,7 +132,9 @@ const inspectIndexableHtml = (html, expectedUrl) => {
     .map((tag) => getAttribute(tag, "href"))
     .filter((href) => href?.startsWith("/") && !href.startsWith("//"));
   expect(internalLinks.length).toBeGreaterThan(0);
-  expect(internalLinks.some((href) => href.startsWith("/products?category="))).toBe(false);
+  expect(
+    internalLinks.some((href) => href.startsWith("/products?category=")),
+  ).toBe(false);
   expect(internalLinks.includes("/categories")).toBe(false);
 
   return {
@@ -127,7 +147,8 @@ const inspectIndexableHtml = (html, expectedUrl) => {
   };
 };
 
-const getWithoutRedirect = (request, path) => request.get(path, { maxRedirects: 0 });
+const getWithoutRedirect = (request, path) =>
+  request.get(path, { maxRedirects: 0 });
 
 const assertNoindex = async (request, path, expected = "noindex, nofollow") => {
   const response = await getWithoutRedirect(request, path);
@@ -137,11 +158,16 @@ const assertNoindex = async (request, path, expected = "noindex, nofollow") => {
 };
 
 test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
-  test("every sitemap URL passes raw HTML, metadata, schema, status and internal-link acceptance", async ({ page, request }, testInfo) => {
+  test("every sitemap URL passes raw HTML, metadata, schema, status and internal-link acceptance", async ({
+    page,
+    request,
+  }, testInfo) => {
     const sitemapResponse = await request.get("/sitemap.xml");
     const sitemapXml = await sitemapResponse.text();
     expect(sitemapResponse.status()).toBe(200);
-    expect(sitemapResponse.headers()["content-type"]).toContain("application/xml");
+    expect(sitemapResponse.headers()["content-type"]).toContain(
+      "application/xml",
+    );
 
     const sitemapUrls = Array.from(
       sitemapXml.matchAll(/<loc>([\s\S]*?)<\/loc>/gi),
@@ -163,8 +189,13 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
       const response = await request.get(`${url.pathname}${url.search}`);
       const html = await response.text();
       expect(response.status(), absoluteUrl).toBe(200);
-      expect(response.headers()["content-type"], absoluteUrl).toContain("text/html");
-      expect(response.headers()["x-robots-tag"] || "", absoluteUrl).not.toContain("noindex");
+      expect(response.headers()["content-type"], absoluteUrl).toContain(
+        "text/html",
+      );
+      expect(
+        response.headers()["x-robots-tag"] || "",
+        absoluteUrl,
+      ).not.toContain("noindex");
       const inspection = inspectIndexableHtml(html, absoluteUrl);
       inspection.internalLinks.forEach((href) => collectedLinks.add(href));
       routes.push({
@@ -191,7 +222,10 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
     for (const path of internalPaths) {
       const response = await getWithoutRedirect(request, path);
       expect(response.status(), `broken internal link: ${path}`).not.toBe(404);
-      expect(response.status(), `server error from internal link: ${path}`).toBeLessThan(500);
+      expect(
+        response.status(),
+        `server error from internal link: ${path}`,
+      ).toBeLessThan(500);
     }
 
     const robotsResponse = await request.get("/robots.txt");
@@ -205,8 +239,20 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
       ["/categories", "/products"],
       ["/products?page=1", "/products"],
       ["/locations?utm_source=phase10-9", "/locations"],
-      ["/city/staging-tehran?utm_source=phase10-9", "/city/staging-tehran"],
     ];
+
+    const publishedCityPaths = Array.from(
+      new Set(
+        sitemapUrls
+          .map((value) => new URL(value).pathname)
+          .filter((pathname) => pathname.startsWith("/city/")),
+      ),
+    );
+
+    if (publishedCityPaths.length > 0) {
+      const cityPath = publishedCityPaths[0];
+      redirectMatrix.push([`${cityPath}?utm_source=phase10-9`, cityPath]);
+    }
     for (const [source, destination] of redirectMatrix) {
       const response = await getWithoutRedirect(request, source);
       expect(response.status(), source).toBe(301);
@@ -221,7 +267,9 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
     for (const path of missingMatrix) {
       const response = await request.get(path);
       expect(response.status(), path).toBe(404);
-      expect(response.headers()["x-robots-tag"], path).toBe("noindex, nofollow");
+      expect(response.headers()["x-robots-tag"], path).toBe(
+        "noindex, nofollow",
+      );
     }
 
     const filtered = await request.get("/products?q=phase10-9&sort=newest");
@@ -229,7 +277,9 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
     expect(filtered.status()).toBe(200);
     expect(filtered.headers()["x-robots-tag"]).toBe("noindex,follow");
     expect(filteredHtml).toContain('name="robots" content="noindex,follow"');
-    expect(filteredHtml).toContain(`rel="canonical" href="${frontendOrigin}/products"`);
+    expect(filteredHtml).toContain(
+      `rel="canonical" href="${frontendOrigin}/products"`,
+    );
 
     const privatePaths = [
       "/account",
@@ -242,8 +292,13 @@ test.describe("Phase 10.9 SEO acceptance and release candidate", () => {
 
     await page.goto("/");
     await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${frontendOrigin}/`);
-    await expect(page.locator('script[type="application/ld+json"]')).not.toHaveCount(0);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `${frontendOrigin}/`,
+    );
+    await expect(
+      page.locator('script[type="application/ld+json"]'),
+    ).not.toHaveCount(0);
     await expect(page.locator("body")).not.toContainText("Application Error");
 
     const report = {

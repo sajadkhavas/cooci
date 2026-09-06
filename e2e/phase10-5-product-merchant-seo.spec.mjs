@@ -16,6 +16,14 @@ const findProductSchema = (schemas) =>
 const findBreadcrumbSchema = (schemas) =>
   schemas.find((schema) => schema?.["@type"] === "BreadcrumbList");
 
+const extractTitle = (html) => {
+  const match = html.match(/<title>([\s\S]*?)<\/title>/i);
+  return match?.[1]?.replace(/\s+/g, " ").trim() || "";
+};
+
+const countOccurrences = (value, needle) =>
+  value.split(needle).length - 1;
+
 test.describe("Phase 10.5 product and merchant SEO", () => {
   test("raw SSR contains authoritative Laravel Product Offer without invented policy", async ({ request }) => {
     const response = await request.get("/products/staging-chocolate-cookie");
@@ -36,6 +44,16 @@ test.describe("Phase 10.5 product and merchant SEO", () => {
     expect(product.offers.shippingDetails).toBeUndefined();
     expect(product.offers.hasMerchantReturnPolicy).toBeUndefined();
     expect(product["@type"]).not.toBe("ProductGroup");
+  });
+
+  test("product SSR title exposes the Winimi brand exactly once", async ({ request }) => {
+    const response = await request.get("/products/staging-chocolate-cookie");
+    const title = extractTitle(await response.text());
+
+    expect(response.status()).toBe(200);
+    expect(title).toContain("وینیمی بیکری");
+    expect(countOccurrences(title, "وینیمی بیکری")).toBe(1);
+    expect(title).not.toMatch(/وینیمی بیکری\s*\|\s*وینیمی بیکری/u);
   });
 
   test("empty approved-review response produces visible parity and no synthetic rating", async ({ page, request }) => {

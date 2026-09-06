@@ -22,6 +22,6 @@ SCRIPT_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 bash "$SCRIPT_ROOT/deploy/bin/rollback-frontend.sh" "$DEPLOY_ROOT" "$RELEASE_ID"
 
 sudo systemctl is-active --quiet "$SERVICE_NAME"
-curl --fail --silent --show-error --retry 20 --retry-delay 1 "$HEALTH_URL" >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-delay 1 --retry-connrefused --connect-timeout 2 --max-time 10 "$HEALTH_URL" >/dev/null
 
 echo "Production frontend rollback is active and healthy."
