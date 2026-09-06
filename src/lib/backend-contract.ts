@@ -83,13 +83,26 @@ export interface BackendProduct {
 
 export interface BackendUser {
   id: string;
-  mobile: string;
+  mobile: string | null;
   fullName: string | null;
   email: string | null;
   mobileVerified: boolean;
+  requiresMobileCompletion: boolean;
+  googleLinked: boolean;
   marketingConsent: boolean;
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export interface BackendAuthCapabilities {
+  google: {
+    enabled: boolean;
+    redirectPath: string;
+    linkPath: string;
+  };
+  otp: {
+    enabled: boolean;
+  };
 }
 
 export interface BackendOtpChallenge {
