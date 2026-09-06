@@ -8,6 +8,7 @@ import type {
 } from "@/lib/backend-contract";
 import type {
   CatalogCategory,
+  CatalogCategoryLanding,
   CatalogPage,
   CatalogQuery,
 } from "@/lib/catalog-api";
@@ -24,6 +25,7 @@ import type { ContentTopicSummary } from "@/lib/seo/content-topics";
 export interface PublicSsrLoaderData {
   catalogs?: Record<string, CatalogPage>;
   categories?: CatalogCategory[];
+  categoryLandings?: CatalogCategoryLanding[];
   product?: Product;
   productReviews?: ProductReviewsResult;
   faqs?: StoreFaq[];
