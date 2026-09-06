@@ -1,7 +1,10 @@
 import { ArrowLeft, Cookie, Gift, Sparkles } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
-import { DecisionSupportPanel } from "@/components/home/DecisionSupportPanel";
+import {
+  buildHomeDecisionFaqSchema,
+  DecisionSupportPanel,
+} from "@/components/home/DecisionSupportPanel";
 import { DraggableMarquee } from "@/components/home/DraggableMarquee";
 import { EditorialGuides } from "@/components/home/EditorialGuides";
 import { HomeColdGallery } from "@/components/home/HomeColdGallery";
@@ -12,10 +15,12 @@ import { SEO } from "@/components/SEO";
 import { useCatalogProducts } from "@/hooks/useCatalog";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { HOME_CHILLED_QUERY } from "@/lib/home-cold-gallery";
+import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 import productRailBackground from "@/assets/product-rail-background.webp";
 
 const HomePage = () => {
   const { content } = useStorefrontSettings();
+  const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
   const { products, isLoading, error } = useCatalogProducts();
   const {
     products: chilledProducts,
@@ -25,10 +30,15 @@ const HomePage = () => {
     .filter((product) => product.isFeatured)
     .slice(0, 6);
   const home = content.home;
+  const faqSchema = buildHomeDecisionFaqSchema(loaderData?.faqs ?? []);
 
   return (
     <>
-      <SEO title={home.metaTitle} description={home.metaDescription} />
+      <SEO
+        title={home.metaTitle}
+        description={home.metaDescription}
+        schema={faqSchema}
+      />
 
       <section className="home-color-wash relative overflow-hidden pb-12 pt-7 sm:pb-18 sm:pt-10 lg:pb-20 lg:pt-14">
         <div className="soft-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
