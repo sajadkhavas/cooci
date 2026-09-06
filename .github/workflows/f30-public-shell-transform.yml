@@ -23,7 +23,25 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Apply public shell authority transform
-        run: node scripts/apply-f30-public-shell-transform.mjs
+        shell: bash
+        run: |
+          set +e
+          node scripts/apply-f30-public-shell-transform.mjs > f30-public-shell-transform.log 2>&1
+          status=$?
+          echo "$status" > f30-public-shell-transform.exit
+          cat f30-public-shell-transform.log
+          exit 0
+      - name: Upload transform diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f30-public-shell-transform-diagnostics
+          path: |
+            f30-public-shell-transform.log
+            f30-public-shell-transform.exit
+          if-no-files-found: error
+      - name: Enforce transform result
+        run: test "$(cat f30-public-shell-transform.exit)" = "0"
       - name: Verify transformed authority
         run: |
           npm run typecheck
