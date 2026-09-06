@@ -15,6 +15,7 @@ import {
   createLocationsCollectionSchema,
   getCityPagePath,
 } from "@/lib/seo/local-seo";
+import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 
 const siteOrigin = "https://winimibakery.com";
 const city = (overrides: Partial<StoreCityPage> = {}): StoreCityPage => ({
@@ -28,21 +29,35 @@ const city = (overrides: Partial<StoreCityPage> = {}): StoreCityPage => ({
   ...overrides,
 });
 
-test("brand entity uses stable IDs and the single configured NAP source", () => {
+const backendAuthoritativeSettings = () => {
+  const defaults = resolveStorefrontSettings();
+  return {
+    ...defaults,
+    contact: {
+      ...defaults.contact,
+      phone: "02100000000",
+      phoneUrl: "tel:+982100000000",
+      email: "staging@winimi.test",
+    },
+  };
+};
+
+test("brand entity uses stable IDs and the backend-authoritative NAP source", () => {
   const ids = getBrandEntityIds(siteOrigin);
-  const organization = createBrandOrganizationEntity(siteOrigin);
-  const website = createBrandWebsiteEntity(siteOrigin);
+  const settings = backendAuthoritativeSettings();
+  const organization = createBrandOrganizationEntity(siteOrigin, settings);
+  const website = createBrandWebsiteEntity(siteOrigin, settings);
 
   assert.equal(ids.organization, `${siteOrigin}/#organization`);
   assert.equal(ids.website, `${siteOrigin}/#website`);
   assert.equal(organization["@id"], ids.organization);
-  assert.equal(organization.name, brandConfig.brandName);
-  assert.equal(organization.telephone, "+989212508746");
-  assert.equal(organization.email, brandConfig.email);
+  assert.equal(organization.name, settings.brand.name);
+  assert.equal(organization.telephone, "+982100000000");
+  assert.equal(organization.email, "staging@winimi.test");
   assert.deepEqual(organization.address, {
     "@type": "PostalAddress",
-    addressLocality: brandConfig.city,
-    addressRegion: brandConfig.region,
+    addressLocality: settings.contact.city,
+    addressRegion: settings.contact.region,
     addressCountry: "IR",
   });
   assert.equal(website.publisher["@id"], ids.organization);
@@ -52,6 +67,14 @@ test("brand entity uses stable IDs and the single configured NAP source", () => 
   assert.equal(serialized.includes("geo"), false);
   assert.equal(serialized.includes("openingHoursSpecification"), false);
   assert.equal(serialized.includes("branchOf"), false);
+});
+
+test("brand entity preserves configured fallbacks when backend identity is absent", () => {
+  const organization = createBrandOrganizationEntity(siteOrigin);
+
+  assert.equal(organization.name, brandConfig.brandName);
+  assert.equal(organization.telephone, "+989212508746");
+  assert.equal(organization.email, brandConfig.email);
 });
 
 test("brand graph preserves page schema while deduplicating stable entities", () => {
