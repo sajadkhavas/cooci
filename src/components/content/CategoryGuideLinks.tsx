@@ -1,5 +1,6 @@
 import { ArrowUpLeft, BookOpen } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
+import { getCategoryGuideFallbacks } from "@/data/categoryGuideFallbacks";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { resolveCategoryGuideContent } from "@/lib/category-guide-content";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
@@ -11,7 +12,9 @@ export const CategoryGuideLinks = ({ slug }: { slug?: string }) => {
   const landing = slug
     ? loaderData?.categoryLandings?.find((item) => item.slug === slug)
     : undefined;
-  const guides = landing?.guides ?? [];
+  const backendGuides = landing?.guides ?? [];
+  const guides =
+    backendGuides.length > 0 ? backendGuides : getCategoryGuideFallbacks(slug);
 
   if (guides.length === 0) return null;
 
