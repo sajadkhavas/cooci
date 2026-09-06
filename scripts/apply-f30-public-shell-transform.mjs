@@ -92,6 +92,7 @@ update("src/pages/FAQPage.tsx", (source) => {
   next = replaceOnce(next, 'import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', 'import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', "FAQ remove static brand import");
   next = replaceOnce(next, 'import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', 'import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', "FAQ remove static brand import");
   next = replaceOnce(next, 'import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', 'import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', "FAQ remove static brand import");
+  next = replaceOnce(next, 'import { brandConfig, generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', 'import { generateWhatsAppUrl, SUPPORT_WHATSAPP_MESSAGE } from "@/config/brand";\n', "FAQ remove static brand import");
   next = replaceOnce(next, 'import { SEO } from "@/components/SEO";\n', 'import { SEO } from "@/components/SEO";\nimport { usePublicShellContent } from "@/hooks/usePublicShellContent";\n', "FAQ shell import");
   next = replaceOnce(next, '  const [openId, setOpenId] = useState<number | null>(null);\n', '  const [openId, setOpenId] = useState<number | null>(null);\n  const shell = usePublicShellContent().faq;\n', "FAQ shell binding");
   const pairs = [
