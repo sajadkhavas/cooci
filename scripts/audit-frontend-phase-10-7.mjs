@@ -56,14 +56,18 @@ requireText("brand", '`${origin}/#website`', "stable WebSite ID");
 requireText("brand", '"@type": "Organization"', "central Organization entity");
 requireText("brand", '"@type": "WebSite"', "central WebSite entity");
 requireText("brand", '"@type": "PostalAddress"', "bounded NAP address");
-requireText("brand", "brandConfig.phoneClean", "single phone source");
-requireText("brand", "brandConfig.email", "single email source");
+requireText("brand", "storefrontSettings.contact.phone", "backend-authoritative phone source");
+requireText("brand", "storefrontSettings.contact.email", "backend-authoritative email source");
+forbidText("brand", "brandConfig.phoneClean", "hard-coded configured phone identity");
+forbidText("brand", "brandConfig.email", "hard-coded configured email identity");
 forbidText("brand", '"@type": "LocalBusiness"', "unverified LocalBusiness claim");
 forbidText("brand", '"@type": "Bakery"', "unverified Bakery location claim");
 forbidText("brand", "openingHoursSpecification", "invented opening hours");
 forbidText("brand", "streetAddress", "invented street address");
 forbidText("brand", '"geo"', "invented coordinates");
 
+requireText("seo", "getStorefrontSettings", "root storefront settings resolver");
+requireText("seo", "storefrontSettings", "backend-authoritative SEO identity");
 requireText("seo", "serializedBrandSchema", "brand entity emitted on every SEO page");
 requireText("seo", "serializedPageSchema", "page schemas preserved separately");
 requireText("local", '"@type": "CollectionPage"', "location collection schema");
@@ -79,11 +83,14 @@ requireText("loaders", "loadLocationsPublicData", "location hub SSR loader");
 requireText("loaders", "getCityPagePath(city.slug)", "authoritative city canonical redirect");
 requireText("publicSsr", "cities?: StoreCityPage[]", "typed city collection SSR payload");
 requireText("locationsPage", "createLocationsCollectionSchema", "location hub structured data");
+requireText("locationsPage", "useStorefrontSettings", "location hub backend identity renderer");
 requireText("locationsPage", "shell.brandInfoDescription", "backend-driven no-branch clarification renderer");
 requireText("publicShellContent", "وجود صفحه شهر به معنی وجود شعبه فیزیکی در آن شهر نیست.", "no-branch clarification fallback");
 requireText("cityPage", "createCityLocalServiceSchema", "city service structured data");
+requireText("cityPage", "useStorefrontSettings", "city backend identity renderer");
 requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub");
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");
+requireText("contactPage", "useStorefrontSettings", "contact backend identity renderer");
 requireText("aboutPage", "createAboutPageSchema", "AboutPage entity");
 requireText("footer", "content.footer.services", "backend-driven footer service group");
 requireText("storefrontContent", '["مناطق ارسال", "/locations"]', "authoritative local hub fallback contract");
@@ -93,9 +100,10 @@ forbidText("footer", 'href: "/city/andisheh"', "hard-coded Andisheh city link");
 requireText("sitemap", '{ path: "/locations" }', "conditional locations sitemap entry");
 requireText("sitemap", "collectPublishedCityPages", "authoritative sitemap city source");
 
-requireText("unit", "stable IDs and the single configured NAP source", "brand identity unit gate");
+requireText("unit", "backend-authoritative NAP source", "brand identity unit gate");
 requireText("unit", "links the published area to the central organization", "local service unit gate");
 requireText("e2e", "Phase 10.7 local SEO and brand entity", "local SEO Playwright acceptance");
+requireText("e2e", "staging@winimi.test", "backend-authoritative acceptance identity");
 requireText("playwright", "phase10-7-local-seo-brand-entity.spec.mjs", "Playwright Phase 10.7 registration");
 requireText("fixture", "phase10-4-city", "deterministic published city fixture");
 requireText("frontendCi", "Frontend local SEO and brand entity Phase 10.7", "CI Phase 10.7 gate");
@@ -118,5 +126,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 10.7 audit passed: stable brand entities, backend-driven location hub navigation, city Service schemas, NAP consistency and local crawl gates are locked.",
+  "Frontend Phase 10.7 audit passed: stable brand entities, backend-authoritative NAP, backend-driven location hub navigation, city Service schemas and local crawl gates are locked.",
 );
