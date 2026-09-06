@@ -5,6 +5,7 @@ on:
     branches:
       - 'phase-30-a/storefront-backend-authority'
 
+# One-shot transform; removed before F30 merge.
 permissions:
   contents: write
 
