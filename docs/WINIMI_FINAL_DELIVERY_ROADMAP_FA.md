@@ -5,7 +5,7 @@ Project: **WINIMI / COOCI**
 Frontend Repository: `sajadkhavas/cooci`  
 Backend Repository: `sajadkhavas/winimi-bakery-backend`
 
-> این سند مرجع رسمی مراحل باقی‌مانده تا تحویل نهایی است. برای وضعیت لحظه‌ای ابتدا `WINIMI_PROJECT_STATUS_FA.md` خوانده شود. قبل از هر Production mutation، وضعیت live server باید read-only دوباره تأیید شود.
+> این سند مرجع رسمی مراحل باقی‌مانده تا تحویل نهایی است. قبل از هر Production mutation، وضعیت live server باید read-only دوباره تأیید شود.
 
 ## فازهای بسته‌شده مبنا
 
@@ -43,127 +43,27 @@ Backend Repository: `sajadkhavas/winimi-bakery-backend`
 - Frontend merge SHA: `19e5502549907c75c7800337716e71da469de050`
 - Backend exact source: `e57ee2dcde2c3a67eaeda3d379790021eebcf03b`
 - Backend PR `#15`: MERGED
-- Backend `main`: `37dcbf83ca225cacec40f034659d1448adaebaba`
+- Backend `main` after F30: `37dcbf83ca225cacec40f034659d1448adaebaba`
 - Legacy Frontend PR `#36`: CLOSED / SUPERSEDED / NOT MERGED
 - Closure: `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`
-- Production mutation/deploy: **NO**
 
-## وضعیت Git stack بعد از F30
+### Phase 19B — Live Server Execution
 
-- Frontend final source در `main` قرار دارد.
-- Backend final source در `main` قرار دارد.
-- nested integration PR #36 بسته و containment آن داخل F30 اثبات شده است.
-- Git/mainline دیگر blocker تحویل نیست.
-- Production release باید از همین `main`های نهایی و پس از server re-attestation ساخته شود.
+- Status: **COMPLETED / PRODUCTION READY / LIVE ATTESTED / RESTORE VERIFIED / ROLLBACK VERIFIED**
+- Backend final GitHub `main`: `54a33874c4f54e8a5976804a6cea5ea5d2d371f7`
+- Backend backup hardening PR: `winimi-bakery-backend#16` — MERGED
+- Backend production release: `6a23406ae222f2a71570`
+- Frontend source: `557f78e03ea035f68ba9afeca8ae3cd048e408f4`
+- Frontend production release: `76769f1b448bff0eb103`
+- Reboot survival: PASS
+- Backup restore: PASS — DB + `201` persistent media files
+- Backend rollback: PASS
+- Frontend rollback: PASS
+- Business data preserved: PASS
+- Production smoke: PASS
+- Closure: `docs/PHASE19B_LIVE_SERVER_EXECUTION_CLOSURE_FA.md`
 
-# باقی‌مانده تا تحویل نهایی
-
-**دقیقاً سه فاز اجرایی باقی مانده است:**
-
-1. **Phase 19B — Live Server Execution**
-2. **Phase 20 — External Activation**
-3. **F31 — Final Acceptance & Handoff**
-
----
-
-# Phase 19B — Live Server Execution
-
-هدف: اجرای release نهایی روی VPS واقعی و ثبت `production_deployed=ready` فقط پس از شواهد زنده.
-
-Historical server identifier: `hwsrv-1332134`
-
-> شناسه و checkpointهای تاریخی فقط سرنخ‌اند؛ قبل از mutation باید خود سرور دوباره تأیید شود.
-
-## مراحل
-
-1. **Live server read-only re-attestation**
-   - hostname / OS / resources
-   - current symlinks و release directories
-   - process CWD / systemd services
-   - frontend/backend runtime source SHA
-   - Nginx/Caddy topology و PHP-FPM/Node runtime
-   - DB/Redis/media/storage persistence
-   - health/readiness/public HTTP
-   - env/provider feature flags بدون افشای secret
-
-2. **Backup point**
-   - DB backup
-   - media/storage backup
-   - checksums
-   - rollback targets
-   - isolated restore verification
-
-3. **Backend immutable release**
-   - source از Backend `main`
-   - dependency/security verification
-   - env link و permissions
-   - migrations با preflight
-   - cache/config/routes
-   - queue/scheduler readiness
-   - candidate health/readiness قبل از activation در حد topology مجاز
-
-4. **Frontend deterministic production release**
-   - source از Frontend `main`
-   - clean dependency install
-   - type/lint/test/build/release verification
-   - SSR package + manifest/hash
-
-5. **Candidate acceptance before activation**
-   - backend health/ready
-   - Home / Products / Product
-   - Login/Auth shell
-   - sitemap / robots / canonical
-   - SSR raw HTML
-   - API connectivity
-
-6. **Atomic activation**
-   - immutable release directory
-   - atomic `current` switch
-   - controlled service restart/reload
-   - automatic/manual rollback target محفوظ
-
-7. **Public Production smoke**
-   - Home
-   - Products / categories / product detail
-   - Login / Account bootstrap
-   - Cart / Checkout pre-payment flow
-   - Guides / Blog
-   - Gift / Corporate
-   - Locations / Contact / FAQ / Reviews
-   - 404
-   - backend health / readiness
-
-8. **Production SEO verification**
-   - sitemap
-   - robots
-   - canonical/indexability
-   - schema
-   - internal links
-   - local/brand entity consistency
-   - dynamic content routes
-
-9. **Services and reboot survival**
-   - frontend SSR
-   - PHP-FPM
-   - queue
-   - scheduler
-   - Redis/DB dependencies
-   - post-reboot public smoke
-
-10. **Backup + isolated restore drill**
-
-11. **Rollback drill**
-   - frontend release rollback
-   - migration-aware backend rollback/recovery procedure
-
-12. **Monitoring and search readiness**
-   - logs / 5xx / queue / disk / backup
-   - CWV collection readiness
-   - Search Console/sitemap/URL inspection preparation
-
-### Gate پایان Phase19B
-
-فقط وقتی همه موارد بالا با evidence زنده PASS شوند:
+Phase19B final gate:
 
 ```text
 PRODUCTION_DEPLOYED=READY
@@ -171,6 +71,13 @@ LIVE_RELEASE_ATTESTED=YES
 ROLLBACK_VERIFIED=YES
 BACKUP_RESTORE_VERIFIED=YES
 ```
+
+# باقی‌مانده تا تحویل نهایی
+
+**دقیقاً دو فاز اجرایی باقی مانده است:**
+
+1. **Phase 20 — External Activation**
+2. **F31 — Final Acceptance & Handoff**
 
 ---
 
@@ -265,9 +172,8 @@ HANDOFF=COMPLETE
 ## ترتیب قطعی ادامه از وضعیت فعلی
 
 ```text
-Phase19B Live Server Execution
-  -> Phase20 External Activation
+Phase20 External Activation
   -> F31 Final Acceptance & Handoff
 ```
 
-اصل اجرایی: هیچ deployment جدیدی از branchهای قدیمی Phase28/F29S/F29/F30 انجام نشود. Release بعدی فقط از `main`های نهایی و پس از read-only re-attestation سرور مجاز است.
+اصل اجرایی: Phase19B بسته شده و نباید بدون regression ناشی از تغییر Production دوباره باز شود. هیچ deployment جدیدی از branchهای قدیمی Phase28/F29S/F29/F30 انجام نشود. Providerهای خارجی فقط با credential واقعی مالک سرویس فعال شوند.
