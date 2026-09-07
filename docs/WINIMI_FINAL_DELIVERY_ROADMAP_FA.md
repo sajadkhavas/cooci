@@ -1,6 +1,6 @@
 # نقشه نهایی تحویل پروژه وینیمی
 
-آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۷**  
+آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۸**  
 Project: **WINIMI / COOCI**  
 Frontend Repository: `sajadkhavas/cooci`  
 Backend Repository: `sajadkhavas/winimi-bakery-backend`
@@ -32,7 +32,6 @@ Backend Repository: `sajadkhavas/winimi-bakery-backend`
 - Frontend implementation head: `55fdb43c8a7e43186ffe89139739de7e3c7bfdf7`
 - Backend implementation head: `1bc34ade42b964351b517df9c94c7a79dbbfb781`
 - Closure: `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
-- Production credential activation عمداً برای Phase20 باقی مانده است.
 
 ### F30 — Mainline / Git Stack Closure
 
@@ -72,55 +71,47 @@ ROLLBACK_VERIFIED=YES
 BACKUP_RESTORE_VERIFIED=YES
 ```
 
+### Phase 20 — External Activation
+
+- Status: **COMPLETED / PRODUCTION RE-ATTESTED / EXTERNAL DEPENDENCIES CLASSIFIED / CLOSED**
+- Production backend release: `6a23406ae222f2a71570`
+- Production frontend release: `76769f1b448bff0eb103`
+- Zarinpal production runtime: PASS
+- Verified live Zarinpal payment evidence: PASS
+- Zarinpal reconciliation: PASS
+- Duplicate authority/reference integrity: PASS
+- Stale pending attempts: `0`
+- Orphan payment attempts: `0`
+- Zarinpal network/TLS: PASS
+- eNAMAD official badge live in SSR: PASS
+- Google OAuth: safely disabled external dependency — production credentials not provisioned
+- Kavenegar/OTP: safely disabled external dependency — production credential not provisioned
+- Public secret leak audit: PASS
+- New payment created during closure: NO
+- Provider evidence timestamp: `2026-09-07T20:26:18Z`
+- Closure: `docs/PHASE20_EXTERNAL_ACTIVATION_CLOSURE_FA.md`
+
+Phase20 final gate:
+
+```text
+WINIMI PHASE20 = COMPLETED
+ZARINPAL_PRODUCTION=PASS
+ZARINPAL_VERIFIED_PAYMENT_EVIDENCE=PASS
+ZARINPAL_RECONCILIATION=PASS
+ZARINPAL_DUPLICATE_INTEGRITY=PASS
+ZARINPAL_NETWORK_TLS=PASS
+ENAMAD_LIVE_SSR=PASS
+GOOGLE=SAFELY_DISABLED_EXTERNAL_DEPENDENCY
+KAVENEGAR=SAFELY_DISABLED_EXTERNAL_DEPENDENCY
+SECRET_AUDIT=PASS
+NEW_PAYMENT=NO
+```
+
 # باقی‌مانده تا تحویل نهایی
 
-**دقیقاً دو فاز اجرایی باقی مانده است:**
+**فقط یک فاز اجرایی باقی مانده است:**
 
-1. **Phase 20 — External Activation**
-2. **F31 — Final Acceptance & Handoff**
-
----
-
-# Phase 20 — External Activation
-
-هدف: فعال‌سازی credential/providerهای خارجی بدون feature development جدید.
-
-## مراحل
-
-1. **Google Production OAuth**
-   - client-owned credentials
-   - exact production redirect URI
-   - server-env only secret
-   - success / cancel / invalid-state / existing-user / new-user live validation
-
-2. **Zarinpal final live regression**
-   - request
-   - callback/verify
-   - success/failure
-   - retry/duplicate/idempotency
-   - reconciliation
-
-3. **eNAMAD official badge**
-   - فقط markup/provider رسمی
-   - rendering امن
-
-4. **Kavenegar/SMS — در صورت تحویل credentials**
-   - OTP send/resend/expiry/rate-limit
-   - order notifications
-   - secret leak audit
-
-5. **Secret audit**
-   - server env only
-   - no Git/build/public API leakage
-
-6. **Provider evidence**
-   - timestamp
-   - sanitized provider identifier/evidence
-   - feature flag/deactivation procedure
-
-### Gate پایان Phase20
-
-Providerهای دارای credential واقعی باید live-regression شوند. Provider تحویل‌نشده safely disabled می‌ماند و به‌عنوان external dependency ثبت می‌شود؛ نبود credential نباید با credential ساختگی یا bypass پوشانده شود.
+1. **F31 — Final Acceptance & Handoff**
 
 ---
 
@@ -137,7 +128,8 @@ Providerهای دارای credential واقعی باید live-regression شون�
    - sitemap / robots / canonical / schema / noindex / 404
    - Search Console/content indexation evidence در حد قابل‌دسترسی واقعی
 5. Operational acceptance
-   - reboot/services/backups/restore/rollback/TLS/log rotation/capacity
+   - services / backups / restore / rollback / TLS / log rotation / capacity
+   - شواهد reboot/restore/rollback تأییدشده Phase19B دوباره اجرا نمی‌شوند مگر تغییر Production آن‌ها را invalidate کرده باشد.
 6. Final evidence pack
    - Frontend/Backend SHAs
    - production release IDs/paths
@@ -172,8 +164,8 @@ HANDOFF=COMPLETE
 ## ترتیب قطعی ادامه از وضعیت فعلی
 
 ```text
-Phase20 External Activation
-  -> F31 Final Acceptance & Handoff
+F31 Final Acceptance & Handoff
+  -> FINAL DELIVERY
 ```
 
-اصل اجرایی: Phase19B بسته شده و نباید بدون regression ناشی از تغییر Production دوباره باز شود. هیچ deployment جدیدی از branchهای قدیمی Phase28/F29S/F29/F30 انجام نشود. Providerهای خارجی فقط با credential واقعی مالک سرویس فعال شوند.
+اصل اجرایی: Phase19B و Phase20 بسته شده‌اند و بدون regression ناشی از تغییر Production دوباره باز نمی‌شوند. Provider خارجی بدون credential واقعی مالک سرویس، safely disabled باقی می‌ماند و نباید با credential ساختگی یا bypass فعال شود.
