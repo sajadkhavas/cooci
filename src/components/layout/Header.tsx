@@ -249,7 +249,7 @@ export const Header = () => {
                 restoreMenuFocusRef.current = true;
                 setIsOpen(true);
               }}
-              className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-interactive-soft text-interactive-strong shadow-soft transition-colors hover:bg-interactive/20 xl:hidden"
+              className="touch-target flex items-center justify-center rounded-full border border-[#91b33f]/45 bg-[#d0e596] text-[#27390c] shadow-soft transition-colors hover:bg-[#c2dc7c] xl:hidden"
               aria-label="باز کردن منوی اصلی"
               aria-expanded={isOpen}
               aria-controls="mobile-navigation-dialog"
@@ -285,7 +285,7 @@ export const Header = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-navigation-title"
-            className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-interactive/20 bg-interactive-soft text-foreground shadow-2xl"
+            className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-[#91b33f]/35 bg-[#d0e596] text-[#27390c] shadow-2xl"
           >
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <span className="absolute -right-24 top-16 h-60 w-60 rounded-full bg-accent/20 blur-[80px]" />
