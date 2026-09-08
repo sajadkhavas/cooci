@@ -257,7 +257,7 @@ test("protected account route completes real Sanctum OTP session and logout", as
 
   await loginWithTestingOtp(page);
   await expect(page.getByText("سفارش‌های من")).toBeVisible();
-  await expect(page.getByText("آدرسهای من")).toBeVisible();
+  await expect(page.getByText("آدرس‌های من")).toBeVisible();
 
   const me = await page.evaluate(async (origin) => {
     const response = await fetch(`${origin}/api/auth/me`, {
