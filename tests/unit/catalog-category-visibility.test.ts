@@ -65,6 +65,14 @@ const backend: CatalogCategory[] = [
     productCount: 2,
     seo: { title: "SEO جدید", description: "SEO توضیح جدید" },
   },
+  {
+    id: "03",
+    name: "باکس هدیه منتشرشده",
+    slug: "gift",
+    description: "نباید در storefront دیده شود",
+    productCount: 1,
+    seo: { title: "هدیه", description: "هدیه" },
+  },
 ];
 
 test("no backend categories means no public category navigation", () => {
@@ -89,4 +97,5 @@ test("backend categories control visibility and preserve filtered editorial view
 
   assert.equal(visible[2]?.name, "دسته جدید");
   assert.equal(visible.some((category) => category.routeSlug === "gift-boxes"), false);
+  assert.equal(visible.some((category) => category.backendCategorySlug === "gift"), false);
 });
