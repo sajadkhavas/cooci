@@ -31,6 +31,7 @@ contains("src/components/layout/Header.tsx", "navLinks.map");
 contains("src/components/layout/Header.tsx", 'link.href !== "/gift"');
 excludes("src/components/layout/MobileBottomNavigation.tsx", 'href: "/gift"');
 excludes("src/components/layout/MobileBottomNavigation.tsx", "icon: Gift");
+excludes("src/lib/seo/commercial-content.ts", "خرید کوکی، کیک و باکس هدیه");
 contains("src/components/layout/Footer.tsx", "content.footer.discovery.links.map");
 contains("src/components/home/DecisionSupportPanel.tsx", 'loadFaqs("home-decision")');
 contains("src/components/home/EditorialGuides.tsx", "loaderData?.relatedPosts");
