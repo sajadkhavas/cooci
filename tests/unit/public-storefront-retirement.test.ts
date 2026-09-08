@@ -56,6 +56,12 @@ test("backend-authored gift links are retired even when settings still contain t
           hero_secondary_href: "/gift",
         },
       },
+      trust: {
+        enamad: {
+          enabled: false,
+          badgeCode: null,
+        },
+      },
     }),
   );
 
