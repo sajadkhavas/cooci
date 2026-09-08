@@ -3,6 +3,8 @@ import { ShieldCheck } from "lucide-react";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { extractOfficialEnamadBadge } from "@/lib/security/enamad";
 
+const RETIRED_ENAMAD_ACCOUNT_IDS = new Set(["772170"]);
+
 export const EnamadTrustSlot = () => {
   const { query } = useStorefrontSettings();
   const badge = useMemo(
@@ -11,7 +13,11 @@ export const EnamadTrustSlot = () => {
     [query.data?.trust.enamad.badgeCode],
   );
 
-  if (query.data?.trust.enamad.enabled && badge) {
+  const badgeBelongsToRetiredAccount = badge
+    ? RETIRED_ENAMAD_ACCOUNT_IDS.has(new URL(badge.verification).searchParams.get("id") || "")
+    : false;
+
+  if (query.data?.trust.enamad.enabled && badge && !badgeBelongsToRetiredAccount) {
     return (
       <a
         href={badge.verification}
