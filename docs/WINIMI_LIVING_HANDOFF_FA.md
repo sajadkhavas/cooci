@@ -395,6 +395,20 @@ Root ownership incident قبلی recover شده است. Laravel config/cache ر�
 
 ## 11) CURRENT_NEXT_ACTION — چت بعدی دقیقاً از اینجا ادامه دهد
 
+### F31 delivery-polish checkpoint — 2026-09-08
+
+- Frontend accepted head: `a68bfd50aaeb675fe5d2d4a1d783efc8bfe48758`
+- Backend accepted head: `d51df49f367190f102fa70ffe1f62a7f17aa761e`
+- Frontend exact-head workflows: **5/5 SUCCESS**
+- Backend exact-head workflows: **4/4 SUCCESS**
+- Gift retirement is now enforced in Frontend navigation/SSR routes and Backend category/product endpoints, even if an accidental Admin toggle republishes the category.
+- Outdated payment-ready wording and customer-visible server/backend terminology in Checkout were removed.
+- Regression coverage locks retired category navigation, listing and direct-product access.
+- Real purchase, Google login, restore and rollback were not repeated.
+- PR `#54` and PR `#17` remain Draft/open/not merged.
+
+Next action: deploy these accepted heads through the immutable release path, then perform Production desktop/mobile visual and real-content UAT. Do not close F31 before user approval.
+
 ```text
 1. Read WINIMI_PROJECT_STATUS_FA.md
 2. Read docs/WINIMI_LIVING_HANDOFF_FA.md
