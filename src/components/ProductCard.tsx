@@ -26,6 +26,7 @@ import {
   getPublicProductSummary,
   getStockPresentation,
   isProductInventoryVerified,
+  isProductMediaVerified,
 } from "@/lib/catalog";
 
 interface ProductCardProps {
@@ -52,6 +53,7 @@ export const ProductCard = ({
   const discountPercent = getDiscountPercent(product);
   const stock = getProductStock(product);
   const inventoryVerified = isProductInventoryVerified(product);
+  const mediaVerified = isProductMediaVerified(product);
   const stockPresentation = getStockPresentation(stock, inventoryVerified);
   const publicBadges = getPublicProductBadges(product);
   const publicSummary = getPublicProductSummary(product);
@@ -105,6 +107,7 @@ export const ProductCard = ({
 
   return (
     <article
+      data-media-verified={mediaVerified ? "true" : "false"}
       className={`group relative h-full min-w-0 overflow-hidden border border-border/65 bg-card/90 shadow-card backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:border-[#d88972]/55 hover:shadow-hover focus-within:border-[#d88972]/70 focus-within:shadow-hover ${
         isRail ? "rounded-[1.35rem]" : "rounded-[2rem]"
       } ${
