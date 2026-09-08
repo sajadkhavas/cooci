@@ -39,6 +39,27 @@ const navigationMatchFor = (href: string): NavigationMatch => {
   return "prefix";
 };
 
+const buildPublicNavigation = (
+  links: ReadonlyArray<{ label: string; href: string }>,
+): NavLink[] => {
+  const withoutGift = links.filter((link) => link.href !== "/gift");
+  const contactLink = { name: "تماس با ما", href: "/contact", match: "prefix" as const };
+  const mapped = withoutGift
+    .filter((link) => link.href !== "/contact")
+    .map((link) => ({
+      name: link.label,
+      href: link.href,
+      match: navigationMatchFor(link.href),
+    }));
+  const aboutIndex = mapped.findIndex((link) => link.href === "/about");
+  if (aboutIndex === -1) return [...mapped, contactLink];
+  return [
+    ...mapped.slice(0, aboutIndex),
+    contactLink,
+    ...mapped.slice(aboutIndex),
+  ];
+};
+
 const focusableSelector = [
   "a[href]",
   "button:not([disabled])",
@@ -55,11 +76,7 @@ export const Header = () => {
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { settings, content } = useStorefrontSettings();
-  const navLinks: NavLink[] = content.navigation.links.map((link) => ({
-    name: link.label,
-    href: link.href,
-    match: navigationMatchFor(link.href),
-  }));
+  const navLinks = buildPublicNavigation(content.navigation.links);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -173,8 +190,8 @@ export const Header = () => {
                   aria-current={active ? "page" : undefined}
                   className={`relative rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     active
-                      ? "bg-interactive text-interactive-foreground shadow-lg"
-                      : "text-foreground/70 hover:bg-interactive-soft hover:text-interactive-strong"
+                      ? "bg-[#d0e596] text-[#27390c] shadow-lg ring-1 ring-[#91b33f]/35"
+                      : "text-foreground/70 hover:bg-[#d0e596]/55 hover:text-[#27390c]"
                   }`}
                 >
                   {link.name}
@@ -343,8 +360,8 @@ export const Header = () => {
                       aria-current={active ? "page" : undefined}
                       className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
-                          ? "bg-interactive text-interactive-foreground shadow-soft"
-                          : "border border-border bg-card/70 text-foreground hover:border-interactive/30 hover:bg-interactive/10"
+                          ? "bg-[#d0e596] text-[#27390c] shadow-soft ring-1 ring-[#91b33f]/35"
+                          : "border border-border bg-card/70 text-foreground hover:border-[#91b33f]/35 hover:bg-[#d0e596]/40"
                       }`}
                     >
                       <span className="flex items-center gap-3">
