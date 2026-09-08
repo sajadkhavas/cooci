@@ -1,5 +1,4 @@
 import {
-  Gift,
   Home,
   ShoppingBag,
   ShoppingCart,
@@ -32,12 +31,6 @@ export const MobileBottomNavigation = () => {
       href: "/",
       icon: Home,
       active: (pathname) => pathname === "/",
-    },
-    {
-      label: "هدیه",
-      href: "/gift",
-      icon: Gift,
-      active: (pathname) => matchesRoutePrefix(pathname, "/gift"),
     },
     {
       label: "فروشگاه",
