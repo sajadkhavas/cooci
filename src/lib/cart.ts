@@ -23,6 +23,7 @@ export interface CartItem {
   slug: string;
   name: string;
   productCode: string;
+  categorySlug?: string;
   priceToman: number;
   regularPriceToman?: number;
   quantity: number;
@@ -231,6 +232,7 @@ export const sanitizeCartItem = (value: unknown): CartItem | null => {
     slug,
     name,
     productCode,
+    categorySlug: toSafeString(value.categorySlug, 180),
     priceToman,
     regularPriceToman:
       regularPrice >= priceToman ? regularPrice : undefined,
