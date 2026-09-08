@@ -50,9 +50,9 @@ const sortOptions: Array<{
 ];
 
 const shippingOptions = [
-  { value: "all", label: "همه ارسال‌ها" },
-  { value: "nationwide", label: "بدون نیاز به سرمایش" },
-  { value: "chilled", label: "نیازمند ارسال سرد" },
+  { value: "all", label: "همه روش‌های نگهداری" },
+  { value: "nationwide", label: "ارسال معمولی" },
+  { value: "chilled", label: "ارسال سرد" },
 ] as const;
 
 const parsePositivePage = (value: string | null) => {
@@ -221,6 +221,7 @@ const ProductsPage = () => {
         content?.seoDescription ||
         shell.metaDescription
     : shell.metaDescription;
+  const categoryHeroImage = slug ? backendCategory?.image : null;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -281,14 +282,36 @@ const ProductsPage = () => {
                 : [{ name: "خانه", href: "/" }, { name: "فروشگاه" }]
             }
           />
-          <div className="max-w-4xl">
-            {content?.eyebrow && (
-              <span className="editorial-label mb-5">{content.eyebrow}</span>
+          <div
+            className={
+              categoryHeroImage
+                ? "grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.72fr)] lg:gap-12"
+                : "max-w-4xl"
+            }
+          >
+            <div>
+              {content?.eyebrow && (
+                <span className="editorial-label mb-5">{content.eyebrow}</span>
+              )}
+              <h1 className="heading-1 text-foreground">{heading}</h1>
+              <p className="body-large mt-5 max-w-3xl leading-9 text-muted-foreground">
+                {intro}
+              </p>
+            </div>
+            {categoryHeroImage && (
+              <figure className="overflow-hidden rounded-[2rem] border border-white/60 bg-card shadow-card lg:justify-self-end">
+                <img
+                  src={categoryHeroImage}
+                  alt={name}
+                  className="aspect-[4/3] h-full w-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  width={960}
+                  height={720}
+                />
+              </figure>
             )}
-            <h1 className="heading-1 text-foreground">{heading}</h1>
-            <p className="body-large mt-5 max-w-3xl leading-9 text-muted-foreground">
-              {intro}
-            </p>
           </div>
         </div>
       </section>
@@ -359,7 +382,7 @@ const ProductsPage = () => {
                 />
                 <input
                   type="search"
-                  placeholder="جستجوی نام، توضیح کوتاه یا کد محصول…"
+                  placeholder="نام یا کد محصول را جستجو کنید…"
                   value={searchQuery}
                   onChange={(event) =>
                     updateParam("q", event.target.value.slice(0, 120))
@@ -443,7 +466,7 @@ const ProductsPage = () => {
               className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary"
               role="status"
             >
-              در حال به‌روزرسانی کاتالوگ از سرور…
+              در حال به‌روزرسانی فهرست محصولات…
             </div>
           )}
 
