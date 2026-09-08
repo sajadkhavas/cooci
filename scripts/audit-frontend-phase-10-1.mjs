@@ -13,6 +13,7 @@ const files = {
   seo: "src/components/SEO.tsx",
   breadcrumb: "src/components/Breadcrumbs.tsx",
   patch: "scripts/patch-react-router-dev-module-sync.mjs",
+  fontInstaller: "scripts/fetch-vazirmatn-font.mjs",
   nonceAudit: "scripts/assert-csp-nonces.mjs",
   deployWorkflow: ".github/workflows/phase8-deployment.yml",
   acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
@@ -36,8 +37,23 @@ requireText("package", '"react-router": "7.18.1"', "stable Framework Mode pin");
 requireText("package", '"vite": "7.3.6"', "Vite compatibility pin");
 requireText(
   "package",
-  '"postinstall": "node scripts/patch-react-router-dev-module-sync.mjs"',
+  "node scripts/patch-react-router-dev-module-sync.mjs",
   "published-package repair",
+);
+requireText(
+  "package",
+  "node scripts/fetch-vazirmatn-font.mjs",
+  "pinned Vazirmatn installer",
+);
+requireText(
+  "fontInstaller",
+  'SOURCE_COMMIT = "6e553e33489a8f9dfaccc76860a2e3f3c1e66de7"',
+  "pinned Vazirmatn source commit",
+);
+requireText(
+  "fontInstaller",
+  'EXPECTED_GIT_BLOB_SHA = "a501289a85595158570b0c2badcb4608b042e748"',
+  "Vazirmatn blob integrity lock",
 );
 requireText("config", "ssr: true", "SSR enabled");
 requireText("routes", "satisfies RouteConfig", "typed route modules");
@@ -115,5 +131,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 10.1 audit passed: streamed scripts share the response CSP nonce and browser capability state is hydration-stable; frontend_ssr_foundation=ready.",
+  "Frontend Phase 10.1 audit passed: streamed scripts share the response CSP nonce, browser capability state is hydration-stable, and the self-hosted font installer is integrity-pinned; frontend_ssr_foundation=ready.",
 );
