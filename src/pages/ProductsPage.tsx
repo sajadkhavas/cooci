@@ -222,6 +222,9 @@ const ProductsPage = () => {
         shell.metaDescription
     : shell.metaDescription;
   const categoryHeroImage = slug ? backendCategory?.image : null;
+  const categoryHeroImageAlt = slug
+    ? backendCategory?.imageAlt || backendCategory?.name || name
+    : name;
   const collectionSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -302,7 +305,7 @@ const ProductsPage = () => {
               <figure className="overflow-hidden rounded-[2rem] border border-white/60 bg-card shadow-card lg:justify-self-end">
                 <img
                   src={categoryHeroImage}
-                  alt={name}
+                  alt={categoryHeroImageAlt}
                   className="aspect-[4/3] h-full w-full object-cover"
                   loading="eager"
                   fetchPriority="high"
