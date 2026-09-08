@@ -61,7 +61,12 @@ export const syncCartItemWithCatalog = (
   if (!product) return item;
 
   if (!isProductActive(product)) {
-    return { ...item, stock: 0, availability: "unavailable" };
+    return {
+      ...item,
+      categorySlug: product.categorySlug,
+      stock: 0,
+      availability: "unavailable",
+    };
   }
 
   const selectedVariant = item.selectedVariant
@@ -73,6 +78,7 @@ export const syncCartItemWithCatalog = (
       ...item,
       name: product.name,
       productCode: product.productCode,
+      categorySlug: product.categorySlug,
       image: product.images[0]?.url ?? item.image,
       stock: 0,
       availability: "unavailable",
@@ -84,6 +90,7 @@ export const syncCartItemWithCatalog = (
       ...item,
       name: product.name,
       productCode: product.productCode,
+      categorySlug: product.categorySlug,
       image: product.images[0]?.url ?? item.image,
       stock: 0,
       availability: "unavailable",
@@ -113,6 +120,7 @@ export const syncCartItemWithCatalog = (
     slug: product.slug,
     name: product.name,
     productCode: selectedVariant?.productCode ?? product.productCode,
+    categorySlug: product.categorySlug,
     priceToman: currentPrice ?? item.priceToman,
     regularPriceToman:
       regularPrice && currentPrice && regularPrice > currentPrice
