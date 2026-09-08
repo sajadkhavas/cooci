@@ -12,15 +12,16 @@ const cardSource = await readFile(
   "utf8",
 );
 
-test("product detail gallery preserves the complete managed image", () => {
+test("product detail gallery fills the main image and thumbnail frames", () => {
   assert.match(
-    gallerySource,
-    /className="h-full w-full object-contain p-4[^"]*sm:p-6[^"]*lg:p-8"/,
-  );
-  assert.doesNotMatch(
     gallerySource,
     /className="h-full w-full object-cover transition-transform/,
   );
+  assert.match(
+    gallerySource,
+    /className="h-full w-full object-cover"/,
+  );
+  assert.doesNotMatch(gallerySource, /object-contain p-(?:1\.5|4)/);
 });
 
 test("catalog cards use a full-bleed product image without a blurred duplicate", () => {
