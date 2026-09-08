@@ -257,7 +257,7 @@ test("protected account route completes real Sanctum OTP session and logout", as
 
   await loginWithTestingOtp(page);
   await expect(page.getByText("سفارش‌های من")).toBeVisible();
-  await expect(page.getByText("آدرس‌های من")).toBeVisible();
+  await expect(page.getByText("آدرسهای من")).toBeVisible();
 
   const me = await page.evaluate(async (origin) => {
     const response = await fetch(`${origin}/api/auth/me`, {
@@ -382,12 +382,12 @@ test("mobile navigation traps focus, restores dismissal focus and transfers rout
   await expect(menuButton).toBeFocused();
 
   await menuButton.press("Enter");
-  const giftLink = page
+  const contactLink = page
     .getByRole("dialog")
-    .getByRole("link", { name: "هدیه", exact: true });
-  await giftLink.focus();
-  await giftLink.press("Enter");
-  await expect(page).toHaveURL(/\/gift$/);
+    .getByRole("link", { name: "تماس با ما", exact: true });
+  await contactLink.focus();
+  await contactLink.press("Enter");
+  await expect(page).toHaveURL(/\/contact$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect
     .poll(() => page.evaluate(() => document.activeElement?.id))
