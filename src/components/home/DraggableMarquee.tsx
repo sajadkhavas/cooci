@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Sparkles } from "lucide-react";
 
 interface DraggableMarqueeProps {
@@ -8,7 +8,7 @@ interface DraggableMarqueeProps {
 export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef({ active: false, startX: 0, startScroll: 0 });
-  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -25,10 +25,14 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
       const elapsed = Math.min(now - previous, 50);
       previous = now;
 
-      if (!paused && !dragState.current.active) {
+      if (
+        document.visibilityState === "visible" &&
+        !pausedRef.current &&
+        !dragState.current.active
+      ) {
         viewport.scrollLeft += elapsed * 0.026;
         const resetPoint = viewport.scrollWidth / 2;
-        if (viewport.scrollLeft >= resetPoint) {
+        if (resetPoint > 0 && viewport.scrollLeft >= resetPoint) {
           viewport.scrollLeft -= resetPoint;
         }
       }
@@ -38,7 +42,7 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [paused]);
+  }, []);
 
   const repeatedItems = [...items, ...items];
 
@@ -87,11 +91,15 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
         onMouseLeave={() => {
           dragState.current.active = false;
         }}
-        onFocus={() => setPaused(true)}
-        onBlur={() => setPaused(false)}
+        onFocus={() => {
+          pausedRef.current = true;
+        }}
+        onBlur={() => {
+          pausedRef.current = false;
+        }}
         onPointerDown={(event) => {
           if (event.pointerType === "touch") {
-            setPaused(true);
+            pausedRef.current = true;
             return;
           }
           const viewport = viewportRef.current;
@@ -116,17 +124,19 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
           if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
           }
-          setPaused(false);
+          pausedRef.current = false;
         }}
         onPointerCancel={() => {
           dragState.current.active = false;
-          setPaused(false);
+          pausedRef.current = false;
         }}
         onLostPointerCapture={() => {
           dragState.current.active = false;
-          setPaused(false);
+          pausedRef.current = false;
         }}
-        onTouchEnd={() => setPaused(false)}
+        onTouchEnd={() => {
+          pausedRef.current = false;
+        }}
       >
         {repeatedItems.map((item, index) => (
           <span
