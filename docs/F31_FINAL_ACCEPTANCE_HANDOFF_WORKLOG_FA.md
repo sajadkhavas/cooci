@@ -1,52 +1,300 @@
 # F31 — Final Acceptance & Handoff Worklog
 
-Status: **IN PROGRESS**
+Status: **IN PROGRESS / LIVE PURCHASE ACCEPTED / POLISH HELD OPEN**
 
-Project: WINIMI / COOCI
+Project: WINIMI / COOCI  
+Updated: **2026-09-08**
 
 ## Baseline
 
-- Phase19B: CLOSED
-- Phase20: CLOSED
+- Phase19B: **CLOSED / retained evidence**
+- Phase20: **CLOSED / retained evidence**
 - Backend production release: `6a23406ae222f2a71570`
-- Frontend production release: `76769f1b448bff0eb103`
+- Frontend production release after checkout fix: `8855aed3b593be89ff10`
+- Frontend deployed source: `4bab98787114ed27613f26df31b40918d04dc80a`
 - Frontend main after Phase20 closure: `bf364510cf6097c88ecd3a55cb40a72e18d8333a`
 - Backend main: `54a33874c4f54e8a5976804a6cea5ea5d2d371f7`
 
-## Final acceptance scope
+## Branch / PR state
 
-- Customer journeys — desktop/mobile
-- Admin / Filament acceptance
-- Security regression
-- SEO/indexability acceptance
-- Operational acceptance
-- Final evidence pack
-- Handoff documentation
-- Final freeze/tag
+### Frontend
 
-## Reuse of already-proven evidence
+- Branch: `f31/final-acceptance-handoff`
+- PR: `cooci#54`
+- State: **OPEN / DRAFT / NOT MERGED / MERGEABLE**
+- Implementation snapshot before handoff-doc checkpoint: `89fcfc11391ac92e71023a82334aaa5f054dead2`
 
-The following Phase19B evidence is retained and must not be rerun unless invalidated by a later production mutation:
+### Backend
+
+- Branch: `f31/final-acceptance-handoff`
+- PR: `winimi-bakery-backend#17`
+- State: **OPEN / DRAFT / NOT MERGED / MERGEABLE**
+- Current implementation head: `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+
+## Retained Phase19B evidence — do not rerun unless invalidated
 
 - reboot survival
+- encrypted backup
 - backup restore
 - database restore
 - persistent media restore
 - backend rollback
 - frontend rollback
+- production health/smoke
 
-Phase20 provider evidence is also retained:
+Retained backup evidence:
 
-- Zarinpal production/reconciliation/duplicate integrity
-- eNAMAD live SSR
-- Google/Kavenegar safely-disabled classification
-- public secret audit
+```text
+ARCHIVE=/var/www/winimi/backend/shared/storage/app/private/Winimi Bakery/2026-09-08-00-50-57.zip
+SHA256=a368ee939e6f6d745cb3adc70576d20b4e803368ec2e58649fdb76531da7bed1
+ENCRYPTION=PASS
+ZIP_ENTRIES=1429
+MEDIA=201
+```
+
+## F31 live Google acceptance
+
+Google production credentials were provisioned after the Phase20 historical safely-disabled classification.
+
+- callback: `https://api.winimibakery.com/auth/google/callback`
+- real Google login on mobile without VPN: **PASS**
+- provider identity binding: **PASS**
+- customer Google identity linked: **YES**
+- mobile captured but unverified: **EXPECTED**
+- OTP/Kavenegar: **DISABLED / external dependency remains**
+
+Security invariant retained:
+
+- identity key = Google `sub`
+- no automatic linking by unverified phone/email
+- OAuth state validation required
+- secrets only in server environment
+
+## Checkout bug found and closed
+
+Observed symptom: checkout spinner stayed active without request.
+
+Root cause:
+
+```text
+recipient.notes.trim()
+```
+
+A saved recipient draft could contain `notes: undefined`, causing a synchronous TypeError after submitting state became active.
+
+Fix:
+
+```text
+notes: (recipient.notes ?? "").trim() || undefined
+```
+
+Regression test added in `tests/unit/checkout-submit-regression.test.ts`.
+
+Corrected source was deployed as frontend release `8855aed3b593be89ff10` and live smoke passed.
+
+## Real authenticated purchase acceptance — COMPLETE / RETAIN
+
+User then completed a real purchase through Google-authenticated checkout and Zarinpal. Final database attestation was read-only.
+
+```text
+REAL_PAID_ORDER=FOUND
+ORDER_ID=2
+ORDER_PUBLIC_ID=01M2057KFX4PJ4MKNRZQMNTZRD
+ORDER_NUMBER=WNM-260908-ULYW0Z2L
+ORDER_STATUS=delivered
+PAYMENT_STATUS=paid
+GRAND_TOTAL_TOMAN=1000
+PAID_AT=2026-09-08 12:54:12
+CUSTOMER_ID=3
+CUSTOMER_BINDING=PASS
+CUSTOMER_ACTIVE=YES
+GOOGLE_IDENTITY_LINKED=YES
+VERIFIED_PAYMENT_ATTEMPT=FOUND
+PAYMENT_ID=2
+PAYMENT_PUBLIC_ID=01M2057KZKFPAMDDMF5V5Y55K7
+PROVIDER=zarinpal
+PAYMENT_ATTEMPT_STATUS=verified
+AMOUNT_TOMAN=1000
+VERIFIED_AT=2026-09-08 12:54:13
+AMOUNT_MATCH=PASS
+PAYMENT_VERIFICATION_FIELDS=PASS
+AUTHORITY_OCCURRENCES=1
+REFERENCE_OCCURRENCES=1
+PAYMENT_UNIQUENESS=PASS
+DATABASE_MUTATION_DURING_ATTESTATION=NO
+```
+
+Retained F31 purchase gate:
+
+```text
+GOOGLE_LOGIN=PASS
+AUTHENTICATED_CHECKOUT=PASS
+REAL_ORDER=PASS
+REAL_ZARINPAL=PASS
+PAYMENT_VERIFIED=PASS
+CUSTOMER_ORDER_BINDING=PASS
+AUTHORITY_UNIQUE=PASS
+REFERENCE_UNIQUE=PASS
+PRODUCTION_HEALTH=PASS
+```
+
+**Do not ask the user to pay again.** This live acceptance is already complete unless a later production change invalidates the path.
+
+## User decision: final closure intentionally paused
+
+Although the real purchase gate passed, user explicitly chose **not to close F31 yet**. Before handoff, the project must receive final visual/content/SEO-admin polish.
+
+Required content sequence:
+
+```text
+Categories
+-> at least one real Product per Category
+-> Product SEO fields
+-> Articles
+-> Static/Commercial pages
+-> Internal linking
+-> Image SEO / alt / WebP
+-> Redirect + URL safety audit
+-> Index/Canonical/Schema final audit
+-> Search Console
+-> SEO specialist handoff
+```
+
+Search Console starts only after content/URL structure is stable.
+
+## Frontend polish batch currently implemented in PR #54
+
+Current PR changed surface includes:
+
+- Gift public retirement and controlled disabled route
+- Header active-state green/pastel correction
+- Header/Footer/Home/Products/ProductDetail customer-facing copy polish
+- eNAMAD presentation cleanup
+- out-of-stock ProductCard blur removal
+- Product Detail responsive/order/content improvements
+- DraggableMarquee smoothness work
+- self-hosted Vazirmatn installer + integrity audit
+- checkout empty-note regression fix
+- category/media contract adjustments
+- bulk cookie UX/discount support
+- storefront redirect policy/server resolver and tests
+
+Approved visual rules:
+
+- keep current Home/Products structure; no redesign from scratch
+- remove technical words like backend/server from customer copy
+- no Gift exposure in public navigation/CTA while unavailable
+- mobile Product Detail: image -> name/price -> variants -> purchase -> detailed data
+- eNAMAD centered, no side explanatory strips
+- footer separators slightly clearer
+- products filters/canonical/noindex architecture retained
+- unavailable product images remain visible; no heavy blur
+
+## Backend F31 scope currently implemented in PR #17
+
+- backup env/docs alignment
+- category `image_alt` support + migration + API/Filament/tests
+- cookie bulk discount settings/service/checkout/tests
+- redirect model/resource hardening
+- public storefront redirect resolver API
+- redirect chain-to-final-target resolution
+- open redirect / self-loop / loop / protected-route safety
+- stale redirect cache behavior removed
+- redirect feature tests
+
+## Current CI blockers — exact checkpoint
+
+### Frontend snapshot `89fcfc11391ac92e71023a82334aaa5f054dead2`
+
+```text
+F30 Storefront Frontend Authority 34248716957 = SUCCESS
+Phase 19 Production Package       34248716976 = SUCCESS
+Frontend CI                       34248716971 = FAILURE
+Phase 8 Deployment Readiness      34248716966 = FAILURE
+Phase 18 End-to-End Acceptance    34248717023 = FAILURE
+```
+
+Concrete Frontend root cause from CI:
+
+```text
+src/routes/category-shop.tsx: missing managed category server data loader
+```
+
+Failure occurs in `audit-frontend-phase-10-3.mjs` after earlier audit phases pass.
+
+### Backend head `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+
+```text
+Phase 18 Backend Acceptance 34248330877 = SUCCESS
+Backend CI                  34248330799 = FAILURE
+Phase 19 Production Package 34248330820 = FAILURE
+```
+
+Concrete Backend blocker:
+
+```text
+Pint formatting is clean = FAILURE
+app/Services/Orders/CookieBulkDiscountService.php
+reported rule includes unary_operator_spaces
+```
+
+Pint must be fixed using exact formatter output. Do not mark Backend exact-head green until the subsequent migration/test/security steps actually run and pass.
+
+## Client product/content source already in GitHub
+
+- `src/data/products.ts`
+- historical commit `c0be99195bd9e0b7bd6e123c0dff5d7c4f98b085` — `Transfer complete Winimi product catalog data`
+- `src/data/categoriesContent.ts`
+- SEO strategy docs under `docs/seo/`
+
+Known catalog families in that historical source:
+
+- کوکی‌ها
+- مینی کوکی
+- کیک و دسر
+- رژیمی و بدون قند
+- رول و کروسان
+- باکس هدیه
+
+Gift is currently public-retired; historical catalog data must be reconciled with current employer offerings before publication.
+
+## Approved category image checkpoint
+
+For «کوکی‌های خانگی», user approved a generated 4:3 cover based on provided real product photos.
+
+Session artifacts:
+
+```text
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting.png
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting_optimized.webp
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting_optimized.jpg
+```
+
+Suggested web filename: `winimi-homemade-cookies-category.webp`  
+Suggested truthful alt: `مجموعه کوکی‌های خانگی وینیمی با طعم‌های شکلاتی، ردولوت و مغزی`
+
+It is not considered live until uploaded/referenced through the real media/admin path.
+
+## Exact continuation contract for next chat
+
+1. Read `WINIMI_PROJECT_STATUS_FA.md`.
+2. Read `docs/WINIMI_LIVING_HANDOFF_FA.md`.
+3. Read this worklog.
+4. Fetch live PR #54/#17 metadata and current heads before any code mutation.
+5. Fix Frontend managed-category server-data-loader audit blocker.
+6. Fix Backend Pint blocker.
+7. Re-run/verify exact-head CI on both repos.
+8. Continue page-by-page UI/content/SEO-admin polish and real data population.
+9. Do not repeat Google login payment acceptance, restore drill or rollback drill unless invalidated.
+10. Do not merge PR #54/#17 and do not close F31 until user explicitly confirms polish/content is finished.
 
 ## Final gate
 
-F31 is not complete until all current live acceptance checks pass, the final evidence pack is registered, no unresolved P0/P1 blocker remains, open delivery PRs are zero, and the final freeze/tag is created.
+F31 is not complete until final content/polish is approved, exact-head CI is green, documentation is reconciled, PRs are merged, post-merge CI is green, production matches the accepted merged source, final freeze/tag exists, and unresolved P0/P1/review blockers are zero.
 
 ```text
+F31=COMPLETED
+ALL_DELIVERY_PRS=MERGED
 WINIMI_FINAL_DELIVERY=PASS
 PRODUCTION=READY
 HANDOFF=COMPLETE
