@@ -191,7 +191,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
                   <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.9),transparent_38%),linear-gradient(145deg,#dce8e1,#f8faf4)] text-center text-[#557263]">
                     <span className="grid gap-3 px-6 text-xs font-black">
                       <Snowflake className="mx-auto" size={34} aria-hidden="true" />
-                      تصویر واقعی محصول پس از تأیید رسانه نمایش داده می‌شود
+                      تصویر این محصول به‌زودی تکمیل می‌شود
                     </span>
                   </div>
                 )}
@@ -343,7 +343,7 @@ export const HomeColdGallery = ({ products }: HomeColdGalleryProps) => {
           </span>
           <span className="flex items-center justify-center gap-2">
             <CheckCircle2 size={17} aria-hidden="true" />
-            موجودی نهایی با تأیید سرور
+            موجودی نهایی پیش از ثبت سفارش بررسی می‌شود
           </span>
         </div>
       </div>
