@@ -114,7 +114,8 @@ test("mobile bottom navigation is responsive, accessible and route-aware", async
   }
 
   await expect(navigation).toBeVisible();
-  await expect(navigation.getByRole("link")).toHaveCount(5);
+  await expect(navigation.getByRole("link")).toHaveCount(4);
+  await expect(navigation.getByRole("link", { name: "هدیه" })).toHaveCount(0);
   await expect(navigation.getByRole("link", { name: "خانه" })).toHaveAttribute(
     "aria-current",
     "page",
