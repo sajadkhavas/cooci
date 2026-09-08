@@ -203,7 +203,7 @@ const CheckoutPage = () => {
             : recipient.postalCode
               ? normalizeEnglishDigits(recipient.postalCode)
               : undefined,
-      notes: recipient.notes.trim() || undefined,
+      notes: (recipient.notes ?? "").trim() || undefined,
     };
 
     const result = await createCheckoutSession({
