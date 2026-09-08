@@ -14,6 +14,7 @@ export interface BackendCategory {
   slug: string;
   description: string | null;
   image: string | null;
+  imageAlt: string | null;
   productCount?: number;
   seo: {
     title: string;
