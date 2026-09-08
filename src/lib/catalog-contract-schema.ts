@@ -54,6 +54,7 @@ export const backendCategorySchema = z
     slug: safeCatalogIdentifierSchema,
     description: nullableText(5_000),
     image: safeCatalogMediaUrlSchema.nullable(),
+    imageAlt: nullableText(255),
     productCount: z.number().int().nonnegative().optional(),
     seo: z.object({
       title: z.string().max(255),
