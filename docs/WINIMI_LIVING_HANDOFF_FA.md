@@ -1,242 +1,430 @@
 # سند مرجع زنده پروژه وینیمی
 
-آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۷**  
-وضعیت: مرجع ادامه کار بین چت‌ها  
+آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۸**  
+وضعیت: **مرجع اصلی ادامه کار بین چت‌ها / F31 در حال انجام**  
 زبان: فارسی / RTL
 
-> شروع سریع در چت جدید: ابتدا `WINIMI_PROJECT_STATUS_FA.md` را بخوان. سپس این فایل، `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`، `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md` و `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md` را بررسی کن. GitHub و قبل از هر Production mutation خود سرور را read-only دوباره تأیید کن. هیچ `CURRENT_NEXT_ACTION` تاریخی را بر وضعیت فعلی مقدم ندان.
+> **قانون شروع چت جدید:** ابتدا `WINIMI_PROJECT_STATUS_FA.md`، سپس همین فایل و `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` را بخوان. بعد PRهای Frontend `#54` و Backend `#17` و CI همان HEADهای زنده را بررسی کن. هیچ checkpoint قدیمی را بر HEAD/Production فعلی مقدم ندان و هیچ فاز بسته‌شده‌ای را بدون evidence جدید دوباره باز نکن.
 
-## 1) خلاصه اجرایی و موقعیت فعلی
+## 1) هویت پروژه
 
 ```text
 PROJECT=WINIMI_COOCI
-F29S=PASS_MERGED_REGISTERED_CLOSED
-F29=PASS_MERGED_REGISTERED_CLOSED
-F30=PASS_MERGED_REGISTERED_CLOSED
-CURRENT_PHASE=PHASE19B_LIVE_SERVER_EXECUTION
+STOREFRONT=https://winimibakery.com
+API=https://api.winimibakery.com
+FRONTEND_REPO=sajadkhavas/cooci
+BACKEND_REPO=sajadkhavas/winimi-bakery-backend
+CURRENT_PHASE=F31_FINAL_ACCEPTANCE_HANDOFF
 FINAL_DELIVERY=NOT_COMPLETE
-PRODUCTION_MUTATION_IN_F30=NO
-DEPLOY_PERFORMED_IN_F30=NO
 ```
 
-**CURRENT_NEXT_ACTION واقعی:**
+Frontend stack فعلی: React Router Framework Mode + React + TypeScript + Vite + SSR.  
+Backend stack فعلی: Laravel + Filament + Sanctum/session + Queue/Scheduler + MySQL/Redis topology در Production.
 
-```text
-NEXT=PHASE19B_LIVE_SERVER_EXECUTION
-FIRST_ACTION=READ_ONLY_SERVER_RE_ATTESTATION
-PRODUCTION_MUTATION_ALLOWED_BEFORE_ATTESTATION=NO
-```
+اصل معماری رسمی پروژه:
 
-F29S، Google Login/Auth implementation و Mainline Closure تمام شده‌اند. مرحله بعدی دیگر Redesign، SEO content یا Google Login implementation نیست؛ مرحله بعد اجرای release نهایی `main` روی سرور واقعی با preflight فقط‌خواندنی و evidence کامل است.
+> هر چیز محتوایی، تجاری، قابل مدیریت توسط صاحب فروشگاه، قابل روشن/خاموش شدن یا وابسته به داده در Frontend باید تا جای ممکن از Backend/Filament قابل کنترل و از API مصرف شود. Frontend مالک layout، responsive behavior، animation، accessibility mechanics و microcopy سیستمی است.
 
-## 2) هویت فنی
+## 2) تاریخچه فنی از پایه تا وضعیت فعلی
 
-### دامنه و مخزن
+جزئیات ریز هر مرحله در docs و Git history موجود است؛ این بخش index زمانی جلوگیری از دوباره‌کاری است.
 
-- Storefront: `https://winimibakery.com`
-- API: `https://api.winimibakery.com`
-- Frontend: `sajadkhavas/cooci`
-- Backend: `sajadkhavas/winimi-bakery-backend`
+### Foundation / Frontend audits
 
-### Frontend final F30 source
+Frontend از auditهای مرحله‌ای عبور کرده است و اسناد `FRONTEND_FULL_AUDIT_PHASE_*` و `FRONTEND_FULL_AUDIT_ROADMAP.md` تاریخچه آن را نگه می‌دارند. قراردادهای اصلی که در آن مراحل قفل شدند:
 
-- Exact F30 source HEAD: `d17054b783eabff96db8bd3100402f50d15e2b55`
-- PR #51: **MERGED**
-- Merge SHA into `main`: `19e5502549907c75c7800337716e71da469de050`
-- F30 closure registration commit: `e1d2f00c3e369994013bcdbad7caeec8d546200d`
-- Project status advancement commit: `4968b436a335b9e602b6637b923213b3894c61b7`
-- Final-delivery roadmap advancement commit: `70801d71a4e061326cf0dc6d8ad3290cc3699942`
+- API validation و session/auth boundaries
+- runtime catalog + variants + stock/cart persistence
+- checkout/payment/idempotency boundaries
+- SSR metadata/canonical/JSON-LD/media safety
+- accessibility و keyboard/focus/live-region contracts
+- PWA/offline/update flow
+- immutable SSR deployment/rollback
+- security/deployment adversarial audits
+- runtime performance/CWV-oriented cleanup
+- SSR foundation
+- unified shop/category architecture
+- server-data rendering
+- crawl/URL architecture
+- product/merchant SEO
+- content/topical authority
+- local SEO/brand entity
+- SEO release acceptance
 
-Exact-head release gates on F30 source:
+### Backend foundation
 
-- Frontend CI `34065298017` — SUCCESS
-- Phase8 Deployment Readiness `34065297991` — SUCCESS
-- Phase18 E2E `34065297994` — SUCCESS
-- Phase19 Production Package `34065298003` — SUCCESS
-- F30 Storefront Frontend Authority `34065297971` — SUCCESS
+Backend Laravel در طول فازهای پایه به این domainها رسیده است:
 
-### Backend final F30 source
+- catalog/categories/products/variants/inventory
+- customer auth/session/OTP infrastructure/Google identity
+- checkout/orders/idempotency/reservations
+- payment abstraction + Zarinpal verify/reconciliation
+- delivery/addresses/fulfillment
+- content/pages/FAQ/gallery/posts/city pages
+- reviews/inquiries
+- notification templates/outbox
+- Filament administration
+- activity/security/readiness/backup/monitoring
 
-- Exact F30 source HEAD: `e57ee2dcde2c3a67eaeda3d379790021eebcf03b`
-- PR #15: **MERGED**
-- Backend `main`: `37dcbf83ca225cacec40f034659d1448adaebaba`
+اسناد backend مرجع شامل `docs/LARAVEL_BACKEND_COMPLETE.md`, `docs/FULL_LAUNCH_ROADMAP.md`, `docs/API_CONTRACT.md`, `docs/CUSTOMER_AUTH.md`, `docs/ORDERS_CHECKOUT.md`, `docs/PAYMENTS.md`, `docs/OPERATIONS_POLICIES.md` و `docs/BACKUP_RESTORE.md` هستند.
 
-Exact-head gates:
+### Phase 28 — SEO Route Architecture
 
-- Backend CI `34064138819` — SUCCESS
-- Phase18 backend `34064138836` — SUCCESS
-- F30 Storefront Backend Authority `34064138868` — SUCCESS
-- Phase19 Production Package `34064138827` — SUCCESS
-- Pint — PASS
-- Composer security audit — PASS
+- **COMPLETED / MERGED / REGISTERED**
+- Frontend exact CI head: `26c5ef080b910b9b6cf7177cae401e7fe48bb180`
+- PR `#37`
+- Closure: `docs/PHASE_28_SEO_ROUTE_ARCHITECTURE_CLOSURE.md`
 
-## 3) F30 Mainline Closure
+### F29S — SEO Content Strategy & Topical Authority
 
-- Tracker `cooci#50`: **CLOSED / COMPLETED**
-- Closure record: `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`
-- Frontend PR #51 review submissions: `0`
-- Frontend PR #51 inline review threads: `0`
-- Legacy PR #36: **CLOSED / NOT MERGED / SUPERSEDED**
-- PR #36 head: `9a062efa972625d3a90f52dc86b089054d43e9f8`
-- F30 source vs PR #36: `ahead_by=123`, `behind_by=0`, merge-base = PR #36 head
-- نتیجه: Phase27 داخل stack نهایی حفظ شده و merge تکراری انجام نشده است.
+- **PASS / MERGED / REGISTERED / CLOSED**
+- Tracker `cooci#38` — CLOSED
+- Frontend closure head before F29: `2cddf69e3a5e550b5acfff4729beffcb81a0ccea`
+- Backend integration: `ff6ad79c5c3ef1ffc69f77023a37a0a261ded8b0`
+- Closure: `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
 
-### Backend Authority invariant
+SEO architecture قفل‌شده:
 
-هر چیزی در Frontend که محتوایی، تجاری، قابل مدیریت توسط صاحب فروشگاه، قابل روشن/خاموش شدن یا وابسته به داده است باید از Backend/Filament قابل کنترل و از API مصرف شود.
+- commercial category intent متعلق به category URL است، نه Home یا product
+- filter/search URLs نباید indexable duplicate بسازند
+- category -> guide و guide -> commercial/category internal linking architecture
+- product SEO/JSON-LD از backend-authoritative fields
+- fake review/rating schema ممنوع
+- local landing فقط برای location واقعی
 
-Backend-authoritative examples:
+### F29 — Google Login & Auth Closure
 
-- products/categories/catalog
-- hero/banner/marquee/CTA content
-- navigation/footer/link groups
-- brand/contact/social/trust/store settings
-- SEO metadata و public shell content
-- blog/guides/FAQ/gallery/locations/reviews/managed pages
-- auth/account/orders/payments/delivery state
+- **PASS / MERGED / REGISTERED / CLOSED**
+- Tracker `cooci#48`
+- identity key = Google `sub`
+- auto-link صرفاً با email/phone ممنوع
+- OAuth state validation اجباری
+- mobile capture به معنی mobile verification نیست
+- OTP infrastructure نگه داشته شده و بدون provider واقعی fail-closed است
+- Closure: `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
 
-Frontend code-controlled فقط برای:
+### F30 — Mainline / Git Stack Closure
 
-- layout/components
-- responsive behavior
-- animation/design tokens
-- accessibility mechanics
-- transient technical/validation microcopy
+- **PASS / MERGED / REGISTERED / CLOSED**
+- Tracker `cooci#50` — CLOSED
+- Frontend source: `d17054b783eabff96db8bd3100402f50d15e2b55`
+- Frontend PR `#51` — MERGED -> `main` merge `19e5502549907c75c7800337716e71da469de050`
+- Backend source: `e57ee2dcde2c3a67eaeda3d379790021eebcf03b`
+- Backend PR `#15` — MERGED
+- Legacy Frontend PR `#36` — CLOSED / SUPERSEDED / NOT MERGED
+- Closure: `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`
 
-F30 همچنین NAP/JSON-LD را یکپارچه کرد: Organization/WebSite schema و Contact/Locations/City همگی از Store Settings مشترک Backend-authoritative استفاده می‌کنند.
-
-## 4) Auth invariant بعد از F29
-
-- Google Login implementation کامل و ثبت شده است.
-- provider identity key = Google `sub`، نه email.
-- auto-link صرفاً با email/phone ممنوع است.
-- OAuth state validation اجباری است.
-- credentials فقط server-env هستند.
-- کاربر جدید Google شماره موبایل ایران را تکمیل می‌کند.
-- mobile verification تا OTP واقعی NULL می‌ماند.
-- OTP infrastructure حذف نشده و `OTP_ENABLED` به‌صورت پیش‌فرض fail-closed/off است.
-- Production Google credential activation در Phase20 انجام می‌شود.
-
-## 5) Production — فقط checkpoint تاریخی
-
-آخرین checkpointهای ثبت‌شده قدیمی‌اند و **نباید** به‌عنوان وضعیت زنده فرض شوند.
-
-### Frontend historical checkpoint
-
-- Release: `/var/www/winimi/frontend/releases/bab4c34db478713465d1`
-- Historical source SHA: `d9e44edc13c24427c2f4741b19ac4db98f257160`
-
-### Backend historical checkpoint
-
-- Release: `/var/www/winimi/backend/releases/eb002a6d5f093e7780d3`
-- Historical source SHA: `eb002a6d5f093e7780d3cf6333b3e5f83f96e57b`
-
-قبل از mutation در Phase19B باید از خود سرور دوباره استخراج شود:
-
-- hostname / OS / CPU / RAM / disk / swap
-- frontend/backend `current` targets
-- source/manifest SHA هر release
-- systemd service status و process CWD
-- Nginx/PHP-FPM/Node topology
-- DB/Redis/storage/media persistence
-- queue/scheduler state
-- health/readiness/public HTTP
-- backup/rollback targets
-- provider feature flags بدون چاپ secret
-
-## 6) Release architecture ثبت‌شده
-
-### Frontend
-
-- SSR با React Router Framework Mode + Vite
-- immutable releases + atomic `current`
-- Node SSR service
-- Production contract باید API واقعی را مصرف کند و dev mocks خاموش باشند.
-
-### Backend
-
-- Laravel + PHP-FPM
-- Queue + Scheduler
-- immutable releases + shared env/storage + atomic `current`
-- Production package topology نهایی F30 با مسیر `current/app/public` همگام شده است.
-
-هیچ release تاریخی جای read-only preflight زنده را نمی‌گیرد.
-
-## 7) فازهای باقی‌مانده تا تحویل نهایی
-
-دقیقاً سه فاز:
-
-```text
-Phase19B -> Phase20 -> F31
-```
+F30 همچنین Backend Authority و NAP/Organization/WebSite/Contact/Locations/City source-of-truth مشترک را قفل کرد.
 
 ### Phase19B — Live Server Execution
 
-- read-only live-server re-attestation
-- backup + checksum + restore evidence
-- Backend immutable release از `main`
-- Frontend deterministic SSR release از `main`
-- candidate acceptance
-- atomic activation
-- public smoke
-- Production SEO verification
-- queue/scheduler/service + reboot survival
-- rollback drill
-- monitoring/search readiness
+- **COMPLETED / PRODUCTION READY / LIVE ATTESTED / RESTORE VERIFIED / ROLLBACK VERIFIED / CLOSED**
+- Backend production release family: `6a23406ae222f2a71570`
+- reboot survival: PASS
+- backup restore: PASS
+- database restore: PASS
+- persistent media restore: PASS (`201` media در evidence اصلی)
+- backend rollback: PASS
+- frontend rollback: PASS
+- production smoke: PASS
+- Closure: `docs/PHASE19B_LIVE_SERVER_EXECUTION_CLOSURE_FA.md`
 
-Gate:
-
-```text
-PRODUCTION_DEPLOYED=READY
-LIVE_RELEASE_ATTESTED=YES
-ROLLBACK_VERIFIED=YES
-BACKUP_RESTORE_VERIFIED=YES
-```
+شواهد reboot/restore/rollback بدون mutation مرتبط دوباره اجرا نمی‌شوند.
 
 ### Phase20 — External Activation
 
-- Google production OAuth credentials/live validation
-- Zarinpal final live regression
-- eNAMAD official badge
-- Kavenegar/SMS فقط در صورت تحویل credential واقعی
-- secret/provider audit
+- **COMPLETED / CLOSED**
+- Zarinpal production runtime + verified-payment evidence: PASS
+- reconciliation: PASS
+- duplicate authority/reference integrity: PASS
+- network/TLS: PASS
+- eNAMAD official SSR badge: PASS
+- public secret audit: PASS
+- در زمان closure، Google/Kavenegar به‌عنوان external dependency safely disabled ثبت شدند.
+- Closure: `docs/PHASE20_EXTERNAL_ACTIVATION_CLOSURE_FA.md`
 
-Provider بدون credential واقعی safely disabled می‌ماند؛ هیچ credential یا evidence ساختگی مجاز نیست.
+> وضعیت Google بعداً در خود F31 با credential واقعی مالک سرویس فعال و با login واقعی Production تأیید شد؛ بنابراین classification تاریخی Phase20 برای Google دیگر وضعیت زنده نیست. Kavenegar/OTP همچنان تا credential واقعی disabled باقی می‌ماند.
 
-### F31 — Final Acceptance & Handoff
+## 3) F31 — وضعیت live acceptance که دیگر نباید تکرار شود
 
-- Desktop/Mobile customer journey
-- Filament admin acceptance
-- security regression
-- final SEO/Search Console evidence
-- operational acceptance
-- evidence pack
-- docs/handoff
-- final tag
-- related open PRs = 0
-- unresolved threads = 0
-- unresolved P0/P1 = 0
-- Production SHA match
+F31 از `main`های بسته‌شده Phase20 شروع شد و هنوز **IN PROGRESS** است.
 
-## 8) مرجع ادامه چت بعدی
-
-به‌ترتیب بخوان:
-
-1. `WINIMI_PROJECT_STATUS_FA.md`
-2. `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`
-3. `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`
-4. `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md`
-5. `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
-6. `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
-7. همین فایل
-
-و سپس GitHub/Server را read-only با این اسناد reconcile کن.
-
-## 9) Final delivery marker
-
-فقط پس از F31:
+### Production release lock فعلی ثبت‌شده
 
 ```text
+BACKEND_CURRENT=/var/www/winimi/backend/releases/6a23406ae222f2a71570
+FRONTEND_CURRENT=/var/www/winimi/frontend/releases/8855aed3b593be89ff10
+FRONTEND_DEPLOYED_SOURCE=4bab98787114ed27613f26df31b40918d04dc80a
+```
+
+Frontend release `8855aed3b593be89ff10` بعد از اصلاح checkout empty-note deploy و smoke شد. Backend همان release معتبر Phase19B/F31 باقی مانده است.
+
+### Google Production acceptance
+
+- callback production: `https://api.winimibakery.com/auth/google/callback`
+- login واقعی Google روی موبایل و بدون VPN: PASS
+- Google identity به customer واقعی متصل شد
+- mobile captured but unverified مطابق قرارداد: expected
+- `OTP_ENABLED=false`
+
+### Checkout / Zarinpal real purchase acceptance
+
+Checkout spinner قبلی ناشی از `recipient.notes.trim()` روی `undefined` بود، نه CORS/session/service-worker. Fix در `CheckoutPage.tsx`:
+
+```text
+notes: (recipient.notes ?? "").trim() || undefined
+```
+
+بعد از deploy اصلاح‌شده، خرید واقعی Production انجام و درگاه زرین‌پال verify شد. این acceptance **نباید دوباره با پرداخت جدید تکرار شود** مگر regression جدید آن را invalidate کند.
+
+Evidence اصلی خرید واقعی:
+
+```text
+REAL_PAID_ORDER=FOUND
+ORDER_ID=2
+ORDER_PUBLIC_ID=01M2057KFX4PJ4MKNRZQMNTZRD
+ORDER_NUMBER=WNM-260908-ULYW0Z2L
+ORDER_STATUS=delivered
+PAYMENT_STATUS=paid
+GRAND_TOTAL_TOMAN=1000
+CUSTOMER_ID=3
+GOOGLE_IDENTITY_LINKED=YES
+PAYMENT_ID=2
+PAYMENT_PUBLIC_ID=01M2057KZKFPAMDDMF5V5Y55K7
+PROVIDER=zarinpal
+VERIFIED_PAYMENT_STATUS=verified
+AMOUNT_MATCH=PASS
+PAYMENT_UNIQUENESS=PASS
+DATABASE_MUTATION_DURING_FINAL_ATTESTATION=NO
+```
+
+Gate retained:
+
+```text
+GOOGLE_LOGIN=PASS
+AUTHENTICATED_CHECKOUT=PASS
+REAL_ORDER=PASS
+REAL_ZARINPAL=PASS
+PAYMENT_VERIFIED=PASS
+CUSTOMER_ORDER_BINDING=PASS
+AUTHORITY_UNIQUE=PASS
+REFERENCE_UNIQUE=PASS
+PRODUCTION_HEALTH=PASS
+```
+
+## 4) تصمیم مهم مالک پروژه: F31 هنوز بسته نشود
+
+با وجود PASS شدن خرید واقعی، کاربر عمداً final closure را نگه داشته تا قبل از تحویل، UI/content/SEO admin polish کامل شود.
+
+ترتیب محتوایی مورد توافق:
+
+```text
+Categories
+-> حداقل یک Product واقعی در هر Category
+-> Product SEO fields
+-> Articles
+-> Static/Commercial pages
+-> Internal linking
+-> Image SEO / alt / WebP
+-> Redirect + URL safety audit
+-> Index/Canonical/Schema final audit
+-> Search Console
+-> SEO specialist handoff
+```
+
+Search Console **بعد از تثبیت نهایی content/URL/polish** انجام می‌شود، نه قبل از آن.
+
+## 5) F31 — تغییرات Frontend پیاده‌سازی‌شده در branch باز
+
+Frontend PR: `sajadkhavas/cooci#54`  
+Branch: `f31/final-acceptance-handoff`  
+Base: `main @ bf364510cf6097c88ecd3a55cb40a72e18d8333a`  
+Implementation snapshot قبل از این documentation checkpoint: `89fcfc11391ac92e71023a82334aaa5f054dead2`
+
+PR همچنان **OPEN / DRAFT / NOT MERGED / MERGEABLE** است.
+
+Scope فعلی branch شامل:
+
+- checkout empty-note regression fix/test
+- Gift retirement/disabled route و حذف exposure از public navigation/CTA/sitemap surfaces
+- Header active state به green/pastel contract
+- ProductCard customer-copy cleanup و حذف out-of-stock image blur سنگین
+- Product detail mobile ordering/space/content polish
+- Footer separator/trust presentation polish
+- eNAMAD presentation cleanup
+- DraggableMarquee smoothness work
+- Vazirmatn self-hosted installer + integrity verification + font CSS
+- category/media/content contract updates
+- bulk-cookie UX/discount related frontend contract
+- storefront redirect policy/server resolver/client validation
+- tests برای public-storefront retirement, redirects, checkout regression و bulk discount
+
+### Frontend current CI status روی implementation snapshot `89fc...`
+
+- `F30 Storefront Frontend Authority` run `34248716957` — **SUCCESS**
+- `Phase 19 Production Package` run `34248716976` — **SUCCESS**
+- `Frontend CI` run `34248716971` — **FAILURE**
+- `Phase 8 Deployment Readiness` run `34248716966` — **FAILURE**
+- `Phase 18 End-to-End Acceptance` run `34248717023` — **FAILURE**
+
+Root cause ثبت‌شده در Frontend CI:
+
+```text
+src/routes/category-shop.tsx: missing managed category server data loader
+```
+
+Fail در `audit-frontend-phase-10-3.mjs` است؛ مراحل قبل از آن PASS شده‌اند. قبل از final exact-head green باید managed category server-data loader با audit contract reconcile شود.
+
+## 6) F31 — تغییرات Backend پیاده‌سازی‌شده در branch باز
+
+Backend PR: `sajadkhavas/winimi-bakery-backend#17`  
+Branch: `f31/final-acceptance-handoff`  
+Base: `main @ 54a33874c4f54e8a5976804a6cea5ea5d2d371f7`  
+Current implementation head: `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+
+PR همچنان **OPEN / DRAFT / NOT MERGED / MERGEABLE** است.
+
+Scope branch شامل:
+
+- backup env/documentation alignment
+- category `image_alt` support در model/resource/Filament + migration + tests
+- cookie bulk discount settings/service/checkout integration/tests
+- Redirect model/resource hardening
+- StorefrontRedirectController + API route
+- redirect chain/final-target resolution
+- protected-route/open-redirect/self-loop/loop safety
+- removal of stale one-hour redirect cache behavior
+- public storefront redirect tests
+
+### Backend current CI status روی `d6a155...`
+
+- `Phase 18 Backend Acceptance` run `34248330877` — **SUCCESS**
+- `Backend CI` run `34248330799` — **FAILURE**
+- `Phase 19 Production Package` run `34248330820` — **FAILURE**
+
+Backend CI در `Pint formatting is clean` متوقف شده است. فایل blocker:
+
+```text
+app/Services/Orders/CookieBulkDiscountService.php
+```
+
+گزارش Pint شامل `unary_operator_spaces` است. تا Pint سبز نشود migration/test/security stages بعدی آن workflow اجرا نمی‌شوند. این blocker باید بر اساس خروجی واقعی Pint اصلاح شود، نه با حدس.
+
+## 7) UI / content polish decisions ثبت‌شده
+
+این‌ها تصمیمات approved هستند و چت بعدی نباید دوباره از صفر design discovery کند:
+
+1. **کل redesign ممنوع**؛ structure فعلی Home/Products حفظ و polish می‌شود.
+2. active header سبز پاستلی باشد، نه terracotta.
+3. technical/backend/server language از customer UI حذف شود.
+4. Gift فعلاً در کل public storefront غیرفعال باشد ولی code برای آینده قابل بازیابی بماند.
+5. Product Detail mobile: image -> name/price -> variants -> purchase -> detailed info.
+6. Product Detail desktop باید فضای خالی را با data واقعی محصول مصرف کند، نه filler.
+7. eNAMAD وسط و مستقل؛ متن‌های جانبی حذف شوند و failure تصویر layout را خراب نکند.
+8. Footer separatorها کمی واضح‌تر شوند.
+9. Vazirmatn self-hosted به‌صورت pinned/integrity-checked استفاده شود.
+10. marquee desktop smooth/compositor-friendly شود.
+11. out-of-stock product image blur حذف شود؛ تصویر واقعی دیده شود و unavailable state ساده باشد.
+12. Products page structure/SEO architecture/filtered noindex حفظ شود؛ toolbar/category duplication فشرده‌تر شود.
+13. mobile products filter UX بعداً full-width search + sort/filter + category chips + secondary drawer/bottom-sheet شود.
+14. category/product/article/static copy و SEO fields تا جای ممکن Admin-managed باشند.
+15. slug change safety نیازمند redirect manager است؛ URL قدیمی نباید بدون redirect رها شود.
+
+## 8) Product/client source-of-truth موجود
+
+Client catalog historical source در Frontend repo:
+
+- `src/data/products.ts`
+- commit تاریخی: `c0be99195bd9e0b7bd6e123c0dff5d7c4f98b085` — `Transfer complete Winimi product catalog data`
+
+Known category families در آن data:
+
+- کوکی‌ها
+- مینی کوکی
+- کیک و دسر
+- رژیمی و بدون قند
+- رول و کروسان
+- باکس هدیه
+
+اما feature Gift اکنون public-retired است؛ محتوای واقعی نهایی باید با اطلاعات فعلی کارفرما reconcile شود و claim ساختگی ساخته نشود.
+
+SEO reference data:
+
+- `src/data/categoriesContent.ts`
+- `docs/seo/F29S_A_KEYWORD_INTELLIGENCE_FA.md`
+- `docs/seo/F29S_B_KEYWORD_TO_URL_MAP_FA.md`
+- `docs/seo/F29S_C_TOPIC_CLUSTER_ARCHITECTURE_FA.md`
+- `docs/seo/F29S_F_PRODUCT_SEO_AUDIT_FA.md`
+- `docs/seo/F29S_H_INTERNAL_LINKING_INFORMATION_ARCHITECTURE_FA.md`
+
+## 9) Category image approved asset
+
+برای دسته «کوکی‌های خانگی» یک cover جدید بر اساس تصاویر واقعی مشتری ساخته و توسط کاربر تأیید شده است.
+
+Approved generated source در session artifact:
+
+```text
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting.png
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting_optimized.webp
+/mnt/data/gourmet_cookies_in_a_cozy_bakery_setting_optimized.jpg
+```
+
+Web target پیشنهادی: WebP.  
+SEO-safe filename پیشنهادی: `winimi-homemade-cookies-category.webp`  
+Alt پیشنهادی و truthful: `مجموعه کوکی‌های خانگی وینیمی با طعم‌های شکلاتی، ردولوت و مغزی`
+
+این asset هنوز فقط وقتی production/admin media واقعاً آپلود و reference شود، live محسوب می‌شود.
+
+## 10) Production safety / retained evidence
+
+Backup/recovery evidence Phase19B/F31 تا زمانی که production mutation مرتبط invalidate نکرده retained است. نمونه backup ثبت‌شده:
+
+```text
+/var/www/winimi/backend/shared/storage/app/private/Winimi Bakery/2026-09-08-00-50-57.zip
+SHA256=a368ee939e6f6d745cb3adc70576d20b4e803368ec2e58649fdb76531da7bed1
+ZIP_ENTRIES=1429
+MEDIA=201
+ENCRYPTION=PASS
+```
+
+Root ownership incident قبلی recover شده است. Laravel config/cache را به‌صورت root بدون normalization ownership/mode نساز.
+
+## 11) CURRENT_NEXT_ACTION — چت بعدی دقیقاً از اینجا ادامه دهد
+
+```text
+1. Read WINIMI_PROJECT_STATUS_FA.md
+2. Read docs/WINIMI_LIVING_HANDOFF_FA.md
+3. Read docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md
+4. Fetch live PR #54 and #17 heads; never trust stale SHA blindly
+5. Fix Frontend Phase10.3 managed category server-data-loader audit blocker
+6. Fix Backend Pint blocker in CookieBulkDiscountService.php using exact Pint output
+7. Run/verify exact-head CI again on BOTH repos
+8. Continue page-by-page visual/content/SEO-admin polish and real content population
+9. Do NOT re-run real payment or Phase19B restore/rollback unless invalidated
+10. Do NOT merge PR #54/#17 and do NOT close F31 until user confirms polish/content is finished
+```
+
+بعد از content/visual/SEO polish کامل:
+
+```text
+final docs/status reconciliation
+-> exact-head frontend/backend CI all green
+-> PR blockers/review threads = 0
+-> merge #54 / #17
+-> post-merge CI on main
+-> deploy accepted merged source if production differs
+-> production smoke / SHA match
+-> final tag/freeze/handoff
+-> Search Console stable URL/content verification
+```
+
+## 12) Final marker
+
+فقط بعد از تمام موارد بالا مجاز است:
+
+```text
+F31=COMPLETED
+ALL_DELIVERY_PRS=MERGED
 WINIMI_FINAL_DELIVERY=PASS
 PRODUCTION=READY
 HANDOFF=COMPLETE
