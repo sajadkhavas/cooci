@@ -58,7 +58,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             <OptimizedImage
               src={activeImage.url}
               alt={activeImage.alt || product.name}
-              className="h-full w-full object-contain p-4 transition-transform duration-300 hover:scale-[1.02] sm:p-6 lg:p-8"
+              className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
               priority
               sizes="(min-width: 1024px) 50vw, 100vw"
               width={900}
@@ -117,7 +117,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 <OptimizedImage
                   src={image.url}
                   alt=""
-                  className="h-full w-full object-contain p-1.5"
+                  className="h-full w-full object-cover"
                   loading="lazy"
                   fetchPriority="low"
                   sizes="96px"
