@@ -322,7 +322,7 @@ const CheckoutPage = () => {
                   <Truck className="text-primary" size={22} aria-hidden="true" />
                   <h2 className="text-xl font-black">روش تحویل فعال برای این مقصد</h2>
                 </div>
-                {deliveryQuery.isFetching && paymentMode === "backend" && <p className="mb-4 text-sm text-muted-foreground" role="status">در حال محاسبه روش‌ها و هزینه از سرور…</p>}
+                {deliveryQuery.isFetching && paymentMode === "backend" && <p className="mb-4 text-sm text-muted-foreground" role="status">در حال محاسبه روش‌ها و هزینه تحویل…</p>}
                 {deliveryQuery.error && <div className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive" role="alert">{deliveryQuery.error instanceof Error ? deliveryQuery.error.message : "دریافت گزینه‌های تحویل ناموفق بود."}</div>}
                 <div className="grid gap-3 md:grid-cols-3">
                   {methods.map((method) => {
@@ -343,21 +343,21 @@ const CheckoutPage = () => {
                     );
                   })}
                 </div>
-                {methods.length === 0 && !deliveryQuery.isFetching && <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">هیچ روش تحویلی از سرور دریافت نشد.</p>}
+                {methods.length === 0 && !deliveryQuery.isFetching && <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">برای این مقصد فعلاً روش تحویلی در دسترس نیست.</p>}
                 {deliveryOptions?.zone && <div className="mt-4 rounded-xl bg-secondary/60 p-4 text-sm leading-7 text-muted-foreground">منطقه: <strong className="text-foreground">{deliveryOptions.zone.name}</strong> · زمان آماده‌سازی تخمینی: {deliveryOptions.zone.preparation.minDays.toLocaleString("fa-IR")} تا {deliveryOptions.zone.preparation.maxDays.toLocaleString("fa-IR")} روز</div>}
               </section>
             </div>
 
             <aside className="h-fit rounded-3xl border border-border bg-card p-5 shadow-card lg:sticky lg:top-28 md:p-6">
               <CheckCircle2 className="mb-3 text-primary" size={24} aria-hidden="true" />
-              <h2 className="mb-5 text-xl font-black">برآورد سرور</h2>
+              <h2 className="mb-5 text-xl font-black">خلاصه سفارش</h2>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">محصولات</span><strong>{formatToman(subtotal)}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">بسته‌بندی</span><strong>{formatToman(packagingFee)}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">تحویل</span><strong>{formatToman(deliveryFee)}</strong></div>
                 <div className="flex justify-between gap-3 border-t border-border pt-4 text-lg"><span className="font-black">جمع تخمینی</span><strong className="text-primary">{formatToman(estimatedTotal)}</strong></div>
               </div>
-              <p className="mt-4 text-xs leading-6 text-muted-foreground">عدد قطعی از پاسخ ثبت سفارش می‌آید؛ هیچ مبلغی از مرورگر برای بک‌اند معتبر نیست.</p>
+              <p className="mt-4 text-xs leading-6 text-muted-foreground">مبلغ نهایی پس از بررسی موجودی، روش تحویل و ثبت سفارش مشخص می‌شود.</p>
               <button type="submit" disabled={submitting || paymentMode === "disabled" || !selectedMethod?.enabled || deliveryQuery.isFetching} className="btn-primary mt-6 flex min-h-13 w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-black disabled:cursor-not-allowed disabled:opacity-50">
                 {submitting && <Loader2 size={18} className="animate-spin" aria-hidden="true" />}
                 {submitting ? "در حال ثبت امن سفارش…" : "ثبت سفارش و ادامه پرداخت"}
