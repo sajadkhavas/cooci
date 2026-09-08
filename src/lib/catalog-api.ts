@@ -31,6 +31,7 @@ export interface CatalogCategory {
   slug: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   productCount?: number;
   seo: {
     title: string;
@@ -275,6 +276,7 @@ export const fetchCatalogDirectory = async (): Promise<CatalogDirectory> => {
       slug: category.slug,
       description: category.description || undefined,
       image: category.image || undefined,
+      imageAlt: category.imageAlt || undefined,
       productCount:
         typeof category.productCount === "number"
           ? category.productCount
