@@ -26,7 +26,6 @@ import {
   getPublicProductSummary,
   getStockPresentation,
   isProductInventoryVerified,
-  isProductMediaVerified,
 } from "@/lib/catalog";
 
 interface ProductCardProps {
@@ -53,7 +52,6 @@ export const ProductCard = ({
   const discountPercent = getDiscountPercent(product);
   const stock = getProductStock(product);
   const inventoryVerified = isProductInventoryVerified(product);
-  const mediaVerified = isProductMediaVerified(product);
   const stockPresentation = getStockPresentation(stock, inventoryVerified);
   const publicBadges = getPublicProductBadges(product);
   const publicSummary = getPublicProductSummary(product);
@@ -75,8 +73,8 @@ export const ProductCard = ({
     if (isOutOfStock) {
       toast.error(
         inventoryVerified
-          ? "این محصول براساس موجودی تأییدشده ناموجود است"
-          : "موجودی قابل سفارش این محصول هنوز از سرور دریافت نشده است",
+          ? "این محصول در حال حاضر ناموجود است"
+          : "موجودی قابل سفارش این محصول هنوز تأیید نشده است",
       );
       return;
     }
@@ -94,6 +92,7 @@ export const ProductCard = ({
       slug: product.slug,
       name: product.name,
       productCode: product.productCode,
+      categorySlug: product.categorySlug,
       priceToman: displayPrice,
       regularPriceToman:
         regularPrice && regularPrice > displayPrice ? regularPrice : undefined,
@@ -101,9 +100,7 @@ export const ProductCard = ({
       requiresCooling: Boolean(product.requiresCooling),
       image: product.images[0]?.url ?? "",
     });
-    toast.success(
-      `${product.name} به سبد اضافه شد؛ موجودی در ادامه تأیید می‌شود`,
-    );
+    toast.success(`${product.name} به سبد اضافه شد`);
   };
 
   return (
@@ -151,12 +148,6 @@ export const ProductCard = ({
 
         <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-primary/45 via-transparent to-white/10 opacity-70 transition duration-500 group-hover:opacity-90" />
 
-        {!mediaVerified && product.images[0]?.url && (
-          <span className="absolute bottom-3 left-3 z-20 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur-lg">
-            تصویر نمایشی
-          </span>
-        )}
-
         <div className="absolute right-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2">
           {discountPercent > 0 && (
             <span className="rounded-full bg-destructive px-3 py-1.5 text-xs font-black text-white shadow-xl">
@@ -178,11 +169,9 @@ export const ProductCard = ({
         </span>
 
         {isOutOfStock && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/72 backdrop-blur-md">
-            <span className="rounded-full bg-destructive px-5 py-2 text-sm font-black text-white shadow-xl">
-              ناموجود
-            </span>
-          </div>
+          <span className="absolute bottom-4 left-4 z-30 rounded-full bg-destructive px-4 py-2 text-xs font-black text-white shadow-xl">
+            ناموجود
+          </span>
         )}
       </Link>
 
