@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { isBackendEnabled } from "@/lib/api";
 import { loadStoreSettings } from "@/lib/content";
+import { retireUnavailableGiftSurface } from "@/lib/public-storefront-retirement";
 import { resolveStorefrontContent } from "@/lib/storefront-content";
 import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 
@@ -13,11 +14,14 @@ export const useStorefrontSettings = () => {
     enabled: isBackendEnabled,
     staleTime: 10 * 60_000,
   });
+  const content = retireUnavailableGiftSurface(
+    resolveStorefrontContent(query.data),
+  );
 
   return {
     query,
     payload: query.data,
     settings: resolveStorefrontSettings(query.data),
-    content: resolveStorefrontContent(query.data),
+    content,
   };
 };
