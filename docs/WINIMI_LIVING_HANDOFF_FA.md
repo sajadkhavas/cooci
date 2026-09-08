@@ -239,7 +239,7 @@ Search Console **بعد از تثبیت نهایی content/URL/polish** انجا
 Frontend PR: `sajadkhavas/cooci#54`  
 Branch: `f31/final-acceptance-handoff`  
 Base: `main @ bf364510cf6097c88ecd3a55cb40a72e18d8333a`  
-Implementation snapshot قبل از این documentation checkpoint: `89fcfc11391ac92e71023a82334aaa5f054dead2`
+Accepted implementation head قبل از این documentation checkpoint: `74989adee098194f781ffeb5ddbfb4b900afe528`
 
 PR همچنان **OPEN / DRAFT / NOT MERGED / MERGEABLE** است.
 
@@ -259,28 +259,31 @@ Scope فعلی branch شامل:
 - storefront redirect policy/server resolver/client validation
 - tests برای public-storefront retirement, redirects, checkout regression و bulk discount
 
-### Frontend current CI status روی implementation snapshot `89fc...`
+### Frontend accepted implementation checkpoint
 
-- `F30 Storefront Frontend Authority` run `34248716957` — **SUCCESS**
-- `Phase 19 Production Package` run `34248716976` — **SUCCESS**
-- `Frontend CI` run `34248716971` — **FAILURE**
-- `Phase 8 Deployment Readiness` run `34248716966` — **FAILURE**
-- `Phase 18 End-to-End Acceptance` run `34248717023` — **FAILURE**
+- Accepted head: `74989adee098194f781ffeb5ddbfb4b900afe528`
+- `F30 Storefront Frontend Authority` — **SUCCESS**
+- `Phase 19 Production Package` — **SUCCESS**
+- `Frontend CI` — **SUCCESS**
+- `Phase 8 Deployment Readiness` — **SUCCESS**
+- `Phase 18 End-to-End Acceptance` — **SUCCESS** after targeted rerun attempt 2
 
-Root cause ثبت‌شده در Frontend CI:
+Resolved changes:
 
 ```text
-src/routes/category-shop.tsx: missing managed category server data loader
+3fb48a60da8ef6fec62a6b03b8d1be22b7116f83 audit/redirect-aware return-await reconciliation
+4222d40ad1c34b27160307c7732c01f998697611 Phase10.3 imageAlt fixture alignment
+74989adee098194f781ffeb5ddbfb4b900afe528 matching F31 Backend branch in Phase18 PR acceptance
 ```
 
-Fail در `audit-frontend-phase-10-3.mjs` است؛ مراحل قبل از آن PASS شده‌اند. قبل از final exact-head green باید managed category server-data loader با audit contract reconcile شود.
+Final evidence includes Phase18 `27 passed / 1 skipped`, Phase10.3 `12 passed`, Phase10.4 `10 passed`, Phase10.5–10.8 each `8 passed`, Phase10.9 `2 passed`, Backend E2E `3 passed / 66 assertions`, and runtime performance `8 passed`. Frontend CI blocker فعال ندارد.
 
 ## 6) F31 — تغییرات Backend پیاده‌سازی‌شده در branch باز
 
 Backend PR: `sajadkhavas/winimi-bakery-backend#17`  
 Branch: `f31/final-acceptance-handoff`  
 Base: `main @ 54a33874c4f54e8a5976804a6cea5ea5d2d371f7`  
-Current implementation head: `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+Accepted implementation head: `900975f6870760a00df984ddfff787528086f1ab`
 
 PR همچنان **OPEN / DRAFT / NOT MERGED / MERGEABLE** است.
 
@@ -296,19 +299,20 @@ Scope branch شامل:
 - removal of stale one-hour redirect cache behavior
 - public storefront redirect tests
 
-### Backend current CI status روی `d6a155...`
+### Backend exact-head CI status روی `900975f...`
 
-- `Phase 18 Backend Acceptance` run `34248330877` — **SUCCESS**
-- `Backend CI` run `34248330799` — **FAILURE**
-- `Phase 19 Production Package` run `34248330820` — **FAILURE**
+- `Phase 18 Backend Acceptance` — **SUCCESS**
+- `Backend CI` — **SUCCESS**
+- `Phase 19 Production Package` — **SUCCESS**
 
-Backend CI در `Pint formatting is clean` متوقف شده است. فایل blocker:
+Pint blocker با خروجی دقیق formatter رفع شد:
 
 ```text
-app/Services/Orders/CookieBulkDiscountService.php
+1974563504c4a8b8f53a477c29a0d3a0d79d3299 = exact PHPDoc spacing fix
+900975f6870760a00df984ddfff787528086f1ab = diagnostic cleanup / accepted head
 ```
 
-گزارش Pint شامل `unary_operator_spaces` است. تا Pint سبز نشود migration/test/security stages بعدی آن workflow اجرا نمی‌شوند. این blocker باید بر اساس خروجی واقعی Pint اصلاح شود، نه با حدس.
+هر سه workflow Backend سبز شدند و stages بعدی migration/test/security نیز اجرا و PASS شدند. Backend CI blocker فعال ندارد.
 
 ## 7) UI / content polish decisions ثبت‌شده
 
@@ -396,10 +400,10 @@ Root ownership incident قبلی recover شده است. Laravel config/cache ر�
 2. Read docs/WINIMI_LIVING_HANDOFF_FA.md
 3. Read docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md
 4. Fetch live PR #54 and #17 heads; never trust stale SHA blindly
-5. Fix Frontend Phase10.3 managed category server-data-loader audit blocker
-6. Fix Backend Pint blocker in CookieBulkDiscountService.php using exact Pint output
-7. Run/verify exact-head CI again on BOTH repos
-8. Continue page-by-page visual/content/SEO-admin polish and real content population
+5. Treat accepted implementation heads `74989ade...` / `900975f...` as CI-green checkpoints
+6. Continue page-by-page visual/content/SEO-admin polish and real content population
+7. Work order: categories -> products -> articles -> static pages -> Admin SEO fields
+8. Re-verify exact-head CI after every new implementation checkpoint
 9. Do NOT re-run real payment or Phase19B restore/rollback unless invalidated
 10. Do NOT merge PR #54/#17 and do NOT close F31 until user confirms polish/content is finished
 ```
