@@ -13,7 +13,7 @@ export default [
   route("blog/:slug", "./routes/blog-detail.tsx"),
   route("locations", "./routes/locations.tsx"),
   route("city/:slug", "./routes/city.tsx"),
-  route("gift", "./pages/GiftPage.tsx"),
+  route("gift", "./routes/gift-disabled.tsx"),
   route("corporate", "./pages/CorporatePage.tsx"),
   route("reviews", "./routes/reviews.tsx"),
   route("quality", "./routes/quality.tsx"),
