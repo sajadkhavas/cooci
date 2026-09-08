@@ -10,22 +10,28 @@ import {
   Plus,
   ShoppingCart,
   Snowflake,
+  Sparkles,
   Truck,
 } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
-import { ProductGridSkeleton } from "@/components/catalog/ProductGridSkeleton";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { brandConfig, formatToman, generatePhoneUrl } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
+import { resolveCategoryRouteSlug } from "@/data/categoriesContent";
 import {
   getRelatedFromCatalog,
   useCatalogProduct,
   useCatalogProducts,
 } from "@/hooks/useCatalog";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
+import {
+  isCookieBulkDiscountEligibleCategory,
+  resolveCookieBulkDiscount,
+} from "@/lib/bulk-discount";
 import {
   getDiscountPercent,
   getProductRegularPrice,
@@ -79,6 +85,7 @@ const ProductDetailPage = () => {
   const { product, isLoading, error } = useCatalogProduct(slug);
   const { products: catalogProducts } = useCatalogProducts();
   const { addItem, items } = useCart();
+  const { payload: storePayload } = useStorefrontSettings();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
@@ -165,10 +172,11 @@ const ProductDetailPage = () => {
     ? selectedVariant?.weight ?? product.weight
     : undefined;
   const activeCode = selectedVariant?.productCode ?? product.productCode;
+  const categoryRouteSlug = resolveCategoryRouteSlug(product.categorySlug);
   const ShippingIcon = product.requiresCooling ? Snowflake : Truck;
   const shippingText = product.requiresCooling
-    ? "این انتخاب نیازمند روش تحویل سرد است. محدوده و ظرفیت نهایی در Checkout و بک‌اند تأیید می‌شود."
-    : "روش تحویل قابل انتخاب بر اساس شهر مقصد و تنظیمات فعال Checkout نمایش داده می‌شود.";
+    ? "این محصول باید سرد نگهداری شود؛ روش تحویل مناسب پس از ثبت مقصد نمایش داده می‌شود."
+    : "روش تحویل مناسب بر اساس شهر مقصد در مرحله ثبت سفارش نمایش داده می‌شود.";
   const stockPresentation = getStockPresentation(
     activeStock,
     inventoryVerified,
@@ -185,7 +193,11 @@ const ProductDetailPage = () => {
   const remainingStock = Math.max(0, activeStock - (existingCartItem?.quantity ?? 0));
   const canAddToCart = Boolean(activePrice) && activeStock > 0 && remainingStock > 0;
   const maxQuantity = Math.max(1, remainingStock);
-
+  const bulkDiscount = resolveCookieBulkDiscount(storePayload?.settings);
+  const isBulkEligible = isCookieBulkDiscountEligibleCategory(
+    product.categorySlug,
+    bulkDiscount,
+  );
 
   const productSchema = {
     "@context": "https://schema.org",
@@ -242,6 +254,7 @@ const ProductDetailPage = () => {
         slug: product.slug,
         name: product.name,
         productCode: activeCode,
+        categorySlug: product.categorySlug,
         priceToman: activePrice,
         regularPriceToman:
           regularPrice && regularPrice > activePrice ? regularPrice : undefined,
@@ -281,7 +294,7 @@ const ProductDetailPage = () => {
               { name: "محصولات", href: "/products" },
               {
                 name: product.category,
-                href: `/products?category=${encodeURIComponent(product.categorySlug)}`,
+                href: `/products/category/${encodeURIComponent(categoryRouteSlug)}`,
               },
               { name: product.name },
             ]}
@@ -294,12 +307,12 @@ const ProductDetailPage = () => {
             </div>
           )}
 
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <div className="order-2 lg:order-1">
+          <div className="grid gap-9 lg:grid-cols-[minmax(0,1.08fr)_minmax(25rem,0.92fr)] lg:items-start lg:gap-10 xl:gap-14">
+            <div className="order-1 lg:sticky lg:top-28">
               <ProductGallery product={product} />
             </div>
 
-            <div className="order-1 space-y-6 text-right lg:order-2">
+            <div className="order-2 space-y-6 text-right">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-secondary px-4 py-2 text-sm text-muted-foreground">
                   کد محصول: <strong className="text-foreground">{activeCode}</strong>
@@ -323,7 +336,7 @@ const ProductDetailPage = () => {
                   className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7 text-amber-950"
                   role="note"
                 >
-                  اطلاعات ترکیبات، آلرژن، وزن، ماندگاری و رسانه این محصول هنوز از منبع تأییدشده بک‌اند دریافت نشده‌اند و پیش از خرید حساس یا پزشکی باید جداگانه بررسی شوند.
+                  بعضی جزئیات مانند ترکیبات، آلرژن، وزن یا ماندگاری این محصول هنوز تکمیل نشده‌اند. برای خریدهای حساس، اطلاعات درج‌شده روی محصول را نیز بررسی کنید.
                 </div>
               )}
 
@@ -397,6 +410,18 @@ const ProductDetailPage = () => {
                   </div>
                 )}
               </div>
+
+              {isBulkEligible && (
+                <div className="flex items-start gap-3 rounded-2xl border border-[#91b33f]/35 bg-[#d0e596]/35 p-5 text-[#27390c]">
+                  <Sparkles size={21} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <div>
+                    <h2 className="font-black">تخفیف سفارش تعداد بالا</h2>
+                    <p className="mt-1 text-sm leading-7">
+                      با رسیدن مجموع کوکی‌های مشمول به {bulkDiscount.minimumQuantity.toLocaleString("fa-IR")} عدد، {bulkDiscount.percent.toLocaleString("fa-IR")}٪ تخفیف روی مبلغ همان کوکی‌ها هنگام ثبت سفارش اعمال می‌شود.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className={`flex items-start gap-3 rounded-2xl border p-5 ${stockToneClasses[stockPresentation.tone]}`}>
                 <CheckCircle2 size={22} className="mt-0.5 shrink-0" aria-hidden="true" />
@@ -494,7 +519,7 @@ const ProductDetailPage = () => {
                     </p>
                   ) : (
                     <p className="leading-8 text-amber-900">
-                      فهرست ترکیبات تأییدشده هنوز از بک‌اند دریافت نشده است.
+                      فهرست ترکیبات این محصول هنوز تکمیل نشده است.
                     </p>
                   )}
                 </div>
