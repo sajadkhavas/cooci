@@ -1,5 +1,6 @@
 import type { CategoryContent } from "@/data/categoriesContent";
 import type { CatalogCategory } from "@/lib/catalog-api";
+import { isRetiredGiftCategory } from "@/lib/public-storefront-retirement";
 
 export interface VisibleCatalogCategory {
   routeSlug: string;
@@ -20,6 +21,7 @@ export const buildVisibleCatalogCategories = (
   const seenRouteSlugs = new Set<string>();
 
   for (const backendCategory of backendCategories) {
+    if (isRetiredGiftCategory(backendCategory.slug)) continue;
     const matchingEditorial = editorialCategories.filter(
       (category) => category.productCategorySlug === backendCategory.slug,
     );
@@ -29,6 +31,12 @@ export const buildVisibleCatalogCategories = (
       : [undefined];
 
     for (const editorial of candidates) {
+      if (
+        isRetiredGiftCategory(editorial?.slug) ||
+        isRetiredGiftCategory(editorial?.productCategorySlug)
+      ) {
+        continue;
+      }
       const routeSlug = editorial?.slug ?? backendCategory.slug;
       if (seenRouteSlugs.has(routeSlug)) continue;
 
