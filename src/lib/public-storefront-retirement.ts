@@ -5,6 +5,10 @@ import type {
 
 const RETIRED_GIFT_PATH = "/gift";
 const CONTACT_PATH = "/contact";
+export const RETIRED_GIFT_CATEGORY_SLUGS = new Set(["gift", "gift-boxes"]);
+
+export const isRetiredGiftCategory = (slug?: string | null) =>
+  Boolean(slug && RETIRED_GIFT_CATEGORY_SLUGS.has(slug));
 
 const referencesGift = (value: string) => value.includes("هدیه");
 
