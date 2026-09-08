@@ -189,7 +189,7 @@ BRANCH=f31/final-acceptance-handoff
 PR=54
 PR_STATE=OPEN_DRAFT_NOT_MERGED_MERGEABLE
 BASE_MAIN=bf364510cf6097c88ecd3a55cb40a72e18d8333a
-IMPLEMENTATION_SNAPSHOT_BEFORE_DOC_CHECKPOINT=89fcfc11391ac92e71023a82334aaa5f054dead2
+ACCEPTED_IMPLEMENTATION_HEAD_BEFORE_DOC_CHECKPOINT=74989adee098194f781ffeb5ddbfb4b900afe528
 ```
 
 Current branch scope شامل:
@@ -207,23 +207,25 @@ Current branch scope شامل:
 - bulk-cookie UX/discount frontend support
 - storefront redirect policy/resolver/validation/tests
 
-### Frontend current CI checkpoint روی implementation snapshot `89fc...`
+### Frontend exact-head CI checkpoint روی `74989ade...`
 
 ```text
-F30 Storefront Frontend Authority 34248716957 = SUCCESS
-Phase 19 Production Package       34248716976 = SUCCESS
-Frontend CI                       34248716971 = FAILURE
-Phase 8 Deployment Readiness      34248716966 = FAILURE
-Phase 18 End-to-End Acceptance    34248717023 = FAILURE
+F30 Storefront Frontend Authority = SUCCESS
+Phase 19 Production Package       = SUCCESS
+Frontend CI                       = SUCCESS
+Phase 8 Deployment Readiness      = SUCCESS
+Phase 18 End-to-End Acceptance    = SUCCESS (targeted rerun attempt 2)
 ```
 
-Concrete blocker:
+Resolved checkpoint:
 
 ```text
-src/routes/category-shop.tsx: missing managed category server data loader
+3fb48a60da8ef6fec62a6b03b8d1be22b7116f83 = audit accepts intentional redirect-aware `return await loadManagedCategoryShop(args)`
+4222d40ad1c34b27160307c7732c01f998697611 = Phase10.3 fixture includes required `imageAlt`
+74989adee098194f781ffeb5ddbfb4b900afe528 = Phase18 checks matching F31 Backend branch for this PR
 ```
 
-Failure در `audit-frontend-phase-10-3.mjs` رخ می‌دهد؛ auditهای قبل از آن PASS هستند.
+Evidence on the accepted head: all workflow jobs are green; Phase18 `27 passed / 1 skipped`, Phase10.3 `12 passed`, Phase10.4 `10 passed`, Phase10.5–10.8 each `8 passed`, Phase10.9 `2 passed`, Backend E2E `3 passed / 66 assertions`, runtime performance `8 passed`. Blocker فعال Frontend وجود ندارد.
 
 ## Backend F31 branch / PR
 
@@ -233,7 +235,7 @@ BRANCH=f31/final-acceptance-handoff
 PR=17
 PR_STATE=OPEN_DRAFT_NOT_MERGED_MERGEABLE
 BASE_MAIN=54a33874c4f54e8a5976804a6cea5ea5d2d371f7
-IMPLEMENTATION_HEAD=d6a155f114c94c5ebd7ad42031dc5e9ff6142309
+ACCEPTED_IMPLEMENTATION_HEAD=900975f6870760a00df984ddfff787528086f1ab
 ```
 
 Current branch scope شامل:
@@ -251,20 +253,19 @@ Current branch scope شامل:
 ### Backend current CI checkpoint
 
 ```text
-Phase 18 Backend Acceptance 34248330877 = SUCCESS
-Backend CI                  34248330799 = FAILURE
-Phase 19 Production Package 34248330820 = FAILURE
+Phase 18 Backend Acceptance = SUCCESS
+Backend CI                  = SUCCESS
+Phase 19 Production Package = SUCCESS
 ```
 
-Concrete blocker:
+Resolved checkpoint:
 
 ```text
-Pint formatting is clean = FAILURE
-app/Services/Orders/CookieBulkDiscountService.php
-reported rule includes unary_operator_spaces
+1974563504c4a8b8f53a477c29a0d3a0d79d3299 = exact Pint PHPDoc spacing applied
+900975f6870760a00df984ddfff787528086f1ab = temporary diagnostic removed; accepted clean implementation head
 ```
 
-تا Pint سبز نشود stages بعدی migration/test/security در workflow اجرا نمی‌شوند.
+هر سه workflow روی exact head سبز هستند و migration/test/security stages اجرا و PASS شده‌اند. Blocker فعال Backend وجود ندارد.
 
 ## UI / UX decisions already approved
 
@@ -323,11 +324,11 @@ Suggested truthful alt: `مجموعه کوکی‌های خانگی وینیمی 
 ## CURRENT_NEXT_ACTION
 
 ```text
-FIRST=FETCH_LIVE_PR_HEADS_AND_CI
-FRONTEND_FIX=RECONCILE_CATEGORY_SHOP_MANAGED_SERVER_DATA_LOADER_WITH_PHASE10_3_AUDIT
-BACKEND_FIX=RESOLVE_EXACT_PINT_OUTPUT_IN_COOKIE_BULK_DISCOUNT_SERVICE
-THEN=EXACT_HEAD_CI_BOTH_REPOS
-NEXT_AFTER_GREEN=CONTINUE_PAGE_BY_PAGE_UI_CONTENT_SEO_ADMIN_POLISH
+FIRST=CONTINUE_PAGE_BY_PAGE_UI_CONTENT_SEO_ADMIN_POLISH
+CI_BLOCKERS=ZERO_ON_ACCEPTED_IMPLEMENTATION_HEADS
+FRONTEND_ACCEPTED_IMPLEMENTATION_HEAD=74989adee098194f781ffeb5ddbfb4b900afe528
+BACKEND_ACCEPTED_IMPLEMENTATION_HEAD=900975f6870760a00df984ddfff787528086f1ab
+NEXT_ORDER=CATEGORIES_THEN_PRODUCTS_THEN_ARTICLES_THEN_STATIC_PAGES_THEN_ADMIN_SEO_FIELDS
 REAL_PAYMENT_REPEAT=NO
 PHASE19B_RESTORE_ROLLBACK_REPEAT=NO_UNLESS_INVALIDATED
 MERGE_PR54_PR17=NO_UNTIL_USER_CONFIRMS_POLISH_COMPLETE
