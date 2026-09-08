@@ -22,14 +22,14 @@ Updated: **2026-09-08**
 - Branch: `f31/final-acceptance-handoff`
 - PR: `cooci#54`
 - State: **OPEN / DRAFT / NOT MERGED / MERGEABLE**
-- Implementation snapshot before handoff-doc checkpoint: `89fcfc11391ac92e71023a82334aaa5f054dead2`
+- Accepted implementation head before this documentation checkpoint: `74989adee098194f781ffeb5ddbfb4b900afe528`
 
 ### Backend
 
 - Branch: `f31/final-acceptance-handoff`
 - PR: `winimi-bakery-backend#17`
 - State: **OPEN / DRAFT / NOT MERGED / MERGEABLE**
-- Current implementation head: `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+- Accepted implementation head: `900975f6870760a00df984ddfff787528086f1ab`
 
 ## Retained Phase19B evidence — do not rerun unless invalidated
 
@@ -202,43 +202,44 @@ Approved visual rules:
 - stale redirect cache behavior removed
 - redirect feature tests
 
-## Current CI blockers — exact checkpoint
+## Resolved CI blockers — accepted checkpoint
 
-### Frontend snapshot `89fcfc11391ac92e71023a82334aaa5f054dead2`
-
-```text
-F30 Storefront Frontend Authority 34248716957 = SUCCESS
-Phase 19 Production Package       34248716976 = SUCCESS
-Frontend CI                       34248716971 = FAILURE
-Phase 8 Deployment Readiness      34248716966 = FAILURE
-Phase 18 End-to-End Acceptance    34248717023 = FAILURE
-```
-
-Concrete Frontend root cause from CI:
+### Frontend accepted head `74989adee098194f781ffeb5ddbfb4b900afe528`
 
 ```text
-src/routes/category-shop.tsx: missing managed category server data loader
+F30 Storefront Frontend Authority = SUCCESS
+Phase 19 Production Package       = SUCCESS
+Frontend CI                       = SUCCESS
+Phase 8 Deployment Readiness      = SUCCESS
+Phase 18 End-to-End Acceptance    = SUCCESS (rerun attempt 2)
 ```
 
-Failure occurs in `audit-frontend-phase-10-3.mjs` after earlier audit phases pass.
-
-### Backend head `d6a155f114c94c5ebd7ad42031dc5e9ff6142309`
+Resolution commits:
 
 ```text
-Phase 18 Backend Acceptance 34248330877 = SUCCESS
-Backend CI                  34248330799 = FAILURE
-Phase 19 Production Package 34248330820 = FAILURE
+3fb48a60da8ef6fec62a6b03b8d1be22b7116f83
+4222d40ad1c34b27160307c7732c01f998697611
+74989adee098194f781ffeb5ddbfb4b900afe528
 ```
 
-Concrete Backend blocker:
+The first commit reconciles the audit with the intentional redirect-aware `return await` loader; the second adds required `imageAlt` fixture data; the third aligns Phase18 with the matching Backend F31 branch. All workflow jobs passed. Suite evidence: Phase18 `27/1 skipped`, Phase10.3 `12`, Phase10.4 `10`, Phase10.5–10.8 `8` each, Phase10.9 `2`, Backend E2E `3 / 66 assertions`, performance `8`.
+
+### Backend accepted head `900975f6870760a00df984ddfff787528086f1ab`
 
 ```text
-Pint formatting is clean = FAILURE
-app/Services/Orders/CookieBulkDiscountService.php
-reported rule includes unary_operator_spaces
+Phase 18 Backend Acceptance = SUCCESS
+Backend CI                  = SUCCESS
+Phase 19 Production Package = SUCCESS
 ```
 
-Pint must be fixed using exact formatter output. Do not mark Backend exact-head green until the subsequent migration/test/security steps actually run and pass.
+Resolution:
+
+```text
+1974563504c4a8b8f53a477c29a0d3a0d79d3299 = exact Pint PHPDoc spacing
+900975f6870760a00df984ddfff787528086f1ab = temporary diagnostic removed
+```
+
+All three Backend workflows passed on the accepted exact head, including downstream migration/test/security stages. Active Backend CI blockers: zero.
 
 ## Client product/content source already in GitHub
 
@@ -281,11 +282,11 @@ It is not considered live until uploaded/referenced through the real media/admin
 2. Read `docs/WINIMI_LIVING_HANDOFF_FA.md`.
 3. Read this worklog.
 4. Fetch live PR #54/#17 metadata and current heads before any code mutation.
-5. Fix Frontend managed-category server-data-loader audit blocker.
-6. Fix Backend Pint blocker.
-7. Re-run/verify exact-head CI on both repos.
-8. Continue page-by-page UI/content/SEO-admin polish and real data population.
-9. Do not repeat Google login payment acceptance, restore drill or rollback drill unless invalidated.
+5. Preserve accepted green implementation heads `74989ade...` and `900975f...` as evidence.
+6. Continue page-by-page UI/content/SEO-admin polish and real data population.
+7. Follow order: categories -> products -> articles -> static pages -> Admin SEO fields.
+8. Verify exact-head CI after each new implementation checkpoint.
+9. Do not repeat Google login, real payment acceptance, restore drill or rollback drill unless invalidated.
 10. Do not merge PR #54/#17 and do not close F31 until user explicitly confirms polish/content is finished.
 
 ## Final gate
