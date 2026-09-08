@@ -22,6 +22,7 @@ import { isBackendEnabled } from "@/lib/api";
 import type { BackendStoreSettings } from "@/lib/backend-contract";
 import { loadStoreSettings } from "@/lib/content";
 import { CspNonceProvider } from "@/lib/security/csp";
+import "./fonts.css";
 import "./index.css";
 import "./styles/modern-pages.css";
 import "./styles/brand-theme.css";
@@ -73,6 +74,13 @@ export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoade
 export const shouldRevalidate = () => false;
 
 export const links = () => [
+  {
+    rel: "preload",
+    as: "font",
+    href: "/fonts/Vazirmatn-Variable.woff2",
+    type: "font/woff2",
+    crossOrigin: "anonymous" as const,
+  },
   {
     rel: "preload",
     as: "image",
