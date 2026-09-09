@@ -61,13 +61,10 @@ export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoade
   if (!isBackendEnabled) return base;
 
   try {
-    const [storeSettings, storeNavigation] = await Promise.all([
-      loadStoreSettings(),
-      loadStoreNavigation(),
-    ]);
+    const storeNavigation = await loadStoreNavigation().catch(() => undefined);
     return {
       ...base,
-      storeSettings,
+      storeSettings: await loadStoreSettings(),
       storeNavigation,
     };
   } catch (error) {

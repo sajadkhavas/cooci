@@ -80,12 +80,13 @@ export const Header = () => {
   const { isAuthenticated, user } = useAuth();
   const { settings, content } = useStorefrontSettings();
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
+  const fallbackNavLinks = buildPublicNavigation(content.navigation.links);
   const managedLinks = rootData?.storeNavigation?.map((item) => ({
     label: item.label,
     href: item.href,
     children: item.children,
   }));
-  const navLinks = buildPublicNavigation(managedLinks?.length ? managedLinks : content.navigation.links).map((link) => {
+  const navLinks = (managedLinks?.length ? buildPublicNavigation(managedLinks) : fallbackNavLinks).map((link) => {
     const source = managedLinks?.find((item) => item.href === link.href);
     return {
       ...link,
