@@ -45,7 +45,7 @@ export const DecisionSupportPanel = () => {
 
   return (
     <section
-      className="home-color-wash section-padding overflow-hidden"
+      className="home-color-wash home-decision-support-section section-padding overflow-hidden"
       aria-labelledby="home-decision-support-title"
     >
       <div className="container-custom">
