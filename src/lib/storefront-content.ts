@@ -67,6 +67,19 @@ export interface StorefrontLink {
 }
 
 export interface StorefrontContent {
+  appUi: {
+    mobileHome: string;
+    mobileAbout: string;
+    mobileShop: string;
+    mobileCart: string;
+    mobileAccount: string;
+    installTitle: string;
+    installDescription: string;
+    installAction: string;
+    pushTitle: string;
+    pushDescription: string;
+    pushAction: string;
+  };
   navigation: {
     links: StorefrontLink[];
     contextLine: string;
@@ -290,6 +303,19 @@ export const resolveStorefrontContent = (
   ];
 
   return {
+    appUi: {
+      mobileHome: text(settings, ["app_ui", "mobile_home"], "خانه"),
+      mobileAbout: text(settings, ["app_ui", "mobile_about"], "درباره ما"),
+      mobileShop: text(settings, ["app_ui", "mobile_shop"], "فروشگاه"),
+      mobileCart: text(settings, ["app_ui", "mobile_cart"], "سبد"),
+      mobileAccount: text(settings, ["app_ui", "mobile_account"], "حساب"),
+      installTitle: text(settings, ["app_ui", "install_title"], "وینیمی را مثل برنامه نصب کن"),
+      installDescription: text(settings, ["app_ui", "install_description"], "دسترسی سریع، اجرای مستقل و تجربه بهتر روی گوشی."),
+      installAction: text(settings, ["app_ui", "install_action"], "نصب برنامه"),
+      pushTitle: text(settings, ["app_ui", "push_title"], "اعلان‌های وینیمی"),
+      pushDescription: text(settings, ["app_ui", "push_description"], "با اجازه شما، خبر موجودی و پیشنهادها را حتی بیرون از سایت دریافت کنید."),
+      pushAction: text(settings, ["app_ui", "push_action"], "فعال‌کردن اعلان"),
+    },
     navigation: {
       links: navigationLinks,
       contextLine: text(settings, ["header", "context_line"], "کوکی، کیک و هدیه؛ انتخاب بر اساس دسته و مناسبت"),

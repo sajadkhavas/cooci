@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 
 interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -13,6 +14,7 @@ const isStandalone = () =>
 export const PwaInstallPrompt = () => {
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const { content } = useStorefrontSettings();
 
   useEffect(() => {
     if (isStandalone()) return undefined;
@@ -37,8 +39,8 @@ export const PwaInstallPrompt = () => {
         <X size={17} aria-hidden="true" />
       </button>
       <div className="pl-8">
-        <strong className="block text-sm font-black">وینیمی را مثل برنامه نصب کن</strong>
-        <p className="mt-1 text-xs leading-6 text-black/65">دسترسی سریع، اجرای مستقل و تجربه بهتر روی گوشی.</p>
+        <strong className="block text-sm font-black">{content.appUi.installTitle}</strong>
+        <p className="mt-1 text-xs leading-6 text-black/65">{content.appUi.installDescription}</p>
         <button
           type="button"
           onClick={() => void (async () => {
@@ -49,7 +51,7 @@ export const PwaInstallPrompt = () => {
           className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#d0e596] px-4 text-sm font-black text-[#111]"
         >
           <Download size={17} aria-hidden="true" />
-          نصب برنامه
+          {content.appUi.installAction}
         </button>
       </div>
     </aside>
