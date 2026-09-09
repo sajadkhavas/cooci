@@ -672,3 +672,19 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - CI runner APT instability from the third-party Chrome mirror is isolated in Phase 8, Phase 18, and Phase 19 workflows; all reruns passed.
 - No production deploy, migration, backup, order, payment, Google-login retest, restore, or rollback was performed by this checkpoint.
 - CURRENT_NEXT_ACTION: deploy the exact frontend/backend heads above as one immutable pair, preserve existing VAPID secrets, run safe health/process/commerce/push capability checks, then send exactly one new admin test notification from Filament.
+
+## F31 Live Web Push Acceptance — 2026-09-09
+
+- Production frontend release: `/var/www/winimi/frontend/releases/610a53f2020e5fbf7067`
+- Production backend release: `/var/www/winimi/backend/releases/54aeb4bbdad9cf95e72f`
+- Frontend source/documentation head deployed: `ef6e4571ef076801b910cebcefa3cabd35478ef7`
+- Backend source head deployed: `474b3c73ded97b0d12b0921d44591e56db884a96`
+- Production activation: **PASS**
+- Frontend CI: **5/5 PASS**
+- Backend CI: **4/4 PASS**
+- Runtime/services/public/PWA/push capability checks: **PASS**
+- Commerce lock: before and after `{"orders":4,"payments":4}`; no order/payment mutation.
+- Migration executed: **NO**; backup repeated: **NO**; Google Login retested: **NO**.
+- A new administrator broadcast was created from Filament after deployment and was received successfully on the user's subscribed phone: **LIVE WEB PUSH PASS**.
+- Historical failed outbox records were not retried; no further push test is required.
+- CURRENT_NEXT_ACTION: visually confirm the homepage Decision Support scroll-jitter fix and integrated Shop chevron on the deployed frontend, then record final F31 closure. Content/image population and launch-channel setup remain operator/admin-panel work, not another application-code phase.
