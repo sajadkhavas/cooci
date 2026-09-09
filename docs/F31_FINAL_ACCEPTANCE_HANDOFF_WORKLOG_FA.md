@@ -276,39 +276,110 @@ Suggested truthful alt: `مجموعه کوکی‌های خانگی وینیمی 
 
 It is not considered live until uploaded/referenced through the real media/admin path.
 
-## Exact continuation contract for next chat
+## Mobile polish and final Frontend production deploy — 2026-09-09
 
-## Delivery-polish checkpoint — 2026-09-08
+### WHAT_CHANGED
+
+- pastel-green mobile hamburger and drawer
+- four equal mobile bottom-navigation columns: Home / Store / Cart / Account
+- removed the obsolete fifth-column space left by Gift retirement
+- full-bleed main Product Detail image and full-bleed gallery thumbnails
+- aligned product-media regression with the approved full-bleed design
+- removed an incorrect temporary eNAMAD account denylist; the latest official Backend-managed code remains authoritative
+
+### EXACT_SHA / CI_RESULT
 
 ```text
-FRONTEND_HEAD=a68bfd50aaeb675fe5d2d4a1d783efc8bfe48758
-FRONTEND_CI=5_OF_5_SUCCESS
-BACKEND_HEAD=d51df49f367190f102fa70ffe1f62a7f17aa761e
-BACKEND_CI=4_OF_4_SUCCESS
-ACTIVE_CI_BLOCKERS=0
-GIFT_PUBLIC_SURFACES=RETIRED_DEFENSE_IN_DEPTH
-CHECKOUT_CUSTOMER_COPY=RECONCILED
-REAL_PAYMENT_REPEATED=NO
-RESTORE_ROLLBACK_REPEATED=NO
-PRS_MERGED=NO
-F31_CLOSED=NO
-NEXT=IMMUTABLE_DEPLOY_THEN_PRODUCTION_DESKTOP_MOBILE_CONTENT_UAT
+FRONTEND_EXACT_HEAD=893453fd2599024dfb90fe666e29c30293405017
+FRONTEND_CI=SUCCESS
+PHASE8_DEPLOYMENT_READINESS=SUCCESS
+PHASE18_END_TO_END_ACCEPTANCE=SUCCESS
+PHASE19_PRODUCTION_PACKAGE=SUCCESS
+F30_STOREFRONT_AUTHORITY=SUCCESS
 ```
 
-1. Read `WINIMI_PROJECT_STATUS_FA.md`.
+### PRODUCTION_RELEASE / LIVE_RESULT
+
+```text
+PREVIOUS_FRONTEND=/var/www/winimi/frontend/releases/f6ced92f952c6728f182
+ACTIVE_FRONTEND=/var/www/winimi/frontend/releases/00fc63d9e485b1419c6c
+FRONTEND_SOURCE_SHA=893453fd2599024dfb90fe666e29c30293405017
+ACTIVE_BACKEND=/var/www/winimi/backend/releases/b7dd719811c14994eeb8
+BACKEND_SOURCE_SHA=d51df49f367190f102fa70ffe1f62a7f17aa761e
+FRONTEND_INTERNAL_HEALTH=PASS
+BACKEND_READY_STATUS=200
+HOMEPAGE_STATUS=200
+PRODUCTS_STATUS=200
+ENAMAD_SSR=VISIBLE
+MIGRATION_EXECUTED=NO
+BACKUP_REPEATED=NO
+ORDER_PAYMENT_MUTATION=NO
+```
+
+The one initial loopback refusal occurred during the controlled service restart; wrapper retry succeeded and final health/process identity passed.
+
+### REMAINING_WORK
+
+- user/employer visual confirmation on a real mobile device
+- enrich each Product Detail using verified facts, without invented claims
+- validate real prices, discounts, stock, weights, preparation and delivery constraints
+- reconcile category/article/static content, SEO fields, images/alts and internal links
+- final current-tree cleanup for dead code, obsolete routes/files, temporary fixtures/diagnostics and contradictory docs
+- zero unresolved P0/P1 blockers and review threads
+- ready/merge PR #54 and #17
+- post-merge main CI and Production/source reconciliation
+- stable sitemap/Search Console check
+- final closure, freeze/tag and handoff
+
+### DO_NOT_REPEAT
+
+```text
+REAL_GOOGLE_LOGIN=RETAINED_PASS
+REAL_AUTHENTICATED_CHECKOUT=RETAINED_PASS
+REAL_ZARINPAL_PURCHASE=RETAINED_PASS
+REAL_ORDER_CREATION=RETAINED_PASS
+PHASE19B_RESTORE=RETAINED_PASS
+PHASE19B_ROLLBACK=RETAINED_PASS
+REPEAT_WITHOUT_INVALIDATING_EVIDENCE=FORBIDDEN
+```
+
+## Exact continuation contract for next chat
+
+1. Read `WINIMI_PROJECT_STATUS_FA.md` first.
 2. Read `docs/WINIMI_LIVING_HANDOFF_FA.md`.
-3. Read this worklog.
-4. Fetch live PR #54/#17 metadata and current heads before any code mutation.
-5. Preserve accepted green implementation heads `74989ade...` and `900975f...` as evidence.
-6. Continue page-by-page UI/content/SEO-admin polish and real data population.
-7. Follow order: categories -> products -> articles -> static pages -> Admin SEO fields.
-8. Verify exact-head CI after each new implementation checkpoint.
-9. Do not repeat Google login, real payment acceptance, restore drill or rollback drill unless invalidated.
-10. Do not merge PR #54/#17 and do not close F31 until user explicitly confirms polish/content is finished.
+3. Read this F31 Worklog.
+4. Fetch live PR #54/#17 heads and CI; do not blindly trust historical SHAs.
+5. Start with Product content/commercial-data enrichment.
+6. Record every material checkpoint using WHAT_CHANGED, EXACT_SHA, CI_RESULT, PRODUCTION_RELEASE, LIVE_RESULT, REMAINING_WORK, CURRENT_NEXT_ACTION and DO_NOT_REPEAT.
+7. Do not merge or close F31 before content and visual approval.
+8. Do not repeat retained real purchase/login/restore/rollback evidence.
+
+```text
+CURRENT_NEXT_ACTION=PRODUCT_CONTENT_AND_COMMERCIAL_DATA_ENRICHMENT
+FRONTEND_PRODUCTION_DEPLOYED=YES
+BACKEND_PRODUCTION_DEPLOYED=YES
+ACTIVE_CI_BLOCKERS=0
+PRS_MERGED=NO
+F31_CLOSED=NO
+```
 
 ## Final gate
 
-F31 is not complete until final content/polish is approved, exact-head CI is green, documentation is reconciled, PRs are merged, post-merge CI is green, production matches the accepted merged source, final freeze/tag exists, and unresolved P0/P1/review blockers are zero.
+```text
+content and commercial data approved
+-> final current-tree cleanup
+-> documentation reconciled
+-> exact-head CI green
+-> blockers/review threads zero
+-> merge PR #54/#17
+-> post-merge main CI
+-> Production/source match
+-> final non-commerce smoke
+-> sitemap/Search Console check
+-> freeze/tag/handoff
+```
+
+Only then:
 
 ```text
 F31=COMPLETED
