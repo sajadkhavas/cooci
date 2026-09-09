@@ -603,10 +603,18 @@ DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTO
 ## F31 FINAL APP/PUSH/NAV CHECKPOINT — 2026-09-09
 
 - `WHAT_CHANGED`: بسته نهایی UI شامل رفع لرزش Decision Support، منوی فروشگاه دسکتاپ با hover/click/keyboard/Escape و تأخیر خروج، زیرمنوی بازشونده موبایل، bottom navigation پنج‌تایی با فروشگاه دقیقاً در مرکز، حذف کامل رنگ آجری، نصب PWA، app shortcuts و Web Push برای مهمان و مشتری پیاده‌سازی شد. Backend نیز مدیریت دو سطحی منو/دسته/محل نمایش/تصویر/ترتیب/دسته خالی و subscription مهمان/مشتری را دریافت کرد.
-- `EXACT_SHA`: Frontend local `e6357d98aeb35721654cb3f8c06b23e12178a699`; Backend local `163ba88bc67862221017ab3b6f9198a2aad31e8e`.
+- `EXACT_SHA`: Frontend implementation chain culminates at remote `971dbf646b858a824f45caadb5cbe37e1d4d271c`; Backend implementation chain culminates at remote `ebdcfe5dcbac99b801c160502222b8db6661f3c4`.
 - `CI_RESULT`: Frontend local full check PASS (119 unit tests + all audits + lint 0 errors + typecheck + production build). Remote CI هنوز اجرا نشده است. Backend test/CI تا تولید هماهنگ composer.lock اجرا نشده است.
 - `PRODUCTION_RELEASE`: هنوز دیپلوی نشده؛ Production قبلی نباید تا تکمیل lock/CI تغییر کند.
 - `LIVE_RESULT`: هنوز ارزیابی نشده است.
 - `REMAINING_WORK`: تولید `composer.lock` برای `minishlink/web-push:^11.0` در محیط PHP/Composer، اجرای Backend Pint/test، push هر دو SHA، CI، ساخت release pair، migration فقط migrationهای جدید، VAPID config، activation و smoke موبایل.
 - `CURRENT_NEXT_ACTION`: در محیط ایزوله Backend دستور Composer را اجرا و lock را ثبت کن؛ سپس تست/CI. هیچ release ناقصی deploy نشود.
 - `DO_NOT_REPEAT`: Google login، خرید واقعی Zarinpal، ایجاد سفارش/PaymentAttempt، backup/restore/rollbackهای اثبات‌شده را تکرار نکن.
+
+### Final backend-authority reconciliation
+
+- بیش از ۱۹۰ فیلد عمومی موجود F30 برای برند، تماس، Home، Header، Footer، صفحات عمومی و SEO حفظ شد؛ محصولات، دسته‌ها، لندینگ‌ها، FAQ، گالری، مقاله، نظر، مناطق و صفحات حقوقی نیز از مدل‌ها/Filament می‌آیند.
+- متن‌های تازه Bottom Navigation، نصب PWA و opt-in اعلان با ۱۱ کلید `app_ui.*` به `StoreSetting` و Filament متصل شدند.
+- ارسال عمومی رضایت‌محور از پنل «صف اعلان‌ها» اضافه شد؛ اعلان سفارش transactional و جدا باقی ماند.
+- `composer.lock` رسمی شامل `minishlink/web-push v11.0.0` ثبت شد و workflow یک‌بارمصرف تولید lock حذف شد.
+- `CURRENT_NEXT_ACTION`: اتمام تمام CIهای head، سپس immutable release pair + migration/config VAPID + smoke بدون خرید یا سفارش.

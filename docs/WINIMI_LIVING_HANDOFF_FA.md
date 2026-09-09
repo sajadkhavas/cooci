@@ -609,7 +609,9 @@ DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTO
 
 این checkpoint نصب مستقل PWA و shortcutهای long-press، Service Worker اعلان، opt-in اعلان مهمان و مشتری، منوی Backend-authoritative فروشگاه در desktop/mobile، bottom navigation پنج‌تایی و رفع repaint سنگین Decision Support را جمع می‌کند.
 
-- `EXACT_SHA`: FE local `e6357d98aeb35721654cb3f8c06b23e12178a699`; BE local `163ba88bc67862221017ab3b6f9198a2aad31e8e`.
+- `EXACT_SHA`: FE remote `971dbf646b858a824f45caadb5cbe37e1d4d271c`; BE remote `ebdcfe5dcbac99b801c160502222b8db6661f3c4`.
 - `CI_RESULT`: FE full local PASS؛ BE و remote CI pending.
 - `CURRENT_NEXT_ACTION`: composer.lock + backend tests/CI، سپس pair release و production activation.
 - `DO_NOT_REPEAT`: خرید، سفارش، ورود گوگل و عملیات restore/rollback قبلی بدون evidence جدید ممنوع است.
+
+Backend-authority reconciliation confirmed the pre-existing 190+ editable public settings and all dedicated content/catalog domains. The remaining new app-shell copy is now represented by `app_ui.*`; navigation and consented push broadcast are manageable from Filament. The official Web Push PHP runtime is locked at v11.0.0.

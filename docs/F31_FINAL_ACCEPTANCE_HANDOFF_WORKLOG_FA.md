@@ -527,10 +527,12 @@ DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTO
 ## 2026-09-09 — Final App Shell / Managed Navigation / Web Push checkpoint
 
 - `WHAT_CHANGED`: PWA install UX و manifest shortcuts، notification action handling، guest/customer push opt-in، bottom nav نهایی و منوی مدیریت‌شونده فروشگاه تکمیل شد. رفع لرزش پنل صفحه اصلی در base این checkpoint موجود است.
-- `EXACT_SHA`: FE `e6357d98aeb35721654cb3f8c06b23e12178a699`; BE `163ba88bc67862221017ab3b6f9198a2aad31e8e` (فعلاً local، push به‌علت نبود GitHub credential در runner متوقف شد).
+- `EXACT_SHA`: FE remote `971dbf646b858a824f45caadb5cbe37e1d4d271c`; BE remote `ebdcfe5dcbac99b801c160502222b8db6661f3c4`.
 - `CI_RESULT`: FE full local PASS؛ remote pending. BE pending composer.lock/runtime test.
 - `PRODUCTION_RELEASE`: pending؛ active production دست‌نخورده بماند.
 - `LIVE_RESULT`: pending.
 - `REMAINING_WORK`: composer lock، Backend CI، remote push/CI، immutable pair deploy، VAPID activation و یک permission/subscription/test-notification روی موبایل.
 - `CURRENT_NEXT_ACTION`: composer.lock را با Composer رسمی ایجاد کن و Backend checks را اجرا کن.
 - `DO_NOT_REPEAT`: payment/order/Google/restore/rollback evidence قبلی.
+
+`BACKEND_AUTHORITY_AUDIT`: F30 public authority (190+ settings) + product/category/content domains verified؛ ۱۱ کلید `app_ui.*` برای پوسته جدید اضافه شد. Filament اکنون منوی فروشگاه و broadcast رضایت‌محور Web Push را کنترل می‌کند. Composer runtime روی `minishlink/web-push v11.0.0` lock شده است.
