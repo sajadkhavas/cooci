@@ -440,6 +440,24 @@ header [role="dialog"] [class*="bg-black"] {
 }
 
 @media (min-width: 1024px) {
+  .home-decision-support-section {
+    isolation: auto;
+    overflow: clip;
+    background:
+      radial-gradient(circle at 82% 28%, hsl(var(--brand-pastel) / 0.23), transparent 24rem),
+      radial-gradient(circle at 12% 76%, hsl(var(--interactive-accent) / 0.09), transparent 17rem);
+  }
+
+  .home-decision-support-section::before,
+  .home-decision-support-section .winimi-decision-panel::before {
+    display: none;
+  }
+
+  .home-decision-support-section .winimi-decision-panel {
+    isolation: auto;
+    contain: none;
+  }
+
   .winimi-decision-panel {
     grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 0.75fr);
   }
