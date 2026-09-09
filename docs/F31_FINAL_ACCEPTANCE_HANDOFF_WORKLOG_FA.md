@@ -480,3 +480,46 @@ CONTENT_HANDOFF=IN_PROGRESS
 PRS=OPEN_DRAFT_NOT_MERGED
 F31=NOT_FORMALLY_CLOSED
 ```
+
+
+## F31 Production Frontend compile-environment correction — 2026-09-09
+
+The first technically activated Frontend artifact `fd4472c3dac57417bd83` was built without Vite's compile-time Production integration variables. SSR could render Backend data, but hydrated browser code treated the Backend as disabled and displayed the catalog error. The application source was correct; the server Build invocation was incomplete.
+
+The exact same accepted source was rebuilt with the CI/Production contract:
+
+```text
+NODE_ENV=production
+VITE_USE_BACKEND=true
+VITE_API_BASE_URL=https://api.winimibakery.com
+VITE_ALLOW_DEV_MOCKS=false
+WINIMI_API_ORIGIN=https://api.winimibakery.com
+```
+
+Final live evidence:
+
+```text
+FRONTEND_REBUILD_RESULT=PASS
+ACTIVE_FRONTEND_RELEASE=/var/www/winimi/frontend/releases/9d5c90ad98f635ee93ee
+FRONTEND_SOURCE_SHA=643c75209292ba7a24617dd17b76ccc689ea92a4
+ACTIVE_BACKEND_RELEASE=/var/www/winimi/backend/releases/3d53e8c0c92d9e3888c4
+BACKEND_SOURCE_SHA=07d38915561f40cae57a3ad529b3dc155340d9c6
+FRONTEND_INTERNAL_PROCESS_IDENTITY=PASS
+CATALOG_API_HTTP=200
+PUBLIC_HOME_HTTP=200
+PUBLIC_PRODUCTS_HTTP=200
+PWA_MANIFEST_HTTP=200
+PWA_SERVICE_WORKER_HTTP=200
+BACKEND_CHANGED_DURING_CORRECTION=NO
+DATABASE_CHANGED_DURING_CORRECTION=NO
+MIGRATION_EXECUTED_DURING_CORRECTION=NO
+ORDER_PAYMENT_MUTATION=NO
+SUPERSEDED_FRONTEND_RELEASE=fd4472c3dac57417bd83
+```
+
+`9d5c90ad98f635ee93ee` is the authoritative active Frontend release. Do not reactivate `fd4472c3dac57417bd83`.
+
+```text
+CURRENT_NEXT_ACTION=CLIENT_CACHE_REFRESH_AND_VISUAL_ACCEPTANCE_THEN_VAPID_AND_VERIFIED_CONTENT
+DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTORE_ROLLBACK
+```
