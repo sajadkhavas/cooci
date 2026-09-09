@@ -45,6 +45,7 @@ jobs:
       - name: Install dependencies and Nginx
         run: |
           npm ci
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y nginx
 
