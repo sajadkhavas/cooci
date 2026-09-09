@@ -615,3 +615,45 @@ DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTO
 - `DO_NOT_REPEAT`: خرید، سفارش، ورود گوگل و عملیات restore/rollback قبلی بدون evidence جدید ممنوع است.
 
 Backend-authority reconciliation confirmed the pre-existing 190+ editable public settings and all dedicated content/catalog domains. The remaining new app-shell copy is now represented by `app_ui.*`; navigation and consented push broadcast are manageable from Filament. The official Web Push PHP runtime is locked at v11.0.0.
+---
+
+## F31 final exact-head Production closure — 2026-09-09
+
+```text
+WHAT_CHANGED=Final five-item mobile-nav acceptance corrected; exact-head CI completed; immutable Backend and Frontend releases built from locked sources; three pending F31 migrations ran once; VAPID configured securely; Web Push enabled; final public/internal smoke passed.
+FRONTEND_IMPLEMENTATION_SHA=cfdbde9656dc8eb123de9eee351e990ad0e2e8e1
+BACKEND_IMPLEMENTATION_SHA=ebdcfe5dcbac99b801c160502222b8db6661f3c4
+FRONTEND_PRODUCTION_RELEASE=/var/www/winimi/frontend/releases/7a060f2fbc5c073d105f
+BACKEND_PRODUCTION_RELEASE=/var/www/winimi/backend/releases/e500e1cf306e0d0ac0d9
+FRONTEND_CI=5_OF_5_SUCCESS
+BACKEND_CI=4_OF_4_SUCCESS
+REVIEW_THREADS=0
+BACKUP=/var/www/winimi/backend/shared/storage/app/private/Winimi Bakery/2026-09-09-20-37-20.zip
+BACKUP_SHA256=00a0941b2bf73c13c22d52344adab71c51cd6676a0c5f96ff383bbaf6ba800ce
+MIGRATIONS_RAN_ONCE=2026_09_09_150000_expand_navigation_items_for_managed_storefront,2026_09_09_151000_allow_guest_web_push_subscriptions,2026_09_09_152000_seed_final_app_ui_authority
+WEB_PUSH_CONFIGURED=YES
+PUSH_SUPPORTED=TRUE
+PUBLIC_HOME=200
+PUBLIC_PRODUCTS=200
+BACKEND_READY=200
+PWA_MANIFEST=200
+PWA_SERVICE_WORKER=200
+SERVICES=ALL_ACTIVE
+COMMERCE_BEFORE={"orders":4,"payments":4}
+COMMERCE_AFTER={"orders":4,"payments":4}
+ORDER_CREATED=NO
+PAYMENT_ATTEMPT_CREATED=NO
+GOOGLE_LOGIN_RETESTED=NO
+ROLLBACK_PERFORMED=NO
+ACTIVE_CODE_OR_CI_BLOCKERS=0
+SERVER_WORK_REMAINING=NONE_UNLESS_NEW_EVIDENCE_INVALIDATES_THIS_CLOSURE
+CURRENT_NEXT_ACTION=CLIENT_PWA_INSTALL_AND_CONSENTED_PUSH_SMOKE_THEN_MERGE_TAG_FREEZE
+DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATIONS,BACKUP,SERVER_DEPLOY
+```
+
+نکات پذیرش:
+
+- هشدار Composer درباره اجرای root و پیام‌های Future Flag/Browserlist هشدار غیرمسدودکننده بودند؛ build، release verification و CI کامل PASS شدند.
+- خط اتصال نخست Frontend در بازه restart گذرا بود؛ retry رسمی wrapper موفق شد و health داخلی/عمومی نهایی 200 است.
+- از این checkpoint به بعد برای تحویل فعلی ورود دوباره به SSH لازم نیست، مگر evidence تازه‌ای این closure را نقض کند.
+- تنها پذیرش کاربری باقی‌مانده: refresh/cache update روی گوشی، نصب PWA، اعطای رضایت اعلان و ارسال یک Push آزمایشی از Filament؛ سپس Merge، post-merge CI، tag/freeze و handoff.
