@@ -1,0 +1,26 @@
+name: F31 one-shot Phase18 diagnostic
+on:
+  push:
+    paths:
+      - '.github/workflows/f31-one-shot-phase18-diagnostic.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  diagnose:
+    if: github.ref == 'refs/heads/f31/final-acceptance-handoff'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f31/final-acceptance-handoff
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 34329724692 -n phase18-browser-logs -D /tmp/f31-logs
+      - run: |
+          find /tmp/f31-logs -type f -maxdepth 3 -print -exec tail -n 250 {} \; > f31-phase18-output.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add f31-phase18-output.txt
+          git commit -m "chore: capture temporary F31 Phase18 diagnostic"
+          git push origin HEAD:f31/final-acceptance-handoff
