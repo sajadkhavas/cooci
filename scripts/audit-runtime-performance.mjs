@@ -13,6 +13,8 @@ const files = {
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   playwright: "e2e/playwright.config.mjs",
   acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
+  decisionSupport: "src/components/home/DecisionSupportPanel.tsx",
+  brandCss: "src/styles/brand-theme.css",
   documentation: "docs/FRONTEND_RUNTIME_PERFORMANCE_PHASE_9_5.md",
 };
 
@@ -106,6 +108,22 @@ requireText(
   "Collect runtime scroll baseline — Phase 9.5",
   "production runtime workflow gate",
 );
+requireText(
+  "decisionSupport",
+  "home-decision-support-section",
+  "isolated decision-support paint boundary",
+);
+requireText(
+  "brandCss",
+  ".home-decision-support-section::before,",
+  "desktop oversized pseudo-layer removal",
+);
+requireText(
+  "brandCss",
+  ".home-decision-support-section .winimi-decision-panel",
+  "desktop decision-panel containment override",
+);
+requireText("brandCss", "contain: none;", "desktop paint-containment removal");
 requireText(
   "documentation",
   "frontend_runtime_performance_audited=ready",
