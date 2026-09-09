@@ -393,52 +393,74 @@ ENCRYPTION=PASS
 
 Root ownership incident قبلی recover شده است. Laravel config/cache را به‌صورت root بدون normalization ownership/mode نساز.
 
-## 11) CURRENT_NEXT_ACTION — چت بعدی دقیقاً از اینجا ادامه دهد
+## 11) F31 current live checkpoint — 2026-09-09
 
-### F31 delivery-polish checkpoint — 2026-09-08
-
-- Frontend accepted head: `a68bfd50aaeb675fe5d2d4a1d783efc8bfe48758`
-- Backend accepted head: `d51df49f367190f102fa70ffe1f62a7f17aa761e`
-- Frontend exact-head workflows: **5/5 SUCCESS**
-- Backend exact-head workflows: **4/4 SUCCESS**
-- Gift retirement is now enforced in Frontend navigation/SSR routes and Backend category/product endpoints, even if an accidental Admin toggle republishes the category.
-- Outdated payment-ready wording and customer-visible server/backend terminology in Checkout were removed.
-- Regression coverage locks retired category navigation, listing and direct-product access.
-- Real purchase, Google login, restore and rollback were not repeated.
-- PR `#54` and PR `#17` remain Draft/open/not merged.
-
-Next action: deploy these accepted heads through the immutable release path, then perform Production desktop/mobile visual and real-content UAT. Do not close F31 before user approval.
+Frontend mobile/product-detail polish was completed, exact-head CI passed and the immutable Frontend release was deployed.
 
 ```text
-1. Read WINIMI_PROJECT_STATUS_FA.md
-2. Read docs/WINIMI_LIVING_HANDOFF_FA.md
-3. Read docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md
-4. Fetch live PR #54 and #17 heads; never trust stale SHA blindly
-5. Treat accepted implementation heads `74989ade...` / `900975f...` as CI-green checkpoints
-6. Continue page-by-page visual/content/SEO-admin polish and real content population
-7. Work order: categories -> products -> articles -> static pages -> Admin SEO fields
-8. Re-verify exact-head CI after every new implementation checkpoint
-9. Do NOT re-run real payment or Phase19B restore/rollback unless invalidated
-10. Do NOT merge PR #54/#17 and do NOT close F31 until user confirms polish/content is finished
+FRONTEND_HEAD=893453fd2599024dfb90fe666e29c30293405017
+FRONTEND_CI=5_OF_5_SUCCESS
+FRONTEND_CURRENT=/var/www/winimi/frontend/releases/00fc63d9e485b1419c6c
+BACKEND_HEAD=d51df49f367190f102fa70ffe1f62a7f17aa761e
+BACKEND_CI=4_OF_4_SUCCESS
+BACKEND_CURRENT=/var/www/winimi/backend/releases/b7dd719811c14994eeb8
+PUBLIC_HOME=200
+PUBLIC_PRODUCTS=200
+BACKEND_READY=200
+ENAMAD_SSR=VISIBLE
 ```
 
-بعد از content/visual/SEO polish کامل:
+Implemented and deployed:
+
+- pastel-green hamburger control and mobile drawer
+- pastel-green four-column bottom navigation with Home, Store, Cart and Account centered evenly
+- retired Gift no longer reserves a fifth empty navigation column
+- Product Detail main image and gallery thumbnails fill their own frames
+- latest Backend-managed official eNAMAD markup remains authoritative and visible
+- no Backend, migration, backup, order or payment mutation occurred
+
+The initial loopback connection refusal during restart was transient; the deployment wrapper retry completed and final internal/public health passed.
+
+## 12) Canonical continuation discipline
+
+`WINIMI_PROJECT_STATUS_FA.md` is the comprehensive zero-to-100 authority. This Living Handoff preserves chronology and technical context. The F31 Worklog preserves exact acceptance/deployment evidence.
+
+Every material checkpoint must record:
 
 ```text
-final docs/status reconciliation
--> exact-head frontend/backend CI all green
--> PR blockers/review threads = 0
--> merge #54 / #17
--> post-merge CI on main
--> deploy accepted merged source if production differs
--> production smoke / SHA match
--> final tag/freeze/handoff
--> Search Console stable URL/content verification
+WHAT_CHANGED
+EXACT_SHA
+CI_RESULT
+PRODUCTION_RELEASE
+LIVE_RESULT
+REMAINING_WORK
+CURRENT_NEXT_ACTION
+DO_NOT_REPEAT
 ```
 
-## 12) Final marker
+Current-tree cleanup at final closure means obsolete files, diagnostics, fixtures, routes and contradictory documentation are removed from the final branch. Git history is deliberately retained for evidence and rollback.
 
-فقط بعد از تمام موارد بالا مجاز است:
+## 13) CURRENT_NEXT_ACTION — continue exactly here
+
+```text
+FIRST=ENRICH_PRODUCT_CONTENT_FROM_VERIFIED_EMPLOYER_FACTS
+VERIFY=PRICES_DISCOUNTS_STOCK_WEIGHT_PREPARATION_AND_DELIVERY_CLAIMS
+THEN=RECONCILE_CATEGORIES_ARTICLES_STATIC_PAGES_INTERNAL_LINKS
+THEN=FINAL_CURRENT_TREE_DEAD_CODE_AND_OBSOLETE_DOC_CLEANUP
+THEN=USER_VISUAL_AND_CONTENT_APPROVAL
+THEN=READY_AND_MERGE_PR54_PR17
+THEN=POST_MERGE_MAIN_CI_AND_PRODUCTION_RECONCILIATION
+THEN=SEARCH_CONSOLE_FINAL_CHECK_AND_FREEZE_TAG_HANDOFF
+REAL_PAYMENT_REPEAT=NO
+GOOGLE_LOGIN_REPEAT=NO
+RESTORE_ROLLBACK_REPEAT=NO_UNLESS_INVALIDATED
+```
+
+PR `#54` and PR `#17` remain Draft/open/not merged until content and visual approval.
+
+## 14) Final marker
+
+Only after the sequence above:
 
 ```text
 F31=COMPLETED
