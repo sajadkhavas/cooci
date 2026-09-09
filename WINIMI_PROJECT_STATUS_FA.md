@@ -691,3 +691,14 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - A new administrator broadcast was created from Filament after deployment and was received successfully on the user's subscribed phone: **LIVE WEB PUSH PASS**.
 - Historical failed outbox records were not retried; no further push test is required.
 - CURRENT_NEXT_ACTION: visually confirm the homepage Decision Support scroll-jitter fix and integrated Shop chevron on the deployed frontend, then record final F31 closure. Content/image population and launch-channel setup remain operator/admin-panel work, not another application-code phase.
+
+## F31 Final Desktop Paint + Admin Authority Checkpoint — 2026-09-09
+
+- ریشه لرزش فقط-دسکتاپ Decision Support، repaint لایه‌های گرادیانی بزرگ در clipping و `contain: paint` بود؛ اصلاح نهایی فقط در breakpoint دسکتاپ pseudo-layerهای پرهزینه را حذف و همان ظاهر را با background محدود به section حفظ می‌کند.
+- Frontend implementation head: `cffd64b00f3721d38d4c222e4f2eb849fb6db3f3` — CI **5/5 PASS**.
+- صفحه خالی قدیمی «تنظیمات سایت» منبع Frontend نبود و امکان ایجاد داده مرده داشت؛ از navigation حذف شد و bookmark قدیمی به منبع معتبر `StoreSettingResource` هدایت می‌شود.
+- منبع معتبر محتوا در پنل با عنوان «محتوای سایت و صفحه اصلی» مشخص شد و همچنان داده را از `/api/store/settings` به Frontend می‌دهد.
+- مدیریت زیر‌دسته‌های فروشگاه از «تنظیمات ← منوی هدر و زیرمنوها» انجام می‌شود؛ والد «فروشگاه»، دسته مرتبط و محل نمایش «همه‌جا» برای دسکتاپ و موبایل انتخاب شود.
+- Backend admin head: `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11` — CI **4/4 PASS**.
+- Production فعلی هنوز patch قبلی است؛ این دو head هنوز deploy نشده‌اند. هیچ migration، خرید، سفارش، پرداخت یا تست Google نباید تکرار شود.
+- `CURRENT_NEXT_ACTION`: ساخت و فعال‌سازی immutable pair از Frontend implementation `cffd64b...` و Backend `5c6b737...`، سپس health smoke و تأیید بصری یک‌باره لرزش دسکتاپ و مسیرهای پنل.

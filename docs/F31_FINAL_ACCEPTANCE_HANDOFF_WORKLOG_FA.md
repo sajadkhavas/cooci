@@ -609,3 +609,15 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - A new administrator broadcast was created from Filament after deployment and was received successfully on the user's subscribed phone: **LIVE WEB PUSH PASS**.
 - Historical failed outbox records were not retried; no further push test is required.
 - CURRENT_NEXT_ACTION: visually confirm the homepage Decision Support scroll-jitter fix and integrated Shop chevron on the deployed frontend, then record final F31 closure. Content/image population and launch-channel setup remain operator/admin-panel work, not another application-code phase.
+
+## Final desktop paint and Filament authority patch — 2026-09-09
+
+- `WHAT_CHANGED`: desktop-only Decision Support paint path fixed at root; legacy empty SiteSettings retired; authoritative StoreSetting and managed navigation labels/instructions made explicit.
+- `FRONTEND_IMPLEMENTATION_SHA`: `cffd64b00f3721d38d4c222e4f2eb849fb6db3f3`
+- `FRONTEND_CI`: `5_OF_5_SUCCESS`
+- `BACKEND_IMPLEMENTATION_SHA`: `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11`
+- `BACKEND_CI`: `4_OF_4_SUCCESS`
+- `PRODUCTION_RELEASE`: pending; active pair remains `610a53f2020e5fbf7067` + `54aeb4bbdad9cf95e72f` until exact-pair activation succeeds.
+- `MIGRATION_REQUIRED`: NO.
+- `DO_NOT_REPEAT`: real purchase, order/payment creation, Google login, Web Push delivery acceptance, migrations, backup/restore/rollback.
+- `CURRENT_NEXT_ACTION`: exact immutable pair deploy followed by read-only health/process/commerce checks and one visual desktop scroll/admin-path acceptance.

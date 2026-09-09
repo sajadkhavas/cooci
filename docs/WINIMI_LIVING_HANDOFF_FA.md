@@ -688,3 +688,11 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - A new administrator broadcast was created from Filament after deployment and was received successfully on the user's subscribed phone: **LIVE WEB PUSH PASS**.
 - Historical failed outbox records were not retried; no further push test is required.
 - CURRENT_NEXT_ACTION: visually confirm the homepage Decision Support scroll-jitter fix and integrated Shop chevron on the deployed frontend, then record final F31 closure. Content/image population and launch-channel setup remain operator/admin-panel work, not another application-code phase.
+
+## 2026-09-09 — Final desktop repaint and single admin authority
+
+- Desktop Decision Support jitter root cause: oversized gradient pseudo-elements combined with nested clipping and paint containment. FE `cffd64b00f3721d38d4c222e4f2eb849fb6db3f3` replaces that desktop-only paint path with a bounded section background; all five CI workflows passed.
+- Legacy blank `SiteSettings` was a disconnected `site_settings` editor and never fed the F30 storefront API. BE `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11` removes it from navigation and redirects old URLs to the authoritative StoreSetting resource; all four CI workflows passed.
+- Operator paths after deploy: «تنظیمات ← محتوای سایت و صفحه اصلی» for public storefront copy; «تنظیمات ← منوی هدر و زیرمنوها» for Header/mobile hierarchy. A Shop child uses parent=فروشگاه, linked category, placement=همه‌جا, active=yes.
+- Deployment remains pending. No database migration is introduced by this patch and no commerce/auth acceptance must be repeated.
+- `CURRENT_NEXT_ACTION`: deploy exact FE `cffd64b...` + BE `5c6b737...`, run non-mutating smoke, visually accept desktop scrolling and both Filament destinations, then freeze.
