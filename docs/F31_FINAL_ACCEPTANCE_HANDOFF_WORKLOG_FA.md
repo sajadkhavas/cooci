@@ -523,3 +523,14 @@ SUPERSEDED_FRONTEND_RELEASE=fd4472c3dac57417bd83
 CURRENT_NEXT_ACTION=CLIENT_CACHE_REFRESH_AND_VISUAL_ACCEPTANCE_THEN_VAPID_AND_VERIFIED_CONTENT
 DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTORE_ROLLBACK
 ```
+
+## 2026-09-09 — Final App Shell / Managed Navigation / Web Push checkpoint
+
+- `WHAT_CHANGED`: PWA install UX و manifest shortcuts، notification action handling، guest/customer push opt-in، bottom nav نهایی و منوی مدیریت‌شونده فروشگاه تکمیل شد. رفع لرزش پنل صفحه اصلی در base این checkpoint موجود است.
+- `EXACT_SHA`: FE `e6357d98aeb35721654cb3f8c06b23e12178a699`; BE `163ba88bc67862221017ab3b6f9198a2aad31e8e` (فعلاً local، push به‌علت نبود GitHub credential در runner متوقف شد).
+- `CI_RESULT`: FE full local PASS؛ remote pending. BE pending composer.lock/runtime test.
+- `PRODUCTION_RELEASE`: pending؛ active production دست‌نخورده بماند.
+- `LIVE_RESULT`: pending.
+- `REMAINING_WORK`: composer lock، Backend CI، remote push/CI، immutable pair deploy، VAPID activation و یک permission/subscription/test-notification روی موبایل.
+- `CURRENT_NEXT_ACTION`: composer.lock را با Composer رسمی ایجاد کن و Backend checks را اجرا کن.
+- `DO_NOT_REPEAT`: payment/order/Google/restore/rollback evidence قبلی.

@@ -8,6 +8,8 @@ import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { NetworkStatus } from "@/components/network/NetworkStatus";
 import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
+import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
+import { GuestPushPrompt } from "@/components/pwa/GuestPushPrompt";
 import { TrustStrip } from "@/components/trust/TrustStrip";
 
 export const SiteLayout = () => {
@@ -38,6 +40,8 @@ export const SiteLayout = () => {
       <BackToTopButton />
       <FloatingWhatsApp />
       <PwaUpdatePrompt />
+      <PwaInstallPrompt />
+      <GuestPushPrompt />
     </div>
   );
 };

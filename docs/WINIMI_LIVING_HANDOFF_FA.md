@@ -604,3 +604,12 @@ SUPERSEDED_FRONTEND_RELEASE=fd4472c3dac57417bd83
 CURRENT_NEXT_ACTION=CLIENT_CACHE_REFRESH_AND_VISUAL_ACCEPTANCE_THEN_VAPID_AND_VERIFIED_CONTENT
 DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTORE_ROLLBACK
 ```
+
+## F31 — Final installable app, push and navigation package (2026-09-09)
+
+این checkpoint نصب مستقل PWA و shortcutهای long-press، Service Worker اعلان، opt-in اعلان مهمان و مشتری، منوی Backend-authoritative فروشگاه در desktop/mobile، bottom navigation پنج‌تایی و رفع repaint سنگین Decision Support را جمع می‌کند.
+
+- `EXACT_SHA`: FE local `e6357d98aeb35721654cb3f8c06b23e12178a699`; BE local `163ba88bc67862221017ab3b6f9198a2aad31e8e`.
+- `CI_RESULT`: FE full local PASS؛ BE و remote CI pending.
+- `CURRENT_NEXT_ACTION`: composer.lock + backend tests/CI، سپس pair release و production activation.
+- `DO_NOT_REPEAT`: خرید، سفارش، ورود گوگل و عملیات restore/rollback قبلی بدون evidence جدید ممنوع است.

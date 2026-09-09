@@ -182,16 +182,27 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(self.registration.showNotification(title, {
     body,
+    dir: "rtl",
+    lang: "fa-IR",
     icon: "/icons/winimi-192.png",
-    badge: "/icons/winimi-192.png",
+    badge: "/icons/winimi-96-monochrome.png",
     tag: typeof payload.tag === "string" ? payload.tag : "winimi-order-update",
-    renotify: false,
+    renotify: Boolean(payload.renotify),
+    requireInteraction: Boolean(payload.requireInteraction),
+    silent: false,
+    timestamp: typeof payload.timestamp === "number" ? payload.timestamp : Date.now(),
+    vibrate: [160, 80, 160],
+    actions: [
+      { action: "open", title: "مشاهده" },
+      { action: "dismiss", title: "بستن" },
+    ],
     data: { url: safeUrl },
   }));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const rawUrl = event.notification.data?.url || "/account";
   const destination = new URL(rawUrl, self.location.origin);
   const safeUrl = destination.origin === self.location.origin ? destination.href : `${self.location.origin}/account`;

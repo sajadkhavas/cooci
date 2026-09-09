@@ -1,4 +1,5 @@
 import {
+  Info,
   Home,
   ShoppingBag,
   ShoppingCart,
@@ -31,6 +32,12 @@ export const MobileBottomNavigation = () => {
       href: "/",
       icon: Home,
       active: (pathname) => pathname === "/",
+    },
+    {
+      label: "درباره ما",
+      href: "/about",
+      icon: Info,
+      active: (pathname) => matchesRoutePrefix(pathname, "/about"),
     },
     {
       label: "فروشگاه",
@@ -78,7 +85,7 @@ export const MobileBottomNavigation = () => {
               } ${active ? "is-active" : ""}`}
             >
               <span className="mobile-bottom-navigation__icon-wrap">
-                <Icon size={item.emphasized ? 23 : 20} aria-hidden="true" />
+                <Icon size={20} aria-hidden="true" />
                 {Boolean(item.badge) && (
                   <span
                     className="mobile-bottom-navigation__badge"

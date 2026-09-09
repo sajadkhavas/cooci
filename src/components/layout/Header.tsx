@@ -75,6 +75,8 @@ const focusableSelector = [
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [desktopMenuHref, setDesktopMenuHref] = useState<string | null>(null);
+  const [mobileExpandedHref, setMobileExpandedHref] = useState<string | null>(null);
   const location = useLocation();
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
@@ -98,6 +100,22 @@ export const Header = () => {
   const drawerRef = useRef<HTMLDivElement>(null);
   const restoreMenuFocusRef = useRef(true);
   const previousLocationRef = useRef(`${location.pathname}${location.search}`);
+  const desktopCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelDesktopClose = () => {
+    if (desktopCloseTimerRef.current) clearTimeout(desktopCloseTimerRef.current);
+    desktopCloseTimerRef.current = null;
+  };
+
+  const openDesktopMenu = (href: string) => {
+    cancelDesktopClose();
+    setDesktopMenuHref(href);
+  };
+
+  const scheduleDesktopClose = () => {
+    cancelDesktopClose();
+    desktopCloseTimerRef.current = setTimeout(() => setDesktopMenuHref(null), 220);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
@@ -160,6 +178,15 @@ export const Header = () => {
     };
   }, [isOpen]);
 
+  useEffect(() => () => {
+    if (desktopCloseTimerRef.current) clearTimeout(desktopCloseTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    setDesktopMenuHref(null);
+    setMobileExpandedHref(null);
+  }, [location.pathname, location.search]);
+
   const accountLabel = isAuthenticated
     ? user?.fullName || user?.mobile || "حساب کاربری"
     : "ورود به حساب کاربری";
@@ -200,22 +227,53 @@ export const Header = () => {
             {navLinks.map((link) => {
               const active = isNavigationTargetActive(location.pathname, link);
               return (
-                <div key={`${link.href}-${link.name}`} className="group relative">
-                  <Link
-                    to={link.href}
-                    aria-current={active ? "page" : undefined}
-                    aria-haspopup={link.children?.length ? "menu" : undefined}
-                    className={`relative flex items-center gap-1 rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
+                <div
+                  key={`${link.href}-${link.name}`}
+                  className="relative"
+                  onMouseEnter={() => link.children?.length && openDesktopMenu(link.href)}
+                  onMouseLeave={() => link.children?.length && scheduleDesktopClose()}
+                  onFocus={() => link.children?.length && openDesktopMenu(link.href)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) scheduleDesktopClose();
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setDesktopMenuHref(null);
+                      event.currentTarget.querySelector<HTMLElement>("a")?.focus();
+                    }
+                  }}
+                >
+                  <div className="flex items-center">
+                    <Link
+                      to={link.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`relative flex items-center rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     active
                       ? "bg-[#d0e596] text-[#27390c] shadow-lg ring-1 ring-[#91b33f]/35"
                       : "text-foreground/70 hover:bg-[#d0e596]/55 hover:text-[#27390c]"
                   }`}
-                  >
-                    {link.name}
-                    {!!link.children?.length && <ChevronDown size={14} aria-hidden="true" />}
-                  </Link>
+                    >
+                      {link.name}
+                    </Link>
+                    {!!link.children?.length && (
+                      <button
+                        type="button"
+                        aria-label={`نمایش دسته‌های ${link.name}`}
+                        aria-haspopup="menu"
+                        aria-expanded={desktopMenuHref === link.href}
+                        onClick={() => {
+                          cancelDesktopClose();
+                          setDesktopMenuHref((current) => current === link.href ? null : link.href);
+                        }}
+                        className="-mr-3 ml-1 flex h-8 w-8 items-center justify-center rounded-full text-foreground/70 hover:bg-[#d0e596]/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
+                      >
+                        <ChevronDown size={14} className={desktopMenuHref === link.href ? "rotate-180" : ""} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                   {!!link.children?.length && (
-                    <div className="invisible absolute right-0 top-full z-20 w-72 translate-y-2 pt-3 opacity-0 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    <div className={`absolute right-0 top-full z-20 w-72 pt-3 transition ${desktopMenuHref === link.href ? "visible translate-y-0 opacity-100" : "invisible translate-y-2 opacity-0"}`}>
                       <div role="menu" className="grid gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
                         {link.children.map((child) => (
                           <Link key={`${child.href}-${child.name}`} to={child.href} role="menuitem" className="rounded-xl px-4 py-3 text-right hover:bg-[#d0e596]/50 focus:bg-[#d0e596]/50">
@@ -381,20 +439,21 @@ export const Header = () => {
                   );
                   return (
                     <div key={`${link.href}-${link.name}`} className="rounded-2xl border border-border bg-card/70">
-                    <Link
-                      to={link.href}
-                      aria-label={link.name}
-                      onClick={() => {
-                        restoreMenuFocusRef.current = false;
-                        setIsOpen(false);
-                      }}
-                      aria-current={active ? "page" : undefined}
-                      className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
+                    <div className="flex items-center">
+                      <Link
+                        to={link.href}
+                        aria-label={link.name}
+                        onClick={() => {
+                          restoreMenuFocusRef.current = false;
+                          setIsOpen(false);
+                        }}
+                        aria-current={active ? "page" : undefined}
+                        className={`group flex min-h-14 flex-1 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
                           ? "bg-[#d0e596] text-[#27390c] shadow-soft ring-1 ring-[#91b33f]/35"
                           : "text-foreground hover:bg-[#d0e596]/40"
-                      }`}
-                    >
+                        }`}
+                      >
                       <span className="flex items-center gap-3">
                         <span className="text-xs font-black opacity-45">
                           {(index + 1).toLocaleString("fa-IR")}.
@@ -406,9 +465,22 @@ export const Header = () => {
                         className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
                         aria-hidden="true"
                       />
-                    </Link>
-                    {!!link.children?.length && (
-                      <div className="grid gap-1 border-t border-[#91b33f]/20 px-3 py-2">
+                      </Link>
+                      {!!link.children?.length && (
+                        <button
+                          type="button"
+                          aria-label={`نمایش زیرمجموعه‌های ${link.name}`}
+                          aria-expanded={mobileExpandedHref === link.href}
+                          aria-controls={`mobile-submenu-${link.href.replaceAll("/", "-")}`}
+                          onClick={() => setMobileExpandedHref((current) => current === link.href ? null : link.href)}
+                          className="ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[#27390c] hover:bg-[#d0e596]/55"
+                        >
+                          <ChevronDown size={18} className={mobileExpandedHref === link.href ? "rotate-180" : ""} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                    {!!link.children?.length && mobileExpandedHref === link.href && (
+                      <div id={`mobile-submenu-${link.href.replaceAll("/", "-")}`} className="grid gap-1 border-t border-[#91b33f]/20 px-3 py-2">
                         {link.children.map((child) => (
                           <Link key={`${child.href}-${child.name}`} to={child.href} onClick={() => { restoreMenuFocusRef.current = false; setIsOpen(false); }} className="rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-[#d0e596]/50">
                             {child.name}

@@ -13,6 +13,17 @@ interface PushCapabilities {
   marketingDefault: false;
 }
 
+const GUEST_TOKEN_KEY = "winimi.push.guest-token.v1";
+
+const getGuestToken = () => {
+  const existing = localStorage.getItem(GUEST_TOKEN_KEY);
+  if (existing) return existing;
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const value = btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  localStorage.setItem(GUEST_TOKEN_KEY, value);
+  return value;
+};
+
 const decodeVapidKey = (value: string) => {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
   const base64 = (value + padding).replaceAll("-", "+").replaceAll("_", "/");
@@ -89,3 +100,23 @@ export const updatePushPreferences = async (
       body: { transactionalEnabled, marketingEnabled },
     })
   ).data.push;
+
+export const enableGuestWebPush = async () => {
+  if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    throw new Error("اعلان مرورگر در این دستگاه پشتیبانی نمی‌شود.");
+  }
+  const capability = (await apiRequest<PushCapabilities>("/api/push/capabilities")).data;
+  if (!capability.supported || !capability.publicKey) throw new Error("اعلان فروشگاه هنوز فعال نشده است.");
+  if (await Notification.requestPermission() !== "granted") throw new Error("اجازه نمایش اعلان داده نشد.");
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = (await registration.pushManager.getSubscription()) || await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: decodeVapidKey(capability.publicKey),
+  });
+  const json = subscription.toJSON();
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys.auth) throw new Error("اطلاعات اشتراک اعلان ناقص است.");
+  await apiRequest("/api/push/subscriptions", {
+    method: "POST",
+    body: { guestToken: getGuestToken(), endpoint: json.endpoint, keys: json.keys, contentEncoding: "aes128gcm", marketingEnabled: true },
+  });
+};
