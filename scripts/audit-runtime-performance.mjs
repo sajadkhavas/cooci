@@ -72,7 +72,7 @@ requireText(
   'aria-label="ناوبری پایین موبایل"',
   "accessible bottom-navigation landmark",
 );
-requireText("bottomNavigation", 'label: "فروشگاه"', "emphasized shop destination");
+requireText("bottomNavigation", "label: content.appUi.mobileShop", "Backend-managed emphasized shop destination");
 requireText("bottomNavigation", "badge: totalItems", "cart count badge");
 requireText("bottomNavigation", "aria-current", "current-route semantics");
 requireText(
