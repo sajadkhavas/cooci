@@ -321,40 +321,136 @@ Suggested truthful alt: `مجموعه کوکی‌های خانگی وینیمی 
 
 تا وقتی از media/admin واقعی publish نشده، live محسوب نمی‌شود.
 
+## Canonical zero-to-100 delivery ledger
+
+این فایل از این checkpoint مرجع شماره ۱ و خلاصه جامع پروژه است. تاریخچه تفصیلی در Living Handoff و شواهد اجرایی F31 در Worklog نگهداری می‌شوند، اما هیچ تصمیم جاری نباید فقط در آن دو فایل باقی بماند.
+
+### مسیر انجام‌شده از ابتدا تا Production فعلی
+
+- foundation و auditهای اولیه Frontend/Backend
+- قرارداد Backend-authoritative برای catalog، content، navigation، trust و SEO
+- Laravel 12 + Filament 3 + API و React Router SSR storefront
+- customer authentication، Google OAuth production و identity binding
+- catalog، category، product variants، media، inventory و delivery
+- checkout server-authoritative، order lifecycle و idempotency
+- Zarinpal production، callback/verify/reconciliation و خرید واقعی موفق
+- SEO route architecture، canonical/noindex، structured data و redirect manager
+- Phase28، F29S، F29، F30، Phase19B، Phase20 و F31
+- immutable releases، systemd، Nginx، health/readiness، queue و scheduler
+- encrypted backup، isolated restore evidence، reboot survival و rollback evidence
+- Gift retirement defense-in-depth
+- Vazirmatn self-hosted، category image_alt و cookie bulk discount
+- mobile navigation polish، four-column bottom navigation و full-bleed product gallery
+- eNAMAD official Backend-managed markup
+- final Frontend-only immutable deploy روی Production
+
+### Production checkpoint — 2026-09-09
+
+```text
+FRONTEND_CURRENT=/var/www/winimi/frontend/releases/00fc63d9e485b1419c6c
+FRONTEND_SOURCE_SHA=893453fd2599024dfb90fe666e29c30293405017
+BACKEND_CURRENT=/var/www/winimi/backend/releases/b7dd719811c14994eeb8
+BACKEND_SOURCE_SHA=d51df49f367190f102fa70ffe1f62a7f17aa761e
+FRONTEND_HEALTH=PASS
+BACKEND_READY=PASS
+HOMEPAGE_HTTP=200
+PRODUCTS_HTTP=200
+ENAMAD_SSR=VISIBLE
+ORDER_PAYMENT_MUTATION_DURING_DEPLOY=NO
+MIGRATION_REPEATED=NO
+BACKUP_REPEATED=NO
+```
+
+Frontend exact-head workflows on `893453fd...`: **5/5 SUCCESS**. Backend accepted exact-head workflows on `d51df49...`: **4/4 SUCCESS**.
+
+### Latest approved UI implementation
+
+- hamburger button and mobile drawer: pastel green
+- mobile bottom navigation: Home / Store / Cart / Account, four equal centered columns
+- no replacement page was invented for retired Gift
+- Product Detail main image and thumbnails: full-bleed inside their own frames
+- latest official eNAMAD code stored by Backend is authoritative; Frontend must not invent an ID, replace it, or maintain an account denylist
+
+### Remaining work before formal handoff
+
+1. Employer/user mobile visual approval of the deployed UI.
+2. Product content enrichment using only verified employer facts:
+   - distinctive taste and texture
+   - serving/use occasion
+   - exact portion/weight
+   - ingredients and allergens
+   - storage and shelf life
+   - preparation/dispatch constraints
+   - non-duplicated SEO title/description and image alt
+3. Verify all commercial prices, discounts, stock and preparation claims; test-looking prices must not survive final handoff.
+4. Reconcile remaining category/article/static-page content and internal links.
+5. Run final dead-code/obsolete-file/current-tree cleanup. Git history remains intact for audit and rollback.
+6. Confirm unresolved P0/P1 blockers and review threads are zero.
+7. Mark PR #54 and #17 ready, merge them, and require post-merge main CI.
+8. Reconcile Production with merged source; redeploy only if the merged tree differs.
+9. Final sitemap/Search Console verification on stable URLs/content.
+10. Write closure evidence, create final freeze/tag and declare handoff complete.
+
+## Mandatory progress-record contract
+
+After every material change, update this canonical file and the relevant detailed worklog with:
+
+```text
+WHAT_CHANGED=
+EXACT_SHA=
+CI_RESULT=
+PRODUCTION_RELEASE=
+LIVE_RESULT=
+REMAINING_WORK=
+CURRENT_NEXT_ACTION=
+DO_NOT_REPEAT=
+```
+
+Rules:
+
+- No historical SHA may replace a live GitHub/Production check.
+- Closed phases are not re-run without new invalidating evidence.
+- Real Google login, real Zarinpal purchase, order creation, restore and rollback are retained evidence and must not be requested again.
+- Current-tree cleanup removes obsolete code/files from the final branch; Git commit history is retained.
+- A new chat reads this file first, then Living Handoff, then F31 Worklog.
+
 ## CURRENT_NEXT_ACTION
 
 ```text
-FIRST=CONTINUE_PAGE_BY_PAGE_UI_CONTENT_SEO_ADMIN_POLISH
-CI_BLOCKERS=ZERO_ON_ACCEPTED_IMPLEMENTATION_HEADS
-FRONTEND_ACCEPTED_IMPLEMENTATION_HEAD=a68bfd50aaeb675fe5d2d4a1d783efc8bfe48758
-BACKEND_ACCEPTED_IMPLEMENTATION_HEAD=d51df49f367190f102fa70ffe1f62a7f17aa761e
-LATEST_POLISH=GIFT_RETIREMENT_DEFENSE_IN_DEPTH_AND_CUSTOMER_COPY_RECONCILIATION
-FRONTEND_EXACT_HEAD_CI=ALL_5_WORKFLOWS_SUCCESS
-BACKEND_EXACT_HEAD_CI=ALL_4_WORKFLOWS_SUCCESS
-NEXT_ORDER=DEPLOY_ACCEPTED_HEADS_THEN_PRODUCTION_DESKTOP_MOBILE_VISUAL_CONTENT_UAT
+CURRENT_PHASE=F31_FINAL_ACCEPTANCE_HANDOFF
+F31_STATUS=IN_PROGRESS_PRODUCTION_DEPLOYED_CONTENT_CLOSURE_PENDING
+FRONTEND_HEAD=893453fd2599024dfb90fe666e29c30293405017
+FRONTEND_CI=5_OF_5_SUCCESS
+BACKEND_HEAD=d51df49f367190f102fa70ffe1f62a7f17aa761e
+BACKEND_CI=4_OF_4_SUCCESS
+ACTIVE_FRONTEND_RELEASE=00fc63d9e485b1419c6c
+ACTIVE_BACKEND_RELEASE=b7dd719811c14994eeb8
+ACTIVE_CI_BLOCKERS=0
+NEXT=PRODUCT_CONTENT_AND_COMMERCIAL_DATA_ENRICHMENT
+THEN=FINAL_CURRENT_TREE_CLEANUP_AND_DOC_RECONCILIATION
+MERGE_PR54_PR17=NO_UNTIL_CONTENT_AND_VISUAL_APPROVAL
 REAL_PAYMENT_REPEAT=NO
-PHASE19B_RESTORE_ROLLBACK_REPEAT=NO_UNLESS_INVALIDATED
-MERGE_PR54_PR17=NO_UNTIL_USER_CONFIRMS_POLISH_COMPLETE
-F31_CLOSE=NO_UNTIL_FINAL_CONTENT_AND_POLISH_COMPLETE
+GOOGLE_LOGIN_REPEAT=NO
+RESTORE_ROLLBACK_REPEAT=NO_UNLESS_INVALIDATED
 ```
 
 ## Final closure sequence
 
-بعد از پایان polish/content:
-
 ```text
-reconcile final docs/status
--> exact-head frontend/backend CI all green
--> unresolved blockers/review threads = 0
+content/commercial-data approval
+-> current-tree cleanup
+-> canonical documentation reconciliation
+-> exact-head CI all green
+-> review threads and P0/P1 blockers = 0
 -> merge PR #54 / #17
--> post-merge CI main
--> deploy accepted merged source if production differs
--> production smoke + SHA match
+-> post-merge main CI
+-> Production/source reconciliation
+-> final smoke without commerce mutation
+-> sitemap/Search Console verification
 -> final tag/freeze/handoff
--> Search Console on stable structure
 ```
 
-فقط بعد از این موارد مجاز است:
+Only then set:
 
 ```text
 F31=COMPLETED
