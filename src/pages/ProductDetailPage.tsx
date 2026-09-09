@@ -570,7 +570,7 @@ const ProductDetailPage = () => {
             <div className="mt-16 grid gap-6 lg:grid-cols-2" aria-label="اطلاعات کامل محصول">
               {product.longDescription && (
                 <section className="rounded-3xl border border-border bg-card p-6 shadow-soft lg:col-span-2">
-                  <h2 className="text-2xl font-black text-foreground">درباره {product.name}</h2>
+                  <h2 className="text-2xl font-black text-foreground">معرفی کامل محصول</h2>
                   <p className="mt-4 whitespace-pre-line text-base leading-9 text-muted-foreground">{product.longDescription}</p>
                 </section>
               )}
