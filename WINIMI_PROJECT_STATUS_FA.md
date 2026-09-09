@@ -371,6 +371,11 @@ Frontend exact-head workflows on `893453fd...`: **5/5 SUCCESS**. Backend accepte
 - Product Detail main image and thumbnails: full-bleed inside their own frames
 - latest official eNAMAD code stored by Backend is authoritative; Frontend must not invent an ID, replace it, or maintain an account denylist
 
+### Product content/SEO authority
+
+Implementation blueprint: `docs/F31_PRODUCT_CONTENT_SEO_BLUEPRINT_FA.md`  
+This document locks the Backend-managed Product Detail sections, one-product-per-active-category rollout, verified-media policy and Product → Category → Article SEO sequence.
+
 ### Remaining work before formal handoff
 
 1. Employer/user mobile visual approval of the deployed UI.
