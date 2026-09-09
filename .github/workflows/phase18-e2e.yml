@@ -170,6 +170,7 @@ jobs:
         run: |
           npm ci
           npm install --no-save --no-package-lock @playwright/test@1.55.0
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
           npx playwright install --with-deps chromium
 
       - name: Validate real delivery-options contract
