@@ -20,7 +20,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { isBackendEnabled } from "@/lib/api";
 import type { BackendStoreSettings } from "@/lib/backend-contract";
-import { loadStoreSettings } from "@/lib/content";
+import type { BackendNavigationItem } from "@/lib/backend-contract";
+import { loadStoreNavigation, loadStoreSettings } from "@/lib/content";
 import { CspNonceProvider } from "@/lib/security/csp";
 import "./fonts.css";
 import "./index.css";
@@ -29,9 +30,10 @@ import "./styles/brand-theme.css";
 import "./styles/runtime-performance.css";
 import "./styles/core-web-vitals.css";
 
-interface RootLoaderData {
+export interface RootLoaderData {
   cspNonce?: string;
   storeSettings?: BackendStoreSettings;
+  storeNavigation?: BackendNavigationItem[];
 }
 
 const STORE_SETTINGS_QUERY_KEY = ["store", "settings"] as const;
@@ -59,9 +61,14 @@ export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoade
   if (!isBackendEnabled) return base;
 
   try {
+    const [storeSettings, storeNavigation] = await Promise.all([
+      loadStoreSettings(),
+      loadStoreNavigation(),
+    ]);
     return {
       ...base,
-      storeSettings: await loadStoreSettings(),
+      storeSettings,
+      storeNavigation,
     };
   } catch (error) {
     console.error("Winimi root storefront authority loader failed", {

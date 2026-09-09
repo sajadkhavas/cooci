@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpLeft,
   Cookie,
+  ChevronDown,
   Menu,
   MessageCircle,
   Phone,
@@ -11,7 +12,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useRouteLoaderData } from "react-router";
+import type { RootLoaderData } from "@/root";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
@@ -24,6 +26,7 @@ interface NavLink {
   name: string;
   href: string;
   match: NavigationMatch;
+  children?: Array<{ name: string; href: string; description?: string | null }>;
 }
 
 const SHOP_NAVIGATION_INVARIANT = {
@@ -76,7 +79,19 @@ export const Header = () => {
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { settings, content } = useStorefrontSettings();
-  const navLinks = buildPublicNavigation(content.navigation.links);
+  const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
+  const managedLinks = rootData?.storeNavigation?.map((item) => ({
+    label: item.label,
+    href: item.href,
+    children: item.children,
+  }));
+  const navLinks = buildPublicNavigation(managedLinks?.length ? managedLinks : content.navigation.links).map((link) => {
+    const source = managedLinks?.find((item) => item.href === link.href);
+    return {
+      ...link,
+      children: source?.children.map((child) => ({ name: child.label, href: child.href, description: child.description })),
+    };
+  });
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -184,18 +199,33 @@ export const Header = () => {
             {navLinks.map((link) => {
               const active = isNavigationTargetActive(location.pathname, link);
               return (
-                <Link
-                  key={`${link.href}-${link.name}`}
-                  to={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
+                <div key={`${link.href}-${link.name}`} className="group relative">
+                  <Link
+                    to={link.href}
+                    aria-current={active ? "page" : undefined}
+                    aria-haspopup={link.children?.length ? "menu" : undefined}
+                    className={`relative flex items-center gap-1 rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     active
                       ? "bg-[#d0e596] text-[#27390c] shadow-lg ring-1 ring-[#91b33f]/35"
                       : "text-foreground/70 hover:bg-[#d0e596]/55 hover:text-[#27390c]"
                   }`}
-                >
-                  {link.name}
-                </Link>
+                  >
+                    {link.name}
+                    {!!link.children?.length && <ChevronDown size={14} aria-hidden="true" />}
+                  </Link>
+                  {!!link.children?.length && (
+                    <div className="invisible absolute right-0 top-full z-20 w-72 translate-y-2 pt-3 opacity-0 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                      <div role="menu" className="grid gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
+                        {link.children.map((child) => (
+                          <Link key={`${child.href}-${child.name}`} to={child.href} role="menuitem" className="rounded-xl px-4 py-3 text-right hover:bg-[#d0e596]/50 focus:bg-[#d0e596]/50">
+                            <strong className="block text-sm text-foreground">{child.name}</strong>
+                            {child.description && <span className="mt-1 block text-xs leading-5 text-muted-foreground">{child.description}</span>}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -349,8 +379,8 @@ export const Header = () => {
                     link,
                   );
                   return (
+                    <div key={`${link.href}-${link.name}`} className="rounded-2xl border border-border bg-card/70">
                     <Link
-                      key={`${link.href}-${link.name}`}
                       to={link.href}
                       aria-label={link.name}
                       onClick={() => {
@@ -361,7 +391,7 @@ export const Header = () => {
                       className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
                           ? "bg-[#d0e596] text-[#27390c] shadow-soft ring-1 ring-[#91b33f]/35"
-                          : "border border-border bg-card/70 text-foreground hover:border-[#91b33f]/35 hover:bg-[#d0e596]/40"
+                          : "text-foreground hover:bg-[#d0e596]/40"
                       }`}
                     >
                       <span className="flex items-center gap-3">
@@ -376,6 +406,16 @@ export const Header = () => {
                         aria-hidden="true"
                       />
                     </Link>
+                    {!!link.children?.length && (
+                      <div className="grid gap-1 border-t border-[#91b33f]/20 px-3 py-2">
+                        {link.children.map((child) => (
+                          <Link key={`${child.href}-${child.name}`} to={child.href} onClick={() => { restoreMenuFocusRef.current = false; setIsOpen(false); }} className="rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-[#d0e596]/50">
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    </div>
                   );
                 })}
               </nav>

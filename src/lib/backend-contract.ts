@@ -50,6 +50,14 @@ export interface BackendProduct {
   productCode: string;
   shortDescription: string | null;
   longDescription: string | null;
+  tasteNotes: string[];
+  textureNotes: string[];
+  useCases: string[];
+  servingSuggestions: string | null;
+  specifications: Array<{ label: string; value: string }>;
+  productFaqs: Array<{ question: string; answer: string }>;
+  contentVersion: string | null;
+  contentReviewedAt: string | null;
   category: string | null;
   categorySlug: string | null;
   categoryData?: BackendCategory;
@@ -302,6 +310,14 @@ export interface BackendStoreSettings {
       badgeCode: string | null;
     };
   };
+}
+
+export interface BackendNavigationItem {
+  id: number;
+  label: string;
+  href: string;
+  description: string | null;
+  children: BackendNavigationItem[];
 }
 
 export interface BackendContentPage {

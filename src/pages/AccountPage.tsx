@@ -18,6 +18,7 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AccountAddresses } from "@/components/account/AccountAddresses";
 import { GoogleAccountSecurityPanel } from "@/components/account/GoogleAccountSecurityPanel";
+import { PushNotificationPreferences } from "@/components/account/PushNotificationPreferences";
 import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";
 import { useAuth } from "@/context/AuthContext";
@@ -204,6 +205,7 @@ const AccountPage = () => {
           )}
 
           <GoogleAccountSecurityPanel />
+          {mode === "backend" && <PushNotificationPreferences />}
 
           {editingProfile && (
             <section

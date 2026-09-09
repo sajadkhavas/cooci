@@ -166,6 +166,47 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = {};
+  }
+
+  const title = typeof payload.title === "string" ? payload.title : "وینیمی بیکری";
+  const body = typeof payload.body === "string" ? payload.body : "وضعیت سفارش شما به‌روزرسانی شد.";
+  const rawUrl = typeof payload.url === "string" ? payload.url : "/account";
+  const destination = new URL(rawUrl, self.location.origin);
+  const safeUrl = destination.origin === self.location.origin ? destination.pathname + destination.search : "/account";
+
+  event.waitUntil(self.registration.showNotification(title, {
+    body,
+    icon: "/icons/winimi-192.png",
+    badge: "/icons/winimi-192.png",
+    tag: typeof payload.tag === "string" ? payload.tag : "winimi-order-update",
+    renotify: false,
+    data: { url: safeUrl },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const rawUrl = event.notification.data?.url || "/account";
+  const destination = new URL(rawUrl, self.location.origin);
+  const safeUrl = destination.origin === self.location.origin ? destination.href : `${self.location.origin}/account`;
+
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
+    if (existing) {
+      await existing.navigate(safeUrl);
+      return existing.focus();
+    }
+    return self.clients.openWindow(safeUrl);
+  })());
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET" || request.headers.has("range")) return;

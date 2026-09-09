@@ -566,6 +566,71 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
+          {contentVerified && (
+            <div className="mt-16 grid gap-6 lg:grid-cols-2" aria-label="اطلاعات کامل محصول">
+              {product.longDescription && (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft lg:col-span-2">
+                  <h2 className="text-2xl font-black text-foreground">درباره {product.name}</h2>
+                  <p className="mt-4 whitespace-pre-line text-base leading-9 text-muted-foreground">{product.longDescription}</p>
+                </section>
+              )}
+
+              {(product.tasteNotes?.length || product.textureNotes?.length) ? (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                  <h2 className="text-xl font-black">طعم و بافت</h2>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {[...(product.tasteNotes || []), ...(product.textureNotes || [])].map((item) => (
+                      <span key={item} className="rounded-full bg-[#d0e596]/45 px-4 py-2 text-sm font-bold text-[#27390c]">{item}</span>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {product.useCases?.length ? (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                  <h2 className="text-xl font-black">مناسب برای</h2>
+                  <ul className="mt-4 grid gap-3 text-muted-foreground">
+                    {product.useCases.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 size={18} className="mt-1 shrink-0 text-primary" aria-hidden="true" />{item}</li>)}
+                  </ul>
+                </section>
+              ) : null}
+
+              {product.specifications?.length ? (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                  <h2 className="text-xl font-black">مشخصات محصول</h2>
+                  <dl className="mt-4 divide-y divide-border">
+                    {product.specifications.map((item) => (
+                      <div key={`${item.label}-${item.value}`} className="grid grid-cols-2 gap-4 py-3 text-sm">
+                        <dt className="font-bold text-foreground">{item.label}</dt><dd className="text-muted-foreground">{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ) : null}
+
+              {product.servingSuggestions && (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+                  <h2 className="text-xl font-black">پیشنهاد سرو</h2>
+                  <p className="mt-4 whitespace-pre-line leading-8 text-muted-foreground">{product.servingSuggestions}</p>
+                </section>
+              )}
+
+              {product.productFaqs?.length ? (
+                <section className="rounded-3xl border border-border bg-card p-6 shadow-soft lg:col-span-2">
+                  <h2 className="text-xl font-black">پرسش‌های متداول درباره این محصول</h2>
+                  <div className="mt-4 grid gap-3">
+                    {product.productFaqs.map((item) => (
+                      <details key={item.question} className="group rounded-2xl border border-border p-4">
+                        <summary className="cursor-pointer font-bold text-foreground">{item.question}</summary>
+                        <p className="mt-3 leading-8 text-muted-foreground">{item.answer}</p>
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </div>
+          )}
+
           {relatedProducts.length > 0 && (
             <section className="mt-24 border-t border-border pt-12" aria-labelledby="related-products-title">
               <div className="mb-10 flex items-center gap-4">
