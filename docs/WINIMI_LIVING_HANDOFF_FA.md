@@ -657,3 +657,18 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - خط اتصال نخست Frontend در بازه restart گذرا بود؛ retry رسمی wrapper موفق شد و health داخلی/عمومی نهایی 200 است.
 - از این checkpoint به بعد برای تحویل فعلی ورود دوباره به SSH لازم نیست، مگر evidence تازه‌ای این closure را نقض کند.
 - تنها پذیرش کاربری باقی‌مانده: refresh/cache update روی گوشی، نصب PWA، اعطای رضایت اعلان و ارسال یک Push آزمایشی از Filament؛ سپس Merge، post-merge CI، tag/freeze و handoff.
+
+## F31 Final Server Patch Checkpoint — 2026-09-09
+
+- Frontend implementation head: `7d93d666810c9ef60440d118d5834a740a54aa5f`
+- Frontend CI-stability head: `0fa769b1f782dc79c2731f7bc7b5e8ada422cbda`
+- Backend implementation head: `474b3c73ded97b0d12b0921d44591e56db884a96`
+- Frontend CI: **5/5 PASS**
+- Backend CI: **4/4 PASS**
+- Web Push constructor fixed for `minishlink/web-push v11` by injecting a PSR-18 `GuzzleHttp\\Client`; failed historical outboxes must not be auto-retried.
+- One user action, «فعال‌کردن اعلان», enables order, site-news, and administrator broadcasts on that device. Admin broadcast targets every active subscription; no second marketing toggle remains.
+- Homepage Decision Support scroll jitter fixed by removing its transform/reveal wrapper only.
+- Desktop Shop chevron is visually integrated into the Shop pill; the crawlable `/products` link and accessible dropdown button remain separate semantically.
+- CI runner APT instability from the third-party Chrome mirror is isolated in Phase 8, Phase 18, and Phase 19 workflows; all reruns passed.
+- No production deploy, migration, backup, order, payment, Google-login retest, restore, or rollback was performed by this checkpoint.
+- CURRENT_NEXT_ACTION: deploy the exact frontend/backend heads above as one immutable pair, preserve existing VAPID secrets, run safe health/process/commerce/push capability checks, then send exactly one new admin test notification from Filament.
