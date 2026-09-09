@@ -469,3 +469,44 @@ WINIMI_FINAL_DELIVERY=PASS
 PRODUCTION=READY
 HANDOFF=COMPLETE
 ```
+
+
+## F31 technical completion checkpoint — 2026-09-09
+
+```text
+WHAT_CHANGED=Backend-managed rich Product Detail content; managed desktop/mobile navigation; complete PWA/Web Push subscription and transactional VAPID transport; final notification outbox fix; removal of unused vulnerable Excel export dependency
+FRONTEND_IMPLEMENTATION_HEAD=4bfb0dd4d7b8fa12585a6e10ff3f58ee3f48b08f
+FRONTEND_IMPLEMENTATION_CI=5_OF_5_SUCCESS
+BACKEND_HEAD=07d38915561f40cae57a3ad529b3dc155340d9c6
+BACKEND_CI=4_OF_4_SUCCESS
+BACKEND_REGRESSION=151_TESTS_1508_ASSERTIONS_PASS
+COMPOSER_AUDIT=PASS
+TEMPORARY_DIAGNOSTICS=REMOVED
+PRODUCTION_RELEASE=UNCHANGED_PENDING_CONTROLLED_DEPLOY
+LIVE_RESULT=PREVIOUS_PRODUCTION_REMAINS_HEALTHY
+ACTIVE_CODE_OR_CI_BLOCKERS=0
+```
+
+Implemented authority now available from Backend/admin:
+
+- product taste, texture, use cases, serving suggestions, specifications and product FAQs
+- public managed navigation with nested active categories for desktop hover/focus and mobile menu
+- encrypted Web Push subscriptions with separate transactional/marketing preferences
+- safe transactional order-status Push delivery; fail-closed when VAPID is not configured
+- PWA service-worker push and notification-click handling
+
+Remaining delivery work:
+
+1. Controlled immutable deployment of Backend `07d389...` with its two F31 migrations, then Frontend implementation `4bfb0d...`.
+2. Configure secret VAPID environment values and enable Push, or deliberately retain `PUSH_ENABLED=false` until keys are supplied.
+3. Run non-commerce health/UI/PWA smoke only; do not repeat login, purchase, payment or order creation.
+4. Populate one representative product per active category using verified employer facts and real employer media; validate prices, stock, weights, allergens, storage and preparation claims.
+5. Complete category/article/static content and stable internal-link/SEO rollout, then employer visual/content approval.
+6. Final current-tree reconciliation, zero P0/P1/review threads, explicit user permission to ready/merge PR #54 and #17, post-merge CI, Production reconciliation, sitemap/Search Console, tag/freeze/handoff.
+
+```text
+CURRENT_NEXT_ACTION=CONTROLLED_IMMUTABLE_BACKEND_THEN_FRONTEND_DEPLOY
+DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTORE_ROLLBACK
+PRS=OPEN_DRAFT_NOT_MERGED
+F31=CLOSURE_PENDING_DEPLOY_AND_VERIFIED_CONTENT
+```
