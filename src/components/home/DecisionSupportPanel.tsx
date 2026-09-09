@@ -6,7 +6,6 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
-import { Reveal } from "@/components/motion/Reveal";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { isBackendEnabled } from "@/lib/api";
 import { loadFaqs, type StoreFaq } from "@/lib/content";
@@ -50,7 +49,7 @@ export const DecisionSupportPanel = () => {
       aria-labelledby="home-decision-support-title"
     >
       <div className="container-custom">
-        <Reveal className="winimi-decision-panel">
+        <div className="winimi-decision-panel">
           <div className="winimi-decision-panel__intro">
             <span className="editorial-label mb-5">
               <CircleHelp size={15} aria-hidden="true" />
@@ -130,7 +129,7 @@ export const DecisionSupportPanel = () => {
               )}
             </div>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

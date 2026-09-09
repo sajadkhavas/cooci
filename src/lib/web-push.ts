@@ -71,7 +71,7 @@ export const enableWebPush = async (): Promise<PushPreferences> => {
       keys: json.keys,
       contentEncoding: "aes128gcm",
       transactionalEnabled: true,
-      marketingEnabled: false,
+      marketingEnabled: true,
     },
   });
   return getPushPreferences();

@@ -244,11 +244,13 @@ export const Header = () => {
                     }
                   }}
                 >
-                  <div className="flex items-center">
+                  <div className="relative flex items-center">
                     <Link
                       to={link.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative flex items-center rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
+                      className={`relative flex items-center rounded-full py-2.5 pr-4 text-sm font-bold transition duration-300 ${
+                    link.children?.length ? "pl-8" : "pl-4"
+                  } ${
                     active
                       ? "bg-[#d0e596] text-[#27390c] shadow-lg ring-1 ring-[#91b33f]/35"
                       : "text-foreground/70 hover:bg-[#d0e596]/55 hover:text-[#27390c]"
@@ -266,7 +268,7 @@ export const Header = () => {
                           cancelDesktopClose();
                           setDesktopMenuHref((current) => current === link.href ? null : link.href);
                         }}
-                        className="-mr-3 ml-1 flex h-8 w-8 items-center justify-center rounded-full text-foreground/70 hover:bg-[#d0e596]/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
+                        className="absolute left-1 flex h-7 w-7 items-center justify-center text-foreground/70 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
                       >
                         <ChevronDown size={14} className={desktopMenuHref === link.href ? "rotate-180" : ""} aria-hidden="true" />
                       </button>
