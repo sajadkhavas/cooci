@@ -505,3 +505,54 @@ DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTO
 PRS=OPEN_DRAFT_NOT_MERGED
 F31=CLOSURE_PENDING_DEPLOY_AND_VERIFIED_CONTENT
 ```
+
+
+## F31 final technical Production deployment — 2026-09-09
+
+```text
+DEPLOY_RESULT=FINAL_DIRECT_ACTIVATION_R4_PASS
+DEPLOYED_FRONTEND_SOURCE=643c75209292ba7a24617dd17b76ccc689ea92a4
+ACTIVE_FRONTEND_RELEASE=/var/www/winimi/frontend/releases/fd4472c3dac57417bd83
+FRONTEND_CI=5_OF_5_SUCCESS
+DEPLOYED_BACKEND_SOURCE=07d38915561f40cae57a3ad529b3dc155340d9c6
+ACTIVE_BACKEND_RELEASE=/var/www/winimi/backend/releases/3d53e8c0c92d9e3888c4
+BACKEND_CI=4_OF_4_SUCCESS
+BACKEND_REGRESSION=151_TESTS_1508_ASSERTIONS_PASS
+COMPOSER_SECURITY_AUDIT=PASS
+WEB_PUSH_MIGRATION=RAN_BATCH_7
+RICH_PRODUCT_CONTENT_MIGRATION=RAN_BATCH_7
+INTERNAL_FRONTEND_HTTP=200
+BACKEND_READY_HTTP=200
+PUBLIC_HOME_HTTP=200
+PUBLIC_PRODUCTS_HTTP=200
+PWA_MANIFEST_HTTP=200
+PWA_SERVICE_WORKER_HTTP=200
+COMMERCE_BEFORE={"orders":4,"payments":4}
+COMMERCE_AFTER={"orders":4,"payments":4}
+ORDER_CREATED=NO
+PAYMENT_ATTEMPT_CREATED=NO
+MIGRATION_REPEATED=NO
+BACKUP_REPEATED=NO
+GOOGLE_LOGIN_RETESTED=NO
+```
+
+The first activation attempt safely rolled back only because the wrapper probed nonexistent Frontend routes `/healthz` and `/health`. Read-only diagnosis proved the SSR health contract is internal `/` with HTTP 200. R4 then activated the already-built, already-verified pair with the correct health route. This was an orchestration-probe correction, not an application defect.
+
+Current delivery state:
+
+- technical implementation, exact-head CI and Production deployment are complete;
+- PWA assets are live;
+- Web Push code and database authority are live and fail closed; actual delivery remains disabled until secure VAPID environment values are configured;
+- product rich-content controls and managed navigation are live;
+- PR #54 and PR #17 remain intentionally Draft/Open/Not merged;
+- final content/media population still requires verified employer facts and real employer-owned images;
+- formal F31 closure still requires visual/content approval, merge authorization, post-merge CI, Production reconciliation, sitemap/Search Console verification and final freeze/tag.
+
+```text
+CURRENT_NEXT_ACTION=VERIFY_PUSH_CONFIGURATION_THEN_POPULATE_VERIFIED_PRODUCT_CONTENT_AND_MEDIA
+DO_NOT_REPEAT=REAL_GOOGLE_LOGIN_REAL_ZARINPAL_PURCHASE_REAL_ORDER_PHASE19B_RESTORE_ROLLBACK
+TECHNICAL_PRODUCTION_DEPLOYMENT=COMPLETE
+CONTENT_HANDOFF=IN_PROGRESS
+PRS=OPEN_DRAFT_NOT_MERGED
+F31=NOT_FORMALLY_CLOSED
+```
