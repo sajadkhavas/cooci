@@ -82,8 +82,29 @@ const staleWhileRevalidate = async (request, cacheName) => {
   return (await networkPromise) || Response.error();
 };
 
-const offlineResponse = async () =>
-  (await matchCache(SHELL_CACHE, "/offline")) || Response.error();
+const stripOfflineRuntime = (html) =>
+  html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<link\b(?=[^>]*\brel=["']modulepreload["'])[^>]*>/gi, "");
+
+const offlineResponse = async () => {
+  const cached = await matchCache(SHELL_CACHE, "/offline");
+  if (!cached) return Response.error();
+
+  const contentType = cached.headers.get("content-type") || "";
+  if (!contentType.includes("text/html")) return cached;
+
+  const headers = new Headers(cached.headers);
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  headers.set("cache-control", "no-store");
+
+  return new Response(stripOfflineRuntime(await cached.text()), {
+    status: cached.status,
+    statusText: cached.statusText,
+    headers,
+  });
+};
 
 const networkFirstNavigation = async (request) => {
   const url = new URL(request.url);
