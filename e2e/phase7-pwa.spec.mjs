@@ -49,11 +49,23 @@ test("production PWA fails closed on a real network failure and recovers after r
   expect(worker).toContain("refreshOfflineShell");
   expect(worker).toContain("event.waitUntil(refreshOfflineShell())");
 
-  const manifestResponse = await request.get("/manifest.webmanifest");
+  const manifestResponse = await request.get("/app.webmanifest");
   expect(manifestResponse.ok()).toBeTruthy();
+  expect(manifestResponse.headers()["content-type"]).toContain(
+    "application/manifest+json",
+  );
   const manifest = await manifestResponse.json();
   expect(manifest.id).toBe("/");
   expect(manifest.scope).toBe("/");
+  expect(manifest.name).toBeTruthy();
+  expect(manifest.short_name).toBeTruthy();
+  expect(manifest.theme_color).toMatch(/^#[0-9a-f]{6}$/i);
+  expect(manifest.background_color).toMatch(/^#[0-9a-f]{6}$/i);
+  expect(manifest.shortcuts).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ url: expect.stringMatching(/^\/(?!\/)/) }),
+    ]),
+  );
   expect(manifest.icons).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
