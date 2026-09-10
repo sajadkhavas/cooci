@@ -46,7 +46,9 @@ requireText(
 );
 requireText("theme", ".text-primary", "accessible dark text override on light backgrounds");
 requireText("root", 'import "./styles/brand-theme.css"', "brand stylesheet import");
-requireText("root", '{ name: "theme-color", content: "#D0E596" }', "SSR browser theme color");
+requireText("root", 'settings["pwa.theme_color"]', "admin-managed SSR browser theme color");
+requireText("root", ': "#D0E596"', "official SSR theme-color fallback");
+requireText("root", '/^#[0-9a-f]{6}$/i.test(configuredTheme)', "validated SSR theme-color contract");
 requireText("brand", 'logoPath: "/brand/winimi-logo.svg"', "official logo path");
 requireText("brand", 'primaryColor: "#D0E596"', "official brand hex");
 requireText("brand", 'brandInkColor: "#27390C"', "official dark logo ink");
@@ -108,5 +110,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Winimi brand audit passed: #D0E596 is primary, the official logo is wired across SSR/PWA/offline surfaces, and contrast is ${brandContrast.toFixed(2)}:1.`,
+  `Winimi brand audit passed: #D0E596 remains the validated fallback/primary, the official logo is wired across SSR/PWA/offline surfaces, and contrast is ${brandContrast.toFixed(2)}:1.`,
 );
