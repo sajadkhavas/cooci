@@ -1,82 +1,73 @@
 # سند مرجع زنده پروژه WINIMI
 
-به‌روزرسانی: 2026-09-10
+به‌روزرسانی نهایی F31: 2026-09-10
 
-## قانون ادامه در چت جدید
-
-1. `WINIMI_PROJECT_STATUS_FA.md` را بخوان.
-2. سپس همین فایل، `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` و `docs/F31_FILAMENT_CONTROL_COVERAGE_AUDIT_FA.md` را بخوان.
-3. PRهای Frontend #54 و Backend #17 و CI HEADهای واقعی GitHub را دوباره بررسی کن.
-4. checkpoint تاریخی را بر GitHub فعلی مقدم ندان.
-5. «کشف‌های سایت زنده» ردشده توسط مالک پروژه را وارد گزارش/تصمیم نکن.
-6. Phase28/F29S/F29/F30/Phase19B/Phase20 را بدون evidence تازه باز نکن.
-
-## Project identity
+## وضعیت
 
 ```text
-FRONTEND=sajadkhavas/cooci
-BACKEND=sajadkhavas/winimi-bakery-backend
-STOREFRONT=https://winimibakery.com
-API=https://api.winimibakery.com
-CURRENT_PHASE=F31_FINAL_ACCEPTANCE_HANDOFF
+PROJECT=WINIMI_COOCI
+F31=COMPLETED
+WINIMI_FINAL_DELIVERY=PASS
+PRODUCTION=READY
+HANDOFF=COMPLETE
+UNRESOLVED_ADMIN_P0=0
+UNRESOLVED_ADMIN_P1=0
 ```
 
-Frontend: React Router Framework Mode + React + TypeScript + Vite + SSR.  
-Backend: Laravel + Filament + Sanctum/session + Queue/Scheduler + MySQL/Redis production topology.
-
-## اصل معماری
-
-هر چیز محتوایی، تجاری، عمومی یا عملیاتی که مالک فروشگاه باید مدیریت کند از Backend/Filament می‌آید و Frontend از API/SSR مصرف می‌کند. Secrets، payment/auth internals، DB/server configuration، Service Worker logic، validationهای امنیتی و layout/accessibility mechanics code-controlled می‌مانند.
-
-## Accepted F31 candidates
+## Source / Production lock
 
 ```text
-FRONTEND_IMPLEMENTATION_HEAD=584aecf5bafac9fa6b757fdd937495be25ab989d
-FRONTEND_EXACT_HEAD_CI=5_OF_5_SUCCESS
-BACKEND_IMPLEMENTATION_HEAD=96170b03c28548e627e4bf9255addaef745d9df1
-BACKEND_EXACT_HEAD_CI=4_OF_4_SUCCESS
-REVIEW_THREADS=0
-ADMIN_P0_P1=0
+FRONTEND_DEPLOYED_SOURCE=7d5e3fe03b11bc007652908b5f2fff2e78504b31
+FRONTEND_RELEASE=b0d20cd656e5e5d680c3
+FRONTEND_FREEZE=freeze/winimi-f31-final-20260910
+
+BACKEND_DEPLOYED_SOURCE=a2e5c48e8c73c49caaac1f5c9cbb0f608f066e3b
+BACKEND_RELEASE=49045150d53cd2be5c2b
+BACKEND_FREEZE=freeze/winimi-f31-final-20260910
+
+PRODUCTION_HOST=hwsrv-1332134.hostwindsdns.com
+RECONCILIATION_RESULT=PASS
 ```
 
-## چیزهایی که در F31 بسته شدند
+Frontend PR #54 and Backend PR #17 are merged. Post-merge frontend gates are 4/4 SUCCESS and backend gates are 3/3 SUCCESS. There are no open delivery PRs or review threads.
 
-- desktop Decision Support paint jitter
-- managed Header/Footer/navigation
-- specialized StoreSetting editors
-- PWA installed manifest `/app.webmanifest`
-- PWA shortcuts/name/colors/offline copy
-- refreshable admin-managed offline cache
-- static/no-script sensitive offline fallback
-- consent-aware GA4/GTM public IDs
-- Search Console public verification token
-- masked/read-only Web Push subscription inventory
-- legacy Filament menu cleanup without data deletion
-- safe bulk-discount category editor
-- eNAMAD operator editor + strict frontend fail-closed parser
-- value-preserving/non-destructive migrations for operator-owned settings
+## Final Production evidence
 
-## Retained evidence — DO NOT REPEAT
+- backend active release: `49045150d53cd2be5c2b`
+- frontend active release: `b0d20cd656e5e5d680c3`
+- Backend readiness + health: PASS
+- PHP-FPM, queue, scheduler timer, frontend SSR service and Nginx: active
+- public `/`, `/products`, `/app.webmanifest`, `/sw.js`: HTTP 200
+- PWA manifest Content-Type: `application/manifest+json; charset=utf-8`
+- orders: `4 -> 4`
+- payment attempts: `4 -> 4`
+- backend shared env checksum unchanged
+- frontend runtime env checksum unchanged
+- final reconciliation was read-only
 
-- real Google Login Production acceptance
-- authenticated checkout acceptance
-- real Zarinpal paid/verified order
-- Web Push live delivery acceptance
-- Phase19B backup/restore/reboot/rollback evidence
+## معماری تحویلی
 
-این شواهد فقط با regression/evidence جدید invalidate می‌شوند.
+هر داده محتوایی، تجاری، عمومی یا عملیاتی که مالک فروشگاه باید مدیریت کند از Backend/Filament می‌آید و Frontend از API/SSR مصرف می‌کند. Secrets، payment/auth internals، DB/server configuration، Service Worker logic، validationهای امنیتی و layout/accessibility mechanics code-controlled می‌مانند.
 
-## Remaining path
+F31 موارد Footer authority، specialized StoreSetting، PWA managed metadata/shortcuts/offline copy، static sensitive offline fallback، Push read-only inventory، consent-aware GA4/GTM، Search Console token، legacy resource cleanup، bulk pricing editor، eNAMAD safe editor/parser و desktop Decision Support jitter repair را بسته است.
+
+## شواهد تاریخی که بدون regression تکرار نمی‌شوند
+
+- Google Login واقعی Production
+- authenticated checkout
+- پرداخت واقعی و verified زرین‌پال
+- Web Push live delivery
+- backup/restore/reboot/rollback Phase19B
+
+## قانون ادامه بعد از تحویل
+
+از این نقطه F31 دوباره باز نمی‌شود مگر regression یا نیاز تجاری جدید با evidence مشخص ایجاد شود. تغییرات آینده باید phase/issue جدید داشته باشند و از freezeهای بالا به‌عنوان مرجع source تحویلی استفاده کنند.
 
 ```text
-DOCS_HEAD_EXACT_CI
--> READY/MERGE PR #17 + #54
--> POST-MERGE MAIN CI
--> ONE FINAL immutable Backend + Frontend Production deploy
--> read-only health/readiness/source/PWA smoke
--> final tag/freeze
--> close cooci#55
--> HANDOFF=COMPLETE
+NEXT=POST_HANDOFF_MAINTENANCE_OR_NEW_PHASE_ONLY
+DEPLOY_REPEAT=NO
+REAL_PAYMENT_REPEAT=NO_UNLESS_NEW_ACCEPTANCE_REQUIRES_IT
+BACKUP_RESTORE_REPEAT=NO_UNLESS_NEW_RISK_REQUIRES_IT
 ```
 
-No server deploy was performed by the GitHub reconciliation checkpoint in this document.
+«کشف‌های سایت زنده» ردشده توسط مالک پروژه بخشی از source of truth این closure نیستند.
