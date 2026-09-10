@@ -55,7 +55,6 @@ interface CategoryShowcaseProps {
   showHeader?: boolean;
   showAllLink?: boolean;
   compact?: boolean;
-  surface?: "catalog" | "home";
 }
 
 export const CategoryShowcase = ({
@@ -68,7 +67,6 @@ export const CategoryShowcase = ({
   showHeader = true,
   showAllLink = true,
   compact = false,
-  surface = "catalog",
 }: CategoryShowcaseProps) => {
   const { categories, landings } = useCatalogDirectory();
   const editorialCategories = landings.length > 0 ? landings : categoryContents;
@@ -78,12 +76,6 @@ export const CategoryShowcase = ({
     categories,
   )
     .filter((category) => category.routeSlug !== excludeSlug)
-    .filter((category) => surface !== "home" || category.showOnHome)
-    .sort((first, second) => {
-      const firstOrder = surface === "home" ? first.homeSortOrder : first.sortOrder;
-      const secondOrder = surface === "home" ? second.homeSortOrder : second.sortOrder;
-      return firstOrder - secondOrder || first.name.localeCompare(second.name, "fa");
-    })
     .slice(0, resolvedLimit);
 
   if (visibleCategories.length === 0) return null;
