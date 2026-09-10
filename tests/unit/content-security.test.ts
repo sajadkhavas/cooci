@@ -36,19 +36,20 @@ const validPost = {
 
 test("valid managed content contracts accept staging-shaped payloads", () => {
   assert.equal(postDetailSchema.parse(validPost).slug, "staging-welcome");
-  assert.equal(
-    contentPageSchema.parse({
-      id: "01JSTAGINGPAGE",
-      type: "legal",
-      slug: "staging-privacy",
-      title: "حریم خصوصی تست",
-      excerpt: null,
-      content: "متن تست",
-      seo: { title: null, description: null },
-      publishedAt: "2026-07-20T12:00:00+00:00",
-    }).title,
-    "حریم خصوصی تست",
-  );
+
+  const legacyPage = contentPageSchema.parse({
+    id: "01JSTAGINGPAGE",
+    type: "legal",
+    slug: "staging-privacy",
+    title: "حریم خصوصی تست",
+    excerpt: null,
+    content: "متن تست",
+    seo: { title: null, description: null },
+    publishedAt: "2026-07-20T12:00:00+00:00",
+  });
+
+  assert.equal(legacyPage.title, "حریم خصوصی تست");
+  assert.equal(legacyPage.coverUrl, null);
 });
 
 test("public URL contracts reject executable, insecure and protocol-relative URLs", () => {
