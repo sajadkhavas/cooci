@@ -108,6 +108,12 @@ export const ManagedContentPage = ({
     url: pageUrl,
     inLanguage: "fa-IR",
     datePublished: page.publishedAt || undefined,
+    primaryImageOfPage: page.coverUrl
+      ? {
+          "@type": "ImageObject",
+          url: page.coverUrl,
+        }
+      : undefined,
     isPartOf: {
       "@type": "WebSite",
       name: brandConfig.brandName,
@@ -183,6 +189,18 @@ export const ManagedContentPage = ({
               </dl>
             </div>
           </div>
+
+          {page.coverUrl && (
+            <figure className="mt-8 overflow-hidden rounded-[2rem] border border-border/80 bg-card shadow-soft">
+              <img
+                src={page.coverUrl}
+                alt={page.title}
+                className="aspect-[16/7] w-full object-cover sm:aspect-[16/6]"
+                loading="eager"
+                decoding="async"
+              />
+            </figure>
+          )}
         </div>
       </section>
 
