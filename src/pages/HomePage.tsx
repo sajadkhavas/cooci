@@ -44,7 +44,7 @@ const HomePage = () => {
         schema={faqSchema}
       />
 
-      <section className="home-color-wash relative overflow-hidden pb-12 pt-7 sm:pb-18 sm:pt-10 lg:pb-20 lg:pt-14">
+      <section className="home-color-wash relative overflow-hidden border border-[#27390c]/15 pb-12 pt-7 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] sm:pb-18 sm:pt-10 lg:pb-20 lg:pt-14">
         <div className="soft-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
         <div className="float-slower pointer-events-none absolute -right-24 top-16 h-56 w-56 rounded-full bg-[#d0e596]/25 blur-3xl" aria-hidden="true" />
         <div className="float-slow pointer-events-none absolute -left-20 bottom-12 h-48 w-48 rounded-full bg-[#f3c9b9]/25 blur-3xl" aria-hidden="true" />
@@ -123,6 +123,7 @@ const HomePage = () => {
         <div className="container-custom">
           <CategoryShowcase
             limit={6}
+            surface="home"
             eyebrow={home.categories.eyebrow}
             title={home.categories.title}
             description={home.categories.description}
