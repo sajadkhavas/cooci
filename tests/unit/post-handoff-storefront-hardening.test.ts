@@ -32,6 +32,35 @@ test("managed category image wins over curated frontend fallbacks", () => {
   assert.ok(curatedIndex > managedIndex);
 });
 
+test("homepage categories obey admin visibility and surface order", () => {
+  const showcase = readSource("src/components/catalog/CategoryShowcase.tsx");
+  const home = readSource("src/pages/HomePage.tsx");
+
+  assert.equal(showcase.includes('surface?: "catalog" | "home"'), true);
+  assert.equal(showcase.includes('surface !== "home" || category.showOnHome'), true);
+  assert.equal(showcase.includes('first.homeSortOrder'), true);
+  assert.equal(home.includes('surface="home"'), true);
+});
+
+test("footer categories and groups are admin authoritative", () => {
+  const source = readSource("src/components/layout/Footer.tsx");
+
+  assert.equal(source.includes('category.showInFooter'), true);
+  assert.equal(source.includes('first.footerSortOrder'), true);
+  assert.equal(source.includes('managedFooterGroups.length > 0'), true);
+  assert.equal(source.includes('managedFooterGroups.slice('), false);
+  assert.equal(source.includes('/brand/winimi-logo.svg'), true);
+});
+
+test("homepage hero has a thin full boundary", () => {
+  const source = readSource("src/pages/HomePage.tsx");
+
+  assert.equal(
+    source.includes('home-color-wash relative overflow-hidden border border-[#27390c]/15'),
+    true,
+  );
+});
+
 test("article detail exposes mobile and desktop tables of contents and reading time", () => {
   const source = readSource("src/pages/BlogDetailPage.tsx");
 
