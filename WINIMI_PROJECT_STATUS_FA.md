@@ -714,3 +714,11 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - Web Push پس از activation همچنان `supported=true` است. خرید، سفارش، PaymentAttempt، Push جدید، Google Login، migration و backup اجرا نشد؛ commerce قبل/بعد دقیقاً `{"orders":4,"payments":4}` ماند.
 - Legacy empty settings retired؛ پنل معتبر «محتوای سایت و صفحه اصلی» و «منوی هدر و زیرمنوها» در Production فعال شد.
 - `CURRENT_NEXT_ACTION`: فقط hard refresh و پذیرش بصری کاربر برای اسکرول دسکتاپ و مشاهده دو مسیر جدید پنل؛ سپس GitHub merge/tag/freeze. تست پرداخت، ورود گوگل و Push تکرار نشود.
+
+## F31 Admin coverage audit — 2026-09-10
+
+- ممیزی کامل کنترل‌پذیری Frontend از Filament ثبت شد: `docs/F31_FILAMENT_CONTROL_COVERAGE_AUDIT_FA.md`.
+- پوشش اصلی commerce/content کامل است؛ چهار شکاف واقعی و دو مسئله cleanup/UX پنل شناسایی شد.
+- مهم‌ترین موارد: Resourceهای Legacy گمراه‌کننده، Footer placement مصرف‌نشده، نبود مدیریت محتوای PWA، نبود نمای امن Push subscription و فرم عمومی/خطاپذیر StoreSetting.
+- سایت و دیتابیس در این ممیزی تغییر نکردند.
+- `CURRENT_NEXT_ACTION`: اجرای یک بسته محدود Admin Completion روی candidateهای سبز فعلی، سپس CI و یک deploy immutable؛ تست‌های واقعی قبلی تکرار نشوند.

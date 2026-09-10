@@ -645,3 +645,13 @@ GOOGLE_LOGIN_RETESTED=NO
 ```
 
 - `CURRENT_NEXT_ACTION`: client hard refresh and one visual desktop scroll/admin navigation acceptance, then merge/tag/freeze. Do not repeat prior live commerce/auth/push acceptance.
+
+## F31 Filament control coverage audit — 2026-09-10
+
+- ممیزی route/component/API/Filament و مشاهده SSR صفحات اصلی Production انجام شد.
+- گزارش تفصیلی: `docs/F31_FILAMENT_CONTROL_COVERAGE_AUDIT_FA.md`.
+- هسته محصول، دسته، لندینگ سئو، محتوای عمومی، منو، مقاله، FAQ، گالری، شهر، نظر، درخواست، سفارش، پرداخت، ارسال، eNAMAD، Push و SEO ابزار مدیریتی دارند.
+- شکاف‌های واقعی: قرارداد Footer Navigation، تنظیمات مدیریتی PWA، نمای امن Web Push subscriptions و قرارداد Online Launch integrations.
+- مسائل یک‌پارچگی پنل: Resourceهای Legacy کنار منابع معتبر Bakery قابل مشاهده‌اند و StoreSetting با ویرایشگر عمومی برای اپراتور خطاپذیر است.
+- هیچ database/Production mutation انجام نشد؛ این checkpoint فقط ممیزی و ثبت evidence است.
+- `CURRENT_NEXT_ACTION`: پس از تأیید کاربر، شش مورد بسته اصلاحی گزارش در یک Admin Completion Package پیاده‌سازی و تست شوند؛ خرید، پرداخت، Google Login، Push delivery، restore و rollback تکرار نشوند.
