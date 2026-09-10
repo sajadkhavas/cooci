@@ -44,6 +44,7 @@ requireText("registration", '.register("/sw.js", { scope: "/" })', "root-scoped 
 requireText("workerTemplate", 'const BUILD_VERSION = "__WINIMI_BUILD_VERSION__"');
 requireText("workerTemplate", '"/checkout"', "transactional offline boundary");
 requireText("workerTemplate", "navigationCacheKey", "route-aware SSR navigation cache");
+requireText("workerTemplate", "stripOfflineRuntime", "static no-hydration offline fallback");
 requireText("workerTemplate", "await self.skipWaiting()", "immediate safe activation");
 requireText("workerTemplate", "self.clients.claim()", "existing-client control");
 forbidText("workerTemplate", '"/index.html"', "retired SPA shell precache");
@@ -59,8 +60,23 @@ requireText(
 );
 requireText(
   "pwaE2e",
-  'name: "اتصال اینترنت در دسترس نیست"',
-  "fail-closed offline disclosure",
+  'page.locator(\'[data-pwa-offline-shell="true"]\')',
+  "managed fail-closed offline shell marker",
+);
+requireText(
+  "pwaE2e",
+  'page.locator("script")).toHaveCount(0)',
+  "no-script offline fallback assertion",
+);
+requireText(
+  "pwaE2e",
+  'page.locator(\'link[rel="modulepreload"]\')).toHaveCount(0)',
+  "no-modulepreload offline fallback assertion",
+);
+requireText(
+  "pwaE2e",
+  'name: "ورود امن به حساب"',
+  "sensitive navigation must not hydrate into account login",
 );
 requireText(
   "pwaE2e",
@@ -98,5 +114,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 7 audit passed under Framework Mode: idempotent worker registration, route-aware SSR navigation caching, fail-closed transactional offline behavior and recovery are locked.",
+  "Frontend Phase 7 audit passed under Framework Mode: idempotent worker registration, route-aware SSR navigation caching, static fail-closed transactional offline behavior and recovery are locked.",
 );
