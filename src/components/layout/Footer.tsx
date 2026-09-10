@@ -1,6 +1,5 @@
 import {
   ArrowUpLeft,
-  Cookie,
   Headphones,
   Instagram,
   Mail,
@@ -57,10 +56,17 @@ export const Footer = () => {
   const categoryLinks = buildVisibleCatalogCategories(
     editorialCategories,
     categories,
-  ).map((category) => ({
-    name: category.name,
-    href: `/products/category/${category.routeSlug}`,
-  }));
+  )
+    .filter((category) => category.showInFooter)
+    .sort(
+      (first, second) =>
+        first.footerSortOrder - second.footerSortOrder ||
+        first.name.localeCompare(second.name, "fa"),
+    )
+    .map((category) => ({
+      name: category.name,
+      href: `/products/category/${category.routeSlug}`,
+    }));
   const fallbackFooterGroups = [
     {
       title: content.footer.discovery.title,
@@ -80,7 +86,7 @@ export const Footer = () => {
         href: link.href,
       })),
     },
-  ];
+  ].filter((group) => group.links.length > 0);
   const managedFooterGroups = (rootData?.footerNavigation ?? [])
     .filter((item) => item.children.length > 0)
     .map((item) => ({
@@ -94,14 +100,14 @@ export const Footer = () => {
     .filter((item) => item.children.length === 0)
     .map((item) => ({ name: item.label, href: item.href }));
   const resolvedFooterGroups = managedFooterGroups.length > 0
-    ? managedFooterGroups.slice(0, 3)
+    ? managedFooterGroups
     : fallbackFooterGroups;
   const legalLinks = standaloneFooterLinks.length > 0
     ? standaloneFooterLinks
     : content.footer.legal.map((link) => ({
-    name: link.label,
-    href: link.href,
-  }));
+        name: link.label,
+        href: link.href,
+      }));
   const socialLinks = [
     {
       href: settings.contact.instagramUrl,
@@ -114,7 +120,7 @@ export const Footer = () => {
       Icon: MessageCircle,
     },
     {
-      href: `mailto:${settings.contact.email}`,
+      href: settings.contact.email ? `mailto:${settings.contact.email}` : "",
       label: `ایمیل ${settings.brand.name}`,
       Icon: Mail,
     },
@@ -123,7 +129,7 @@ export const Footer = () => {
       label: `تماس با ${settings.brand.name}`,
       Icon: Phone,
     },
-  ];
+  ].filter((item) => item.href.trim().length > 0);
 
   return (
     <footer className="site-footer relative z-10 overflow-hidden border-t border-[#27390c]/20 bg-[#d0e596] text-[#27390c]">
@@ -171,8 +177,15 @@ export const Footer = () => {
         <div className="grid border-b border-[#27390c]/20 py-10 lg:grid-cols-[1.05fr_1.95fr] lg:py-14">
           <div className="border-b border-[#27390c]/20 pb-9 lg:border-b-0 lg:border-l lg:pb-0 lg:pl-10">
             <Link to="/" className="inline-flex items-center gap-3 rounded-2xl">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#27390c] text-[#d0e596] shadow-soft">
-                <Cookie size={26} aria-hidden="true" />
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#27390c]/15 bg-[#d0e596] shadow-soft">
+                <img
+                  src="/brand/winimi-logo.svg"
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-cover"
+                  aria-hidden="true"
+                />
               </span>
               <span>
                 <strong className="block text-2xl font-black">
@@ -202,9 +215,9 @@ export const Footer = () => {
             </div>
           </div>
 
-          <div className="hidden grid-cols-3 divide-x divide-x-reverse divide-[#27390c]/20 lg:grid">
+          <div className="hidden gap-x-8 gap-y-10 px-7 sm:grid-cols-2 lg:grid xl:grid-cols-3 xl:px-10">
             {resolvedFooterGroups.map((group) => (
-              <div key={group.title} className="px-7 first:pr-10 last:pl-0">
+              <div key={group.title} className="min-w-0">
                 <h3 className="mb-5 text-xs font-black tracking-[0.08em] text-[#6f3e33]">
                   {group.title}
                 </h3>
