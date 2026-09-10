@@ -6,6 +6,8 @@ const IMAGE_CACHE = `${CACHE_PREFIX}-images-${BUILD_VERSION}`;
 const MAX_IMAGE_ENTRIES = 48;
 const MAX_NAVIGATION_ENTRIES = 16;
 const NAVIGATION_TIMEOUT_MS = 6000;
+const OFFLINE_REFRESH_INTERVAL_MS = 5 * 60_000;
+let lastOfflineRefreshAt = 0;
 
 const SHELL_FILES = [
   "/offline",
@@ -86,6 +88,23 @@ const stripOfflineRuntime = (html) =>
   html
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<link\b(?=[^>]*\brel=["']modulepreload["'])[^>]*>/gi, "");
+
+const refreshOfflineShell = async () => {
+  const now = Date.now();
+  if (now - lastOfflineRefreshAt < OFFLINE_REFRESH_INTERVAL_MS) return;
+  lastOfflineRefreshAt = now;
+
+  try {
+    const response = await fetch("/offline", { cache: "no-store" });
+    const contentType = response.headers.get("content-type") || "";
+    if (!response.ok || !contentType.includes("text/html")) return;
+
+    const cache = await caches.open(SHELL_CACHE);
+    await cache.put("/offline", response);
+  } catch {
+    // Keep the last known-good offline shell when the refresh cannot reach the server.
+  }
+};
 
 const offlineResponse = async () => {
   const cached = await matchCache(SHELL_CACHE, "/offline");
@@ -247,6 +266,9 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    if (url.pathname !== "/offline") {
+      event.waitUntil(refreshOfflineShell());
+    }
     event.respondWith(networkFirstNavigation(request));
     return;
   }
