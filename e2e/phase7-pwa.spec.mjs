@@ -44,6 +44,7 @@ test("production PWA fails closed on a real network failure and recovers after r
   expect(worker).toContain('cache: "no-store"');
   expect(worker).not.toContain('"/index.html"');
   expect(worker).toContain("navigationCacheKey");
+  expect(worker).toContain("stripOfflineRuntime");
 
   const manifestResponse = await request.get("/manifest.webmanifest");
   expect(manifestResponse.ok()).toBeTruthy();
@@ -76,26 +77,30 @@ test("production PWA fails closed on a real network failure and recovers after r
   await page.goto(`/checkout?${NETWORK_FAILURE_QUERY}=1`, {
     waitUntil: "domcontentloaded",
   });
+
+  const failedNavigationUrl = new URL(page.url());
+  expect(failedNavigationUrl.pathname).toBe("/checkout");
+  expect(failedNavigationUrl.searchParams.has(NETWORK_FAILURE_QUERY)).toBe(true);
+  await expect(page.locator('[data-pwa-offline-shell="true"]')).toBeVisible();
+  await expect(page.locator('[data-pwa-offline-shell="true"] h1')).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
-  ).toBeVisible();
-  await expect(page.locator("#main-content")).toHaveCount(0);
+    page.getByRole("heading", { name: "ورود امن به حساب" }),
+  ).toHaveCount(0);
   await expect(page.locator("script")).toHaveCount(0);
+  await expect(page.locator('link[rel="modulepreload"]')).toHaveCount(0);
   await expect(page.getByRole("link", { name: "تلاش دوباره" })).toHaveAttribute(
     "href",
     "",
   );
 
-  // network restoration returns to the live server-rendered application
-  // Keep the recovery assertion structural so editorial homepage copy can evolve
-  // without weakening the PWA fail-closed/service-worker contract.
+  // Network restoration returns to the live server-rendered application.
+  // Keep the recovery assertion structural so admin-managed homepage/PWA copy can evolve
+  // without weakening the fail-closed service-worker contract.
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator('html[lang="fa-IR"][dir="rtl"]')).toHaveCount(1);
   await expect(page.locator("#main-content")).toBeVisible();
   await expect(page.locator("#main-content h1").first()).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "اتصال اینترنت در دسترس نیست" }),
-  ).toHaveCount(0);
+  await expect(page.locator('[data-pwa-offline-shell="true"]')).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
