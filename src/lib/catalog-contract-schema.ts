@@ -56,11 +56,6 @@ export const backendCategorySchema = z
     image: safeCatalogMediaUrlSchema.nullable(),
     imageAlt: nullableText(255),
     productCount: z.number().int().nonnegative().optional(),
-    showOnHome: z.boolean().optional(),
-    showInFooter: z.boolean().optional(),
-    sortOrder: z.number().int().nonnegative().optional(),
-    homeSortOrder: z.number().int().nonnegative().optional(),
-    footerSortOrder: z.number().int().nonnegative().optional(),
     seo: z.object({
       title: z.string().max(255),
       description: nullableText(1_000),
@@ -133,9 +128,9 @@ export const backendProductSchema = z
       answer: z.string().trim().min(1).max(5_000),
     })).max(30).default([]),
     contentVersion: nullableText(40).optional().default(null),
-    contentReviewedAt: nullableText(100).optional().default(null),
-    category: nullableText(255),
-    categorySlug: nullableText(180),
+    contentReviewedAt: z.string().datetime({ offset: true }).nullable().optional().default(null),
+    category: nullableText(160),
+    categorySlug: safeCatalogIdentifierSchema.nullable(),
     categoryData: backendCategorySchema.optional(),
     priceToman: z.number().int().nonnegative().nullable(),
     regularPriceToman: z.number().int().nonnegative().nullable(),
@@ -146,13 +141,13 @@ export const backendProductSchema = z
     available: z.boolean(),
     requiresCooling: z.boolean(),
     shippingScope: z.enum(["nationwide", "tehran-karaj"]),
-    shippingNote: z.string().max(5_000),
+    shippingNote: z.string().max(2_000),
     ingredients: z.array(z.string().max(500)).max(100),
     allergens: z.array(z.string().max(500)).max(100),
-    shelfLife: nullableText(500),
-    storageTips: nullableText(5_000),
+    shelfLife: nullableText(1_000),
+    storageTips: nullableText(2_000),
     preparationTimeDays: z.number().int().nonnegative().nullable(),
-    badges: z.array(z.string().max(100)).max(30),
+    badges: z.array(z.string().max(160)).max(30),
     images: z.array(backendProductImageSchema).max(30),
     isFeatured: z.boolean(),
     contentVerified: z.boolean(),
@@ -163,16 +158,78 @@ export const backendProductSchema = z
       title: z.string().max(255),
       description: nullableText(1_000),
     }),
-    updatedAt: nullableText(100),
+    updatedAt: z.string().datetime({ offset: true }).nullable(),
   })
-  .passthrough();
+  .superRefine((product, context) => {
+    if (
+      product.salePriceToman !== null &&
+      product.regularPriceToman !== null &&
+      product.salePriceToman > product.regularPriceToman
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["salePriceToman"],
+        message: "sale price exceeds regular price",
+      });
+    }
 
-export const backendPaginationSchema = z.object({
-  page: z.number().int().positive(),
-  perPage: z.number().int().positive(),
-  total: z.number().int().nonnegative(),
-  totalPages: z.number().int().nonnegative(),
-  from: z.number().int().nonnegative().nullable(),
-  to: z.number().int().nonnegative().nullable(),
-  hasMore: z.boolean(),
-});
+    if (product.available && product.stock <= 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["available"],
+        message: "available product has no stock",
+      });
+    }
+  })
+  .transform((product) => ({
+    ...product,
+    mediaVerified:
+      product.mediaVerified && product.images.some((image) => image.verified),
+  }));
+
+export const backendPaginationSchema = z
+  .object({
+    page: z.number().int().positive(),
+    perPage: z.number().int().positive().max(100),
+    total: z.number().int().nonnegative(),
+    totalPages: z.number().int().positive(),
+    from: z.number().int().positive().nullable(),
+    to: z.number().int().positive().nullable(),
+    hasMore: z.boolean(),
+  })
+  .superRefine((pagination, context) => {
+    if (pagination.page > pagination.totalPages) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "page exceeds totalPages",
+      });
+    }
+
+    if (
+      pagination.from !== null &&
+      pagination.to !== null &&
+      pagination.from > pagination.to
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "from exceeds to",
+      });
+    }
+
+    if (pagination.to !== null && pagination.to > pagination.total) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "to exceeds total",
+      });
+    }
+
+    if (
+      pagination.total === 0 &&
+      (pagination.from !== null || pagination.to !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "empty pagination has non-null bounds",
+      });
+    }
+  });
