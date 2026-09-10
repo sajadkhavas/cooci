@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpLeft,
-  Cookie,
   ChevronDown,
   Menu,
   MessageCircle,
@@ -192,9 +191,9 @@ export const Header = () => {
     : "ورود به حساب کاربری";
 
   return (
-    <header className="sticky top-0 z-50 min-w-0 px-2 pt-2 sm:px-4 sm:pt-3">
+    <header className="sticky top-0 z-[100] min-w-0 overflow-visible px-2 pt-2 sm:px-4 sm:pt-3">
       <div
-        className={`mx-auto max-w-[92rem] rounded-[1.6rem] border transition-all duration-500 ${
+        className={`mx-auto max-w-[92rem] overflow-visible rounded-[1.6rem] border transition-all duration-500 ${
           scrolled
             ? "border-[#27390c]/15 bg-[#d0e596]/88 shadow-[0_18px_60px_-34px_hsl(var(--foreground)/0.65)] backdrop-blur-2xl"
             : "border-[#27390c]/10 bg-[#d0e596]/72 backdrop-blur-xl"
@@ -206,9 +205,15 @@ export const Header = () => {
             className="group flex min-w-0 items-center gap-3 rounded-2xl"
             aria-label={`${settings.brand.name} - صفحه اصلی`}
           >
-            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-primary-foreground shadow-[0_16px_34px_-18px_hsl(var(--primary)/0.9)] transition duration-500 group-hover:-rotate-6 group-hover:scale-105 lg:h-12 lg:w-12">
-              <span className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-accent/20" />
-              <Cookie size={23} className="relative" aria-hidden="true" />
+            <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e596] shadow-[0_16px_34px_-18px_hsl(var(--primary)/0.9)] transition duration-300 group-hover:scale-[1.03] lg:h-12 lg:w-12">
+              <img
+                src="/brand/winimi-logo.svg"
+                alt=""
+                width={48}
+                height={48}
+                className="h-full w-full object-contain"
+                aria-hidden="true"
+              />
             </span>
             <span className="min-w-0">
               <strong className="block truncate text-lg font-black tracking-[-0.04em] text-foreground sm:text-xl">
@@ -221,7 +226,7 @@ export const Header = () => {
           </Link>
 
           <nav
-            className="hidden items-center rounded-full border border-border/70 bg-card/60 p-1.5 shadow-soft backdrop-blur-xl xl:flex"
+            className="relative z-[110] hidden items-center overflow-visible rounded-full border border-border/70 bg-card/60 p-1.5 shadow-soft backdrop-blur-xl xl:flex"
             aria-label="منوی اصلی"
           >
             {navLinks.map((link) => {
@@ -229,7 +234,7 @@ export const Header = () => {
               return (
                 <div
                   key={`${link.href}-${link.name}`}
-                  className="relative"
+                  className="relative overflow-visible"
                   onMouseEnter={() => link.children?.length && openDesktopMenu(link.href)}
                   onMouseLeave={() => link.children?.length && scheduleDesktopClose()}
                   onFocus={() => link.children?.length && openDesktopMenu(link.href)}
@@ -275,8 +280,8 @@ export const Header = () => {
                     )}
                   </div>
                   {!!link.children?.length && (
-                    <div className={`absolute right-0 top-full z-20 w-72 pt-3 transition ${desktopMenuHref === link.href ? "visible translate-y-0 opacity-100" : "invisible translate-y-2 opacity-0"}`}>
-                      <div role="menu" className="grid gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
+                    <div className={`absolute right-0 top-full z-[120] w-72 pt-3 transition ${desktopMenuHref === link.href ? "visible translate-y-0 opacity-100" : "invisible translate-y-2 opacity-0"}`}>
+                      <div role="menu" className="grid gap-1 rounded-2xl border border-border bg-card p-2 shadow-2xl">
                         {link.children.map((child) => (
                           <Link key={`${child.href}-${child.name}`} to={child.href} role="menuitem" className="rounded-xl px-4 py-3 text-right hover:bg-[#d0e596]/50 focus:bg-[#d0e596]/50">
                             <strong className="block text-sm text-foreground">{child.name}</strong>
@@ -359,7 +364,7 @@ export const Header = () => {
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-[70] xl:hidden">
+        <div className="fixed inset-0 z-[130] xl:hidden">
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default bg-foreground/45 backdrop-blur-md"
