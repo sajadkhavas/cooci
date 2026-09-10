@@ -702,3 +702,15 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - Backend admin head: `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11` — CI **4/4 PASS**.
 - Production فعلی هنوز patch قبلی است؛ این دو head هنوز deploy نشده‌اند. هیچ migration، خرید، سفارش، پرداخت یا تست Google نباید تکرار شود.
 - `CURRENT_NEXT_ACTION`: ساخت و فعال‌سازی immutable pair از Frontend implementation `cffd64b...` و Backend `5c6b737...`، سپس health smoke و تأیید بصری یک‌باره لرزش دسکتاپ و مسیرهای پنل.
+
+## F31 Final Desktop + Admin Production Activation — 2026-09-10
+
+- `FINAL_PREBUILT_DESKTOP_ADMIN_ACTIVATION_R2=PASS`
+- Active Frontend: `/var/www/winimi/frontend/releases/803912135173ca965399`
+- Active Backend: `/var/www/winimi/backend/releases/a077a3a7827a058b32b7`
+- Frontend source: `cffd64b00f3721d38d4c222e4f2eb849fb6db3f3` — CI `5/5 PASS`
+- Backend source: `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11` — CI `4/4 PASS`
+- Internal Frontend، Backend readiness، Home، Products، Manifest و Service Worker همگی HTTP 200؛ تمام service/process identityها PASS.
+- Web Push پس از activation همچنان `supported=true` است. خرید، سفارش، PaymentAttempt، Push جدید، Google Login، migration و backup اجرا نشد؛ commerce قبل/بعد دقیقاً `{"orders":4,"payments":4}` ماند.
+- Legacy empty settings retired؛ پنل معتبر «محتوای سایت و صفحه اصلی» و «منوی هدر و زیرمنوها» در Production فعال شد.
+- `CURRENT_NEXT_ACTION`: فقط hard refresh و پذیرش بصری کاربر برای اسکرول دسکتاپ و مشاهده دو مسیر جدید پنل؛ سپس GitHub merge/tag/freeze. تست پرداخت، ورود گوگل و Push تکرار نشود.

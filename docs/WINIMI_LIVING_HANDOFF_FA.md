@@ -696,3 +696,10 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - Operator paths after deploy: «تنظیمات ← محتوای سایت و صفحه اصلی» for public storefront copy; «تنظیمات ← منوی هدر و زیرمنوها» for Header/mobile hierarchy. A Shop child uses parent=فروشگاه, linked category, placement=همه‌جا, active=yes.
 - Deployment remains pending. No database migration is introduced by this patch and no commerce/auth acceptance must be repeated.
 - `CURRENT_NEXT_ACTION`: deploy exact FE `cffd64b...` + BE `5c6b737...`, run non-mutating smoke, visually accept desktop scrolling and both Filament destinations, then freeze.
+
+## 2026-09-10 — Production activation accepted
+
+- Exact immutable pair activated successfully: FE release `803912135173ca965399` from `cffd64b00f3721d38d4c222e4f2eb849fb6db3f3`; BE release `a077a3a7827a058b32b7` from `5c6b7375a33f06f7ed55f95e716b1d78d58a5e11`.
+- Services/process CWD, internal/public endpoints, PWA assets and Push capability all passed. The first refused localhost connection occurred only during the bounded restart retry; final internal health was 200.
+- Commerce remained orders=4/payments=4. No migration, backup, purchase, order, payment, Push send or Google-login retest occurred.
+- `CURRENT_NEXT_ACTION`: user hard-refreshes and confirms desktop Decision Support scrolling plus authoritative content/navigation panel entries; then merge/tag/freeze only.

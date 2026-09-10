@@ -621,3 +621,27 @@ DO_NOT_REPEAT=REAL_PURCHASE,ORDER_CREATION,GOOGLE_LOGIN,RESTORE,ROLLBACK,MIGRATI
 - `MIGRATION_REQUIRED`: NO.
 - `DO_NOT_REPEAT`: real purchase, order/payment creation, Google login, Web Push delivery acceptance, migrations, backup/restore/rollback.
 - `CURRENT_NEXT_ACTION`: exact immutable pair deploy followed by read-only health/process/commerce checks and one visual desktop scroll/admin-path acceptance.
+
+## Final production activation evidence — 2026-09-10
+
+```text
+FINAL_PREBUILT_DESKTOP_ADMIN_ACTIVATION_R2=PASS
+ACTIVE_FRONTEND=/var/www/winimi/frontend/releases/803912135173ca965399
+ACTIVE_BACKEND=/var/www/winimi/backend/releases/a077a3a7827a058b32b7
+FRONTEND_SOURCE_SHA=cffd64b00f3721d38d4c222e4f2eb849fb6db3f3
+BACKEND_SOURCE_SHA=5c6b7375a33f06f7ed55f95e716b1d78d58a5e11
+FRONTEND_CI=5_OF_5_SUCCESS
+BACKEND_CI=4_OF_4_SUCCESS
+PUBLIC_AND_INTERNAL_HEALTH=PASS
+SERVICE_PROCESS_IDENTITY=PASS
+WEB_PUSH_SUPPORTED_AFTER_ACTIVATION=TRUE
+COMMERCE_BEFORE={"orders":4,"payments":4}
+COMMERCE_AFTER={"orders":4,"payments":4}
+MIGRATION_EXECUTED=NO
+BACKUP_REPEATED=NO
+ORDER_PAYMENT_MUTATION=NO
+PUSH_NOTIFICATION_SENT=NO
+GOOGLE_LOGIN_RETESTED=NO
+```
+
+- `CURRENT_NEXT_ACTION`: client hard refresh and one visual desktop scroll/admin navigation acceptance, then merge/tag/freeze. Do not repeat prior live commerce/auth/push acceptance.
