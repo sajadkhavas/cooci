@@ -27,6 +27,10 @@ const getCuratedCategoryImage = (
   name: string,
   backendImage?: string,
 ) => {
+  // The catalog/admin image is authoritative whenever it exists. Curated assets
+  // are only a fallback for categories that do not yet have managed media.
+  if (backendImage?.trim()) return backendImage;
+
   const curated =
     categoryVisuals[routeSlug as keyof typeof categoryVisuals];
 
@@ -39,7 +43,7 @@ const getCuratedCategoryImage = (
   if (/هدیه|باکس/.test(name)) return categoryVisuals["gift-boxes"];
   if (/کوکی/.test(name)) return categoryVisuals.cookies;
 
-  return backendImage || galleryBakery;
+  return galleryBakery;
 };
 
 interface CategoryShowcaseProps {
