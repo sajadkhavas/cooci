@@ -11,6 +11,11 @@ export interface VisibleCatalogCategory {
   productCount?: number;
   editorial?: CategoryContent;
   isFilteredView: boolean;
+  showOnHome: boolean;
+  showInFooter: boolean;
+  sortOrder: number;
+  homeSortOrder: number;
+  footerSortOrder: number;
 }
 
 export const buildVisibleCatalogCategories = (
@@ -57,6 +62,11 @@ export const buildVisibleCatalogCategories = (
           : backendCategory.productCount,
         editorial,
         isFilteredView,
+        showOnHome: backendCategory.showOnHome,
+        showInFooter: backendCategory.showInFooter,
+        sortOrder: backendCategory.sortOrder,
+        homeSortOrder: backendCategory.homeSortOrder,
+        footerSortOrder: backendCategory.footerSortOrder,
       });
 
       seenRouteSlugs.add(routeSlug);
