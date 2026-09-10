@@ -20,15 +20,22 @@ assert(
   `SEO category fallback baseline changed: ${categoryBaselineBlob}`,
 );
 
-contains("src/root.tsx", "storeSettings: await loadStoreSettings()");
+contains("src/root.tsx", "loadStoreSettings(),");
+contains("src/root.tsx", "storeSettings,");
+contains("src/root.tsx", 'loadStoreNavigation("footer")');
 contains("src/root.tsx", "setQueryData(STORE_SETTINGS_QUERY_KEY");
 contains("src/pages/HomePage.tsx", "title={home.metaTitle}");
 contains("src/pages/HomePage.tsx", "schema={faqSchema}");
 contains("src/pages/GiftPage.tsx", "title={gift.metaTitle}");
 contains("src/pages/CorporatePage.tsx", "title={corporate.metaTitle}");
-contains("src/components/layout/Header.tsx", "content.navigation.links.map");
+contains("src/components/layout/Header.tsx", "buildPublicNavigation(content.navigation.links)");
+contains("src/components/layout/Header.tsx", "navLinks.map");
+contains("src/components/layout/Header.tsx", 'link.href !== "/gift"');
+excludes("src/components/layout/MobileBottomNavigation.tsx", 'href: "/gift"');
+excludes("src/components/layout/MobileBottomNavigation.tsx", "icon: Gift");
+excludes("src/lib/seo/commercial-content.ts", "خرید کوکی، کیک و باکس هدیه");
 contains("src/components/layout/Footer.tsx", "content.footer.discovery.links.map");
-contains("src/components/home/DecisionSupportPanel.tsx", "loadFaqs(\"home-decision\")");
+contains("src/components/home/DecisionSupportPanel.tsx", 'loadFaqs("home-decision")');
 contains("src/components/home/EditorialGuides.tsx", "loaderData?.relatedPosts");
 contains("src/routes/home.tsx", "loadEditorialPosts");
 contains("src/routes/category-shop.tsx", "loadManagedCategoryShop");

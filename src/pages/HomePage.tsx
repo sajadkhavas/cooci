@@ -1,4 +1,4 @@
-import { ArrowLeft, Cookie, Gift, Sparkles } from "lucide-react";
+import { ArrowLeft, Cookie, ShoppingBag, Sparkles } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
 import { CategoryShowcase } from "@/components/catalog/CategoryShowcase";
 import {
@@ -31,6 +31,10 @@ const HomePage = () => {
     .slice(0, 6);
   const home = content.home;
   const faqSchema = buildHomeDecisionFaqSchema(loaderData?.faqs ?? []);
+  const secondaryHeroCta =
+    home.hero.secondary.href === "/gift"
+      ? { href: "/products", label: "مشاهده همه محصولات" }
+      : home.hero.secondary;
 
   return (
     <>
@@ -76,11 +80,11 @@ const HomePage = () => {
                     <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" aria-hidden="true" />
                   </Link>
                   <Link
-                    to={home.hero.secondary.href}
+                    to={secondaryHeroCta.href}
                     className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full border border-[#d88972]/45 bg-[#f7e4dc] px-7 text-base font-black text-[#6f3e33] transition hover:border-[#b96552] hover:bg-white sm:px-9"
                   >
-                    <Gift size={19} aria-hidden="true" />
-                    {home.hero.secondary.label}
+                    <ShoppingBag size={19} aria-hidden="true" />
+                    {secondaryHeroCta.label}
                   </Link>
                 </div>
               </Reveal>

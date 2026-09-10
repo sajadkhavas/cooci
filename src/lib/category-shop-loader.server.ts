@@ -11,6 +11,7 @@ import {
   type PublicSsrLoaderData,
 } from "@/lib/public-ssr";
 import { resolvePaginationUrlPolicy } from "@/lib/seo/url-policy";
+import { isRetiredGiftCategory } from "@/lib/public-storefront-retirement";
 
 const allowedSorts = new Set<CatalogQuery["sort"]>([
   "featured",
@@ -39,6 +40,9 @@ export const loadManagedCategoryShop = async ({
   if (!isBackendEnabled) return {} satisfies PublicSsrLoaderData;
   const slug = params.slug?.trim();
   if (!slug) throw toPublicSsrResponse(notFound(), "Shop category");
+  if (isRetiredGiftCategory(slug)) {
+    throw toPublicSsrResponse(notFound(), "Shop category");
+  }
 
   try {
     const directory = await fetchCatalogDirectory();
@@ -46,6 +50,14 @@ export const loadManagedCategoryShop = async ({
     const backendCategory = directory.categories.find(
       (item) => item.slug === slug || item.slug === landing?.productCategorySlug,
     );
+
+    if (
+      isRetiredGiftCategory(landing?.slug) ||
+      isRetiredGiftCategory(landing?.productCategorySlug) ||
+      isRetiredGiftCategory(backendCategory?.slug)
+    ) {
+      throw notFound();
+    }
 
     if (!landing && !backendCategory) throw notFound();
 

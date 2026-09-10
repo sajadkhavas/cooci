@@ -9,7 +9,6 @@ export const CRAWLABLE_STATIC_PATHS = [
   "/",
   "/products",
   "/blog",
-  "/gift",
   "/corporate",
   "/reviews",
   "/gallery",

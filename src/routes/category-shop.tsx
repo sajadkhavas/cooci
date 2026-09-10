@@ -1,6 +1,10 @@
 import { redirect, useParams, type LoaderFunctionArgs } from "react-router";
 import { CategoryGuideLinks } from "@/components/content/CategoryGuideLinks";
 import { loadManagedCategoryShop } from "@/lib/category-shop-loader.server";
+import {
+  resolveRedirectForNotFound,
+  resolveStorefrontRedirect,
+} from "@/lib/seo/storefront-redirect.server";
 import ProductsPage from "@/pages/ProductsPage";
 
 const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -8,11 +12,20 @@ const SAFE_CATEGORY_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const loader = async (args: LoaderFunctionArgs) => {
   const slug = args.params.slug || "";
   if (!SAFE_CATEGORY_SLUG.test(slug)) {
+    const managedRedirect = await resolveStorefrontRedirect(args.request);
+    if (managedRedirect) return managedRedirect;
+
     const url = new URL(args.request.url);
     return redirect(`/products${url.search}`, 301);
   }
 
-  return loadManagedCategoryShop(args);
+  try {
+    return await loadManagedCategoryShop(args);
+  } catch (error) {
+    const managedRedirect = await resolveRedirectForNotFound(args.request, error);
+    if (managedRedirect) return managedRedirect;
+    throw error;
+  }
 };
 
 const CategoryShopRoute = () => {

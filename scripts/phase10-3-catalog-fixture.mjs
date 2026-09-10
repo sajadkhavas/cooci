@@ -10,6 +10,7 @@ const category = {
   slug: "phase10-3-category",
   description: "داده قطعی برای تست انتشار SSR.",
   image: null,
+  imageAlt: null,
   productCount: 1,
   seo: {
     title: "دسته تست SSR",

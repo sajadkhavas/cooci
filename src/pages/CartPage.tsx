@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Snowflake,
+  Sparkles,
   Trash2,
   Truck,
   XCircle,
@@ -19,6 +20,11 @@ import { SEO } from "@/components/SEO";
 import { formatToman } from "@/config/brand";
 import { useCart } from "@/context/CartContext";
 import { useCartCatalogReconciliation } from "@/hooks/useCartCatalogReconciliation";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
+import {
+  getCookieBulkEligibleQuantity,
+  resolveCookieBulkDiscount,
+} from "@/lib/bulk-discount";
 import {
   getCartItemStock,
   getCartRegularUnitPrice,
@@ -46,12 +52,23 @@ const CartPage = () => {
     uniqueItems,
   } = useCart();
   const navigate = useNavigate();
+  const { payload: storePayload } = useStorefrontSettings();
   const {
     isLoading: cartCatalogLoading,
     isReconciled: cartCatalogReconciled,
     error: cartCatalogError,
     refetch: refetchCartCatalog,
   } = useCartCatalogReconciliation(items, syncWithCatalog);
+  const bulkDiscount = resolveCookieBulkDiscount(storePayload?.settings);
+  const bulkEligibleQuantity = getCookieBulkEligibleQuantity(items, bulkDiscount);
+  const bulkRemaining = Math.max(
+    0,
+    bulkDiscount.minimumQuantity - bulkEligibleQuantity,
+  );
+  const bulkReady =
+    bulkDiscount.enabled &&
+    bulkDiscount.percent > 0 &&
+    bulkEligibleQuantity >= bulkDiscount.minimumQuantity;
 
   const handleRemove = (id: string, variantId: string | undefined, name: string) => {
     removeItem(id, variantId);
@@ -68,7 +85,7 @@ const CartPage = () => {
 
   const handleCheckout = () => {
     if (cartCatalogLoading || !cartCatalogReconciled || cartCatalogError) {
-      toast.error("ابتدا تطبیق سبد با کاتالوگ سرور را کامل کنید");
+      toast.error("ابتدا به‌روزرسانی اطلاعات سبد را کامل کنید");
       return;
     }
     if (!isReadyForCheckout) {
@@ -128,7 +145,7 @@ const CartPage = () => {
               <div className="space-y-4 lg:col-span-2">
                 {cartCatalogLoading && (
                   <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary" role="status">
-                    در حال تطبیق تک‌تک محصولات سبد با کاتالوگ سرور…
+                    در حال به‌روزرسانی قیمت و موجودی محصولات سبد…
                   </div>
                 )}
 
@@ -145,6 +162,24 @@ const CartPage = () => {
                     </button>
                   </div>
                 )}
+
+                {bulkDiscount.enabled &&
+                  bulkDiscount.percent > 0 &&
+                  bulkEligibleQuantity > 0 && (
+                    <div className="flex items-start gap-3 rounded-2xl border border-[#91b33f]/35 bg-[#d0e596]/35 p-4 text-[#27390c]" role="status">
+                      <Sparkles size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+                      <div>
+                        <p className="font-black">
+                          {bulkReady
+                            ? `شرط تخفیف ${bulkDiscount.percent.toLocaleString("fa-IR")}٪ سفارش تعداد بالا کامل شد`
+                            : `${bulkRemaining.toLocaleString("fa-IR")} کوکی دیگر تا تخفیف ${bulkDiscount.percent.toLocaleString("fa-IR")}٪`}
+                        </p>
+                        <p className="mt-1 text-xs leading-6 opacity-80">
+                          {bulkEligibleQuantity.toLocaleString("fa-IR")} عدد کوکی مشمول در سبد است. مبلغ دقیق تخفیف هنگام ثبت سفارش محاسبه می‌شود.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                 {hasCoolingItems && (
                   <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
@@ -359,6 +394,12 @@ const CartPage = () => {
                     </div>
                   </div>
 
+                  {bulkReady && (
+                    <div className="rounded-2xl border border-[#91b33f]/35 bg-[#d0e596]/30 p-4 text-xs leading-7 text-[#27390c]">
+                      تخفیف {bulkDiscount.percent.toLocaleString("fa-IR")}٪ سفارش تعداد بالا آماده اعمال است و مبلغ نهایی آن در مرحله ثبت سفارش محاسبه می‌شود.
+                    </div>
+                  )}
+
                   <div className="rounded-2xl bg-secondary/70 p-4 text-xs leading-7 text-muted-foreground">
                     هزینه نهایی ارسال با توجه به شهر و روش انتخابی در مرحله بعد مشخص می‌شود. تحویل حضوری رایگان است.
                   </div>
@@ -387,7 +428,7 @@ const CartPage = () => {
                     !cartCatalogReconciled ||
                     cartCatalogError) && (
                     <p className="text-center text-xs leading-6 text-destructive">
-                      برای ادامه، قیمت و موجودی همه محصولات باید با کاتالوگ سرور تطبیق داده شود.
+                      برای ادامه، قیمت و موجودی همه محصولات باید به‌روز و قابل سفارش باشند.
                     </p>
                   )}
 

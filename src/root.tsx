@@ -12,6 +12,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
+import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,17 +21,21 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { isBackendEnabled } from "@/lib/api";
 import type { BackendStoreSettings } from "@/lib/backend-contract";
-import { loadStoreSettings } from "@/lib/content";
+import type { BackendNavigationItem } from "@/lib/backend-contract";
+import { loadStoreNavigation, loadStoreSettings } from "@/lib/content";
 import { CspNonceProvider } from "@/lib/security/csp";
+import "./fonts.css";
 import "./index.css";
 import "./styles/modern-pages.css";
 import "./styles/brand-theme.css";
 import "./styles/runtime-performance.css";
 import "./styles/core-web-vitals.css";
 
-interface RootLoaderData {
+export interface RootLoaderData {
   cspNonce?: string;
   storeSettings?: BackendStoreSettings;
+  storeNavigation?: BackendNavigationItem[];
+  footerNavigation?: BackendNavigationItem[];
 }
 
 const STORE_SETTINGS_QUERY_KEY = ["store", "settings"] as const;
@@ -58,9 +63,16 @@ export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoade
   if (!isBackendEnabled) return base;
 
   try {
+    const [storeNavigation, footerNavigation, storeSettings] = await Promise.all([
+      loadStoreNavigation("header").catch(() => undefined),
+      loadStoreNavigation("footer").catch(() => undefined),
+      loadStoreSettings(),
+    ]);
     return {
       ...base,
-      storeSettings: await loadStoreSettings(),
+      storeSettings,
+      storeNavigation,
+      footerNavigation,
     };
   } catch (error) {
     console.error("Winimi root storefront authority loader failed", {
@@ -75,12 +87,19 @@ export const shouldRevalidate = () => false;
 export const links = () => [
   {
     rel: "preload",
+    as: "font",
+    href: "/fonts/Vazirmatn-Variable.woff2",
+    type: "font/woff2",
+    crossOrigin: "anonymous" as const,
+  },
+  {
+    rel: "preload",
     as: "image",
     href: heroImage,
     type: "image/jpeg",
     fetchPriority: "high" as const,
   },
-  { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "manifest", href: "/app.webmanifest" },
   { rel: "icon", href: "/icons/winimi-192.svg", type: "image/svg+xml" },
   {
     rel: "apple-touch-icon",
@@ -89,11 +108,23 @@ export const links = () => [
   },
 ];
 
-export const meta = () => [
-  { name: "theme-color", content: "#D0E596" },
-  { name: "color-scheme", content: "light" },
-  { name: "application-name", content: brandConfig.brandName },
-];
+export const meta = ({ data }: { data?: RootLoaderData }) => {
+  const settings = data?.storeSettings?.settings ?? {};
+  const configuredTheme = settings["pwa.theme_color"];
+  const configuredName = settings["pwa.name"];
+  const themeColor = typeof configuredTheme === "string" && /^#[0-9a-f]{6}$/i.test(configuredTheme)
+    ? configuredTheme
+    : "#D0E596";
+  const applicationName = typeof configuredName === "string" && configuredName.trim()
+    ? configuredName.trim()
+    : brandConfig.brandName;
+
+  return [
+    { name: "theme-color", content: themeColor },
+    { name: "color-scheme", content: "light" },
+    { name: "application-name", content: applicationName },
+  ];
+};
 
 export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   const [queryClient] = useState(createQueryClient);
@@ -112,6 +143,21 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
           content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
         <Meta />
+        {typeof loaderData?.storeSettings?.settings?.[
+          "integrations.search_console_verification"
+        ] === "string" &&
+        loaderData.storeSettings.settings[
+          "integrations.search_console_verification"
+        ] ? (
+          <meta
+            name="google-site-verification"
+            content={String(
+              loaderData.storeSettings.settings[
+                "integrations.search_console_verification"
+              ],
+            )}
+          />
+        ) : null}
         <Links />
       </head>
       <body>
@@ -129,6 +175,7 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
                   <RouteErrorBoundary>
                     <SiteLayout />
                   </RouteErrorBoundary>
+                  <AnalyticsConsent />
                 </CartProvider>
               </AuthProvider>
             </TooltipProvider>

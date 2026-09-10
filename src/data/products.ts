@@ -23,6 +23,14 @@ export interface Product {
   name: string;
   shortDescription: string;
   longDescription: string;
+  tasteNotes?: string[];
+  textureNotes?: string[];
+  useCases?: string[];
+  servingSuggestions?: string;
+  specifications?: Array<{ label: string; value: string }>;
+  productFaqs?: Array<{ question: string; answer: string }>;
+  contentVersion?: string;
+  contentReviewedAt?: string;
   category: string;
   categorySlug: string;
   price?: number;

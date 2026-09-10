@@ -1,5 +1,5 @@
 import {
-  Gift,
+  Info,
   Home,
   ShoppingBag,
   ShoppingCart,
@@ -10,6 +10,7 @@ import { Link, useLocation } from "react-router";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { matchesRoutePrefix } from "@/lib/accessibility/navigation";
+import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 
 interface BottomNavigationItem {
   label: string;
@@ -25,36 +26,37 @@ export const MobileBottomNavigation = () => {
   const { totalItems } = useCart();
   const { isAuthenticated } = useAuth();
   const accountHref = isAuthenticated ? "/account" : "/account/login";
+  const { content } = useStorefrontSettings();
 
   const items: BottomNavigationItem[] = [
     {
-      label: "خانه",
+      label: content.appUi.mobileHome,
       href: "/",
       icon: Home,
       active: (pathname) => pathname === "/",
     },
     {
-      label: "هدیه",
-      href: "/gift",
-      icon: Gift,
-      active: (pathname) => matchesRoutePrefix(pathname, "/gift"),
+      label: content.appUi.mobileAbout,
+      href: "/about",
+      icon: Info,
+      active: (pathname) => matchesRoutePrefix(pathname, "/about"),
     },
     {
-      label: "فروشگاه",
+      label: content.appUi.mobileShop,
       href: "/products",
       icon: ShoppingBag,
       emphasized: true,
       active: (pathname) => matchesRoutePrefix(pathname, "/products"),
     },
     {
-      label: "سبد",
+      label: content.appUi.mobileCart,
       href: "/cart",
       icon: ShoppingCart,
       badge: totalItems,
       active: (pathname) => matchesRoutePrefix(pathname, "/cart"),
     },
     {
-      label: "حساب",
+      label: content.appUi.mobileAccount,
       href: accountHref,
       icon: UserRound,
       active: (pathname) => matchesRoutePrefix(pathname, "/account"),
@@ -85,7 +87,7 @@ export const MobileBottomNavigation = () => {
               } ${active ? "is-active" : ""}`}
             >
               <span className="mobile-bottom-navigation__icon-wrap">
-                <Icon size={item.emphasized ? 23 : 20} aria-hidden="true" />
+                <Icon size={20} aria-hidden="true" />
                 {Boolean(item.badge) && (
                   <span
                     className="mobile-bottom-navigation__badge"

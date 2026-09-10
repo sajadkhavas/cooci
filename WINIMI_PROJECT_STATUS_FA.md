@@ -1,182 +1,110 @@
-# وضعیت مرجع پروژه وینیمی
+# وضعیت مرجع پروژه WINIMI
 
-آخرین به‌روزرسانی: **۲۰۲۶-۰۹-۰۷**  
-Project: **WINIMI / COOCI**  
-Frontend: `sajadkhavas/cooci`  
-Backend: `sajadkhavas/winimi-bakery-backend`  
-نقش این فایل: **مرجع شماره ۱ برای ادامه کار در هر چت جدید**
+آخرین reconciliation: 2026-09-10
 
-> در چت جدید ابتدا این فایل، سپس `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`، `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md` و `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md` خوانده شوند. قبل از هر mutation در Phase19B وضعیت واقعی GitHub و خود سرور باید read-only دوباره تأیید شود؛ checkpointهای قدیمی Production مبنای mutation نیستند.
+> این فایل مرجع شماره ۱ ادامه کار است. ابتدا همین فایل، سپس `docs/WINIMI_LIVING_HANDOFF_FA.md`، `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` و `docs/F31_FILAMENT_CONTROL_COVERAGE_AUDIT_FA.md` خوانده شوند. بعد وضعیت زنده PR/CI از GitHub دوباره بررسی شود.
 
 ## CURRENT_STATUS
 
 ```text
 PROJECT=WINIMI_COOCI
-PHASE28=COMPLETED_MERGED_REGISTERED
-F29S=PASS_MERGED_REGISTERED_CLOSED
-F29=PASS_MERGED_REGISTERED_CLOSED
-F30=PASS_MERGED_REGISTERED_CLOSED
-CURRENT_PHASE=PHASE19B_LIVE_SERVER_EXECUTION
-FINAL_DELIVERY=NOT_COMPLETE
-PRODUCTION_MUTATION_IN_F30=NO
-DEPLOY_PERFORMED_IN_F30=NO
+CURRENT_PHASE=F31_FINAL_ACCEPTANCE_HANDOFF
+PHASE28=CLOSED
+F29S=CLOSED
+F29=CLOSED
+F30=CLOSED
+PHASE19B=CLOSED
+PHASE20=CLOSED
+F31_IMPLEMENTATION_ACCEPTED=YES
+F31_FORMAL_HANDOFF=NOT_COMPLETE
+LIVE_SITE_DISCOVERY_AS_SOURCE=FORBIDDEN_BY_OWNER
 ```
 
-## F30 — Mainline / Git Stack Closure
-
-Status: **PASS / MERGED / REGISTERED / TRACKER CLOSED**
-
-Closure record: `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`  
-Tracker: `cooci#50` — CLOSED / COMPLETED
-
-### Frontend final evidence
-
-- Exact F30 source HEAD: `d17054b783eabff96db8bd3100402f50d15e2b55`
-- PR `#51`: MERGED
-- Merge SHA into `main`: `19e5502549907c75c7800337716e71da469de050`
-- Frontend CI: run `34065298017` — SUCCESS
-- Phase 8 Deployment Readiness: run `34065297991` — SUCCESS
-- Phase 18 End-to-End Acceptance: run `34065297994` — SUCCESS
-- Phase 19 Production Package: run `34065298003` — SUCCESS
-- F30 Storefront Frontend Authority: run `34065297971` — SUCCESS
-- Review submissions on PR #51: `0`
-- Inline review threads on PR #51: `0`
-
-### Backend final evidence
-
-- Exact F30 source HEAD: `e57ee2dcde2c3a67eaeda3d379790021eebcf03b`
-- PR `#15`: MERGED
-- Backend `main`: `37dcbf83ca225cacec40f034659d1448adaebaba`
-- Backend CI: run `34064138819` — SUCCESS
-- Phase 18 backend gate: run `34064138836` — SUCCESS
-- F30 Storefront Backend Authority: run `34064138868` — SUCCESS
-- Phase 19 Production Package: run `34064138827` — SUCCESS
-- Pint: PASS
-- Composer security audit: PASS
-
-### Legacy stack resolution
-
-- PR `#36`: CLOSED / NOT MERGED / SUPERSEDED
-- PR #36 head: `9a062efa972625d3a90f52dc86b089054d43e9f8`
-- F30 exact source نسبت به آن: `ahead_by=123`, `behind_by=0`
-- merge-base برابر PR #36 head بود؛ بنابراین کد Phase27 داخل stack نهایی حفظ شده و merge تکراری لازم نبود.
-
-### Backend Authority locked by F30
-
-1. محتوای business/editorial/SEO قابل‌ویرایش Backend/Filament authoritative است.
-2. Navigation/Footer/brand/contact/social/trust/public-shell content از API/Store Settings مصرف می‌شود.
-3. Organization/WebSite JSON-LD و Contact/Locations/City از یک NAP source مشترک Backend-authoritative استفاده می‌کنند.
-4. Frontend فقط layout، responsive behavior، accessibility mechanics و transient system microcopy را code-controlled نگه می‌دارد.
-5. regression gates این قرارداد را در CI قفل کرده‌اند.
-
-## F29 — Google Login & Auth Closure
-
-- Status: **PASS / MERGED / REGISTERED / CLOSED**
-- Tracker: `cooci#48`
-- Closure record: `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
-- Google identity key = provider `sub`, نه email.
-- auto-link صرفاً با email/phone ممنوع است.
-- OAuth state validation اجباری است.
-- Google credentials فقط server-env هستند.
-- کاربر جدید Google شماره موبایل ایران را تکمیل می‌کند؛ verification تا OTP واقعی NULL می‌ماند.
-- OTP infrastructure حفظ شده و `OTP_ENABLED` به‌صورت پیش‌فرض fail-closed/off است.
-- Production Google credential activation در Phase20 انجام می‌شود.
-
-## F29S — SEO Content Strategy & Topical Authority
-
-- Status: **DONE / MERGED / REGISTERED / TRACKER CLOSED**
-- Tracker: `cooci#38` — CLOSED / COMPLETED
-- Frontend integration head before F29: `2cddf69e3a5e550b5acfff4729beffcb81a0ccea`
-- Backend F29S integration head before F29: `ff6ad79c5c3ef1ffc69f77023a37a0a261ded8b0`
-- Production deployment: **NO**
-
-## Git stack فعلی
-
-- Frontend final F30 source به `main` Merge شده است.
-- Backend final F30 source به `main` Merge شده است.
-- PR #36 بسته و superseded است.
-- Tracker #50 بسته و completed است.
-- مرحله integration/mainline دیگر blocker پروژه نیست.
-- Release بعدی باید از `main`های نهایی بالا و پس از read-only server attestation ساخته شود.
-
-## Production — historical checkpoint only
-
-Frontend historical release:
-
-- `/var/www/winimi/frontend/releases/bab4c34db478713465d1`
-- Historical source SHA: `d9e44edc13c24427c2f4741b19ac4db98f257160`
-
-Backend historical release:
-
-- `/var/www/winimi/backend/releases/eb002a6d5f093e7780d3`
-- Historical source SHA: `eb002a6d5f093e7780d3cf6333b3e5f83f96e57b`
-
-این‌ها فقط checkpoint تاریخی‌اند. قبل از هر mutation در Phase19B باید `current`, process CWD, systemd state, health/ready, source SHA، DB/media persistence، backup state و rollback target از خود سرور read-only دوباره تأیید شوند.
-
-## FINAL DELIVERY ROADMAP
-
-فازهای اجرایی باقی‌مانده دقیقاً:
+## Repositories and accepted implementation heads
 
 ```text
-Phase19B -> Phase20 -> F31
+FRONTEND_REPO=sajadkhavas/cooci
+FRONTEND_BRANCH=f31/final-acceptance-handoff
+FRONTEND_PR=54
+FRONTEND_IMPLEMENTATION_HEAD=584aecf5bafac9fa6b757fdd937495be25ab989d
+FRONTEND_CI=5_OF_5_SUCCESS
+
+BACKEND_REPO=sajadkhavas/winimi-bakery-backend
+BACKEND_BRANCH=f31/final-acceptance-handoff
+BACKEND_PR=17
+BACKEND_IMPLEMENTATION_HEAD=96170b03c28548e627e4bf9255addaef745d9df1
+BACKEND_CI=4_OF_4_SUCCESS
+
+TRACKER=cooci#55
+REVIEW_THREADS=0
+UNRESOLVED_ADMIN_P0=0
+UNRESOLVED_ADMIN_P1=0
 ```
 
-### Phase19B — Live Server Execution
+### Frontend run IDs
 
-- read-only production/server preflight
-- backup و restore evidence
-- immutable Backend/Frontend releases از `main`های نهایی
-- migration/readiness/service restart کنترل‌شده
-- SSR/public smoke/SEO acceptance
-- reboot survival
-- rollback drill
-- ثبت exact deployed SHAs و evidence
+```text
+F30_AUTHORITY=34460666477 SUCCESS
+FRONTEND_CI=34460666353 SUCCESS
+PHASE18_E2E=34460666344 SUCCESS
+PHASE8_DEPLOYMENT=34460666422 SUCCESS
+PHASE19_PACKAGE=34460666319 SUCCESS
+```
 
-### Phase20 — External Activation
+### Backend run IDs
 
-- Google production OAuth credentials و live validation
-- Zarinpal live regression/activation evidence
-- eNAMAD official badge
-- Kavenegar/SMS در صورت ارائه credentials
-- secret/provider audit
+```text
+F30_AUTHORITY=34461694563 SUCCESS
+BACKEND_CI=34461694652 SUCCESS
+PHASE18_BACKEND=34461694575 SUCCESS
+PHASE19_PACKAGE=34461694663 SUCCESS
+```
 
-هر provider بدون credential واقعی safely disabled می‌ماند و به‌عنوان external dependency ثبت می‌شود.
+## Architecture locked for delivery
 
-### F31 — Final Acceptance & Handoff
+- Backend/Filament is authoritative for owner-managed content, catalog, operational data and public settings.
+- Frontend owns layout, responsive behavior, accessibility mechanics and security-safe system behavior.
+- Footer navigation is Backend/API/SSR-managed.
+- PWA name/colors/shortcuts/offline copy are StoreSetting-managed; Service Worker logic/icons stay release-managed.
+- `/app.webmanifest` is the installed managed manifest and is covered by browser acceptance.
+- Sensitive offline fallback is static/no-script.
+- Search Console/GA4/GTM accept only public identifiers; Analytics remains consent-gated.
+- Push subscription inventory is masked/read-only.
+- Legacy duplicate Filament resources are hidden, not deleted.
+- StoreSetting has specialized editors, including bulk category slugs and eNAMAD operator input.
+- Migrations that seed operator-owned settings preserve existing values and do not destructively remove them on rollback.
 
-- desktop/mobile customer journey
-- Filament admin acceptance
-- security regression
-- final SEO/Search Console evidence
-- operational evidence pack
-- final tag/handoff
-- unresolved P0/P1 = 0
+## Decision Support jitter
+
+The desktop-only Decision Support repair is intentionally local: the old Reveal transform wrapper was removed only there and the desktop paint path disables the heavy pseudo-layer/contain combination for that section. Previous component generations were compared before accepting this fix.
+
+## Production boundary
+
+Current GitHub candidates are newer than the last recorded Production source. No production mutation is claimed by this reconciliation. Formal delivery therefore still requires one final immutable production deployment after PR merge and post-merge CI.
+
+Historical Production/payment/login/backup/restore/push evidence remains retained and must not be repeated merely for F31 closure.
 
 ## CURRENT_NEXT_ACTION
 
 ```text
-NEXT=PHASE19B_LIVE_SERVER_EXECUTION
-FIRST_ACTION=READ_ONLY_SERVER_RE_ATTESTATION
-PRODUCTION_MUTATION_ALLOWED_BEFORE_ATTESTATION=NO
+NEXT=SYNC_DOCS_AND_RUN_EXACT_HEAD_CI
+THEN=READY_AND_MERGE_PR17_PR54
+THEN=POST_MERGE_MAIN_CI
+THEN=ONE_FINAL_IMMUTABLE_PRODUCTION_DEPLOY
+THEN=READ_ONLY_HEALTH_SOURCE_PWA_RECONCILIATION
+THEN=FINAL_TAG_FREEZE_TRACKER_CLOSE_HANDOFF
+
+REAL_PAYMENT_REPEAT=NO
+REAL_ORDER_REPEAT=NO
+GOOGLE_LOGIN_REPEAT=NO
+PUSH_DELIVERY_REPEAT=NO
+BACKUP_RESTORE_ROLLBACK_REPEAT=NO_UNLESS_INVALIDATED
 ```
 
-Phase19B نباید از checkpoint تاریخی سرور یا release قدیمی شروع به mutation کند. ابتدا وضعیت live server read-only استخراج و با `main`های نهایی F30 تطبیق داده شود.
-
-## فایل‌های مرجع چت بعدی
-
-1. `WINIMI_PROJECT_STATUS_FA.md`
-2. `docs/F30_MAINLINE_GIT_STACK_CLOSURE_FA.md`
-3. `docs/WINIMI_FINAL_DELIVERY_ROADMAP_FA.md`
-4. `docs/PHASE_19_PRODUCTION_DEPLOYMENT.md`
-5. `docs/F29_GOOGLE_LOGIN_AUTH_CLOSURE_FA.md`
-6. `docs/F29S_SEO_CONTENT_STRATEGY_AUTHORITY_FA.md`
-7. `docs/WINIMI_LIVING_HANDOFF_FA.md`
-
-## Final delivery marker
-
-فقط بعد از F31 مجاز است:
+Only after production source/release alignment may the final markers become:
 
 ```text
+F31=COMPLETED
 WINIMI_FINAL_DELIVERY=PASS
 PRODUCTION=READY
 HANDOFF=COMPLETE

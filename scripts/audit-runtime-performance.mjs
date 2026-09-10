@@ -13,6 +13,9 @@ const files = {
   runtimeE2e: "e2e/runtime-performance.spec.mjs",
   playwright: "e2e/playwright.config.mjs",
   acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
+  decisionSupport: "src/components/home/DecisionSupportPanel.tsx",
+  draggableMarquee: "src/components/home/DraggableMarquee.tsx",
+  brandCss: "src/styles/brand-theme.css",
   documentation: "docs/FRONTEND_RUNTIME_PERFORMANCE_PHASE_9_5.md",
 };
 
@@ -72,7 +75,7 @@ requireText(
   'aria-label="ناوبری پایین موبایل"',
   "accessible bottom-navigation landmark",
 );
-requireText("bottomNavigation", 'label: "فروشگاه"', "emphasized shop destination");
+requireText("bottomNavigation", "label: content.appUi.mobileShop", "Backend-managed emphasized shop destination");
 requireText("bottomNavigation", "badge: totalItems", "cart count badge");
 requireText("bottomNavigation", "aria-current", "current-route semantics");
 requireText(
@@ -105,6 +108,42 @@ requireText(
   "acceptanceWorkflow",
   "Collect runtime scroll baseline — Phase 9.5",
   "production runtime workflow gate",
+);
+requireText(
+  "decisionSupport",
+  "home-decision-support-section",
+  "isolated decision-support paint boundary",
+);
+requireText(
+  "brandCss",
+  ".home-decision-support-section::before,",
+  "desktop oversized pseudo-layer removal",
+);
+requireText(
+  "brandCss",
+  ".home-decision-support-section .winimi-decision-panel",
+  "desktop decision-panel containment override",
+);
+requireText("brandCss", "contain: none;", "desktop paint-containment removal");
+requireText(
+  "brandCss",
+  "background-image: none;",
+  "desktop decision-panel gradient removal",
+);
+requireText(
+  "draggableMarquee",
+  "new IntersectionObserver(",
+  "viewport-aware marquee animation",
+);
+requireText(
+  "draggableMarquee",
+  "visibleRef.current &&",
+  "offscreen marquee mutation guard",
+);
+requireText(
+  "draggableMarquee",
+  "observer?.disconnect();",
+  "marquee observer cleanup",
 );
 requireText(
   "documentation",

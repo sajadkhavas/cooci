@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { ArrowUpLeft, Coffee, Cookie, Gift, Sparkles } from "lucide-react";
+import { ArrowUpLeft, Coffee, Cookie, Sparkles } from "lucide-react";
 import { Link } from "react-router";
 import { Reveal } from "@/components/motion/Reveal";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 
 const presentation = [
-  { icon: Gift, accent: "bg-[#f5dcd2] text-[#7b4337]" },
   { icon: Coffee, accent: "bg-[#f6e9ca] text-[#70551b]" },
   { icon: Cookie, accent: "bg-[#dceba8] text-[#344b12]" },
+  { icon: Sparkles, accent: "bg-[#f5dcd2] text-[#7b4337]" },
 ] as const;
 
 export const OccasionSelector = () => {
   const { content } = useStorefrontSettings();
   const occasion = content.home.occasion;
+  const visibleItems = occasion.items.filter((item) => item.href !== "/gift");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const safeIndex = Math.min(selectedIndex, occasion.items.length - 1);
-  const selected = occasion.items[safeIndex] ?? occasion.items[0];
+  const safeIndex = Math.min(selectedIndex, Math.max(visibleItems.length - 1, 0));
+  const selected = visibleItems[safeIndex] ?? visibleItems[0];
   if (!selected) return null;
   const selectedPresentation = presentation[safeIndex] ?? presentation[0];
   const Icon = selectedPresentation.icon;
@@ -38,9 +39,9 @@ export const OccasionSelector = () => {
 
         <Reveal className="occasion-table">
           <div className="occasion-table__tabs" role="group" aria-label={occasion.title}>
-            {occasion.items.map((item, index) => {
-              const ItemIcon = (presentation[index] ?? presentation[0]).icon;
-              const accent = (presentation[index] ?? presentation[0]).accent;
+            {visibleItems.map((item, index) => {
+              const itemPresentation = presentation[index] ?? presentation[0];
+              const ItemIcon = itemPresentation.icon;
               const active = index === safeIndex;
               return (
                 <button
@@ -50,7 +51,7 @@ export const OccasionSelector = () => {
                   onClick={() => setSelectedIndex(index)}
                   className={`occasion-table__tab ${active ? "occasion-table__tab--active" : ""}`}
                 >
-                  <span className={`occasion-table__tab-icon ${accent}`}>
+                  <span className={`occasion-table__tab-icon ${itemPresentation.accent}`}>
                     <ItemIcon size={19} aria-hidden="true" />
                   </span>
                   <span>{item.shortTitle}</span>
@@ -87,7 +88,7 @@ export const OccasionSelector = () => {
               <img
                 key={`${safeIndex}-${selected.imageUrl}`}
                 src={selected.imageUrl}
-                alt=""
+                alt={selected.title}
                 className="h-full w-full object-cover"
                 loading="lazy"
                 decoding="async"

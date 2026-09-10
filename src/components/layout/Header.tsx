@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpLeft,
   Cookie,
+  ChevronDown,
   Menu,
   MessageCircle,
   Phone,
@@ -11,7 +12,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useRouteLoaderData } from "react-router";
+import type { RootLoaderData } from "@/root";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
@@ -24,6 +26,7 @@ interface NavLink {
   name: string;
   href: string;
   match: NavigationMatch;
+  children?: Array<{ name: string; href: string; description?: string | null }>;
 }
 
 const SHOP_NAVIGATION_INVARIANT = {
@@ -39,6 +42,27 @@ const navigationMatchFor = (href: string): NavigationMatch => {
   return "prefix";
 };
 
+const buildPublicNavigation = (
+  links: ReadonlyArray<{ label: string; href: string }>,
+): NavLink[] => {
+  const withoutGift = links.filter((link) => link.href !== "/gift");
+  const contactLink = { name: "تماس با ما", href: "/contact", match: "prefix" as const };
+  const mapped = withoutGift
+    .filter((link) => link.href !== "/contact")
+    .map((link) => ({
+      name: link.label,
+      href: link.href,
+      match: navigationMatchFor(link.href),
+    }));
+  const aboutIndex = mapped.findIndex((link) => link.href === "/about");
+  if (aboutIndex === -1) return [...mapped, contactLink];
+  return [
+    ...mapped.slice(0, aboutIndex),
+    contactLink,
+    ...mapped.slice(aboutIndex),
+  ];
+};
+
 const focusableSelector = [
   "a[href]",
   "button:not([disabled])",
@@ -51,20 +75,47 @@ const focusableSelector = [
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [desktopMenuHref, setDesktopMenuHref] = useState<string | null>(null);
+  const [mobileExpandedHref, setMobileExpandedHref] = useState<string | null>(null);
   const location = useLocation();
   const { totalItems } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { settings, content } = useStorefrontSettings();
-  const navLinks: NavLink[] = content.navigation.links.map((link) => ({
-    name: link.label,
-    href: link.href,
-    match: navigationMatchFor(link.href),
+  const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
+  const fallbackNavLinks = buildPublicNavigation(content.navigation.links);
+  const managedLinks = rootData?.storeNavigation?.map((item) => ({
+    label: item.label,
+    href: item.href,
+    children: item.children,
   }));
+  const navLinks = (managedLinks?.length ? buildPublicNavigation(managedLinks) : fallbackNavLinks).map((link) => {
+    const source = managedLinks?.find((item) => item.href === link.href);
+    return {
+      ...link,
+      children: source?.children.map((child) => ({ name: child.label, href: child.href, description: child.description })),
+    };
+  });
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const restoreMenuFocusRef = useRef(true);
   const previousLocationRef = useRef(`${location.pathname}${location.search}`);
+  const desktopCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelDesktopClose = () => {
+    if (desktopCloseTimerRef.current) clearTimeout(desktopCloseTimerRef.current);
+    desktopCloseTimerRef.current = null;
+  };
+
+  const openDesktopMenu = (href: string) => {
+    cancelDesktopClose();
+    setDesktopMenuHref(href);
+  };
+
+  const scheduleDesktopClose = () => {
+    cancelDesktopClose();
+    desktopCloseTimerRef.current = setTimeout(() => setDesktopMenuHref(null), 220);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
@@ -127,6 +178,15 @@ export const Header = () => {
     };
   }, [isOpen]);
 
+  useEffect(() => () => {
+    if (desktopCloseTimerRef.current) clearTimeout(desktopCloseTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    setDesktopMenuHref(null);
+    setMobileExpandedHref(null);
+  }, [location.pathname, location.search]);
+
   const accountLabel = isAuthenticated
     ? user?.fullName || user?.mobile || "حساب کاربری"
     : "ورود به حساب کاربری";
@@ -167,18 +227,66 @@ export const Header = () => {
             {navLinks.map((link) => {
               const active = isNavigationTargetActive(location.pathname, link);
               return (
-                <Link
+                <div
                   key={`${link.href}-${link.name}`}
-                  to={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative rounded-full px-4 py-2.5 text-sm font-bold transition duration-300 ${
-                    active
-                      ? "bg-interactive text-interactive-foreground shadow-lg"
-                      : "text-foreground/70 hover:bg-interactive-soft hover:text-interactive-strong"
-                  }`}
+                  className="relative"
+                  onMouseEnter={() => link.children?.length && openDesktopMenu(link.href)}
+                  onMouseLeave={() => link.children?.length && scheduleDesktopClose()}
+                  onFocus={() => link.children?.length && openDesktopMenu(link.href)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) scheduleDesktopClose();
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setDesktopMenuHref(null);
+                      event.currentTarget.querySelector<HTMLElement>("a")?.focus();
+                    }
+                  }}
                 >
-                  {link.name}
-                </Link>
+                  <div className="relative flex items-center">
+                    <Link
+                      to={link.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`relative flex items-center rounded-full py-2.5 pr-4 text-sm font-bold transition duration-300 ${
+                    link.children?.length ? "pl-8" : "pl-4"
+                  } ${
+                    active
+                      ? "bg-[#d0e596] text-[#27390c] shadow-lg ring-1 ring-[#91b33f]/35"
+                      : "text-foreground/70 hover:bg-[#d0e596]/55 hover:text-[#27390c]"
+                  }`}
+                    >
+                      {link.name}
+                    </Link>
+                    {!!link.children?.length && (
+                      <button
+                        type="button"
+                        aria-label={`نمایش دسته‌های ${link.name}`}
+                        aria-haspopup="menu"
+                        aria-expanded={desktopMenuHref === link.href}
+                        onClick={() => {
+                          cancelDesktopClose();
+                          setDesktopMenuHref((current) => current === link.href ? null : link.href);
+                        }}
+                        className="absolute left-1 flex h-7 w-7 items-center justify-center text-foreground/70 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#91b33f]"
+                      >
+                        <ChevronDown size={14} className={desktopMenuHref === link.href ? "rotate-180" : ""} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  {!!link.children?.length && (
+                    <div className={`absolute right-0 top-full z-20 w-72 pt-3 transition ${desktopMenuHref === link.href ? "visible translate-y-0 opacity-100" : "invisible translate-y-2 opacity-0"}`}>
+                      <div role="menu" className="grid gap-1 rounded-2xl border border-border bg-card p-2 shadow-xl">
+                        {link.children.map((child) => (
+                          <Link key={`${child.href}-${child.name}`} to={child.href} role="menuitem" className="rounded-xl px-4 py-3 text-right hover:bg-[#d0e596]/50 focus:bg-[#d0e596]/50">
+                            <strong className="block text-sm text-foreground">{child.name}</strong>
+                            {child.description && <span className="mt-1 block text-xs leading-5 text-muted-foreground">{child.description}</span>}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -232,7 +340,7 @@ export const Header = () => {
                 restoreMenuFocusRef.current = true;
                 setIsOpen(true);
               }}
-              className="touch-target flex items-center justify-center rounded-full border border-interactive/30 bg-interactive-soft text-interactive-strong shadow-soft transition-colors hover:bg-interactive/20 xl:hidden"
+              className="touch-target flex items-center justify-center rounded-full border border-[#91b33f]/45 bg-[#d0e596] text-[#27390c] shadow-soft transition-colors hover:bg-[#c2dc7c] xl:hidden"
               aria-label="باز کردن منوی اصلی"
               aria-expanded={isOpen}
               aria-controls="mobile-navigation-dialog"
@@ -268,7 +376,7 @@ export const Header = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-navigation-title"
-            className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-interactive/20 bg-interactive-soft text-foreground shadow-2xl"
+            className="mobile-navigation-drawer absolute inset-y-0 right-0 flex w-[min(92vw,27rem)] max-w-full animate-slide-in-right flex-col overflow-y-auto border-l border-[#91b33f]/35 bg-[#d0e596] text-[#27390c] shadow-2xl"
           >
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <span className="absolute -right-24 top-16 h-60 w-60 rounded-full bg-accent/20 blur-[80px]" />
@@ -332,21 +440,22 @@ export const Header = () => {
                     link,
                   );
                   return (
-                    <Link
-                      key={`${link.href}-${link.name}`}
-                      to={link.href}
-                      aria-label={link.name}
-                      onClick={() => {
-                        restoreMenuFocusRef.current = false;
-                        setIsOpen(false);
-                      }}
-                      aria-current={active ? "page" : undefined}
-                      className={`group flex min-h-14 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
+                    <div key={`${link.href}-${link.name}`} className="rounded-2xl border border-border bg-card/70">
+                    <div className="flex items-center">
+                      <Link
+                        to={link.href}
+                        aria-label={link.name}
+                        onClick={() => {
+                          restoreMenuFocusRef.current = false;
+                          setIsOpen(false);
+                        }}
+                        aria-current={active ? "page" : undefined}
+                        className={`group flex min-h-14 flex-1 items-center justify-between rounded-2xl px-4 py-3 text-lg font-black transition ${
                         active
-                          ? "bg-interactive text-interactive-foreground shadow-soft"
-                          : "border border-border bg-card/70 text-foreground hover:border-interactive/30 hover:bg-interactive/10"
-                      }`}
-                    >
+                          ? "bg-[#d0e596] text-[#27390c] shadow-soft ring-1 ring-[#91b33f]/35"
+                          : "text-foreground hover:bg-[#d0e596]/40"
+                        }`}
+                      >
                       <span className="flex items-center gap-3">
                         <span className="text-xs font-black opacity-45">
                           {(index + 1).toLocaleString("fa-IR")}.
@@ -358,7 +467,30 @@ export const Header = () => {
                         className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1"
                         aria-hidden="true"
                       />
-                    </Link>
+                      </Link>
+                      {!!link.children?.length && (
+                        <button
+                          type="button"
+                          aria-label={`نمایش زیرمجموعه‌های ${link.name}`}
+                          aria-expanded={mobileExpandedHref === link.href}
+                          aria-controls={`mobile-submenu-${link.href.replaceAll("/", "-")}`}
+                          onClick={() => setMobileExpandedHref((current) => current === link.href ? null : link.href)}
+                          className="ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[#27390c] hover:bg-[#d0e596]/55"
+                        >
+                          <ChevronDown size={18} className={mobileExpandedHref === link.href ? "rotate-180" : ""} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                    {!!link.children?.length && mobileExpandedHref === link.href && (
+                      <div id={`mobile-submenu-${link.href.replaceAll("/", "-")}`} className="grid gap-1 border-t border-[#91b33f]/20 px-3 py-2">
+                        {link.children.map((child) => (
+                          <Link key={`${child.href}-${child.name}`} to={child.href} onClick={() => { restoreMenuFocusRef.current = false; setIsOpen(false); }} className="rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-[#d0e596]/50">
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    </div>
                   );
                 })}
               </nav>

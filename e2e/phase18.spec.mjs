@@ -382,12 +382,12 @@ test("mobile navigation traps focus, restores dismissal focus and transfers rout
   await expect(menuButton).toBeFocused();
 
   await menuButton.press("Enter");
-  const giftLink = page
+  const contactLink = page
     .getByRole("dialog")
-    .getByRole("link", { name: "هدیه", exact: true });
-  await giftLink.focus();
-  await giftLink.press("Enter");
-  await expect(page).toHaveURL(/\/gift$/);
+    .getByRole("link", { name: "تماس با ما", exact: true });
+  await contactLink.focus();
+  await contactLink.press("Enter");
+  await expect(page).toHaveURL(/\/contact$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect
     .poll(() => page.evaluate(() => document.activeElement?.id))

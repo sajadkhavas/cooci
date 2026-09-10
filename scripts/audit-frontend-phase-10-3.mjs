@@ -75,7 +75,11 @@ requireText("catalogHook", "initialData: isBackendEnabled ? loaderData?.categori
 requireText("catalogHook", "initialData: isBackendEnabled ? initialProduct", "product initial data");
 requireText("shopRoute", "return loadShopPublicData(args)", "all-products server data loader");
 requireText("categoryRoute", 'loadManagedCategoryShop', "managed category SSR loader import");
-requireText("categoryRoute", "return loadManagedCategoryShop(args)", "managed category server data loader");
+requireText(
+  "categoryRoute",
+  "return await loadManagedCategoryShop(args)",
+  "managed category server data loader with redirect-aware error handling",
+);
 requireText("categoryLoader", "fetchCatalogDirectory()", "managed category directory SSR fetch");
 requireText("categoryLoader", "fetchCatalogProducts(query)", "managed category products SSR fetch");
 requireText("categoryLoader", "categoryLandings: directory.landings", "managed category SEO landing hydration");

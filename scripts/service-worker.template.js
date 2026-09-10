@@ -6,10 +6,12 @@ const IMAGE_CACHE = `${CACHE_PREFIX}-images-${BUILD_VERSION}`;
 const MAX_IMAGE_ENTRIES = 48;
 const MAX_NAVIGATION_ENTRIES = 16;
 const NAVIGATION_TIMEOUT_MS = 6000;
+const OFFLINE_REFRESH_INTERVAL_MS = 5 * 60_000;
+let lastOfflineRefreshAt = 0;
 
 const SHELL_FILES = [
-  "/offline.html",
-  "/manifest.webmanifest",
+  "/offline",
+  "/app.webmanifest",
   "/brand/winimi-logo.svg",
   "/icons/winimi-192.png",
   "/icons/winimi-512.png",
@@ -82,8 +84,46 @@ const staleWhileRevalidate = async (request, cacheName) => {
   return (await networkPromise) || Response.error();
 };
 
-const offlineResponse = async () =>
-  (await matchCache(SHELL_CACHE, "/offline.html")) || Response.error();
+const stripOfflineRuntime = (html) =>
+  html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<link\b(?=[^>]*\brel=["']modulepreload["'])[^>]*>/gi, "");
+
+const refreshOfflineShell = async () => {
+  const now = Date.now();
+  if (now - lastOfflineRefreshAt < OFFLINE_REFRESH_INTERVAL_MS) return;
+  lastOfflineRefreshAt = now;
+
+  try {
+    const response = await fetch("/offline", { cache: "no-store" });
+    const contentType = response.headers.get("content-type") || "";
+    if (!response.ok || !contentType.includes("text/html")) return;
+
+    const cache = await caches.open(SHELL_CACHE);
+    await cache.put("/offline", response);
+  } catch {
+    // Keep the last known-good offline shell when the refresh cannot reach the server.
+  }
+};
+
+const offlineResponse = async () => {
+  const cached = await matchCache(SHELL_CACHE, "/offline");
+  if (!cached) return Response.error();
+
+  const contentType = cached.headers.get("content-type") || "";
+  if (!contentType.includes("text/html")) return cached;
+
+  const headers = new Headers(cached.headers);
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  headers.set("cache-control", "no-store");
+
+  return new Response(stripOfflineRuntime(await cached.text()), {
+    status: cached.status,
+    statusText: cached.statusText,
+    headers,
+  });
+};
 
 const networkFirstNavigation = async (request) => {
   const url = new URL(request.url);
@@ -166,6 +206,58 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = {};
+  }
+
+  const title = typeof payload.title === "string" ? payload.title : "وینیمی بیکری";
+  const body = typeof payload.body === "string" ? payload.body : "وضعیت سفارش شما به‌روزرسانی شد.";
+  const rawUrl = typeof payload.url === "string" ? payload.url : "/account";
+  const destination = new URL(rawUrl, self.location.origin);
+  const safeUrl = destination.origin === self.location.origin ? destination.pathname + destination.search : "/account";
+
+  event.waitUntil(self.registration.showNotification(title, {
+    body,
+    dir: "rtl",
+    lang: "fa-IR",
+    icon: "/icons/winimi-192.png",
+    badge: "/icons/winimi-96-monochrome.png",
+    tag: typeof payload.tag === "string" ? payload.tag : "winimi-order-update",
+    renotify: Boolean(payload.renotify),
+    requireInteraction: Boolean(payload.requireInteraction),
+    silent: false,
+    timestamp: typeof payload.timestamp === "number" ? payload.timestamp : Date.now(),
+    vibrate: [160, 80, 160],
+    actions: [
+      { action: "open", title: "مشاهده" },
+      { action: "dismiss", title: "بستن" },
+    ],
+    data: { url: safeUrl },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  if (event.action === "dismiss") return;
+  const rawUrl = event.notification.data?.url || "/account";
+  const destination = new URL(rawUrl, self.location.origin);
+  const safeUrl = destination.origin === self.location.origin ? destination.href : `${self.location.origin}/account`;
+
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
+    if (existing) {
+      await existing.navigate(safeUrl);
+      return existing.focus();
+    }
+    return self.clients.openWindow(safeUrl);
+  })());
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET" || request.headers.has("range")) return;
@@ -174,6 +266,9 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    if (url.pathname !== "/offline") {
+      event.waitUntil(refreshOfflineShell());
+    }
     event.respondWith(networkFirstNavigation(request));
     return;
   }

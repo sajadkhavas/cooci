@@ -7,6 +7,7 @@ import type {
   BackendReview,
   BackendReviewSummary,
   BackendStoreSettings,
+  BackendNavigationItem,
 } from "@/lib/backend-contract";
 import {
   parseCityPage,
@@ -65,6 +66,30 @@ export interface StoreReviewWallResult {
 export const loadStoreSettings = async (): Promise<BackendStoreSettings> => {
   const response = await apiRequest<unknown>("/api/store/settings");
   return parseStoreSettings(response.data);
+};
+
+export const loadStoreNavigation = async (
+  placement: "header" | "mobile" | "footer" = "header",
+): Promise<BackendNavigationItem[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/store/navigation?placement=${placement}`,
+  );
+  if (!Array.isArray(response.data)) throw new Error("ساختار منوی فروشگاه معتبر نیست.");
+  const parse = (value: unknown, depth = 0): BackendNavigationItem => {
+    if (!value || typeof value !== "object" || depth > 1) throw new Error("ساختار منوی فروشگاه معتبر نیست.");
+    const item = value as Record<string, unknown>;
+    if (typeof item.id !== "number" || typeof item.label !== "string" || typeof item.href !== "string" || !item.href.startsWith("/")) {
+      throw new Error("ساختار منوی فروشگاه معتبر نیست.");
+    }
+    return {
+      id: item.id,
+      label: item.label,
+      href: item.href,
+      description: typeof item.description === "string" ? item.description : null,
+      children: Array.isArray(item.children) ? item.children.map((child) => parse(child, depth + 1)) : [],
+    };
+  };
+  return response.data.map((item) => parse(item));
 };
 
 export const loadContentPage = async (slug: string) => {

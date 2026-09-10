@@ -388,6 +388,8 @@ header [role="dialog"] [class*="bg-black"] {
 .winimi-decision-panel {
   position: relative;
   display: grid;
+  isolation: isolate;
+  contain: paint;
   overflow: hidden;
   border: 1px solid hsl(var(--border) / 0.82);
   border-radius: 2.5rem;
@@ -402,12 +404,16 @@ header [role="dialog"] [class*="bg-black"] {
 .winimi-decision-panel::before {
   content: "";
   position: absolute;
-  width: 22rem;
-  height: 22rem;
+  width: 28rem;
+  height: 28rem;
   border-radius: 999px;
-  background: hsl(var(--interactive-accent) / 0.12);
-  filter: blur(64px);
-  inset: auto -8rem -10rem auto;
+  background: radial-gradient(
+    circle,
+    hsl(var(--interactive-accent) / 0.12) 0%,
+    hsl(var(--interactive-accent) / 0.07) 36%,
+    transparent 72%
+  );
+  inset: auto -11rem -13rem auto;
   pointer-events: none;
 }
 
@@ -420,7 +426,7 @@ header [role="dialog"] [class*="bg-black"] {
 
 .winimi-decision-panel__faq {
   border-top: 1px solid hsl(var(--border) / 0.75);
-  background: hsl(var(--card) / 0.68);
+  background: hsl(var(--card) / 0.9);
 }
 
 .winimi-decision-panel details {
@@ -434,6 +440,32 @@ header [role="dialog"] [class*="bg-black"] {
 }
 
 @media (min-width: 1024px) {
+  .home-decision-support-section {
+    isolation: auto;
+    overflow: visible;
+    background: hsl(var(--brand-pastel-soft) / 0.46);
+  }
+
+  .home-decision-support-section::before,
+  .home-decision-support-section .winimi-decision-panel::before {
+    display: none;
+  }
+
+  .home-decision-support-section .winimi-decision-panel {
+    isolation: auto;
+    contain: none;
+    background: hsl(var(--card));
+    background-image: none;
+  }
+
+  .home-decision-support-section .winimi-decision-panel__intro {
+    background: hsl(var(--brand-pastel-soft) / 0.34);
+  }
+
+  .home-decision-support-section .winimi-decision-panel__faq {
+    background: hsl(var(--card));
+  }
+
   .winimi-decision-panel {
     grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 0.75fr);
   }

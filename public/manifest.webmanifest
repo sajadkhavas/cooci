@@ -8,6 +8,7 @@
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#F8FBEA",
   "theme_color": "#D0E596",
@@ -40,15 +41,24 @@
   ],
   "shortcuts": [
     {
-      "name": "محصولات",
-      "short_name": "محصولات",
+      "name": "فروشگاه وینیمی",
+      "short_name": "فروشگاه",
+      "description": "مشاهده محصولات و دسته‌بندی‌های وینیمی",
       "url": "/products?source=pwa-shortcut",
       "icons": [{ "src": "/icons/winimi-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "سبد خرید",
       "short_name": "سبد",
+      "description": "مشاهده سبد خرید و ادامه سفارش",
       "url": "/cart?source=pwa-shortcut",
+      "icons": [{ "src": "/icons/winimi-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "حساب کاربری",
+      "short_name": "حساب",
+      "description": "مشاهده سفارش‌ها و تنظیمات حساب",
+      "url": "/account?source=pwa-shortcut",
       "icons": [{ "src": "/icons/winimi-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]

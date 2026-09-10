@@ -31,6 +31,7 @@ export interface CatalogCategory {
   slug: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   productCount?: number;
   seo: {
     title: string;
@@ -200,6 +201,14 @@ export const mapBackendProduct = (product: BackendProduct): MappedProduct => {
     name: product.name,
     shortDescription: product.shortDescription || "",
     longDescription: product.longDescription || product.shortDescription || "",
+    tasteNotes: product.tasteNotes,
+    textureNotes: product.textureNotes,
+    useCases: product.useCases,
+    servingSuggestions: product.servingSuggestions || undefined,
+    specifications: product.specifications,
+    productFaqs: product.productFaqs,
+    contentVersion: product.contentVersion || undefined,
+    contentReviewedAt: product.contentReviewedAt || undefined,
     category: product.category || "محصولات وینیمی",
     categorySlug: product.categorySlug || "uncategorized",
     price: product.priceToman || undefined,
@@ -275,6 +284,7 @@ export const fetchCatalogDirectory = async (): Promise<CatalogDirectory> => {
       slug: category.slug,
       description: category.description || undefined,
       image: category.image || undefined,
+      imageAlt: category.imageAlt || undefined,
       productCount:
         typeof category.productCount === "number"
           ? category.productCount

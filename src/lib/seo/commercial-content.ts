@@ -6,10 +6,10 @@ export interface CommercialSeoMeta {
 
 const commercialSeoByPath: Readonly<Record<string, CommercialSeoMeta>> = {
   "/": {
-    title: "خرید کوکی، کیک و باکس هدیه | وینیمی بیکری",
+    title: "خرید کوکی، کیک و دسر | وینیمی بیکری",
     description:
       "محصولات فعال وینیمی را براساس دسته یا مناسبت پیدا کنید؛ تصویر، قیمت، موجودی و شرایط هر انتخاب را ببینید و آنلاین سفارش دهید.",
-    primaryIntent: "فروشگاه آنلاین وینیمی / خرید آنلاین کوکی، کیک و باکس هدیه",
+    primaryIntent: "فروشگاه آنلاین وینیمی / خرید آنلاین کوکی، کیک و دسر",
   },
   "/products": {
     title: "محصولات وینیمی | کوکی، کیک، دسر و شیرینی",
