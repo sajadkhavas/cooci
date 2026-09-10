@@ -33,6 +33,8 @@ export interface BackendProductVariant {
   name: string;
   productCode: string;
   weightGrams: number | null;
+  weightMinGrams?: number | null;
+  weightMaxGrams?: number | null;
   weight: string | null;
   priceToman: number;
   regularPriceToman: number;
@@ -65,6 +67,8 @@ export interface BackendProduct {
   regularPriceToman: number | null;
   salePriceToman: number | null;
   weightGrams: number | null;
+  weightMinGrams?: number | null;
+  weightMaxGrams?: number | null;
   weight: string | null;
   stock: number;
   available: boolean;
@@ -327,6 +331,7 @@ export interface BackendContentPage {
     slug: string;
     title: string;
     excerpt: string | null;
+    coverUrl: string | null;
     content: string;
     seo: { title: string | null; description: string | null };
     publishedAt: string | null;

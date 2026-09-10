@@ -72,6 +72,9 @@ export const contentPageSchema = z.object({
   slug: safeSlug,
   title: requiredText(255),
   excerpt: nullableText(2_000),
+  // coverUrl was added after the frozen Phase 18 backend contract. Keep old
+  // payloads valid and normalize an omitted field to null until main catches up.
+  coverUrl: nullablePublicUrlSchema.optional().default(null),
   content: boundedText(100_000),
   seo: contentSeoSchema,
   publishedAt: nullableIsoDate,

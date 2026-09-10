@@ -29,14 +29,14 @@ export const EditorialGuides = () => {
           </div>
           <Link
             to={editorial.cta.href}
-            className="group inline-flex min-h-12 items-center gap-2 self-start rounded-full border border-[#27390c]/15 bg-white/70 px-6 font-black text-[#27390c] shadow-soft transition hover:-translate-y-0.5 hover:bg-[#d0e596] lg:self-auto"
+            className="group inline-flex min-h-12 items-center gap-2 self-start rounded-full border border-[#27390c]/15 bg-white/70 px-6 font-black text-[#27390c] shadow-soft transition motion-safe:hover:-translate-y-0.5 hover:bg-[#d0e596] lg:self-auto"
           >
             {editorial.cta.label}
             <ArrowUpLeft size={18} aria-hidden="true" />
           </Link>
         </Reveal>
 
-        <div className="editorial-guides">
+        <div className={`editorial-guides ${guides.length === 1 ? "mx-auto max-w-4xl" : ""}`}>
           {guides.map((guide, index) => {
             const Icon = guideIcons[index] ?? BookOpen;
             return (
@@ -45,12 +45,15 @@ export const EditorialGuides = () => {
                 delay={index * 70}
                 className={index === 0 ? "editorial-guides__feature" : ""}
               >
-                <Link to={`/blog/${guide.slug}`} className="editorial-guide group">
+                <Link
+                  to={`/blog/${guide.slug}`}
+                  className="editorial-guide group min-h-[25rem] sm:min-h-[29rem]"
+                >
                   {guide.coverUrl ? (
                     <img
                       src={guide.coverUrl}
                       alt=""
-                      className="editorial-guide__image"
+                      className="editorial-guide__image object-cover"
                       loading="lazy"
                       decoding="async"
                       width={1000}
@@ -60,7 +63,7 @@ export const EditorialGuides = () => {
                     <div className="editorial-guide__image bg-[#d0e596]/25" aria-hidden="true" />
                   )}
                   <div className="editorial-guide__shade" aria-hidden="true" />
-                  <div className="editorial-guide__content">
+                  <div className="editorial-guide__content p-5 sm:p-7">
                     <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/15 text-white backdrop-blur-md">
                       <Icon size={18} aria-hidden="true" />
                     </span>
@@ -69,17 +72,17 @@ export const EditorialGuides = () => {
                         {guide.category}
                       </span>
                     )}
-                    <h3 className="mt-2 max-w-xl text-xl font-black leading-8 text-white sm:text-2xl">
+                    <h3 className="mt-2 line-clamp-3 max-w-xl text-xl font-black leading-8 text-white sm:text-2xl">
                       {guide.title}
                     </h3>
                     {guide.excerpt && (
-                      <p className="mt-2 max-w-xl text-sm leading-7 text-white/75">
+                      <p className="mt-2 line-clamp-3 max-w-xl text-sm leading-7 text-white/80">
                         {guide.excerpt}
                       </p>
                     )}
                     <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-white">
                       {editorial.readLabel}
-                      <ArrowUpLeft className="transition-transform group-hover:-translate-x-1 group-hover:-translate-y-1" size={17} aria-hidden="true" />
+                      <ArrowUpLeft className="transition-transform motion-safe:group-hover:-translate-x-1 motion-safe:group-hover:-translate-y-1" size={17} aria-hidden="true" />
                     </span>
                   </div>
                 </Link>
