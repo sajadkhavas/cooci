@@ -20,7 +20,9 @@ assert(
   `SEO category fallback baseline changed: ${categoryBaselineBlob}`,
 );
 
-contains("src/root.tsx", "storeSettings: await loadStoreSettings()");
+contains("src/root.tsx", "loadStoreSettings(),");
+contains("src/root.tsx", "storeSettings,");
+contains("src/root.tsx", 'loadStoreNavigation("footer")');
 contains("src/root.tsx", "setQueryData(STORE_SETTINGS_QUERY_KEY");
 contains("src/pages/HomePage.tsx", "title={home.metaTitle}");
 contains("src/pages/HomePage.tsx", "schema={faqSchema}");
