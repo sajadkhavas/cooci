@@ -108,11 +108,23 @@ export const links = () => [
   },
 ];
 
-export const meta = () => [
-  { name: "theme-color", content: "#D0E596" },
-  { name: "color-scheme", content: "light" },
-  { name: "application-name", content: brandConfig.brandName },
-];
+export const meta = ({ data }: { data?: RootLoaderData }) => {
+  const settings = data?.storeSettings?.settings ?? {};
+  const configuredTheme = settings["pwa.theme_color"];
+  const configuredName = settings["pwa.name"];
+  const themeColor = typeof configuredTheme === "string" && /^#[0-9a-f]{6}$/i.test(configuredTheme)
+    ? configuredTheme
+    : "#D0E596";
+  const applicationName = typeof configuredName === "string" && configuredName.trim()
+    ? configuredName.trim()
+    : brandConfig.brandName;
+
+  return [
+    { name: "theme-color", content: themeColor },
+    { name: "color-scheme", content: "light" },
+    { name: "application-name", content: applicationName },
+  ];
+};
 
 export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   const [queryClient] = useState(createQueryClient);
