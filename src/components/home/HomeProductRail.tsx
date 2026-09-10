@@ -37,10 +37,20 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
 
       const normalizedIndex = (index + products.length) % products.length;
       const target = rail.children.item(normalizedIndex) as HTMLElement | null;
-      target?.scrollIntoView({
+      if (!target) return;
+
+      // Keep carousel navigation scoped to the horizontal rail. scrollIntoView()
+      // may also scroll ancestor containers/the document and can visibly jump Home.
+      const railRect = rail.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const isRtl = window.getComputedStyle(rail).direction === "rtl";
+      const delta = isRtl
+        ? targetRect.right - railRect.right
+        : targetRect.left - railRect.left;
+
+      rail.scrollBy({
+        left: delta,
         behavior: prefersReducedMotion ? "auto" : behavior,
-        block: "nearest",
-        inline: "start",
       });
       setActiveIndex(normalizedIndex);
     },
