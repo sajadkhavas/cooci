@@ -13,3 +13,38 @@ test("Home product autoplay never invokes scrollIntoView", () => {
   assert.equal(source.includes("targetRect.left - railRect.left"), true);
   assert.equal(source.includes("AUTOPLAY_DELAY = 6000"), true);
 });
+
+test("desktop Store submenu has a dedicated high stacking layer and Winimi brand mark", () => {
+  const source = readSource("src/components/layout/Header.tsx");
+
+  assert.equal(source.includes('z-[100]'), true);
+  assert.equal(source.includes('z-[120]'), true);
+  assert.equal(source.includes('/brand/winimi-logo.svg'), true);
+  assert.equal(source.includes('<Cookie'), false);
+});
+
+test("managed category image wins over curated frontend fallbacks", () => {
+  const source = readSource("src/components/catalog/CategoryShowcase.tsx");
+  const managedIndex = source.indexOf('if (backendImage?.trim()) return backendImage;');
+  const curatedIndex = source.indexOf('const curated =');
+
+  assert.ok(managedIndex >= 0);
+  assert.ok(curatedIndex > managedIndex);
+});
+
+test("article detail exposes mobile and desktop tables of contents and reading time", () => {
+  const source = readSource("src/pages/BlogDetailPage.tsx");
+
+  assert.equal(source.includes("extractStructuredHeadings"), true);
+  assert.equal(source.includes("estimateReadingMinutes"), true);
+  assert.equal(source.includes("فهرست این راهنما"), true);
+  assert.equal(source.includes("فهرست راهنما"), true);
+});
+
+test("Editorial Guides mobile cards clamp long copy and center a single guide", () => {
+  const source = readSource("src/components/home/EditorialGuides.tsx");
+
+  assert.equal(source.includes('guides.length === 1 ? "mx-auto max-w-4xl"'), true);
+  assert.equal(source.includes("line-clamp-3"), true);
+  assert.equal(source.includes("min-h-[25rem]"), true);
+});
