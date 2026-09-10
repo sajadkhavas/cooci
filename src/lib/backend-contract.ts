@@ -16,6 +16,11 @@ export interface BackendCategory {
   image: string | null;
   imageAlt: string | null;
   productCount?: number;
+  showOnHome?: boolean;
+  showInFooter?: boolean;
+  sortOrder?: number;
+  homeSortOrder?: number;
+  footerSortOrder?: number;
   seo: {
     title: string;
     description: string | null;
