@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
-import {
-  MANAGED_CALLOUT_CLASS,
-  resolveManagedCallout,
-} from "@/lib/content/managed-callout";
+
+const source = readFileSync(
+  new URL("../../src/components/content/StructuredText.tsx", import.meta.url),
+  "utf8",
+);
 
 const tones = [
   "gray_light",
@@ -15,22 +17,24 @@ const tones = [
   "accent",
 ] as const;
 
-test("managed editor callout accepts only the exact package class", () => {
-  assert.equal(resolveManagedCallout(undefined, "primary"), null);
-  assert.equal(resolveManagedCallout("other", "primary"), null);
-  assert.equal(resolveManagedCallout(`${MANAGED_CALLOUT_CLASS} attacker`, "primary"), null);
+test("production StructuredText recognizes only the exact managed Tiptap callout class", () => {
+  assert.match(source, /const CALLOUT_CLASS = "filament-tiptap-hurdle";/);
+  assert.match(source, /if \(className === CALLOUT_CLASS\)/);
+  assert.doesNotMatch(source, /includes\(CALLOUT_CLASS\)/);
 });
 
-test("managed editor callout preserves every supported package tone", () => {
+test("production StructuredText contains every package-supported callout tone", () => {
   for (const tone of tones) {
-    const result = resolveManagedCallout(MANAGED_CALLOUT_CLASS, tone);
-    assert.equal(result?.tone, tone);
-    assert.ok(result?.toneClass.length);
+    assert.match(source, new RegExp(`\\b${tone}:?\\b|"${tone}"`));
   }
+
+  assert.match(source, /CALLOUT_COLORS\.has\(requestedColor\)/);
+  assert.match(source, /:\s*"gray";/);
 });
 
-test("managed editor callout fails closed to gray for unknown tones", () => {
-  const result = resolveManagedCallout(MANAGED_CALLOUT_CLASS, "javascript:alert(1)");
-  assert.equal(result?.tone, "gray");
-  assert.equal(result?.toneClass, "border-muted-foreground/35 bg-secondary/35");
+test("production StructuredText renders the callout as a dedicated accessible element", () => {
+  assert.match(source, /<aside/);
+  assert.match(source, /data-callout-tone=\{color\}/);
+  assert.match(source, /aria-label="نکته"/);
+  assert.match(source, /CALLOUT_TONE_CLASSES\[color\]/);
 });
