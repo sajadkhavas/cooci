@@ -39,6 +39,26 @@ const DANGEROUS_TAGS = new Set([
 const HTML_PATTERN =
   /<\/?(?:h[1-6]|p|div|span|a|ul|ol|li|strong|b|em|i|blockquote|br|hr|table|thead|tbody|tr|th|td|img|figure|figcaption|code|pre|details|summary)\b/i;
 
+const CALLOUT_CLASS = "filament-tiptap-hurdle";
+const CALLOUT_COLORS = new Set([
+  "gray_light",
+  "gray",
+  "gray_dark",
+  "primary",
+  "secondary",
+  "tertiary",
+  "accent",
+]);
+const CALLOUT_TONE_CLASSES: Record<string, string> = {
+  gray_light: "border-border bg-secondary/20",
+  gray: "border-muted-foreground/35 bg-secondary/35",
+  gray_dark: "border-foreground/35 bg-foreground/5",
+  primary: "border-primary/55 bg-primary/7",
+  secondary: "border-secondary-foreground/25 bg-secondary/50",
+  tertiary: "border-primary/35 bg-accent/10",
+  accent: "border-accent-foreground/30 bg-accent/25",
+};
+
 const renderInlineText = (text: string): ReactNode[] =>
   text.split(/(\*\*.+?\*\*)/g).map((part, index) =>
     part.startsWith("**") && part.endsWith("**") ? (
@@ -357,7 +377,28 @@ const renderHtml = (content: string) => {
               {children}
             </summary>
           );
-        case "div":
+        case "div": {
+          const className = domNode.attribs.class?.trim();
+          if (className === CALLOUT_CLASS) {
+            const requestedColor = domNode.attribs["data-color"]?.trim();
+            const color = requestedColor && CALLOUT_COLORS.has(requestedColor)
+              ? requestedColor
+              : "gray";
+            const toneClass = CALLOUT_TONE_CLASSES[color] ?? CALLOUT_TONE_CLASSES.gray;
+
+            return (
+              <aside
+                className={`rounded-2xl border-r-4 px-5 py-4 leading-9 text-foreground/80 ${toneClass}`}
+                data-callout-tone={color}
+                aria-label="نکته"
+              >
+                {children}
+              </aside>
+            );
+          }
+
+          return <Fragment>{children}</Fragment>;
+        }
         case "section":
         case "article":
         case "main":
