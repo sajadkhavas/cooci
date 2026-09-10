@@ -33,11 +33,6 @@ export interface CatalogCategory {
   image?: string;
   imageAlt?: string;
   productCount?: number;
-  showOnHome: boolean;
-  showInFooter: boolean;
-  sortOrder: number;
-  homeSortOrder: number;
-  footerSortOrder: number;
   seo: {
     title: string;
     description?: string;
@@ -283,30 +278,22 @@ export const fetchCatalogDirectory = async (): Promise<CatalogDirectory> => {
   const categories: BackendCategory[] = parseBackendCategories(response.data);
 
   return {
-    categories: categories.map((category) => {
-      const sortOrder = category.sortOrder ?? 0;
-      return {
-        id: category.id,
-        name: category.name,
-        slug: category.slug,
-        description: category.description || undefined,
-        image: category.image || undefined,
-        imageAlt: category.imageAlt || undefined,
-        productCount:
-          typeof category.productCount === "number"
-            ? category.productCount
-            : undefined,
-        showOnHome: category.showOnHome ?? true,
-        showInFooter: category.showInFooter ?? true,
-        sortOrder,
-        homeSortOrder: category.homeSortOrder ?? sortOrder,
-        footerSortOrder: category.footerSortOrder ?? sortOrder,
-        seo: {
-          title: category.seo.title,
-          description: category.seo.description || undefined,
-        },
-      };
-    }),
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description || undefined,
+      image: category.image || undefined,
+      imageAlt: category.imageAlt || undefined,
+      productCount:
+        typeof category.productCount === "number"
+          ? category.productCount
+          : undefined,
+      seo: {
+        title: category.seo.title,
+        description: category.seo.description || undefined,
+      },
+    })),
     landings: parseCategoryLandings(response.meta.categoryLandings),
   };
 };
