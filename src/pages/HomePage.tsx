@@ -123,7 +123,6 @@ const HomePage = () => {
         <div className="container-custom">
           <CategoryShowcase
             limit={6}
-            surface="home"
             eyebrow={home.categories.eyebrow}
             title={home.categories.title}
             description={home.categories.description}
