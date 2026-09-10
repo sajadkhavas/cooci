@@ -72,6 +72,7 @@ export const contentPageSchema = z.object({
   slug: safeSlug,
   title: requiredText(255),
   excerpt: nullableText(2_000),
+  coverUrl: nullablePublicUrlSchema,
   content: boundedText(100_000),
   seo: contentSeoSchema,
   publishedAt: nullableIsoDate,
