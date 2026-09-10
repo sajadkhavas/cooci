@@ -14,6 +14,7 @@ const files = {
   playwright: "e2e/playwright.config.mjs",
   acceptanceWorkflow: ".github/workflows/phase18-e2e.yml",
   decisionSupport: "src/components/home/DecisionSupportPanel.tsx",
+  draggableMarquee: "src/components/home/DraggableMarquee.tsx",
   brandCss: "src/styles/brand-theme.css",
   documentation: "docs/FRONTEND_RUNTIME_PERFORMANCE_PHASE_9_5.md",
 };
@@ -124,6 +125,26 @@ requireText(
   "desktop decision-panel containment override",
 );
 requireText("brandCss", "contain: none;", "desktop paint-containment removal");
+requireText(
+  "brandCss",
+  "background-image: none;",
+  "desktop decision-panel gradient removal",
+);
+requireText(
+  "draggableMarquee",
+  "new IntersectionObserver(",
+  "viewport-aware marquee animation",
+);
+requireText(
+  "draggableMarquee",
+  "visibleRef.current &&",
+  "offscreen marquee mutation guard",
+);
+requireText(
+  "draggableMarquee",
+  "observer?.disconnect();",
+  "marquee observer cleanup",
+);
 requireText(
   "documentation",
   "frontend_runtime_performance_audited=ready",

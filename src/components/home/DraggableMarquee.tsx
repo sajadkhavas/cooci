@@ -9,6 +9,7 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef({ active: false, startX: 0, startScroll: 0 });
   const pausedRef = useRef(false);
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -21,12 +22,29 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
 
     let frame = 0;
     let previous = performance.now();
+    const observer = typeof IntersectionObserver === "undefined"
+      ? undefined
+      : new IntersectionObserver(
+          ([entry]) => {
+            visibleRef.current = entry?.isIntersecting ?? false;
+            previous = performance.now();
+          },
+          { rootMargin: "160px 0px" },
+        );
+
+    if (observer) {
+      observer.observe(viewport);
+    } else {
+      visibleRef.current = true;
+    }
+
     const tick = (now: number) => {
       const elapsed = Math.min(now - previous, 50);
       previous = now;
 
       if (
         document.visibilityState === "visible" &&
+        visibleRef.current &&
         !pausedRef.current &&
         !dragState.current.active
       ) {
@@ -41,7 +59,10 @@ export const DraggableMarquee = ({ items }: DraggableMarqueeProps) => {
     };
 
     frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      observer?.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const repeatedItems = [...items, ...items];
