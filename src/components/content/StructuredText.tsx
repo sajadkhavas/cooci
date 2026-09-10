@@ -53,7 +53,7 @@ const CALLOUT_TONE_CLASSES: Record<string, string> = {
   gray_light: "border-border bg-secondary/20",
   gray: "border-muted-foreground/35 bg-secondary/35",
   gray_dark: "border-foreground/35 bg-foreground/5",
-  primary: "border-primary/55 bg-primary/7",
+  primary: "border-primary/55 bg-primary/5",
   secondary: "border-secondary-foreground/25 bg-secondary/50",
   tertiary: "border-primary/35 bg-accent/10",
   accent: "border-accent-foreground/30 bg-accent/25",
