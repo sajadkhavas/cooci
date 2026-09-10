@@ -68,8 +68,12 @@ export const loadStoreSettings = async (): Promise<BackendStoreSettings> => {
   return parseStoreSettings(response.data);
 };
 
-export const loadStoreNavigation = async (): Promise<BackendNavigationItem[]> => {
-  const response = await apiRequest<unknown>("/api/store/navigation");
+export const loadStoreNavigation = async (
+  placement: "header" | "mobile" | "footer" = "header",
+): Promise<BackendNavigationItem[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/store/navigation?placement=${placement}`,
+  );
   if (!Array.isArray(response.data)) throw new Error("ساختار منوی فروشگاه معتبر نیست.");
   const parse = (value: unknown, depth = 0): BackendNavigationItem => {
     if (!value || typeof value !== "object" || depth > 1) throw new Error("ساختار منوی فروشگاه معتبر نیست.");

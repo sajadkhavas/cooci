@@ -8,7 +8,8 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useRouteLoaderData } from "react-router";
+import type { RootLoaderData } from "@/root";
 import {
   Accordion,
   AccordionContent,
@@ -49,6 +50,7 @@ const FooterLinkList = ({
 );
 
 export const Footer = () => {
+  const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const { settings, content } = useStorefrontSettings();
   const { categories, landings } = useCatalogDirectory();
   const editorialCategories = landings.length > 0 ? landings : categoryContents;
@@ -59,7 +61,7 @@ export const Footer = () => {
     name: category.name,
     href: `/products/category/${category.routeSlug}`,
   }));
-  const resolvedFooterGroups = [
+  const fallbackFooterGroups = [
     {
       title: content.footer.discovery.title,
       links: content.footer.discovery.links.map((link) => ({
@@ -79,7 +81,24 @@ export const Footer = () => {
       })),
     },
   ];
-  const legalLinks = content.footer.legal.map((link) => ({
+  const managedFooterGroups = (rootData?.footerNavigation ?? [])
+    .filter((item) => item.children.length > 0)
+    .map((item) => ({
+      title: item.label,
+      links: item.children.map((child) => ({
+        name: child.label,
+        href: child.href,
+      })),
+    }));
+  const standaloneFooterLinks = (rootData?.footerNavigation ?? [])
+    .filter((item) => item.children.length === 0)
+    .map((item) => ({ name: item.label, href: item.href }));
+  const resolvedFooterGroups = managedFooterGroups.length > 0
+    ? managedFooterGroups.slice(0, 3)
+    : fallbackFooterGroups;
+  const legalLinks = standaloneFooterLinks.length > 0
+    ? standaloneFooterLinks
+    : content.footer.legal.map((link) => ({
     name: link.label,
     href: link.href,
   }));

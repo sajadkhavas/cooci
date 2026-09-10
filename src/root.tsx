@@ -12,6 +12,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
+import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,6 +35,7 @@ export interface RootLoaderData {
   cspNonce?: string;
   storeSettings?: BackendStoreSettings;
   storeNavigation?: BackendNavigationItem[];
+  footerNavigation?: BackendNavigationItem[];
 }
 
 const STORE_SETTINGS_QUERY_KEY = ["store", "settings"] as const;
@@ -61,11 +63,16 @@ export const loader = async ({ request }: LoaderFunctionArgs): Promise<RootLoade
   if (!isBackendEnabled) return base;
 
   try {
-    const storeNavigation = await loadStoreNavigation().catch(() => undefined);
+    const [storeNavigation, footerNavigation, storeSettings] = await Promise.all([
+      loadStoreNavigation("header").catch(() => undefined),
+      loadStoreNavigation("footer").catch(() => undefined),
+      loadStoreSettings(),
+    ]);
     return {
       ...base,
-      storeSettings: await loadStoreSettings(),
+      storeSettings,
       storeNavigation,
+      footerNavigation,
     };
   } catch (error) {
     console.error("Winimi root storefront authority loader failed", {
@@ -92,7 +99,7 @@ export const links = () => [
     type: "image/jpeg",
     fetchPriority: "high" as const,
   },
-  { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "manifest", href: "/app.webmanifest" },
   { rel: "icon", href: "/icons/winimi-192.svg", type: "image/svg+xml" },
   {
     rel: "apple-touch-icon",
@@ -124,6 +131,21 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
           content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
         <Meta />
+        {typeof loaderData?.storeSettings?.settings?.[
+          "integrations.search_console_verification"
+        ] === "string" &&
+        loaderData.storeSettings.settings[
+          "integrations.search_console_verification"
+        ] ? (
+          <meta
+            name="google-site-verification"
+            content={String(
+              loaderData.storeSettings.settings[
+                "integrations.search_console_verification"
+              ],
+            )}
+          />
+        ) : null}
         <Links />
       </head>
       <body>
@@ -141,6 +163,7 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
                   <RouteErrorBoundary>
                     <SiteLayout />
                   </RouteErrorBoundary>
+                  <AnalyticsConsent />
                 </CartProvider>
               </AuthProvider>
             </TooltipProvider>

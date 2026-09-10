@@ -8,8 +8,8 @@ const MAX_NAVIGATION_ENTRIES = 16;
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 const SHELL_FILES = [
-  "/offline.html",
-  "/manifest.webmanifest",
+  "/offline",
+  "/app.webmanifest",
   "/brand/winimi-logo.svg",
   "/icons/winimi-192.png",
   "/icons/winimi-512.png",
@@ -83,7 +83,7 @@ const staleWhileRevalidate = async (request, cacheName) => {
 };
 
 const offlineResponse = async () =>
-  (await matchCache(SHELL_CACHE, "/offline.html")) || Response.error();
+  (await matchCache(SHELL_CACHE, "/offline")) || Response.error();
 
 const networkFirstNavigation = async (request) => {
   const url = new URL(request.url);

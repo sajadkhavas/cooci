@@ -3,6 +3,8 @@ import { index, route, type RouteConfig } from "@react-router/dev/routes";
 export default [
   route("sitemap.xml", "./routes/sitemap.ts"),
   route("robots.txt", "./routes/robots.ts"),
+  route("app.webmanifest", "./routes/app-manifest.ts"),
+  route("offline", "./routes/offline.tsx"),
   index("./routes/home.tsx"),
   route("products", "./routes/products-shop.tsx"),
   route("categories", "./routes/categories-redirect.tsx"),
