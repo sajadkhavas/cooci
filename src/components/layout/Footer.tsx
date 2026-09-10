@@ -56,17 +56,10 @@ export const Footer = () => {
   const categoryLinks = buildVisibleCatalogCategories(
     editorialCategories,
     categories,
-  )
-    .filter((category) => category.showInFooter)
-    .sort(
-      (first, second) =>
-        first.footerSortOrder - second.footerSortOrder ||
-        first.name.localeCompare(second.name, "fa"),
-    )
-    .map((category) => ({
-      name: category.name,
-      href: `/products/category/${category.routeSlug}`,
-    }));
+  ).map((category) => ({
+    name: category.name,
+    href: `/products/category/${category.routeSlug}`,
+  }));
   const fallbackFooterGroups = [
     {
       title: content.footer.discovery.title,
