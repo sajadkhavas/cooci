@@ -45,6 +45,9 @@ test("production PWA fails closed on a real network failure and recovers after r
   expect(worker).not.toContain('"/index.html"');
   expect(worker).toContain("navigationCacheKey");
   expect(worker).toContain("stripOfflineRuntime");
+  expect(worker).toContain("OFFLINE_REFRESH_INTERVAL_MS");
+  expect(worker).toContain("refreshOfflineShell");
+  expect(worker).toContain("event.waitUntil(refreshOfflineShell())");
 
   const manifestResponse = await request.get("/manifest.webmanifest");
   expect(manifestResponse.ok()).toBeTruthy();
