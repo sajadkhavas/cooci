@@ -32,22 +32,24 @@ test("managed category image wins over curated frontend fallbacks", () => {
   assert.ok(curatedIndex > managedIndex);
 });
 
-test("homepage categories obey admin visibility and surface order", () => {
+test("homepage categories retain catalog authority without a second placement contract", () => {
   const showcase = readSource("src/components/catalog/CategoryShowcase.tsx");
   const home = readSource("src/pages/HomePage.tsx");
 
-  assert.equal(showcase.includes('surface?: "catalog" | "home"'), true);
-  assert.equal(showcase.includes('surface !== "home" || category.showOnHome'), true);
-  assert.equal(showcase.includes('first.homeSortOrder'), true);
-  assert.equal(home.includes('surface="home"'), true);
+  assert.equal(showcase.includes('showOnHome'), false);
+  assert.equal(showcase.includes('homeSortOrder'), false);
+  assert.equal(showcase.includes('surface?: "catalog" | "home"'), false);
+  assert.equal(home.includes('surface="home"'), false);
 });
 
-test("footer categories and groups are admin authoritative", () => {
+test("footer navigation remains NavigationItem-authoritative with StoreSetting/catalog fallbacks", () => {
   const source = readSource("src/components/layout/Footer.tsx");
 
-  assert.equal(source.includes('category.showInFooter'), true);
-  assert.equal(source.includes('first.footerSortOrder'), true);
+  assert.equal(source.includes('rootData?.footerNavigation'), true);
   assert.equal(source.includes('managedFooterGroups.length > 0'), true);
+  assert.equal(source.includes('fallbackFooterGroups'), true);
+  assert.equal(source.includes('category.showInFooter'), false);
+  assert.equal(source.includes('footerSortOrder'), false);
   assert.equal(source.includes('managedFooterGroups.slice('), false);
   assert.equal(source.includes('/brand/winimi-logo.svg'), true);
 });
