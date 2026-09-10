@@ -331,6 +331,7 @@ export interface BackendContentPage {
     slug: string;
     title: string;
     excerpt: string | null;
+    coverUrl: string | null;
     content: string;
     seo: { title: string | null; description: string | null };
     publishedAt: string | null;
