@@ -27,9 +27,9 @@ const decodeHashTarget = (hash: string) => {
  * Accessibility-only route focus manager.
  *
  * React Router's <ScrollRestoration /> is the single owner of scroll position.
- * Keeping explicit window.scrollTo()/scrollIntoView() calls here caused two
- * independent scroll authorities to race during hydration/navigation and could
- * surface as a visible vertical jump on content-heavy routes such as Home.
+ * Keeping explicit programmatic route/hash scrolling here caused two independent
+ * scroll authorities to race during hydration/navigation and could surface as a
+ * visible vertical jump on content-heavy routes such as Home.
  */
 export const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
