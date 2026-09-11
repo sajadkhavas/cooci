@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router";
-import { getProgrammaticScrollBehavior } from "@/lib/accessibility/motion";
 
 const focusTarget = (target: HTMLElement) => {
   const hadTabIndex = target.hasAttribute("tabindex");
@@ -15,44 +14,37 @@ const focusTarget = (target: HTMLElement) => {
   }
 };
 
+/**
+ * Accessibility-only route focus manager.
+ *
+ * React Router's <ScrollRestoration /> is the single owner of scroll position.
+ * Keeping explicit window.scrollTo()/scrollIntoView() calls here caused two
+ * independent scroll authorities to race during hydration/navigation and could
+ * surface as a visible vertical jump on content-heavy routes such as Home.
+ */
 export const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
   const initialRenderRef = useRef(true);
 
   useLayoutEffect(() => {
-    let frameId: number | undefined;
-
-    if (hash) {
-      const targetId = decodeURIComponent(hash.slice(1));
-      frameId = window.requestAnimationFrame(() => {
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        target.scrollIntoView({
-          block: "start",
-          behavior: getProgrammaticScrollBehavior(),
-        });
-        focusTarget(target);
-      });
-      initialRenderRef.current = false;
-      return () => {
-        if (frameId !== undefined) window.cancelAnimationFrame(frameId);
-      };
-    }
-
     if (initialRenderRef.current) {
       initialRenderRef.current = false;
       return undefined;
     }
 
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    frameId = window.requestAnimationFrame(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      if (hash) {
+        const targetId = decodeURIComponent(hash.slice(1));
+        const target = document.getElementById(targetId);
+        if (target) focusTarget(target);
+        return;
+      }
+
       const main = document.getElementById("main-content");
       if (main) focusTarget(main);
     });
 
-    return () => {
-      if (frameId !== undefined) window.cancelAnimationFrame(frameId);
-    };
+    return () => window.cancelAnimationFrame(frameId);
   }, [pathname, hash]);
 
   return null;
