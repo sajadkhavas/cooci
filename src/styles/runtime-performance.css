@@ -28,6 +28,17 @@ body {
   will-change: transform;
 }
 
+/*
+ * The ambient orbs are purely decorative. Animating three viewport-scale,
+ * heavily blurred layers continuously keeps the desktop compositor busy while
+ * the user scrolls Home and can present as a visual hitch/jump on lower-power
+ * GPUs. Keep the artwork, but make it static.
+ */
+.ambient-orb {
+  animation: none !important;
+  transform: none !important;
+}
+
 .mobile-bottom-navigation {
   position: fixed;
   right: 0.75rem;
