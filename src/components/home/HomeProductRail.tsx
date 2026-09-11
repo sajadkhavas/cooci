@@ -22,6 +22,7 @@ const AUTOPLAY_DELAY = 6000;
 export const HomeProductRail = ({ products }: HomeProductRailProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLUListElement>(null);
+  const scrollFrameRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isInView, setIsInView] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
@@ -52,7 +53,9 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
         left: delta,
         behavior: prefersReducedMotion ? "auto" : behavior,
       });
-      setActiveIndex(normalizedIndex);
+      setActiveIndex((current) =>
+        current === normalizedIndex ? current : normalizedIndex,
+      );
     },
     [prefersReducedMotion, products.length],
   );
@@ -120,38 +123,59 @@ export const HomeProductRail = ({ products }: HomeProductRailProps) => {
     const mobileQuery = window.matchMedia("(max-width: 767px)");
     if (!mobileQuery.matches) return;
 
+    let returnTimer: number | undefined;
     const nudgeTimer = window.setTimeout(() => {
       const rail = railRef.current;
       if (!rail || rail.scrollLeft !== 0) return;
       rail.scrollBy({ left: -28, behavior: "smooth" });
-      window.setTimeout(
-        () => rail.scrollBy({ left: 28, behavior: "smooth" }),
+      returnTimer = window.setTimeout(
+        () => railRef.current?.scrollBy({ left: 28, behavior: "smooth" }),
         480,
       );
     }, 1400);
 
-    return () => window.clearTimeout(nudgeTimer);
+    return () => {
+      window.clearTimeout(nudgeTimer);
+      if (returnTimer !== undefined) window.clearTimeout(returnTimer);
+    };
   }, [prefersReducedMotion, products.length]);
 
-  const handleScroll = () => {
-    const rail = railRef.current;
-    if (!rail) return;
-
-    const children = Array.from(rail.children) as HTMLElement[];
-    if (!children.length) return;
-
-    const railStart = rail.getBoundingClientRect().right;
-    let nearestIndex = 0;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-
-    children.forEach((child, index) => {
-      const distance = Math.abs(child.getBoundingClientRect().right - railStart);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestIndex = index;
+  useEffect(
+    () => () => {
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
       }
+    },
+    [],
+  );
+
+  const handleScroll = () => {
+    if (scrollFrameRef.current !== null) return;
+
+    scrollFrameRef.current = window.requestAnimationFrame(() => {
+      scrollFrameRef.current = null;
+      const rail = railRef.current;
+      if (!rail) return;
+
+      const children = Array.from(rail.children) as HTMLElement[];
+      if (!children.length) return;
+
+      const railStart = rail.getBoundingClientRect().right;
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      children.forEach((child, index) => {
+        const distance = Math.abs(child.getBoundingClientRect().right - railStart);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestIndex = index;
+        }
+      });
+
+      setActiveIndex((current) =>
+        current === nearestIndex ? current : nearestIndex,
+      );
     });
-    setActiveIndex(nearestIndex);
   };
 
   const canAutoPlay = !prefersReducedMotion && products.length > 1;
