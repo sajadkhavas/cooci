@@ -23,8 +23,15 @@ body {
   transform: translateZ(0);
 }
 
+/*
+ * Lazy-loaded replaced elements already expose intrinsic sizing through their
+ * width/height/aspect-ratio contract. Applying content-visibility to <img>
+ * itself can defer its paint independently from the surrounding card and was
+ * producing visible pop-in during Home scrolling on desktop. Keep the media
+ * frame contained, but let the image participate in normal rendering.
+ */
 img[loading="lazy"] {
-  content-visibility: auto;
+  content-visibility: visible;
 }
 
 @media (hover: none), (pointer: coarse) {
