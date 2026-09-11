@@ -6,13 +6,15 @@ import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 
 export const useCatalogDirectory = () => {
   const loaderData = useLoaderData() as PublicSsrLoaderData | undefined;
-  const initialData =
-    loaderData?.categories || loaderData?.categoryLandings
-      ? {
-          categories: loaderData?.categories ?? [],
-          landings: loaderData?.categoryLandings ?? [],
-        }
-      : undefined;
+  const hasCompleteDirectory =
+    loaderData?.categories !== undefined &&
+    loaderData?.categoryLandings !== undefined;
+  const initialData = hasCompleteDirectory
+    ? {
+        categories: loaderData.categories ?? [],
+        landings: loaderData.categoryLandings ?? [],
+      }
+    : undefined;
   const query = useQuery({
     queryKey: ["catalog", "directory"],
     queryFn: fetchCatalogDirectory,
