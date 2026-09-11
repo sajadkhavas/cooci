@@ -16,11 +16,13 @@ test("Home product autoplay never invokes scrollIntoView", () => {
 
 test("desktop Store submenu has a dedicated high stacking layer and Winimi brand mark", () => {
   const source = readSource("src/components/layout/Header.tsx");
+  const cwv = readSource("src/styles/core-web-vitals.css");
 
   assert.equal(source.includes('z-[100]'), true);
   assert.equal(source.includes('z-[120]'), true);
   assert.equal(source.includes('/brand/winimi-logo.svg'), true);
   assert.equal(source.includes('<Cookie'), false);
+  assert.equal(cwv.includes('.site-shell::before {\n  z-index: 5;'), true);
 });
 
 test("managed category image wins over curated frontend fallbacks", () => {
@@ -42,12 +44,19 @@ test("homepage categories retain catalog authority without a second placement co
   assert.equal(home.includes('surface="home"'), false);
 });
 
-test("footer navigation remains NavigationItem-authoritative with StoreSetting/catalog fallbacks", () => {
+test("footer navigation is NavigationItem-only while non-menu content stays StoreSetting-managed", () => {
   const source = readSource("src/components/layout/Footer.tsx");
 
-  assert.equal(source.includes('rootData?.footerNavigation'), true);
-  assert.equal(source.includes('managedFooterGroups.length > 0'), true);
-  assert.equal(source.includes('fallbackFooterGroups'), true);
+  assert.equal(source.includes('const footerNavigation = rootData?.footerNavigation ?? []'), true);
+  assert.equal(source.includes('managedFooterGroups'), true);
+  assert.equal(source.includes('standaloneFooterLinks'), true);
+  assert.equal(source.includes('content.footer.supportTitle'), true);
+  assert.equal(source.includes('content.footer.aboutText'), true);
+  assert.equal(source.includes('fallbackFooterGroups'), false);
+  assert.equal(source.includes('buildVisibleCatalogCategories'), false);
+  assert.equal(source.includes('content.footer.discovery'), false);
+  assert.equal(source.includes('content.footer.services'), false);
+  assert.equal(source.includes('content.footer.legal'), false);
   assert.equal(source.includes('category.showInFooter'), false);
   assert.equal(source.includes('footerSortOrder'), false);
   assert.equal(source.includes('managedFooterGroups.slice('), false);
