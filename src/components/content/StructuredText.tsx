@@ -6,6 +6,7 @@ import parse, {
 } from "html-react-parser";
 import { Fragment, type ReactNode } from "react";
 import { Link } from "react-router";
+import { parseSafeContentStyle } from "@/lib/security/content-style";
 
 export interface StructuredHeading {
   id: string;
@@ -193,6 +194,7 @@ const renderHtml = (content: string) => {
 
       const children = domToReact(domNode.children as DOMNode[], options);
       const headingText = textFromNodes(domNode.children as DOMNode[]);
+      const inlineStyle = parseSafeContentStyle(domNode.attribs.style);
 
       switch (tag) {
         case "h1":
@@ -201,6 +203,7 @@ const renderHtml = (content: string) => {
           return (
             <h2
               id={id}
+              style={inlineStyle}
               className="scroll-mt-32 border-r-4 border-primary/30 pr-4 text-2xl font-black leading-10 text-foreground first:mt-0 md:text-3xl"
             >
               {children}
@@ -212,6 +215,7 @@ const renderHtml = (content: string) => {
           return (
             <h3
               id={id}
+              style={inlineStyle}
               className="scroll-mt-32 text-xl font-black leading-9 text-foreground md:text-2xl"
             >
               {children}
@@ -222,13 +226,13 @@ const renderHtml = (content: string) => {
         case "h5":
         case "h6":
           return (
-            <h4 className="text-lg font-black leading-8 text-foreground">
+            <h4 style={inlineStyle} className="text-lg font-black leading-8 text-foreground">
               {children}
             </h4>
           );
         case "p":
           return (
-            <p className="text-base leading-9 text-foreground/80 md:text-[1.05rem]">
+            <p style={inlineStyle} className="text-base leading-9 text-foreground/80 md:text-[1.05rem]">
               {children}
             </p>
           );
@@ -259,7 +263,7 @@ const renderHtml = (content: string) => {
           return <del>{children}</del>;
         case "mark":
           return (
-            <mark className="rounded bg-accent/25 px-1 text-foreground">
+            <mark style={inlineStyle} className="rounded bg-accent/25 px-1 text-foreground">
               {children}
             </mark>
           );
@@ -271,7 +275,10 @@ const renderHtml = (content: string) => {
           return <sub>{children}</sub>;
         case "blockquote":
           return (
-            <blockquote className="rounded-2xl border-r-4 border-primary bg-primary/5 px-5 py-4 leading-9 text-foreground/80">
+            <blockquote
+              style={inlineStyle}
+              className="rounded-2xl border-r-4 border-primary bg-primary/5 px-5 py-4 leading-9 text-foreground/80"
+            >
               {children}
             </blockquote>
           );
@@ -362,9 +369,9 @@ const renderHtml = (content: string) => {
         case "tr":
           return <tr className="divide-x divide-x-reverse divide-border">{children}</tr>;
         case "th":
-          return <th className="px-4 py-3 font-black">{children}</th>;
+          return <th style={inlineStyle} className="px-4 py-3 font-black">{children}</th>;
         case "td":
-          return <td className="px-4 py-3 leading-7 text-foreground/80">{children}</td>;
+          return <td style={inlineStyle} className="px-4 py-3 leading-7 text-foreground/80">{children}</td>;
         case "details":
           return (
             <details className="group rounded-2xl border border-border bg-secondary/20 p-5 open:bg-secondary/35">
@@ -399,12 +406,13 @@ const renderHtml = (content: string) => {
 
           return <Fragment>{children}</Fragment>;
         }
+        case "span":
+          return <span style={inlineStyle}>{children}</span>;
         case "section":
         case "article":
         case "main":
         case "header":
         case "footer":
-        case "span":
           return <Fragment>{children}</Fragment>;
         default:
           return <Fragment>{children}</Fragment>;
