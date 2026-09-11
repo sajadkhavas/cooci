@@ -22,21 +22,23 @@ UNRESOLVED_ADMIN_P0=0
 UNRESOLVED_ADMIN_P1=0
 ```
 
-## Latest accepted GitHub main — Admin Audit 32 maintenance
+## Runtime implementation source lock — Admin Audit 32
 
-این SHAها جدیدترین Source پذیرفته‌شده در GitHub هستند و **هنوز به‌عنوان Production deployed source ثبت نشده‌اند**.
+این SHAها **Source کد Runtime پذیرفته‌شده** برای maintenance هستند؛ نه الزاماً SHA فعلی branch `main`. PRهای مستندی بعدی می‌توانند `main` را جلو ببرند بدون آنکه Runtime code تغییر کند. بنابراین Production sync باید روی همین Runtime source lockها یا یک descendant اثبات‌شده با Runtime tree یکسان قفل شود؛ هرگز صرفاً از «آخرین main» حدس نزند.
 
 ```text
 FRONTEND_REPO=sajadkhavas/cooci
 FRONTEND_MAINTENANCE_PR=58 MERGED
 FRONTEND_IMPLEMENTATION_HEAD=506519ced3d68e4c42991c848faf05d376063782
-FRONTEND_ACCEPTED_MAIN=ca074dbd0664c88a7d618299ba04d8d20d729b07
+FRONTEND_RUNTIME_SOURCE=ca074dbd0664c88a7d618299ba04d8d20d729b07
 
 BACKEND_REPO=sajadkhavas/winimi-bakery-backend
 BACKEND_MAINTENANCE_PR=20 MERGED
 BACKEND_FINAL_PR_HEAD=e3d46ccec2a037f4226f5db10a07977ca08349a4
-BACKEND_ACCEPTED_MAIN=fc93669455d9bf22fe41260b192d76fb1e65f284
+BACKEND_RUNTIME_SOURCE=fc93669455d9bf22fe41260b192d76fb1e65f284
 ```
+
+Docs-only closure commits بعد از این Runtime source lockها هیچ تغییر Runtime ایجاد نکرده‌اند و نباید باعث شوند Source کد Deploy به اشتباه از روی عنوان «latest main» انتخاب شود.
 
 ### Backend exact-head / post-merge evidence
 
@@ -58,7 +60,7 @@ EXACT_HEAD_FRONTEND_CI=34540720209 SUCCESS          # Frontend CI #1818
 EXACT_HEAD_PHASE8=34540720042 SUCCESS               # Phase8 #767
 EXACT_HEAD_PHASE19=34540720081 SUCCESS              # Phase19 #202
 EXACT_HEAD_PHASE18=34540720028 SUCCESS              # Phase18 #634
-COORDINATED_PHASE18_JOB=103085747602 SUCCESS        # rerun after backend main fc936694...
+COORDINATED_PHASE18_JOB=103085747602 SUCCESS        # rerun after backend runtime source merge
 
 POST_MERGE_FRONTEND_CI=34542268389 SUCCESS          # Frontend CI #1819
 POST_MERGE_PHASE8=34542268400 SUCCESS               # Phase8 #768
@@ -89,7 +91,7 @@ F31_RECONCILIATION_RESULT=PASS
 F31_DEPLOY_RESULT=PASS_CONFIRMED
 ```
 
-شواهد F31 شامل health/readiness، frontend SSR، Nginx/PWA public surfaces و business immutability بود و در `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` نگهداری می‌شود. این شواهد تاریخی برای maintenance جدید به‌معنای deploy شدن SHAهای `ca074dbd...` و `fc936694...` نیست.
+شواهد F31 شامل health/readiness، frontend SSR، Nginx/PWA public surfaces و business immutability بود و در `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` نگهداری می‌شود. این شواهد تاریخی برای maintenance جدید به‌معنای deploy شدن Runtime sourceهای `ca074dbd...` و `fc936694...` نیست.
 
 ## Admin Audit 32 closure
 
@@ -114,6 +116,8 @@ GitHub Actions فعلی CI/readiness/package verification هستند و deployme
 
 - Frontend: `deploy/bin/preflight-frontend-server.sh`, `deploy/bin/deploy-production-frontend.sh`, smoke/rollback scripts.
 - Backend: `deploy/bin/preflight-backend-server.sh`, `deploy/bin/deploy-production-backend.sh`, `deploy/bin/smoke-backend-production.sh`, rollback script.
+
+Source lock برای Deploy همان `FRONTEND_RUNTIME_SOURCE` و `BACKEND_RUNTIME_SOURCE` بالاست. Branch `main` ممکن است به‌خاطر docs-only commit جلوتر باشد و نباید بدون مقایسهٔ Runtime tree جایگزین این lock شود.
 
 تا قبل از اجرای واقعی سرور و ثبت release ID/health/business-immutability evidence، `ADMIN_AUDIT32_PRODUCTION_SYNC=PENDING` باقی می‌ماند.
 
