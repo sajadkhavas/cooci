@@ -133,6 +133,10 @@ export const CategoryShowcase = ({
             category.name,
             category.image,
           );
+          const imageAlt =
+            category.image?.trim() && category.imageAlt?.trim()
+              ? category.imageAlt.trim()
+              : `محصولات دسته ${category.name} وینیمی`;
 
           return (
             <li
@@ -150,7 +154,7 @@ export const CategoryShowcase = ({
                   <span className="block overflow-hidden rounded-[0.85rem] bg-[#f7f9ee]">
                     <img
                       src={image}
-                      alt={`محصولات دسته ${category.name} وینیمی`}
+                      alt={imageAlt}
                       className="aspect-[5/4] h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                       loading="lazy"
                       decoding="async"

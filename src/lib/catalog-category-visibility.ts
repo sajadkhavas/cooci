@@ -8,6 +8,7 @@ export interface VisibleCatalogCategory {
   name: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   productCount?: number;
   editorial?: CategoryContent;
   isFilteredView: boolean;
@@ -52,6 +53,7 @@ export const buildVisibleCatalogCategories = (
           ? editorial?.cardDescription
           : backendCategory.description || editorial?.cardDescription,
         image: backendCategory.image,
+        imageAlt: backendCategory.imageAlt,
         productCount: isFilteredView
           ? undefined
           : backendCategory.productCount,

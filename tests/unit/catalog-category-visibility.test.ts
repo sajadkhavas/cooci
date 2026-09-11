@@ -54,6 +54,7 @@ const backend: CatalogCategory[] = [
     slug: "cakes",
     description: "توضیح بک‌اند کیک",
     image: "https://api.example.test/storage/cakes.jpg",
+    imageAlt: "کیک و دسر تازه وینیمی",
     productCount: 7,
     seo: { title: "SEO کیک", description: "SEO توضیح کیک" },
   },
@@ -89,9 +90,11 @@ test("backend categories control visibility and preserve filtered editorial view
 
   assert.equal(visible[0]?.name, "کیک و دسر از بک‌اند");
   assert.equal(visible[0]?.description, "توضیح بک‌اند کیک");
+  assert.equal(visible[0]?.imageAlt, "کیک و دسر تازه وینیمی");
   assert.equal(visible[0]?.productCount, 7);
 
   assert.equal(visible[1]?.name, "چیزکیک");
+  assert.equal(visible[1]?.imageAlt, "کیک و دسر تازه وینیمی");
   assert.equal(visible[1]?.productCount, undefined);
   assert.equal(visible[1]?.isFilteredView, true);
 
