@@ -29,6 +29,9 @@ const HomePage = () => {
   const featuredProducts = products
     .filter((product) => product.isFeatured)
     .slice(0, 6);
+  const chilledGalleryKey = chilledProducts
+    .map((product) => product.id)
+    .join(":");
   const home = content.home;
   const faqSchema = buildHomeDecisionFaqSchema(loaderData?.faqs ?? []);
   const secondaryHeroCta =
@@ -196,16 +199,28 @@ const HomePage = () => {
         </div>
       </section>
 
-      {chilledProductsLoading ? (
-        <section className="cold-gallery-shell border-y border-[#9eb9a5]/25 py-14" aria-busy="true" aria-label="در حال دریافت محصولات یخچالی">
-          <div className="container-custom">
-            <div className="mx-auto mb-8 h-12 w-72 animate-pulse rounded-full bg-[#cfded3]" />
-            <div className="h-[34rem] animate-pulse rounded-[2rem] bg-[#c6d8cd]" />
-          </div>
-        </section>
-      ) : (
-        <HomeColdGallery products={chilledProducts} />
-      )}
+      <div
+        className={
+          chilledProductsLoading || chilledProducts.length > 0
+            ? "min-h-[48rem] sm:min-h-[54rem] lg:min-h-[64rem]"
+            : undefined
+        }
+        data-home-cold-gallery-slot="true"
+      >
+        {chilledProductsLoading ? (
+          <section className="cold-gallery-shell min-h-[48rem] border-y border-[#9eb9a5]/25 py-14 sm:min-h-[54rem] lg:min-h-[64rem] lg:py-24" aria-busy="true" aria-label="در حال دریافت محصولات یخچالی">
+            <div className="container-custom">
+              <div className="mx-auto mb-8 h-12 w-72 animate-pulse rounded-full bg-[#cfded3]" />
+              <div className="h-[34rem] animate-pulse rounded-[2rem] bg-[#c6d8cd] lg:h-[42rem]" />
+            </div>
+          </section>
+        ) : (
+          <HomeColdGallery
+            key={chilledGalleryKey || "empty-cold-gallery"}
+            products={chilledProducts}
+          />
+        )}
+      </div>
 
       <OccasionSelector />
       <DecisionSupportPanel />
