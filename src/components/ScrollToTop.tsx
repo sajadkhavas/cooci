@@ -14,6 +14,15 @@ const focusTarget = (target: HTMLElement) => {
   }
 };
 
+const decodeHashTarget = (hash: string) => {
+  const raw = hash.slice(1);
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+};
+
 /**
  * Accessibility-only route focus manager.
  *
@@ -34,8 +43,7 @@ export const ScrollToTop = () => {
 
     const frameId = window.requestAnimationFrame(() => {
       if (hash) {
-        const targetId = decodeURIComponent(hash.slice(1));
-        const target = document.getElementById(targetId);
+        const target = document.getElementById(decodeHashTarget(hash));
         if (target) focusTarget(target);
         return;
       }
