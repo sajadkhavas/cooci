@@ -1,111 +1,123 @@
 # وضعیت مرجع پروژه WINIMI
 
-آخرین reconciliation نهایی: 2026-09-10
+آخرین GitHub reconciliation: 2026-09-11
 
-> مرجع شماره ۱ ادامه کار. F31 بسته شده است. برای بررسی تاریخی ابتدا همین فایل، سپس `docs/WINIMI_LIVING_HANDOFF_FA.md`، `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` و `docs/F31_FILAMENT_CONTROL_COVERAGE_AUDIT_FA.md` خوانده شوند.
+> مرجع شماره ۱ ادامه کار. F31 تاریخی بسته و Production آن قبلاً تحویل شده است. پس از F31، Admin Audit 32 به‌عنوان maintenance مستقل تکمیل و در GitHub پذیرفته شده؛ اما این maintenance هنوز روی Production فعال نشده است. برای جزئیات ابتدا همین فایل، سپس `docs/WINIMI_LIVING_HANDOFF_FA.md`، `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` و Backend `docs/ADMIN_AUDIT32_CONTINUATION_FA.md` خوانده شوند.
 
 ## CURRENT_STATUS
 
 ```text
 PROJECT=WINIMI_COOCI
-CURRENT_PHASE=F31_FINAL_ACCEPTANCE_HANDOFF
-PHASE28=CLOSED
-F29S=CLOSED
-F29=CLOSED
-F30=CLOSED
-PHASE19B=CLOSED
-PHASE20=CLOSED
 F31=COMPLETED
-F31_IMPLEMENTATION_ACCEPTED=YES
-WINIMI_FINAL_DELIVERY=PASS
-PRODUCTION=READY
-HANDOFF=COMPLETE
+F31_PRODUCTION_DELIVERY=PASS
+F31_HANDOFF=COMPLETE
+
+ADMIN_AUDIT32_CODE_SCOPE=32_OF_32_RECONCILED
+ADMIN_AUDIT32_GITHUB_MERGE=PASS
+ADMIN_AUDIT32_POST_MERGE_CI=PASS
+ADMIN_AUDIT32_PRODUCTION_SYNC=PENDING
+
 LIVE_SITE_DISCOVERY_AS_SOURCE=FORBIDDEN_BY_OWNER
 UNRESOLVED_ADMIN_P0=0
 UNRESOLVED_ADMIN_P1=0
 ```
 
-## Final GitHub sources
+## Latest accepted GitHub main — Admin Audit 32 maintenance
+
+این SHAها جدیدترین Source پذیرفته‌شده در GitHub هستند و **هنوز به‌عنوان Production deployed source ثبت نشده‌اند**.
 
 ```text
 FRONTEND_REPO=sajadkhavas/cooci
-FRONTEND_PR=54 MERGED
-FRONTEND_IMPLEMENTATION_HEAD=584aecf5bafac9fa6b757fdd937495be25ab989d
-FRONTEND_MERGED_DEPLOYED_SOURCE=7d5e3fe03b11bc007652908b5f2fff2e78504b31
-FRONTEND_FREEZE_BRANCH=freeze/winimi-f31-final-20260910
+FRONTEND_MAINTENANCE_PR=58 MERGED
+FRONTEND_IMPLEMENTATION_HEAD=506519ced3d68e4c42991c848faf05d376063782
+FRONTEND_ACCEPTED_MAIN=ca074dbd0664c88a7d618299ba04d8d20d729b07
 
 BACKEND_REPO=sajadkhavas/winimi-bakery-backend
-BACKEND_PR=17 MERGED
-BACKEND_IMPLEMENTATION_HEAD=96170b03c28548e627e4bf9255addaef745d9df1
-BACKEND_MERGED_DEPLOYED_SOURCE=a2e5c48e8c73c49caaac1f5c9cbb0f608f066e3b
+BACKEND_MAINTENANCE_PR=20 MERGED
+BACKEND_FINAL_PR_HEAD=e3d46ccec2a037f4226f5db10a07977ca08349a4
+BACKEND_ACCEPTED_MAIN=fc93669455d9bf22fe41260b192d76fb1e65f284
+```
+
+### Backend exact-head / post-merge evidence
+
+```text
+EXACT_HEAD_BACKEND_CI=34541429972 SUCCESS          # Backend CI #742
+EXACT_HEAD_PHASE18_BACKEND=34541429968 SUCCESS     # Phase18 #240
+EXACT_HEAD_F30=34541430019 SUCCESS                 # F30 #162
+EXACT_HEAD_PHASE19=34541429944 SUCCESS             # Phase19 #228
+
+POST_MERGE_BACKEND_CI=34541614246 SUCCESS          # Backend CI #743
+POST_MERGE_PHASE18_BACKEND=34541614236 SUCCESS     # Phase18 #241
+POST_MERGE_PHASE19_BACKEND=34541614252 SUCCESS     # Phase19 #229
+```
+
+### Frontend exact-head / coordinated / post-merge evidence
+
+```text
+EXACT_HEAD_FRONTEND_CI=34540720209 SUCCESS          # Frontend CI #1818
+EXACT_HEAD_PHASE8=34540720042 SUCCESS               # Phase8 #767
+EXACT_HEAD_PHASE19=34540720081 SUCCESS              # Phase19 #202
+EXACT_HEAD_PHASE18=34540720028 SUCCESS              # Phase18 #634
+COORDINATED_PHASE18_JOB=103085747602 SUCCESS        # rerun after backend main fc936694...
+
+POST_MERGE_FRONTEND_CI=34542268389 SUCCESS          # Frontend CI #1819
+POST_MERGE_PHASE8=34542268400 SUCCESS               # Phase8 #768
+POST_MERGE_PHASE19=34542268410 SUCCESS              # Phase19 #203
+POST_MERGE_PHASE18=34542268430 SUCCESS              # Phase18 #635
+```
+
+Phase18 هماهنگ و post-merge شامل Laravel setup/migrations/seed، backend adversarial acceptance، delivery contract، Production SSR build، browser desktop/mobile، SEO 10.3–10.9، PWA، final adversarial و scroll baseline بوده و سبز است.
+
+## Production runtime — آخرین وضعیت اثبات‌شده
+
+Production فعلی همچنان همان runtime فریز‌شدهٔ F31 است. این مقادیر فقط با evidence اجرای واقعی سرور تغییر می‌کنند:
+
+```text
+PRODUCTION_HOST=hwsrv-1332134.hostwindsdns.com
+
+FRONTEND_DEPLOYED_SOURCE=7d5e3fe03b11bc007652908b5f2fff2e78504b31
+FRONTEND_RELEASE=b0d20cd656e5e5d680c3
+FRONTEND_CURRENT=/var/www/winimi/frontend/releases/b0d20cd656e5e5d680c3
+FRONTEND_FREEZE_BRANCH=freeze/winimi-f31-final-20260910
+
+BACKEND_DEPLOYED_SOURCE=a2e5c48e8c73c49caaac1f5c9cbb0f608f066e3b
+BACKEND_RELEASE=49045150d53cd2be5c2b
+BACKEND_CURRENT=/var/www/winimi/backend/releases/49045150d53cd2be5c2b
 BACKEND_FREEZE_BRANCH=freeze/winimi-f31-final-20260910
 
-TRACKER=cooci#55
-REVIEW_THREADS=0
-OPEN_DELIVERY_PRS=0
+F31_RECONCILIATION_RESULT=PASS
+F31_DEPLOY_RESULT=PASS_CONFIRMED
 ```
 
-## Final post-merge CI
+شواهد F31 شامل health/readiness، frontend SSR، Nginx/PWA public surfaces و business immutability بود و در `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md` نگهداری می‌شود. این شواهد تاریخی برای maintenance جدید به‌معنای deploy شدن SHAهای `ca074dbd...` و `fc936694...` نیست.
 
-Frontend merged `main`:
+## Admin Audit 32 closure
 
-```text
-FRONTEND_CI=34463202521 SUCCESS
-PHASE19_PACKAGE=34463202553 SUCCESS
-PHASE8_DEPLOYMENT=34463202560 SUCCESS
-PHASE18_E2E=34463202542 SUCCESS
-POST_MERGE_FRONTEND=4_OF_4_SUCCESS
-```
+`AUDIT_CODE_SCOPE = 32/32 RECONCILED` است. دو مورد عمداً runtime/business action هستند و defect کد محسوب نمی‌شوند:
 
-Backend merged `main`:
-
-```text
-BACKEND_CI=34463190852 SUCCESS
-PHASE19_PACKAGE=34463190793 SUCCESS
-PHASE18_BACKEND=34463190823 SUCCESS
-POST_MERGE_BACKEND=3_OF_3_SUCCESS
-```
-
-## Final Production alignment
-
-Production host attested: `hwsrv-1332134.hostwindsdns.com`.
-
-```text
-FRONTEND_RELEASE=b0d20cd656e5e5d680c3
-FRONTEND_SOURCE=7d5e3fe03b11bc007652908b5f2fff2e78504b31
-FRONTEND_CURRENT=/var/www/winimi/frontend/releases/b0d20cd656e5e5d680c3
-
-BACKEND_RELEASE=49045150d53cd2be5c2b
-BACKEND_SOURCE=a2e5c48e8c73c49caaac1f5c9cbb0f608f066e3b
-BACKEND_CURRENT=/var/www/winimi/backend/releases/49045150d53cd2be5c2b
-
-RECONCILIATION_RESULT=PASS
-DEPLOY_RESULT=PASS_CONFIRMED
-ORDERS_BEFORE=4
-ORDERS_AFTER=4
-PAYMENT_ATTEMPTS_BEFORE=4
-PAYMENT_ATTEMPTS_AFTER=4
-BACKEND_SHARED_ENV_UNCHANGED=YES
-FRONTEND_RUNTIME_ENV_UNCHANGED=YES
-DB_MUTATION_DURING_RECONCILIATION=NO
-ORDER_MUTATION_DURING_RECONCILIATION=NO
-PAYMENT_MUTATION_DURING_RECONCILIATION=NO
-```
-
-Backend `/health` and `/api/system/ready`, frontend internal SSR health, public `/`, `/products`, `/app.webmanifest` and `/sw.js` all passed. PWA manifest returned `application/manifest+json; charset=utf-8`, name `وینیمی بیکری`, short name `وینیمی` and two icons.
+- **#4 Media regeneration:** بعد از deploy واقعی Backend جدید، derivativeهای تاریخی فقط برای `thumb` و `preview` با قرارداد Spatie و `--force` regenerate شوند؛ Original حذف نمی‌شود.
+- **#26 Delivery Zone:** فقط دادهٔ واقعی کسب‌وکار روی Production ثبت شود. اگر دادهٔ واقعی موجود نیست، مسیر ارسال باید fail-closed/غیرفعال بماند؛ Zone جعلی ممنوع است.
 
 ## Architecture locked for delivery
 
-- Backend/Filament is authoritative for owner-managed content, catalog, operational data and public settings.
-- Frontend owns layout, responsive behavior, accessibility mechanics and security-safe system behavior.
-- Footer navigation is Backend/API/SSR-managed.
-- PWA name/colors/shortcuts/offline copy are StoreSetting-managed; Service Worker logic/icons stay release-managed.
-- Search Console/GA4/GTM accept only public identifiers; Analytics remains consent-gated.
-- Push subscription inventory is masked/read-only.
-- Legacy duplicate Filament resources are hidden, not deleted.
-- Operator-owned setting migrations preserve existing values and use non-destructive rollback semantics.
+- Backend/Filament authority برای owner-managed content، catalog، operational data و public settings حفظ شده است.
+- Frontend مسئول layout، responsive behavior، accessibility mechanics و security-safe rendering است.
+- Tiptap managed editor از Media Library مرکزی، internal link، sanitizer، Preview و native `hurdle` callout استفاده می‌کند.
+- Frontend فقط قرارداد امن `filament-tiptap-hurdle` را render می‌کند و arbitrary class/tone را قبول نمی‌کند.
+- Navigation پنل فقط شش گروه رسمی دارد: `فروشگاه`، `محتوا`، `بازاریابی و سئو`، `ارتباطات`، `تنظیمات فروشگاه`، `سیستم و امنیت`.
+- هیچ fake Article/City Page/Review/Inquiry/Gallery/Category/Delivery Zone برای پرکردن پنل تولید نشده است.
+- Order/Payment/Google Login در این maintenance باز یا mutate نشده‌اند.
 
-## Retained acceptance — do not repeat without regression evidence
+## Production sync contract
+
+GitHub Actions فعلی CI/readiness/package verification هستند و deployment واقعی Hostwinds را از راه SSH اجرا نمی‌کنند. deployment واقعی باید روی سرور و با اسکریپت‌های versioned خود مخازن انجام شود:
+
+- Frontend: `deploy/bin/preflight-frontend-server.sh`, `deploy/bin/deploy-production-frontend.sh`, smoke/rollback scripts.
+- Backend: `deploy/bin/preflight-backend-server.sh`, `deploy/bin/deploy-production-backend.sh`, `deploy/bin/smoke-backend-production.sh`, rollback script.
+
+تا قبل از اجرای واقعی سرور و ثبت release ID/health/business-immutability evidence، `ADMIN_AUDIT32_PRODUCTION_SYNC=PENDING` باقی می‌ماند.
+
+## Retained acceptance — بدون evidence جدید تکرار نشود
 
 - real Google Login Production acceptance
 - authenticated checkout
@@ -113,16 +125,14 @@ Backend `/health` and `/api/system/ready`, frontend internal SSR health, public 
 - live Web Push delivery acceptance
 - Phase19B backup/restore/reboot/rollback evidence
 
-## FINAL_MARKERS
+## NEXT
 
 ```text
-F31=COMPLETED
-WINIMI_FINAL_DELIVERY=PASS
-PRODUCTION=READY
-HANDOFF=COMPLETE
-FINAL_FREEZE=PASS
-DEPLOY_REPEAT=NO
-NEXT=POST_HANDOFF_MAINTENANCE_ONLY
+NEXT=ADMIN_AUDIT32_SINGLE_PRODUCTION_SYNC
+DEPLOY_COUNT_TARGET=ONE
+ORDER_MUTATION=FORBIDDEN
+PAYMENT_MUTATION=FORBIDDEN
+FAKE_BUSINESS_DATA=FORBIDDEN
 ```
 
-The closure documentation commit may be newer than the deployed frontend source because documentation files are not runtime release input. The immutable Production source remains the deployed SHA pinned by `freeze/winimi-f31-final-20260910`.
+بعد از Production sync فقط runtime evidence واقعی، release IDها، health/smoke و نتیجهٔ #4/#26 در Living Handoff ثبت می‌شوند. هیچ SHA یا release جدیدی قبل از آن deployed فرض نمی‌شود.
