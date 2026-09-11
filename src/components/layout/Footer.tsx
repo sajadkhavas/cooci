@@ -15,10 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { categoryContents } from "@/data/categoriesContent";
-import { useCatalogDirectory } from "@/hooks/useCatalogDirectory";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
-import { buildVisibleCatalogCategories } from "@/lib/catalog-category-visibility";
 
 const currentYear = new Intl.DateTimeFormat("fa-IR", {
   year: "numeric",
@@ -51,36 +48,8 @@ const FooterLinkList = ({
 export const Footer = () => {
   const rootData = useRouteLoaderData("root") as RootLoaderData | undefined;
   const { settings, content } = useStorefrontSettings();
-  const { categories, landings } = useCatalogDirectory();
-  const editorialCategories = landings.length > 0 ? landings : categoryContents;
-  const categoryLinks = buildVisibleCatalogCategories(
-    editorialCategories,
-    categories,
-  ).map((category) => ({
-    name: category.name,
-    href: `/products/category/${category.routeSlug}`,
-  }));
-  const fallbackFooterGroups = [
-    {
-      title: content.footer.discovery.title,
-      links: content.footer.discovery.links.map((link) => ({
-        name: link.label,
-        href: link.href,
-      })),
-    },
-    {
-      title: content.footer.categoryTitle,
-      links: categoryLinks,
-    },
-    {
-      title: content.footer.services.title,
-      links: content.footer.services.links.map((link) => ({
-        name: link.label,
-        href: link.href,
-      })),
-    },
-  ].filter((group) => group.links.length > 0);
-  const managedFooterGroups = (rootData?.footerNavigation ?? [])
+  const footerNavigation = rootData?.footerNavigation ?? [];
+  const managedFooterGroups = footerNavigation
     .filter((item) => item.children.length > 0)
     .map((item) => ({
       title: item.label,
@@ -89,18 +58,9 @@ export const Footer = () => {
         href: child.href,
       })),
     }));
-  const standaloneFooterLinks = (rootData?.footerNavigation ?? [])
+  const standaloneFooterLinks = footerNavigation
     .filter((item) => item.children.length === 0)
     .map((item) => ({ name: item.label, href: item.href }));
-  const resolvedFooterGroups = managedFooterGroups.length > 0
-    ? managedFooterGroups
-    : fallbackFooterGroups;
-  const legalLinks = standaloneFooterLinks.length > 0
-    ? standaloneFooterLinks
-    : content.footer.legal.map((link) => ({
-        name: link.label,
-        href: link.href,
-      }));
   const socialLinks = [
     {
       href: settings.contact.instagramUrl,
@@ -209,7 +169,7 @@ export const Footer = () => {
           </div>
 
           <div className="hidden gap-x-8 gap-y-10 px-7 sm:grid-cols-2 lg:grid xl:grid-cols-3 xl:px-10">
-            {resolvedFooterGroups.map((group) => (
+            {managedFooterGroups.map((group) => (
               <div key={group.title} className="min-w-0">
                 <h3 className="mb-5 text-xs font-black tracking-[0.08em] text-[#6f3e33]">
                   {group.title}
@@ -220,7 +180,7 @@ export const Footer = () => {
           </div>
 
           <Accordion type="single" collapsible className="pt-4 lg:hidden">
-            {resolvedFooterGroups.map((group) => (
+            {managedFooterGroups.map((group) => (
               <AccordionItem
                 key={group.title}
                 value={group.title}
@@ -265,7 +225,7 @@ export const Footer = () => {
 
         <div className="flex flex-col gap-4 py-5 text-xs text-[#27390c]/55 lg:flex-row lg:items-center lg:justify-between">
           <ul className="flex flex-wrap gap-x-5 gap-y-3">
-            {legalLinks.map((link) => (
+            {standaloneFooterLinks.map((link) => (
               <li key={`${link.href}-${link.name}`}>
                 <Link
                   to={link.href}

@@ -11,6 +11,7 @@ const files = {
   seo: "src/components/SEO.tsx",
   publicSsr: "src/lib/public-ssr.ts",
   loaders: "src/lib/public-loaders.server.ts",
+  root: "src/root.tsx",
   routes: "src/routes.ts",
   locationsRoute: "src/routes/locations.tsx",
   locationsPage: "src/pages/LocationsPage.tsx",
@@ -92,11 +93,20 @@ requireText("cityPage", 'href: "/locations"', "city breadcrumb to location hub")
 requireText("contactPage", "createContactPageSchema", "ContactPage entity");
 requireText("contactPage", "useStorefrontSettings", "contact backend identity renderer");
 requireText("aboutPage", "createAboutPageSchema", "AboutPage entity");
-requireText("footer", "content.footer.services", "backend-driven footer service group");
-requireText("storefrontContent", '["مناطق ارسال", "/locations"]', "authoritative local hub fallback contract");
+
+// Footer navigation is now a single backend-managed NavigationItem authority.
+// Local SEO only requires that the managed footer tree is loaded and rendered;
+// whether /locations is exposed is an operator-managed NavigationItem decision.
+requireText("root", 'loadStoreNavigation("footer")', "backend-managed footer navigation loader");
+requireText("footer", "const footerNavigation = rootData?.footerNavigation ?? []", "managed footer navigation source");
+requireText("footer", "managedFooterGroups", "managed footer groups renderer");
+forbidText("footer", "content.footer.services", "legacy Storefront Settings footer service links");
+forbidText("footer", "fallbackFooterGroups", "hard-coded footer navigation fallback");
 forbidText("footer", 'href: "/city/tehran"', "hard-coded Tehran city link");
 forbidText("footer", 'href: "/city/karaj"', "hard-coded Karaj city link");
 forbidText("footer", 'href: "/city/andisheh"', "hard-coded Andisheh city link");
+
+requireText("storefrontContent", '["مناطق ارسال", "/locations"]', "legacy-compatible local hub content contract");
 requireText("sitemap", '{ path: "/locations" }', "conditional locations sitemap entry");
 requireText("sitemap", "collectPublishedCityPages", "authoritative sitemap city source");
 
@@ -126,5 +136,5 @@ if (errors.length) {
 }
 
 console.log(
-  "Frontend Phase 10.7 audit passed: stable brand entities, backend-authoritative NAP, backend-driven location hub navigation, city Service schemas and local crawl gates are locked.",
+  "Frontend Phase 10.7 audit passed: stable brand entities, backend-authoritative NAP, managed footer navigation, city Service schemas and local crawl gates are locked.",
 );

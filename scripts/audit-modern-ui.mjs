@@ -16,7 +16,6 @@ const files = {
   homeColdGallery: "src/components/home/HomeColdGallery.tsx",
   products: "src/pages/ProductsPage.tsx",
   categoryShowcase: "src/components/catalog/CategoryShowcase.tsx",
-  categoriesContent: "src/data/categoriesContent.ts",
   storefrontContent: "src/lib/storefront-content.ts",
   homeProductRail: "src/components/home/HomeProductRail.tsx",
   productCard: "src/components/ProductCard.tsx",
@@ -83,7 +82,7 @@ requireText(
 );
 requireText("layout", "<ScrollProgress", "global scroll progress");
 requireText("layout", "ambient-layer", "ambient backdrop markup");
-requireText("layout", "page-enter", "route transition wrapper");
+requireText("layout", "page-enter", "stable route transition wrapper");
 
 for (const requirement of [
   'role="dialog"',
@@ -109,25 +108,35 @@ forbidText(
   "duplicate category-index navigation",
 );
 
-requireText(
-  "footer",
-  "buildVisibleCatalogCategories",
-  "backend-authoritative modern footer category directory",
-);
-requireText(
-  "footer",
-  'href: `/products/category/${category.routeSlug}`',
-  "canonical modern footer category route builder",
-);
-for (const validSlug of ["diet-diabetic", "cakes"]) {
+for (const requirement of [
+  "const footerNavigation = rootData?.footerNavigation ?? []",
+  "managedFooterGroups",
+  "standaloneFooterLinks",
+  "content.footer.supportTitle",
+  "content.footer.aboutText",
+  "content.footer.locationText",
+  "content.footer.watermark",
+]) {
   requireText(
-    "categoriesContent",
-    `slug: "${validSlug}"`,
-    `modern footer editorial category fallback ${validSlug}`,
+    "footer",
+    requirement,
+    `managed footer/navigation contract: ${requirement}`,
   );
 }
-requireText("footer", "content.footer.watermark", "backend-driven editorial footer wordmark renderer");
-requireText("storefrontContent", '"WINIMI BAKERY"', "editorial footer wordmark fallback");
+for (const forbidden of [
+  "fallbackFooterGroups",
+  "buildVisibleCatalogCategories",
+  "categoryContents",
+  "content.footer.discovery",
+  "content.footer.services",
+  "content.footer.legal",
+]) {
+  forbidText(
+    "footer",
+    forbidden,
+    `legacy footer navigation fallback: ${forbidden}`,
+  );
+}
 forbidText("footer", 'to="/categories"', "duplicate category-index footer CTA");
 forbidText("footer", 'href: "/categories"', "duplicate category-index footer link");
 requireText("gift", "gift.primary.href", "backend-driven gift page safe shop CTA renderer");
@@ -339,5 +348,5 @@ if (errors.length) {
 }
 
 console.log(
-  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including Backend-driven storefront copy and one category-aware shop UI.`,
+  `Modern UI audit passed: ${Object.keys(files).length} design-system contracts verified, including managed footer navigation and one category-aware shop UI.`,
 );

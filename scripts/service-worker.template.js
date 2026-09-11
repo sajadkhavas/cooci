@@ -167,6 +167,65 @@ const networkFirstNavigation = async (request) => {
   }
 };
 
+const resolveNotificationUrl = (value) => {
+  try {
+    const destination = new URL(
+      typeof value === "string" && value.trim() ? value : "/",
+      self.location.origin,
+    );
+    return destination.origin === self.location.origin
+      ? destination.href
+      : `${self.location.origin}/`;
+  } catch {
+    return `${self.location.origin}/`;
+  }
+};
+
+const openNotificationDestination = async (safeUrl) => {
+  const windows = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+
+  const exactWindow = windows.find((client) => {
+    try {
+      return new URL(client.url).href === safeUrl;
+    } catch {
+      return false;
+    }
+  });
+
+  if (exactWindow) {
+    try {
+      return await exactWindow.focus();
+    } catch {
+      // Fall through to another same-origin client or openWindow().
+    }
+  }
+
+  for (const client of windows) {
+    try {
+      if (new URL(client.url).origin !== self.location.origin) continue;
+      if (typeof client.navigate !== "function") continue;
+      const navigated = await client.navigate(safeUrl);
+      if (!navigated) continue;
+      try {
+        return await navigated.focus();
+      } catch {
+        return navigated;
+      }
+    } catch {
+      // A stale/uncontrolled client must not prevent notification navigation.
+    }
+  }
+
+  try {
+    return await self.clients.openWindow(safeUrl);
+  } catch {
+    return undefined;
+  }
+};
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
@@ -215,10 +274,8 @@ self.addEventListener("push", (event) => {
   }
 
   const title = typeof payload.title === "string" ? payload.title : "وینیمی بیکری";
-  const body = typeof payload.body === "string" ? payload.body : "وضعیت سفارش شما به‌روزرسانی شد.";
-  const rawUrl = typeof payload.url === "string" ? payload.url : "/account";
-  const destination = new URL(rawUrl, self.location.origin);
-  const safeUrl = destination.origin === self.location.origin ? destination.pathname + destination.search : "/account";
+  const body = typeof payload.body === "string" ? payload.body : "خبر تازه‌ای از وینیمی دارید.";
+  const safeUrl = resolveNotificationUrl(payload.url);
 
   event.waitUntil(self.registration.showNotification(title, {
     body,
@@ -226,7 +283,7 @@ self.addEventListener("push", (event) => {
     lang: "fa-IR",
     icon: "/icons/winimi-192.png",
     badge: "/icons/winimi-96-monochrome.png",
-    tag: typeof payload.tag === "string" ? payload.tag : "winimi-order-update",
+    tag: typeof payload.tag === "string" ? payload.tag : "winimi-notification",
     renotify: Boolean(payload.renotify),
     requireInteraction: Boolean(payload.requireInteraction),
     silent: false,
@@ -243,19 +300,9 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   if (event.action === "dismiss") return;
-  const rawUrl = event.notification.data?.url || "/account";
-  const destination = new URL(rawUrl, self.location.origin);
-  const safeUrl = destination.origin === self.location.origin ? destination.href : `${self.location.origin}/account`;
 
-  event.waitUntil((async () => {
-    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
-    if (existing) {
-      await existing.navigate(safeUrl);
-      return existing.focus();
-    }
-    return self.clients.openWindow(safeUrl);
-  })());
+  const safeUrl = resolveNotificationUrl(event.notification.data?.url);
+  event.waitUntil(openNotificationDestination(safeUrl));
 });
 
 self.addEventListener("fetch", (event) => {

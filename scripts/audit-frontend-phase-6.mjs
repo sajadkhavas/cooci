@@ -10,6 +10,7 @@ const files = {
   floatingSupport: "src/components/layout/FloatingWhatsApp.tsx",
   announcer: "src/components/accessibility/RouteAnnouncer.tsx",
   scroll: "src/components/ScrollToTop.tsx",
+  root: "src/root.tsx",
   errorBoundary: "src/components/RouteErrorBoundary.tsx",
   loading: "src/components/RouteLoadingFallback.tsx",
   siteLayout: "src/components/layout/SiteLayout.tsx",
@@ -138,9 +139,23 @@ requireText(
   "window.cancelAnimationFrame(frameId)",
   "route focus frame cleanup",
 );
-requireText("scroll", "getProgrammaticScrollBehavior", "hash reduced-motion behavior");
 requireText("scroll", 'document.getElementById("main-content")', "route main focus");
 forbidText("scroll", "search } = useLocation", "query-triggered focus theft");
+forbidText(
+  "scroll",
+  "window.scrollTo(",
+  "competing programmatic route scroll authority",
+);
+forbidText(
+  "scroll",
+  "scrollIntoView(",
+  "competing hash scroll authority",
+);
+requireText(
+  "root",
+  "<ScrollRestoration nonce={nonce} />",
+  "React Router single scroll-restoration authority",
+);
 
 requireText("errorBoundary", "headingRef", "recoverable error focus target");
 requireText("errorBoundary", 'id="route-error-title"', "error labelling");
@@ -158,7 +173,12 @@ requireText(
 );
 requireText("siteLayout", 'href="#main-content"', "skip link");
 requireText("siteLayout", 'id="main-content"', "main focus target");
-requireText("siteLayout", "key={location.pathname}", "pathname-only page transition key");
+requireText("siteLayout", "<Outlet />", "stable router outlet without transition remount");
+forbidText(
+  "siteLayout",
+  "key={location.pathname}",
+  "pathname-driven page remount transition",
+);
 forbidText(
   "siteLayout",
   "location.pathname}${location.search",
@@ -208,5 +228,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  "Frontend Phase 6 audit passed: unified shop navigation, keyboard dialogs, focus transitions, live regions, reduced motion and recoverable shared states are locked.",
+  "Frontend Phase 6 audit passed: unified shop navigation, keyboard dialogs, stable route focus, single scroll restoration, live regions, reduced motion and recoverable shared states are locked.",
 );

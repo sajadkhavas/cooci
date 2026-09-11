@@ -75,7 +75,11 @@ test("editorial category routes resolve only through published backend categorie
   assert.equal(routes.get("mini-cookies"), "myny-koky");
   assert.equal(routes.get("diet-diabetic"), "rzhymy-o-bdon-knd-afzodh");
   assert.equal(routes.get("cakes"), "kyk-o-dsr");
-  assert.equal(routes.get("cheesecakes"), "kyk-o-dsr");
+  assert.equal(
+    routes.has("cheesecakes"),
+    false,
+    "the retired standalone cheesecake route must not be exposed",
+  );
   assert.equal(routes.get("pastry"), "rol-o-krosan");
 
   assert.equal(

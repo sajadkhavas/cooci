@@ -8,6 +8,16 @@ body {
   font-synthesis: none;
 }
 
+/*
+ * The site-wide grain pseudo-element is decorative only. The base stylesheet
+ * historically placed it at z-index 1000, which creates a viewport-sized
+ * stacking layer above the sticky Header/mega-menu. Keep the texture below
+ * real page content so interactive overlays remain authoritative.
+ */
+.site-shell::before {
+  z-index: 5;
+}
+
 .media-frame {
   contain: layout paint;
   isolation: isolate;
@@ -23,8 +33,15 @@ body {
   transform: translateZ(0);
 }
 
+/*
+ * Lazy-loaded replaced elements already expose intrinsic sizing through their
+ * width/height/aspect-ratio contract. Applying content-visibility to <img>
+ * itself can defer its paint independently from the surrounding card and was
+ * producing visible pop-in during Home scrolling on desktop. Keep the media
+ * frame contained, but let the image participate in normal rendering.
+ */
 img[loading="lazy"] {
-  content-visibility: auto;
+  content-visibility: visible;
 }
 
 @media (hover: none), (pointer: coarse) {

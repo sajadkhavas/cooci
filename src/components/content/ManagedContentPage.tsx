@@ -205,28 +205,7 @@ export const ManagedContentPage = ({
       </section>
 
       <section className="section-padding">
-        <div className="container-custom grid max-w-6xl items-start gap-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
-          <article className="min-w-0 overflow-hidden rounded-[2rem] border border-border bg-card shadow-soft">
-            <header className="border-b border-border bg-secondary/25 px-6 py-5 sm:px-8 md:px-10">
-              <p className="text-sm font-black text-foreground">
-                متن کامل و اطلاعات منتشرشده
-              </p>
-              <p className="mt-1 text-sm leading-7 text-muted-foreground">
-                برای دسترسی سریع‌تر، از فهرست بخش‌های صفحه استفاده کنید.
-              </p>
-            </header>
-
-            <div className="px-6 py-8 sm:px-8 md:px-10 md:py-10">
-              <StructuredText content={page.content} />
-            </div>
-
-            {publishedDate && (
-              <footer className="border-t border-border bg-secondary/20 px-6 py-5 text-xs text-muted-foreground sm:px-8 md:px-10">
-                این نسخه در تاریخ {publishedDate} منتشر شده است.
-              </footer>
-            )}
-          </article>
-
+        <div className="container-custom grid max-w-6xl items-start gap-8 lg:grid-cols-[19rem_minmax(0,1fr)]">
           <aside className="space-y-5 lg:sticky lg:top-28">
             {headings.length > 0 && (
               <nav
@@ -278,6 +257,27 @@ export const ManagedContentPage = ({
               </div>
             </div>
           </aside>
+
+          <article className="min-w-0 overflow-hidden rounded-[2rem] border border-border bg-card shadow-soft">
+            <header className="border-b border-border bg-secondary/25 px-6 py-5 sm:px-8 md:px-10">
+              <p className="text-sm font-black text-foreground">
+                متن کامل و اطلاعات منتشرشده
+              </p>
+              <p className="mt-1 text-sm leading-7 text-muted-foreground">
+                برای دسترسی سریع‌تر، از فهرست بخش‌های صفحه استفاده کنید.
+              </p>
+            </header>
+
+            <div className="px-6 py-8 sm:px-8 md:px-10 md:py-10">
+              <StructuredText content={page.content} />
+            </div>
+
+            {publishedDate && (
+              <footer className="border-t border-border bg-secondary/20 px-6 py-5 text-xs text-muted-foreground sm:px-8 md:px-10">
+                این نسخه در تاریخ {publishedDate} منتشر شده است.
+              </footer>
+            )}
+          </article>
         </div>
       </section>
 

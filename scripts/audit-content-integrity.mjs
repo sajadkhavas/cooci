@@ -9,6 +9,7 @@ const files = {
   reviewsPage: "src/pages/ReviewsPage.tsx",
 
   publicLoaders: "src/lib/public-loaders.server.ts",
+  root: "src/root.tsx",
   blogList: "src/pages/BlogListPage.tsx",
   blogDetail: "src/pages/BlogDetailPage.tsx",
   about: "src/pages/AboutPage.tsx",
@@ -258,22 +259,60 @@ forbidText("header", 'href: "/categories"', "header category-index navigation");
 forbidText("footer", 'href: "/categories"', "footer category-index navigation");
 forbidText("footer", 'to="/categories"', "footer category-index CTA");
 
+// Footer menu structure is intentionally owned by NavigationItem only. Category
+// links may still point at canonical /products/category/:slug routes, but the
+// Footer must not synthesize them independently from the catalog anymore.
 requireText(
+  "root",
+  'loadStoreNavigation("footer")',
+  "backend-authoritative footer NavigationItem loader",
+);
+requireText(
+  "footer",
+  "const footerNavigation = rootData?.footerNavigation ?? []",
+  "backend-authoritative footer navigation tree",
+);
+requireText(
+  "footer",
+  "managedFooterGroups",
+  "managed footer grouped navigation renderer",
+);
+requireText(
+  "footer",
+  "standaloneFooterLinks",
+  "managed footer standalone navigation renderer",
+);
+forbidText(
   "footer",
   "buildVisibleCatalogCategories",
-  "backend-authoritative footer category directory",
+  "independent footer category synthesis",
 );
-requireText(
+forbidText(
   "footer",
-  'href: `/products/category/${category.routeSlug}`',
-  "canonical footer category route builder",
+  "fallbackFooterGroups",
+  "legacy hard-coded footer navigation fallback",
 );
+forbidText(
+  "footer",
+  "content.footer.discovery",
+  "legacy Storefront Settings discovery links",
+);
+forbidText(
+  "footer",
+  "content.footer.services",
+  "legacy Storefront Settings service links",
+);
+forbidText(
+  "footer",
+  "content.footer.legal",
+  "legacy Storefront Settings legal links",
+);
+
 for (const validSlug of [
   "cookies",
   "mini-cookies",
   "diet-diabetic",
   "cakes",
-  "cheesecakes",
   "pastry",
 ]) {
   requireText(
@@ -282,6 +321,16 @@ for (const validSlug of [
     `editorial category fallback ${validSlug}`,
   );
 }
+forbidText(
+  "categoriesContent",
+  'slug: "cheesecakes"',
+  "standalone cheesecake category landing",
+);
+forbidText(
+  "categoriesContent",
+  'catalogSearch: "چیزکیک"',
+  "standalone cheesecake catalog search mapping",
+);
 requireText(
   "sitemap",
   "fetchCatalogCategories",
@@ -438,5 +487,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, Backend-authoritative storefront content, canonical collections and the permanent legacy redirect.`,
+  `Content integrity audit passed: ${Object.keys(files).length} contracts verified, including Laravel-backed crawl resources, Backend-authoritative storefront content, managed Footer navigation, canonical collections and the permanent legacy redirect.`,
 );
