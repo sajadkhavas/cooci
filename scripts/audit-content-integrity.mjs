@@ -313,7 +313,6 @@ for (const validSlug of [
   "mini-cookies",
   "diet-diabetic",
   "cakes",
-  "cheesecakes",
   "pastry",
 ]) {
   requireText(
@@ -322,6 +321,16 @@ for (const validSlug of [
     `editorial category fallback ${validSlug}`,
   );
 }
+forbidText(
+  "categoriesContent",
+  'slug: "cheesecakes"',
+  "standalone cheesecake category landing",
+);
+forbidText(
+  "categoriesContent",
+  'catalogSearch: "چیزکیک"',
+  "standalone cheesecake catalog search mapping",
+);
 requireText(
   "sitemap",
   "fetchCatalogCategories",
