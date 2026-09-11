@@ -18,21 +18,23 @@ UNRESOLVED_ADMIN_P0=0
 UNRESOLVED_ADMIN_P1=0
 ```
 
-## دو Source Lock مستقل — GitHub و Production
+## دو Source Lock مستقل — Runtime implementation و Production
 
-### A) Latest accepted GitHub main
+### A) Accepted Runtime implementation source
 
-این دو SHA آخرین Source پذیرفته‌شدهٔ maintenance هستند و هنوز deployed source ثبت نشده‌اند:
+این دو SHA Source کد Runtime پذیرفته‌شدهٔ maintenance هستند. آن‌ها عمداً با عنوان `main` ثبت نمی‌شوند، چون docs-only commitهای بعدی می‌توانند branch `main` را جلو ببرند بدون آنکه Runtime code عوض شود.
 
 ```text
-FRONTEND_ACCEPTED_MAIN=ca074dbd0664c88a7d618299ba04d8d20d729b07
+FRONTEND_RUNTIME_SOURCE=ca074dbd0664c88a7d618299ba04d8d20d729b07
 FRONTEND_MAINTENANCE_PR=58 MERGED
 FRONTEND_IMPLEMENTATION_HEAD=506519ced3d68e4c42991c848faf05d376063782
 
-BACKEND_ACCEPTED_MAIN=fc93669455d9bf22fe41260b192d76fb1e65f284
+BACKEND_RUNTIME_SOURCE=fc93669455d9bf22fe41260b192d76fb1e65f284
 BACKEND_MAINTENANCE_PR=20 MERGED
 BACKEND_FINAL_PR_HEAD=e3d46ccec2a037f4226f5db10a07977ca08349a4
 ```
+
+Docs-only closure commits بعد از این SHAها Runtime tree را تغییر نداده‌اند. برای Deploy فقط همین source lockها یا descendant اثبات‌شده با Runtime tree یکسان معتبر است؛ «آخرین main» به‌تنهایی source lock نیست.
 
 ### B) Last proven Production runtime — historical F31
 
@@ -51,7 +53,7 @@ PRODUCTION_HOST=hwsrv-1332134.hostwindsdns.com
 F31_RECONCILIATION_RESULT=PASS
 ```
 
-**قانون:** Accepted main و deployed source فقط پس از اجرای واقعی deploy روی Hostwinds و ثبت release/health evidence می‌توانند برابر اعلام شوند.
+**قانون:** Runtime implementation source و deployed source فقط پس از اجرای واقعی deploy روی Hostwinds و ثبت release/health evidence می‌توانند برابر اعلام شوند.
 
 ## Admin Audit 32 — GitHub acceptance evidence
 
@@ -85,7 +87,7 @@ POST_MERGE_PHASE19=34542268410 SUCCESS
 POST_MERGE_PHASE18=34542268430 SUCCESS
 ```
 
-Phase18 coordinated rerun بعد از Backend merge، Backend `main=fc936694...` را checkout کرد و Laravel migrations/seed، backend adversarial، delivery contract، SSR production build، desktop/mobile browser، SEO 10.3–10.9، PWA، final adversarial و scroll baseline را PASS کرد. Post-merge Phase18 #635 نیز روی Frontend `main=ca074dbd...` کامل SUCCESS است.
+Phase18 coordinated rerun بعد از Backend merge، Backend Runtime source `fc936694...` را از `main` همان زمان checkout کرد و Laravel migrations/seed، backend adversarial، delivery contract، SSR production build، desktop/mobile browser، SEO 10.3–10.9، PWA، final adversarial و scroll baseline را PASS کرد. Post-merge Phase18 #635 نیز روی Frontend Runtime source `ca074dbd...` کامل SUCCESS است.
 
 ## Audit closure
 
@@ -139,7 +141,9 @@ Backend source-of-truth:
 - `deploy/bin/smoke-backend-production.sh`
 - `deploy/bin/rollback-backend.sh`
 
-Production sync باید یک‌بار، با قفل دقیق دو accepted main بالا، بدون Order/Payment mutation انجام شود؛ سپس release IDها، health/smoke، media regeneration و Delivery Zone decision همین سند را به‌روزرسانی می‌کنند.
+Production sync باید یک‌بار، با قفل دقیق `FRONTEND_RUNTIME_SOURCE` و `BACKEND_RUNTIME_SOURCE` بالا، بدون Order/Payment mutation انجام شود؛ سپس release IDها، health/smoke، media regeneration و Delivery Zone decision همین سند را به‌روزرسانی می‌کنند.
+
+نکتهٔ ایمنی: preflight تاریخی Backend شامل expectationهای قدیمی برای disabled بودن checkout/payment است و نباید کورکورانه روی Production فعلی اعمال شود. قبل از هر mutation، env زنده فقط read-only بررسی می‌شود و وضعیت payment/auth پذیرفته‌شدهٔ F31 حفظ می‌شود؛ این maintenance مجوز خاموش‌کردن یا بازطراحی payment/auth نیست.
 
 ## شواهد تاریخی که بدون regression تکرار نمی‌شوند
 
