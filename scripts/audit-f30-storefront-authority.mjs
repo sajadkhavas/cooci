@@ -16,7 +16,7 @@ const categoryBaselineBlob = execFileSync(
   { encoding: "utf8" },
 ).trim();
 assert(
-  categoryBaselineBlob === "b204f0bbfc15398add79577287d1b8e07eea82b0",
+  categoryBaselineBlob === "ce84beaa48e02db62ddcd9604e7818797716c0fe",
   `SEO category fallback baseline changed: ${categoryBaselineBlob}`,
 );
 
@@ -49,6 +49,8 @@ contains("src/pages/ProductsPage.tsx", "landings.find((landing) => landing.slug 
 contains("src/components/catalog/CategoryShowcase.tsx", "landings.length > 0 ? landings : categoryContents");
 contains("src/components/content/CategoryGuideLinks.tsx", "landing?.guides ?? []");
 excludes("src/components/content/CategoryGuideLinks.tsx", "CATEGORY_GUIDES");
+excludes("src/data/categoriesContent.ts", 'slug: "cheesecakes"');
+excludes("src/data/categoriesContent.ts", 'catalogSearch: "چیزکیک"');
 
 const forbiddenHomepageSeo = "خرید کوکی، کیک و باکس هدیه";
 assert(
@@ -58,4 +60,5 @@ assert(
 
 console.log("F30_STOREFRONT_BACKEND_AUTHORITY=PASS");
 console.log("SEO_BASELINE_PRESERVED=PASS");
+console.log("STANDALONE_CHEESECAKE_LANDING_REMOVED=PASS");
 console.log("SEO_BACKEND_AUTHORITY=PASS");
