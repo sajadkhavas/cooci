@@ -8,6 +8,16 @@ body {
   font-synthesis: none;
 }
 
+/*
+ * The site-wide grain pseudo-element is decorative only. The base stylesheet
+ * historically placed it at z-index 1000, which creates a viewport-sized
+ * stacking layer above the sticky Header/mega-menu. Keep the texture below
+ * real page content so interactive overlays remain authoritative.
+ */
+.site-shell::before {
+  z-index: 5;
+}
+
 .media-frame {
   contain: layout paint;
   isolation: isolate;
