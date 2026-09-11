@@ -27,7 +27,9 @@ export const SiteLayout = () => (
     </div>
     <Header />
     <main id="main-content" className="relative z-10 min-w-0 flex-1" tabIndex={-1}>
-      <Outlet />
+      <div className="page-enter">
+        <Outlet />
+      </div>
     </main>
     <TrustStrip />
     <Footer />
