@@ -6,9 +6,11 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
+import { FaqRichText } from "@/components/content/FaqRichText";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
 import { isBackendEnabled } from "@/lib/api";
 import { loadFaqs, type StoreFaq } from "@/lib/content";
+import { faqAnswerToPlainText } from "@/lib/faq-rich-text";
 import type { PublicSsrLoaderData } from "@/lib/public-ssr";
 
 const pathIcons = [ShoppingBag, PackageSearch] as const;
@@ -23,7 +25,7 @@ export const buildHomeDecisionFaqSchema = (faqs: StoreFaq[]) =>
           name: item.question,
           acceptedAnswer: {
             "@type": "Answer",
-            text: item.answer,
+            text: faqAnswerToPlainText(item.answer),
           },
         })),
       }
@@ -117,9 +119,9 @@ export const DecisionSupportPanel = () => {
                       +
                     </span>
                   </summary>
-                  <p className="pb-5 pl-3 text-sm leading-8 text-muted-foreground">
-                    {item.answer}
-                  </p>
+                  <div className="pb-5 pl-3">
+                    <FaqRichText content={item.answer} variant="compact" />
+                  </div>
                 </details>
               ))}
               {faqs.length === 0 && !query.isLoading && (
