@@ -75,7 +75,7 @@ manifest_headers=$(headers_for "$BASE_URL/manifest.webmanifest")
 require_header "$manifest_headers" '^cache-control:.*no-cache' "manifest cache"
 require_header "$manifest_headers" '^content-type: application/manifest\+json' "manifest content type"
 
-asset_path=$(grep -om1 -E '/assets/[^" ]+\.js' <<<"$root_html" || true)
+asset_path=$(grep -oE '/assets/[^" ]+\.js' <<<"$root_html" | sed -n '1p')
 if [[ -z "$asset_path" ]]; then
   echo "Unable to discover a production JavaScript asset." >&2
   exit 1
