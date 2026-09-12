@@ -72,9 +72,11 @@ PR=30
 PR_TITLE=Sync storefront settings dotted-key compatibility
 PR_HEAD=c478956cb573763bde44889c3126d2abc43ac010
 PR_MERGE_SHA=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
-BACKEND_MAIN=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
+BACKEND_RUNTIME_CODE_MAIN_AT_CLOSURE=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
 PHASE18_BACKEND_RUN=34665867392 SUCCESS
 ```
+
+Backend `main` می‌تواند بعد از این closure فقط به‌خاطر docs-only commitها جلوتر برود؛ این به معنی deploy شدن Backend code جدید نیست. Runtime واقعی Backend تا deploy جدید باید با active release سرور read-only تأیید شود.
 
 قرارداد compatibility:
 
@@ -181,7 +183,7 @@ RELEASE_DIRECTORIES=0755
 RELEASE_FILES=0644
 ```
 
-Release builder بعد از copy کردن build، permission تمام directoryها را `0755` و fileها را `0644` نرمال می‌کند. این fix داخل PR #65 و `main` است.
+Release builder بعد از copy کردن build، permission تمام directoryها را `0755` و fileها را `0644` نرمال می‌کند. این fix داخل PR #65 و Runtime source نهایی است.
 
 برای حذف اثر cache قدیمی 500، URL لوگو نیز versioned شد:
 
@@ -296,13 +298,14 @@ DISCOVERED_PAGES=29
 - `docs/F31_FINAL_ACCEPTANCE_HANDOFF_WORKLOG_FA.md`
 - `docs/WINIMI_LIVING_HANDOFF_FA.md`
 - Backend: `docs/ADMIN_AUDIT32_CONTINUATION_FA.md`
+- Backend: `docs/POST_AUDIT32_2026-09-12_GA4_SETTINGS_COMPAT_FA.md`
 
 ## قانون ادامه برای چت بعدی
 
 ```text
 AUTHORITATIVE_FRONTEND_RUNTIME_SOURCE=44e6b4318cf67883fef49063624c26c41ebbdbd2
 AUTHORITATIVE_FRONTEND_RELEASE=33ddd21b10b4e66c62a5
-BACKEND_GITHUB_MAIN=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
+BACKEND_RUNTIME_CODE_MAIN_AT_CLOSURE=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
 GA_ID=G-96JJNX40BV
 GA_MODE=ROOT_ONLY
 CUSTOM_CONSENT_UI=REMOVED
