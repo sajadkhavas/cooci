@@ -62,13 +62,13 @@ PREVIOUS_FRONTEND_RELEASE=7c0edba3df0cea76714b
 
 ### Backend
 
-آخرین sync مرتبط امروز:
+آخرین sync کدی مرتبط امروز:
 
 ```text
 REPOSITORY=sajadkhavas/winimi-bakery-backend
 COMPAT_PR=30 MERGED
 COMPAT_PR_HEAD=c478956cb573763bde44889c3126d2abc43ac010
-BACKEND_GITHUB_MAIN=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
+BACKEND_RUNTIME_CODE_MAIN_AT_CLOSURE=b83af12e227ac9cb08b30fc78f01ec4798afbcc3
 PHASE18_BACKEND_RUN=34665867392 SUCCESS
 ```
 
@@ -78,7 +78,13 @@ PR #30 فقط compatibility public settings را ثبت کرد: nested structure
 - `integrations.google_tag_mode`
 - `integrations.google_tag_id`
 
+بعد از این closure، Backend `main` نیز می‌تواند به‌علت commitهای docs-only جلوتر از `b83af12...` باشد؛ این به معنی deploy شدن Backend code جدید نیست. Runtime واقعی Backend تا deploy جدید باید با active release سرور read-only تأیید شود.
+
 در Deploy نهایی Frontend هیچ Backend deploy، migration، seed یا DB/business mutation انجام نشد.
+
+Backend handoff تکمیلی امروز:
+
+- `docs/POST_AUDIT32_2026-09-12_GA4_SETTINGS_COMPAT_FA.md`
 
 ## GitHub CI نهایی Frontend
 
