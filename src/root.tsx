@@ -136,7 +136,7 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   return (
     <html lang="fa-IR" dir="rtl">
       <head>
-        {/* Google tag (gtag.js) — GA4 / Consent Mode */}
+        {/* Google tag (gtag.js) — GA4 */}
         <script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-96JJNX40BV"
