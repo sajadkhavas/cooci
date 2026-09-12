@@ -137,6 +137,27 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   return (
     <html lang="fa-IR" dir="rtl">
       <head>
+        {/* Google tag (gtag.js) — GA4 / Consent Mode */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-96JJNX40BV"
+          nonce={nonce}
+        />
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'denied'
+});
+gtag('js', new Date());
+gtag('config', 'G-96JJNX40BV');`,
+          }}
+        />
         <meta charSet="utf-8" />
         <meta
           name="viewport"
