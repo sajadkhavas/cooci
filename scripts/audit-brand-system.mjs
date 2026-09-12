@@ -29,6 +29,11 @@ const requireText = (file, text, description = text) => {
     errors.push(`${files[file]}: missing ${description}.`);
   }
 };
+const requirePattern = (file, pattern, description) => {
+  if (!pattern.test(sources[file])) {
+    errors.push(`${files[file]}: missing ${description}.`);
+  }
+};
 const forbidText = (file, text, description = text) => {
   if (sources[file].toLowerCase().includes(text.toLowerCase())) {
     errors.push(`${files[file]}: contains retired ${description}.`);
@@ -49,7 +54,11 @@ requireText("root", 'import "./styles/brand-theme.css"', "brand stylesheet impor
 requireText("root", 'settings["pwa.theme_color"]', "admin-managed SSR browser theme color");
 requireText("root", ': "#D0E596"', "official SSR theme-color fallback");
 requireText("root", '/^#[0-9a-f]{6}$/i.test(configuredTheme)', "validated SSR theme-color contract");
-requireText("brand", 'logoPath: "/brand/winimi-logo.svg"', "official logo path");
+requirePattern(
+  "brand",
+  /logoPath:\s*["']\/brand\/winimi-logo\.svg(?:\?v=[A-Za-z0-9._-]+)?["']/,
+  "official logo path with optional cache-busting version",
+);
 requireText("brand", 'primaryColor: "#D0E596"', "official brand hex");
 requireText("brand", 'brandInkColor: "#27390C"', "official dark logo ink");
 requireText("logo", 'fill="#D0E596"', "pastel logo surface");
