@@ -76,7 +76,8 @@ const sharedHeaders = (response, nonce) => {
         apiOrigin +
         " https://*.google-analytics.com" +
         " https://*.analytics.google.com" +
-        " https://www.googletagmanager.com",
+        " https://www.googletagmanager.com" +
+        " https://www.google.com",
       "manifest-src 'self'",
       "worker-src 'self'",
       "upgrade-insecure-requests",
