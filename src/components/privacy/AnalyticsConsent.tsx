@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useStorefrontSettings } from "@/hooks/useStorefrontSettings";
-import { useCspNonce } from "@/lib/security/csp";
 
 type ConsentChoice = "granted" | "denied" | null;
 const STORAGE_KEY = "winimi-analytics-consent-v1";
@@ -13,7 +12,6 @@ const readChoice = (): ConsentChoice => {
 
 export const AnalyticsConsent = () => {
   const { payload } = useStorefrontSettings();
-  const nonce = useCspNonce();
   const settings = payload?.settings ?? {};
   const enabled = settings["consent.analytics_enabled"] === true;
   const mode = settings["integrations.google_tag_mode"];
@@ -26,34 +24,38 @@ export const AnalyticsConsent = () => {
   );
 
   useEffect(() => {
-    if (!configured || choice !== "granted") return;
-    const win = window as typeof window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void };
+    if (!configured || choice === null) return;
+
+    const win = window as typeof window & {
+      dataLayer?: unknown[];
+      gtag?: (...args: unknown[]) => void;
+    };
+
     win.dataLayer = win.dataLayer ?? [];
-    win.gtag = win.gtag ?? function (...args: unknown[]) { win.dataLayer?.push(args); };
-    win.gtag("consent", "default", {
+
+    win.gtag =
+      win.gtag ??
+      function (...args: unknown[]) {
+        win.dataLayer?.push(args);
+      };
+
+    const granted = choice === "granted";
+
+    win.gtag("consent", "update", {
       ad_storage: "denied",
       ad_user_data: "denied",
       ad_personalization: "denied",
-      analytics_storage: "granted",
+      analytics_storage: granted ? "granted" : "denied",
     });
-    if (document.querySelector(`script[data-winimi-google-tag="${tagId}"]`)) return;
-    const script = document.createElement("script");
-    script.async = true;
-    script.nonce = nonce ?? "";
-    script.dataset.winimiGoogleTag = tagId;
-    script.src = mode === "gtm"
-      ? `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(tagId)}`
-      : `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`;
-    script.onload = () => {
-      if (mode === "gtm") {
-        win.dataLayer?.push({ "gtm.start": Date.now(), event: "gtm.js" });
-      } else {
-        win.gtag?.("js", new Date());
-        win.gtag?.("config", tagId, { anonymize_ip: true });
-      }
-    };
-    document.head.appendChild(script);
-  }, [choice, configured, mode, nonce, tagId]);
+
+    if (granted && mode === "gtag") {
+      win.gtag("event", "page_view", {
+        send_to: tagId,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    }
+  }, [choice, configured, mode, tagId]);
 
   if (!configured || choice !== null) return null;
   const decide = (next: Exclude<ConsentChoice, null>) => {
