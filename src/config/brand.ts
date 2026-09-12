@@ -4,7 +4,7 @@ export const brandConfig = {
   tagline: "کوکی، کیک و باکس هدیه",
   slogan:
     "انتخاب آنلاین کوکی، کیک، دسر و باکس هدیه بر اساس دسته، مناسبت و جزئیات محصول",
-  logoPath: "/brand/winimi-logo.svg",
+  logoPath: "/brand/winimi-logo.svg?v=20260912-r1",
   primaryColor: "#D0E596",
   brandInkColor: "#27390C",
   phone: "09212508746",

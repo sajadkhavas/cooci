@@ -12,7 +12,6 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
-import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -137,6 +136,21 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
   return (
     <html lang="fa-IR" dir="rtl">
       <head>
+        {/* Google tag (gtag.js) — GA4 */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-96JJNX40BV"
+          nonce={nonce}
+        />
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-96JJNX40BV');`,
+          }}
+        />
         <meta charSet="utf-8" />
         <meta
           name="viewport"
@@ -175,7 +189,6 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
                   <RouteErrorBoundary>
                     <SiteLayout />
                   </RouteErrorBoundary>
-                  <AnalyticsConsent />
                 </CartProvider>
               </AuthProvider>
             </TooltipProvider>

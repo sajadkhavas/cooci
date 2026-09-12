@@ -56,6 +56,9 @@ const sharedHeaders = (response, nonce) => {
   const scriptSource = nonce
     ? "script-src 'self' 'nonce-" + nonce + "'"
     : "script-src 'self'";
+  const scriptElementSource = nonce
+    ? "script-src-elem 'self' 'nonce-" + nonce + "' https://www.googletagmanager.com"
+    : "script-src-elem 'self' https://www.googletagmanager.com";
   response.setHeader(
     "Content-Security-Policy",
     [
@@ -68,7 +71,13 @@ const sharedHeaders = (response, nonce) => {
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       scriptSource,
-      "connect-src 'self' " + apiOrigin,
+      scriptElementSource,
+      "connect-src 'self' " +
+        apiOrigin +
+        " https://*.google-analytics.com" +
+        " https://*.analytics.google.com" +
+        " https://www.googletagmanager.com" +
+        " https://www.google.com",
       "manifest-src 'self'",
       "worker-src 'self'",
       "upgrade-insecure-requests",

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+  chmodSync,
   cpSync,
   existsSync,
   mkdirSync,
@@ -92,6 +93,24 @@ const outputBuild = join(releaseDir, "app", "build");
 rmSync(releaseDir, { recursive: true, force: true });
 mkdirSync(dirname(outputBuild), { recursive: true });
 cpSync(buildDir, outputBuild, { recursive: true, dereference: false });
+
+const normalizeReleasePermissions = (directory) => {
+  chmodSync(directory, 0o755);
+
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const absolutePath = join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      normalizeReleasePermissions(absolutePath);
+    } else {
+      chmodSync(absolutePath, 0o644);
+    }
+  }
+};
+
+chmodSync(releaseDir, 0o755);
+chmodSync(join(releaseDir, "app"), 0o755);
+normalizeReleasePermissions(outputBuild);
 
 const manifest = {
   format: "winimi-frontend-ssr-release-v2",
