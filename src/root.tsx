@@ -12,7 +12,6 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
-import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -148,12 +147,6 @@ export default function Root({ loaderData }: { loaderData: RootLoaderData }) {
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
-gtag('consent', 'default', {
-  ad_storage: 'denied',
-  ad_user_data: 'denied',
-  ad_personalization: 'denied',
-  analytics_storage: 'denied'
-});
 gtag('js', new Date());
 gtag('config', 'G-96JJNX40BV');`,
           }}
@@ -196,7 +189,6 @@ gtag('config', 'G-96JJNX40BV');`,
                   <RouteErrorBoundary>
                     <SiteLayout />
                   </RouteErrorBoundary>
-                  <AnalyticsConsent />
                 </CartProvider>
               </AuthProvider>
             </TooltipProvider>

@@ -132,7 +132,7 @@ export const Footer = () => {
             <Link to="/" className="inline-flex items-center gap-3 rounded-2xl">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#27390c]/15 bg-[#d0e596] shadow-soft">
                 <img
-                  src="/brand/winimi-logo.svg"
+                  src="/brand/winimi-logo.svg?v=20260912-r1"
                   alt=""
                   width={56}
                   height={56}

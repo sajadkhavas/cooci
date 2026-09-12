@@ -207,7 +207,7 @@ export const Header = () => {
           >
             <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#d0e596] shadow-[0_16px_34px_-18px_hsl(var(--primary)/0.9)] transition duration-300 group-hover:scale-[1.03] lg:h-12 lg:w-12">
               <img
-                src="/brand/winimi-logo.svg"
+                src="/brand/winimi-logo.svg?v=20260912-r1"
                 alt=""
                 width={48}
                 height={48}
