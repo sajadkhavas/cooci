@@ -99,7 +99,13 @@ export const links = () => [
     fetchPriority: "high" as const,
   },
   { rel: "manifest", href: "/app.webmanifest" },
-  { rel: "icon", href: "/icons/winimi-192.svg", type: "image/svg+xml" },
+  {
+    rel: "icon",
+    href: "/icons/winimi-favicon-48.png",
+    type: "image/png",
+    sizes: "48x48",
+  },
+  { rel: "icon", href: "/favicon.ico", sizes: "any" },
   {
     rel: "apple-touch-icon",
     href: "/icons/winimi-apple-touch.png",
