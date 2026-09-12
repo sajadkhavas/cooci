@@ -9,6 +9,12 @@ const read = (path) => {
   return fs.readFileSync(path, "utf8");
 };
 
+const requireBinaryFile = (path, description) => {
+  if (!fs.existsSync(path) || fs.statSync(path).size === 0) {
+    errors.push(`Missing or empty ${description}: ${path}`);
+  }
+};
+
 const files = {
   theme: "src/styles/brand-theme.css",
   root: "src/root.tsx",
@@ -51,6 +57,23 @@ requireText(
 );
 requireText("theme", ".text-primary", "accessible dark text override on light backgrounds");
 requireText("root", 'import "./styles/brand-theme.css"', "brand stylesheet import");
+requireText(
+  "root",
+  'href: "/icons/winimi-favicon-48.png"',
+  "Google-compatible stable PNG favicon",
+);
+requireText("root", 'type: "image/png"', "PNG favicon media type");
+requireText("root", 'sizes: "48x48"', "Google-recommended favicon size");
+requireText("root", 'href: "/favicon.ico"', "legacy favicon fallback");
+requireBinaryFile(
+  "public/icons/winimi-favicon-48.png",
+  "48x48 PNG favicon",
+);
+requireBinaryFile(
+  "public/icons/winimi-favicon-96.png",
+  "96x96 PNG favicon",
+);
+requireBinaryFile("public/favicon.ico", "ICO favicon fallback");
 requireText("root", 'settings["pwa.theme_color"]', "admin-managed SSR browser theme color");
 requireText("root", ': "#D0E596"', "official SSR theme-color fallback");
 requireText("root", '/^#[0-9a-f]{6}$/i.test(configuredTheme)', "validated SSR theme-color contract");
