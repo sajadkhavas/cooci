@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 
 const errors = [];
 const read = (path) => {
@@ -12,6 +13,16 @@ const read = (path) => {
 const requireBinaryFile = (path, description) => {
   if (!fs.existsSync(path) || fs.statSync(path).size === 0) {
     errors.push(`Missing or empty ${description}: ${path}`);
+  }
+};
+
+const requireBinaryHash = (path, expectedHash, description) => {
+  if (!fs.existsSync(path)) return;
+  const actualHash = createHash("sha256")
+    .update(fs.readFileSync(path))
+    .digest("hex");
+  if (actualHash !== expectedHash) {
+    errors.push(`${description} does not match the approved official brand artwork: ${path}`);
   }
 };
 
@@ -74,6 +85,16 @@ requireBinaryFile(
   "96x96 PNG favicon",
 );
 requireBinaryFile("public/favicon.ico", "ICO favicon fallback");
+for (const [path, hash, description] of [
+  ["public/icons/winimi-favicon-48.png", "fe06b20476d254bb872a6386bba69e4d0a5d56037c5879e70d09be1da8c2eac6", "48x48 favicon"],
+  ["public/icons/winimi-favicon-96.png", "67ccb64a939ec6b1d56163bef443ab7eebb3388b0522ae414d925b563c93a3fe", "96x96 favicon"],
+  ["public/icons/winimi-apple-touch.png", "e8807c93a5563920a817726465086f0bb3dcb1eb56e9810bbd215692c9f2df5e", "Apple touch icon"],
+  ["public/icons/winimi-192.png", "caa9602e3766bd73afd3344c0d5fd3744cec3d956798b4e56e33ce8f46f85247", "192x192 PWA icon"],
+  ["public/icons/winimi-512.png", "f9d76c793ebf1f6f18a9230ef898fe87f657cab342f11a9b6c995e5b263dd840", "512x512 maskable PWA icon"],
+  ["public/favicon.ico", "d96923f93291cdf9242fac57cb266826f00067bc1dba583044061141f9e6238d", "ICO favicon"],
+]) {
+  requireBinaryHash(path, hash, description);
+}
 requireText("root", 'settings["pwa.theme_color"]', "admin-managed SSR browser theme color");
 requireText("root", ': "#D0E596"', "official SSR theme-color fallback");
 requireText("root", '/^#[0-9a-f]{6}$/i.test(configuredTheme)', "validated SSR theme-color contract");
