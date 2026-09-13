@@ -101,14 +101,14 @@ export const links = () => [
   { rel: "manifest", href: "/app.webmanifest" },
   {
     rel: "icon",
-    href: "/icons/winimi-favicon-48.png",
+    href: "/icons/winimi-favicon-48.png?v=20260913-official-r1",
     type: "image/png",
     sizes: "48x48",
   },
-  { rel: "icon", href: "/favicon.ico", sizes: "any" },
+  { rel: "icon", href: "/favicon.ico?v=20260913-official-r1", sizes: "any" },
   {
     rel: "apple-touch-icon",
-    href: "/icons/winimi-apple-touch.png",
+    href: "/icons/winimi-apple-touch.png?v=20260913-official-r1",
     sizes: "180x180",
   },
 ];

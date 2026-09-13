@@ -69,12 +69,12 @@ test("production PWA fails closed on a real network failure and recovers after r
   expect(manifest.icons).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        src: "/icons/winimi-192.png",
+        src: "/icons/winimi-192.png?v=20260913-official-r1",
         sizes: "192x192",
         type: "image/png",
       }),
       expect.objectContaining({
-        src: "/icons/winimi-512.png",
+        src: "/icons/winimi-512.png?v=20260913-official-r1",
         sizes: "512x512",
         type: "image/png",
       }),
