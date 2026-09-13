@@ -35,7 +35,7 @@ const safeShortcuts = (value: unknown) => {
         : undefined,
       url: item.url,
       icons: [{
-        src: "/icons/winimi-192.png",
+        src: "/icons/winimi-192.png?v=20260913-official-r1",
         sizes: "192x192",
         type: "image/png",
       }],
@@ -71,8 +71,8 @@ export const loader = async (_args: LoaderFunctionArgs) => {
     theme_color: safeColor(stringSetting(settings, "pwa.theme_color", "#D0E596"), "#D0E596"),
     categories: ["shopping", "food"],
     icons: [
-      { src: "/icons/winimi-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/winimi-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      { src: "/icons/winimi-192.png?v=20260913-official-r1", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/winimi-512.png?v=20260913-official-r1", sizes: "512x512", type: "image/png", purpose: "any maskable" },
     ],
     shortcuts: shortcuts.length ? shortcuts : safeShortcuts(defaults),
   };

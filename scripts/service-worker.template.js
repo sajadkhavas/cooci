@@ -13,9 +13,9 @@ const SHELL_FILES = [
   "/offline",
   "/app.webmanifest",
   "/brand/winimi-logo.svg",
-  "/icons/winimi-192.png",
-  "/icons/winimi-512.png",
-  "/icons/winimi-apple-touch.png",
+  "/icons/winimi-192.png?v=20260913-official-r1",
+  "/icons/winimi-512.png?v=20260913-official-r1",
+  "/icons/winimi-apple-touch.png?v=20260913-official-r1",
 ];
 
 const SENSITIVE_NAVIGATION_PREFIXES = [
@@ -281,7 +281,7 @@ self.addEventListener("push", (event) => {
     body,
     dir: "rtl",
     lang: "fa-IR",
-    icon: "/icons/winimi-192.png",
+    icon: "/icons/winimi-192.png?v=20260913-official-r1",
     badge: "/icons/winimi-96-monochrome.png",
     tag: typeof payload.tag === "string" ? payload.tag : "winimi-notification",
     renotify: Boolean(payload.renotify),

@@ -70,12 +70,13 @@ requireText("theme", ".text-primary", "accessible dark text override on light ba
 requireText("root", 'import "./styles/brand-theme.css"', "brand stylesheet import");
 requireText(
   "root",
-  'href: "/icons/winimi-favicon-48.png"',
-  "Google-compatible stable PNG favicon",
+  'href: "/icons/winimi-favicon-48.png?v=20260913-official-r1"',
+  "cache-busted Google-compatible official PNG favicon",
 );
 requireText("root", 'type: "image/png"', "PNG favicon media type");
 requireText("root", 'sizes: "48x48"', "Google-recommended favicon size");
-requireText("root", 'href: "/favicon.ico"', "legacy favicon fallback");
+requireText("root", 'href: "/favicon.ico?v=20260913-official-r1"', "cache-busted ICO favicon fallback");
+requireText("root", 'href: "/icons/winimi-apple-touch.png?v=20260913-official-r1"', "cache-busted official Apple touch icon");
 requireBinaryFile(
   "public/icons/winimi-favicon-48.png",
   "48x48 PNG favicon",
