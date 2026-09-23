@@ -202,8 +202,9 @@ Observed examples:
 - Some older Pack8 variants are inactive and still use `packaging_fee_toman=0`.
 - Apple Cinnamon, Snickers and Crinkle have Pack8 variants with `packaging_fee_toman=100000`.
 - Their current Pack8 pricing uses regular=`8 × single` and sale=`7 × single`, while a 100,000 Toman packaging fee is also configured.
-- Apple Cinnamon, Snickers and Crinkle also currently show the 100,000 packaging fee on their single variants. This must be reviewed because the business requirement is a 100,000 Toman packaging fee for the 8-piece package, not an unsupported extra fee on one single cookie.
-- Do not advertise a Pack8 discount until the effective checkout total is verified and the pricing policy is made transparent.
+- BUSINESS RULE CONFIRMED BY OWNER: packaging fee is 100,000 Toman for BOTH the single-cookie option and the 8-piece package option. Therefore a 100,000 Toman packaging fee on a single variant is intentional and must not be treated as an error.
+- The storefront/checkout currently multiplies a variant packaging fee by line quantity. Under the current implementation, ordering multiple single-cookie units means the 100,000 Toman packaging fee is charged for each single packaged unit; a Pack8 unit receives one 100,000 Toman packaging fee for that 8-piece package. Preserve this behavior unless the owner explicitly changes the business rule.
+- Pack8 pricing must be communicated using the actual checkout total (product price + packaging fee), and any saving/discount claim must be calculated from the real comparable totals rather than base product prices alone.
 - Shared inventory between single and Pack8 remains a business/inventory concern and must not be faked with independent stock.
 
 ### Current full project scope
