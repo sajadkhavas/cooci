@@ -202,9 +202,12 @@ Observed examples:
 - Some older Pack8 variants are inactive and still use `packaging_fee_toman=0`.
 - Apple Cinnamon, Snickers and Crinkle have Pack8 variants with `packaging_fee_toman=100000`.
 - Their current Pack8 pricing uses regular=`8 × single` and sale=`7 × single`, while a 100,000 Toman packaging fee is also configured.
-- BUSINESS RULE CONFIRMED BY OWNER: packaging fee is 100,000 Toman for BOTH the single-cookie option and the 8-piece package option. Therefore a 100,000 Toman packaging fee on a single variant is intentional and must not be treated as an error.
-- The storefront/checkout currently multiplies a variant packaging fee by line quantity. Under the current implementation, ordering multiple single-cookie units means the 100,000 Toman packaging fee is charged for each single packaged unit; a Pack8 unit receives one 100,000 Toman packaging fee for that 8-piece package. Preserve this behavior unless the owner explicitly changes the business rule.
-- Pack8 pricing must be communicated using the actual checkout total (product price + packaging fee), and any saving/discount claim must be calculated from the real comparable totals rather than base product prices alone.
+- BUSINESS RULE CONFIRMED BY OWNER: packaging fee is exactly 100,000 Toman PER ORDER, regardless of how many cookies are in the order and regardless of whether the customer chooses single-cookie variants, 8-piece package variants, or multiple cookie lines.
+- Packaging fee must therefore NOT be multiplied by line quantity and must NOT be charged separately for each cookie/variant.
+- The current variant-level `packaging_fee_toman=100000` data can misrepresent this business rule if Checkout sums/multiplies it per line. Checkout/cart pricing must be audited and corrected so the order has one packaging-fee charge of 100,000 Toman at most.
+- PDP/category copy must not describe packaging fee as a per-item or per-pack charge.
+- Pack8 pricing/savings must be calculated using comparable product totals and the single per-order packaging fee, not by adding the fee once per line/item.
+- This pricing correction is a functional blocker before promoting Pack8 savings or finalizing checkout-facing SEO/CRO copy.
 - Shared inventory between single and Pack8 remains a business/inventory concern and must not be faked with independent stock.
 
 ### Current full project scope
