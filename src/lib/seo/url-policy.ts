@@ -3,6 +3,7 @@ export const PRIVATE_INDEX_PREFIXES = [
   "/cart",
   "/checkout",
   "/payment",
+  "/offline",
 ] as const;
 
 export const CRAWLABLE_STATIC_PATHS = [

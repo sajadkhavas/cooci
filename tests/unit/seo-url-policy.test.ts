@@ -57,8 +57,11 @@ test("robots and redirect registries protect non-public surfaces", () => {
   const robots = createRobotsText("https://winimibakery.com/path");
   assert.match(robots, /Disallow: \/account/);
   assert.match(robots, /Disallow: \/checkout/);
+  assert.match(robots, /Disallow: \/offline/);
   assert.match(robots, /Sitemap: https:\/\/winimibakery\.com\/sitemap\.xml/);
   assert.equal(isPrivateIndexPath("/account/orders/example"), true);
+  assert.equal(isPrivateIndexPath("/offline"), true);
+  assert.equal(isPrivateIndexPath("/offline/fallback"), true);
   assert.equal(isPrivateIndexPath("/products/example"), false);
   assert.equal(getLegacyRedirectTarget("/categories/"), "/products");
 });
