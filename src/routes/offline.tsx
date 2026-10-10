@@ -1,8 +1,19 @@
-import type { LoaderFunctionArgs } from "react-router";
+import type { HeadersFunction, LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import { WifiOff } from "lucide-react";
 import { isBackendEnabled } from "@/lib/api";
 import { loadStoreSettings } from "@/lib/content";
+
+const OFFLINE_ROBOTS_POLICY = "noindex,nofollow,noarchive";
+
+export const meta: MetaFunction = () => [
+  { name: "robots", content: OFFLINE_ROBOTS_POLICY },
+  { name: "googlebot", content: OFFLINE_ROBOTS_POLICY },
+];
+
+export const headers: HeadersFunction = () => ({
+  "X-Robots-Tag": OFFLINE_ROBOTS_POLICY,
+});
 
 export const loader = async (_args: LoaderFunctionArgs) => {
   const settings = isBackendEnabled
